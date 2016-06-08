@@ -48,17 +48,15 @@ The typical command for running the pipeline is as follows:
 
 `nextflow chipseq.nf -c ~/.nextflow/config --reads '*.R{1,2}.fastq' --genome GRCh37 --mode paired --macsconfig 'macssetup.config'`
 
---reads
+##### --reads
 
 Location of the input FastQ files:
+Note that the {1,2} parentheses are required to specify paired end data. Also, note that the file path should be in quotation marks to prevent shell glob expansion. If left unspecified, the pipeline will assume that the data is in a directory called data in the working directory.
 
- --reads 'path/to/data/sample_*_{1,2}.fastq'
-Note that the {1,2} parentheses are required to specify paired end data. Running --reads '*.fastq' will treat all files as single end. Also, note that the file path should be in quotation marks to prevent shell glob expansion.
+##### --genome
 
-If left unspecified, the pipeline will assume that the data is in a directory called data in the working directory.
+The reference genome to use of the analysis, needs to be one of the genome specified in the config file. The human GRCh37 genome is set as default. Options: GRCh37, GRCm38, NCBIM37
 
---genome
+##### --macsconfig
 
-The reference genome to use of the analysis, needs to be one of the genome specified in the config file. The human GRCh37 genome is set as default.
-
---macsconfig
+The setup file for peak calling using MACS. Format: ChIPSampleID,CtrlSampleID,AnalysisID
