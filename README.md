@@ -59,4 +59,14 @@ The reference genome to use of the analysis, needs to be one of the genome speci
 
 ##### --macsconfig
 
-The setup file for peak calling using MACS. Format: ChIPSampleID,CtrlSampleID,AnalysisID
+The setup file for peak calling using MACS. 
+
+Format:
+
+`ChIPSampleID1,CtrlSampleID1,AnalysisID1`
+
+`ChIPSampleID2,CtrlSampleID2,AnalysisID2`
+
+`ChIPSampleID3,,AnalysisID3`
+
+Note! For single-sample peaking calling without a control sample, skip the field of `CtrlSampleID`.
