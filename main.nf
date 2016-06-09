@@ -296,7 +296,8 @@ process phantompeakqualtools {
     module 'bioinfo-tools'
     module 'samtools'
     module 'R/3.1.0'
-
+    module 'phantompeakqualtools'
+    
     cpus 2
     memory '16 GB'
     time '24h'
