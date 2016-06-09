@@ -296,8 +296,6 @@ process phantompeakqualtools {
     module 'bioinfo-tools'
     module 'samtools'
     module 'R/3.1.0'
-    module 'phantompeakqualtools'
-    module 'SPP'
 
     cpus 2
     memory '16 GB'
@@ -313,7 +311,7 @@ process phantompeakqualtools {
     file '*.spp.out' into results
 
     """
-    Rscript /sw/apps/bioinfo/phantompeakqualtools/1.1/milou/run_spp.R -c=${bam_dedup_phantompeakqualtools} -savp -out=${prefix}.spp.out
+    run_spp.R -c=${bam_dedup_phantompeakqualtools} -savp -out=${prefix}.spp.out
     """
 }
 
