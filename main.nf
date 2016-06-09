@@ -512,9 +512,9 @@ process multiqc {
     errorStrategy 'ignore'
 
     input:
-    file 'fastqc_report' from fastqc_html
-    file 'trim_galore_report' from trim_galore_report
-    file 'picard_report' from picard_report
+    file 'fastqc_report' from fastqc_html.toSortedList()
+    file 'trim_galore_report' from trim_galore_report.toSortedList()
+    file 'picard_report' from picard_report.toSortedList()
 
     output:
     file 'multiqc_report.html'
