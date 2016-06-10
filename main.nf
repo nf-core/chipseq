@@ -10,7 +10,7 @@
  Release 2016-06-08
 ----------------------------------------------------------------------------------------
  Basic command:
- $ nextflow chipseq.nf
+ $ nextflow main.nf
 
  Pipeline variables can be configured with the following command line options:
  --genome [GRCh37 | GRCm38 | NCBIM37]

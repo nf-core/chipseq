@@ -48,6 +48,10 @@ The typical command for running the pipeline is as follows:
 
 `nextflow chipseq.nf -c ~/.nextflow/config --reads '*.R{1,2}.fastq' --genome GRCh37 --mode paired --macsconfig 'macssetup.config'`
 
+##### -c
+
+Path to the configuration file for Nextflow.
+
 ##### --reads
 
 Location of the input FastQ files:
@@ -56,6 +60,10 @@ Note that the {1,2} parentheses are required to specify paired end data. Also, n
 ##### --genome
 
 The reference genome to use of the analysis, needs to be one of the genome specified in the config file. The human GRCh37 genome is set as default. Options: GRCh37, GRCm38, NCBIM37
+
+##### --mode
+
+single or paired
 
 ##### --macsconfig
 
