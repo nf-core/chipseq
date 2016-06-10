@@ -48,7 +48,7 @@ The typical command for running the pipeline is as follows:
 
 `nextflow chipseq.nf -c ~/.nextflow/config --reads '*.R{1,2}.fastq' --genome GRCh37 --mode paired --macsconfig 'macssetup.config'`
 
-##### --c
+##### -c
 
 Path to the configuration file for Nextflow.
 
