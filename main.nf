@@ -364,6 +364,9 @@ process calculateNSCRSC {
     data[,13]<-NA
     data[,14]<-NA
     data[,15]<-NA
+    
+    colnames(data)[14]<-"NSC"
+    colnames(data)[15]<-"RSC"
 
     for (i in 1:nrow(data)){
 	       data[i,12]<-as.numeric(unlist(strsplit(as.character(data[i,4]),","))[1])
