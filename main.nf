@@ -287,7 +287,7 @@ process picard {
 }
 
 /*
-* STEP 5 Phantompeakqualtools
+* STEP 5.1 Phantompeakqualtools
 */
 
 process phantompeakqualtools {
@@ -309,10 +309,70 @@ process phantompeakqualtools {
 
     output:
     file '*.pdf' into results
-    file '*.spp.out' into results
+    file '*.spp.out' into spp_out
 
     """
     run_spp.R -c=${bam_dedup_phantompeakqualtools} -savp -out=${prefix}.spp.out
+    """
+}
+
+/*
+* STEP 5.2 Combine_spp_out
+*/
+
+process combinesppout {
+
+    cpus 1
+    memory '2 GB'
+    time '1h'
+
+    publishDir "$results_path/phantompeakqualtools"
+    input:
+    file spp_out_list from spp_out.toSortedList()
+
+    output:
+    file 'crosscorrelation.txt' into Crosscorrelation
+
+    """
+    cat ${spp_out_list} >crosscorrelation.txt
+    """
+}
+
+/*
+* STEP 5.3 Calculate_NSC_RSC
+*/
+
+process calculateNSCRSC {
+
+    cpus 1
+    memory '2 GB'
+    time '1h'
+
+    publishDir "$results_path/phantompeakqualtools"
+    input:
+    file Crosscorrelation
+
+    output:
+    file 'crosscorrelation_processed.txt' into results
+
+    """
+    #!/usr/bin/env Rscript
+
+    data<-read.table("crosscorrelation.txt",header=FALSE)
+
+    data[,12]<-NA
+    data[,13]<-NA
+    data[,14]<-NA
+    data[,15]<-NA
+
+    for (i in 1:nrow(data)){
+	       data[i,12]<-as.numeric(unlist(strsplit(as.character(data[i,4]),","))[1])
+	       data[i,13]<-as.numeric(unlist(strsplit(as.character(data[i,6]),","))[1])
+	       data[i,14]<-round(data[i,12]/as.numeric(data[i,8]),2)
+	       data[i,15]<-round((data[i,12]-as.numeric(data[i,8]))/(data[i,13]-as.numeric(data[i,8])),2)
+    }
+
+    write.table(data,file="crosscorrelation_processed.txt",quote=FALSE,sep='\t',row.names=FALSE)
     """
 }
 
@@ -356,7 +416,7 @@ process deepTools {
 
 
 /*
-* STEP 7 Generate config file for ngsplot
+* STEP 7.1 Generate config file for ngsplot
 */
 
 process ngs_config_generate {
@@ -391,7 +451,7 @@ process ngs_config_generate {
 
 
 /*
-* STEP 8 Ngsplot
+* STEP 7.2 Ngsplot
 */
 
 process ngsplot {
@@ -442,7 +502,7 @@ process ngsplot {
 }
 
 /*
-* STEP 9 MACS
+* STEP 8 MACS
 */
 
 process macs {
@@ -497,7 +557,7 @@ process macs {
 }
 
 /*
- * STEP 10 MultiQC
+ * STEP 9 MultiQC
  */
 
 process multiqc {
