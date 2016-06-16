@@ -46,7 +46,7 @@ nextflow run NGI-ChIPseq/main.nf
 The typical command for running the pipeline is as follows:
 
 ```
-nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
+nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq' --macsconfig 'macssetup.config'
 ```
 
 
@@ -91,4 +91,3 @@ and `sacCer2` (Yeast).
 ### `-c`
 Specify the path to a specific config file (this is a core NextFlow command). Useful if using different UPPMAX
 projects or different sets of reference genomes.
-
