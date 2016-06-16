@@ -527,10 +527,9 @@ process ngsplot {
     file ngsplot_config from ngsplot_config
 
     output:
-    file '*.pdf'
+    file '*.{pdf,cnt}'
     file '*_TSS'
     file '*_Gene'
-    file '*.cnt'
     
     script:
     
