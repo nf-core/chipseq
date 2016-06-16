@@ -20,8 +20,8 @@
  --macsconfig [path to config file for MACS: line format: chip_sample_id,ctrl_sample_id,analysis_id]
 
  For example:
- $ nextflow main.nf --reads '*.fastq' --macsconfig 'macssetup.config'
- $ nextflow main.nf --reads '*.R{1,2}.fastq' --macsconfig 'macssetup.config'
+ $ nextflow main.nf -c ~/.nextflow/config --reads '*.fastq' --macsconfig 'macssetup.config'
+ $ nextflow main.nf -c ~/.nextflow/config --reads '*.R{1,2}.fastq' --macsconfig 'macssetup.config'
 ---------------------------------------------------------------------------------------
  The pipeline can determine whether the input data is single or paired end. This relies on
  specifying the input files correctly. For paired en data us the example above, i.e.
