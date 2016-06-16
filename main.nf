@@ -308,7 +308,7 @@ process phantompeakqualtools {
 
     output:
     file '*.pdf'
-    file '*.spp.out' into spp_out
+    file '*.spp.out' into spp_out, spp_out_mqc
     
     script:
     """
@@ -625,7 +625,7 @@ process multiqc {
     file ('trimgalore/*') from trimgalore_results.toList()
     file ('bwa/*') from bwa_logs.toList()
     file ('picard/*') from picard_reports.toList()
-    file ('phantompeakqualtools/*') from spp_out.toList()
+    file ('phantompeakqualtools/*') from spp_out_mqc.toList()
 
     output:
     file '*multiqc_report.html'
