@@ -55,7 +55,7 @@ params.genome = 'GRCh37'
 params.index = params.genomes[ params.genome ].bwa
 params.name = "ChIP-seq"
 params.reads = "data/*{_1,_2}*.fastq.gz"
-params.macsconfig = "data/*.config"
+params.macsconfig = "data/macs.config"
 params.extendReadsLen = 100
 params.outdir = './results'
 
@@ -86,8 +86,8 @@ log.info "===================================="
 // Validate inputs
 index = file(params.index)
 macsconfig = file(params.macsconfig)
-if( !index.exists() ) exit 1, "Missing BWA index: $index"
-if( !macsconfig.exists() ) exit 1, "Missing MACS config: $macsconfig"
+if( !index.exists() ) exit 1, "Missing BWA index: '$index'"
+if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
 
 /*
  * Create a channel for read files
@@ -423,7 +423,7 @@ process deepTools {
     plotFingerprint \\
         -b $bam \\
         --plotFile fingerprints.pdf \\
-        --extendReads=$extendReadsLen \\
+        --extendReads=${params.extendReadsLen} \\
         --skipZeros \\
         --ignoreDuplicates \\
         --numberOfSamples 50000 \\
@@ -435,7 +435,7 @@ process deepTools {
         $bam \\
         -out multiBamSummary.npz
         --binSize=10000 \\
-        --extendReads=$extendReadsLen \\
+        --extendReads=${params.extendReadsLen} \\
         --ignoreDuplicates \\
         --centerReads \\
         --bamfiles \\
