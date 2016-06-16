@@ -20,12 +20,12 @@
  --macsconfig [path to config file for MACS: line format: chip_sample_id,ctrl_sample_id,analysis_id]
 
  For example:
- $ nextflow main.nf -c ~/.nextflow/config --reads '*.fastq' --genome GRCh37 --macsconfig 'macssetup.config'
- $ nextflow main.nf -c ~/.nextflow/config --reads '*.R{1,2}.fastq' --genome GRCh37 --macsconfig 'macssetup.config'
+ $ nextflow main.nf --reads '*.fastq' --macsconfig 'macssetup.config'
+ $ nextflow main.nf --reads '*.R{1,2}.fastq' --macsconfig 'macssetup.config'
 ---------------------------------------------------------------------------------------
  The pipeline can determine whether the input data is single or paired end. This relies on
  specifying the input files correctly. For paired en data us the example above, i.e.
- 'sample_*_{1,2}.fastq.gz'. Without the glob {1,2} (or similiar) the data will be treated
+ 'sample_*_{1,2}.fastq'. Without the glob {1,2} (or similiar) the data will be treated
  as single end.
 ----------------------------------------------------------------------------------------
  Pipeline overview:
@@ -48,13 +48,13 @@
  */
 
 // Pipeline version
-version = 1.0
+version = 1.1
 
 // Configurable variables
 params.genome = 'GRCh37'
 params.index = params.genomes[ params.genome ].bwa
 params.name = "ChIP-seq"
-params.reads = "data/*{_1,_2}*.fastq.gz"
+params.reads = "data/*{1,2}*.fastq"
 params.macsconfig = "data/macs.config"
 params.extendReadsLen = 100
 params.outdir = './results'
@@ -103,7 +103,7 @@ Channel
     .groupTuple(sort: true)
     .set { read_files }
 
-read_files.into  { read_files_fastqc; read_files_trimming; name_for_bwa; name_for_picard; name_for_spp }
+read_files.into  { read_files_fastqc; read_files_trimming; name_for_bwa; name_for_samtools; name_for_picard; name_for_spp }
 
 
 /*
@@ -193,7 +193,7 @@ process trim_galore {
 }
 
 /*
- * STEP 3 - align with bwa
+ * STEP 3.1 - align with bwa
  */
 
 process bwa {
@@ -218,20 +218,55 @@ process bwa {
     set val(prefix) from name_for_bwa
 
     output:
-    file '*.sorted.bam' into bam_picard
-    file '*.sorted.bam.bai'
-    file '*.sorted.bed'
+    file '*.sam' into bwa_sam
     stdout into bwa_logs
 
     script:
     """
-    bwa mem -M $index $reads | samtools view -b > ${prefix}.bam
-    samtools sort ${prefix}.bam ${prefix}.sorted
-    samtools index ${prefix}.sorted.bam
-    bedtools bamtobed -i ${prefix}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.sorted.bed
+    bwa mem -M $index $reads > ${prefix}.sam
     """
 }
 
+/*
+ * STEP 3.2 - post-alignment processing
+ */
+
+process samtools {
+    tag "$prefix"
+
+    module 'bioinfo-tools'
+    module 'samtools'
+    module 'BEDTools'
+
+    cpus 2
+    memory { 16.GB * task.attempt }
+    time { 120.h * task.attempt }
+    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+    maxRetries 3
+    maxErrors '-1'
+
+    publishDir "${params.outdir}/bwa", mode: 'copy'
+
+    input:
+    file bwa_sam
+    set val(prefix) from name_for_samtools
+
+    output:
+    file '*.sorted.bam' into bam_picard
+    file '*.sorted.bam.bai'
+    file '*.sorted.bed' into bed_total
+    stdout into bwa_logs
+
+    script:
+    """
+    samtools view -bT $index ${prefix}.sam > ${prefix}.bam
+    samtools sort ${prefix}.bam ${prefix}.sorted
+    samtools index ${prefix}.sorted.bam
+    rm ${prefix}.sam
+    rm ${prefix}.bam
+    bedtools bamtobed -i ${prefix}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.sorted.bed
+    """
+}
 
 /*
 * STEP 4 Picard
@@ -261,7 +296,7 @@ process picard {
     output:
     file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplotconfig, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs
     file '*.dedup.sorted.bam.bai' into bai_dedup_deepTools, bai_dedup_ngsplot, bai_dedup_macs
-    file '*.dedup.sorted.bed'
+    file '*.dedup.sorted.bed' into bed_dedup
     file '*.picardDupMetrics.txt' into picard_reports
 
     script:
@@ -396,6 +431,7 @@ process countstat2 {
     close(OUTPUT);
     """
 }
+
 
 /*
 * STEP 6.1 Phantompeakqualtools
