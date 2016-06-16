@@ -231,7 +231,7 @@ process bwa {
     output:
     file '*.sort.bam' into bam_picard
     file '*.sort.bam.bai' into results
-    file '*.sort.bed' into results
+    file '*.sort.bed' into bed_total
 
     """
     bwa mem -M $genomebwa ${reads} > ${prefix}.sam
@@ -272,7 +272,7 @@ process picard {
     output:
     file '*.dedup.sort.bam' into bam_dedup_phantompeakqualtools,bam_dedup_ngsplotconfig,bam_dedup_ngsplot,bam_dedup_deepTools,bam_dedup_macs
     file '*.dedup.sort.bam.bai' into bai_dedup_deepTools,bai_dedup_ngsplot,bai_dedup_macs
-    file '*.dedup.sort.bed' into results
+    file '*.dedup.sort.bed' into bed_dedup
     file '*.picardDupMetrics.txt' into picard_report
 
 
@@ -287,7 +287,123 @@ process picard {
 }
 
 /*
-* STEP 5.1 Phantompeakqualtools
+* STEP 5.1 Count_statistics_total
+*/
+
+process countstat1 {
+
+
+    cpus 1
+    memory '8 GB'
+    time '4h'
+
+    publishDir "$results_path/countstat"
+    input:
+    file ('*.bed') from bed_total.toSortedList()
+
+    output:
+    file 'Count_stat_bed_total_reads' into results
+
+    """
+    #! /usr/bin/env perl
+
+    use strict;
+    use warnings;
+
+    open(OUTPUT, ">Count_stat_bed_total_reads");
+    my @fileList = glob("*.bed");
+
+    print OUTPUT "File\\tTotalCounts\\tUniqueCounts\\tUniqueStartCounts\\tUniqueRatio\\tUniqueStartRatio\\n";
+
+    foreach my \$f(@fileList){
+
+     open(IN,"<\$f")||die \$!;
+     my \$Tcnt=0;
+     my \$prev="NA";
+     my \$lcnt=0;
+     my \$Tcnt_2=0;
+     my \$prev_2="NA";
+
+     while(<IN>){
+       chomp;
+       my @line=split("\\t",\$_);
+       \$lcnt++;
+       my \$t = join("_",@line[0..2]);
+       \$Tcnt++ unless(\$t eq \$prev);
+       \$prev=\$t;
+
+       my \$t_2 = join("_",@line[0..1]);
+       \$Tcnt_2++ unless(\$t_2 eq \$prev_2);
+       \$prev_2=\$t_2;
+     }
+
+     print OUTPUT "\$f\\t\$lcnt\\t\$Tcnt\\t\$Tcnt_2\\t".(\$Tcnt/\$lcnt)."\\t".(\$Tcnt_2/\$lcnt)."\\n";
+     close(IN);
+    }
+    close(OUTPUT);
+    """
+}
+
+/*
+* STEP 5.2 Count_statistics_dedup
+*/
+
+process countstat2 {
+
+
+    cpus 1
+    memory '8 GB'
+    time '4h'
+
+    publishDir "$results_path/countstat"
+    input:
+    file ('*.bed') from bed_dedup.toSortedList()
+
+    output:
+    file 'Count_stat_bed_dedup_reads' into results
+
+    """
+    #! /usr/bin/env perl
+
+    use strict;
+    use warnings;
+
+    open(OUTPUT, ">Count_stat_bed_dedup_reads");
+    my @fileList = glob("*.bed");
+
+    print OUTPUT "File\\tTotalCounts\\tUniqueCounts\\tUniqueStartCounts\\tUniqueRatio\\tUniqueStartRatio\\n";
+
+    foreach my \$f(@fileList){
+
+     open(IN,"<\$f")||die \$!;
+     my \$Tcnt=0;
+     my \$prev="NA";
+     my \$lcnt=0;
+     my \$Tcnt_2=0;
+     my \$prev_2="NA";
+
+     while(<IN>){
+       chomp;
+       my @line=split("\\t",\$_);
+       \$lcnt++;
+       my \$t = join("_",@line[0..2]);
+       \$Tcnt++ unless(\$t eq \$prev);
+       \$prev=\$t;
+
+       my \$t_2 = join("_",@line[0..1]);
+       \$Tcnt_2++ unless(\$t_2 eq \$prev_2);
+       \$prev_2=\$t_2;
+     }
+
+     print OUTPUT "\$f\\t\$lcnt\\t\$Tcnt\\t\$Tcnt_2\\t".(\$Tcnt/\$lcnt)."\\t".(\$Tcnt_2/\$lcnt)."\\n";
+     close(IN);
+    }
+    close(OUTPUT);
+    """
+}
+
+/*
+* STEP 6.1 Phantompeakqualtools
 */
 
 process phantompeakqualtools {
@@ -317,7 +433,7 @@ process phantompeakqualtools {
 }
 
 /*
-* STEP 5.2 Combine_spp_out
+* STEP 6.2 Combine_spp_out
 */
 
 process combinesppout {
@@ -339,7 +455,7 @@ process combinesppout {
 }
 
 /*
-* STEP 5.3 Calculate_NSC_RSC
+* STEP 6.3 Calculate_NSC_RSC
 */
 
 process calculateNSCRSC {
@@ -381,7 +497,7 @@ process calculateNSCRSC {
 
 
 /*
-* STEP 6 deepTools
+* STEP 7 deepTools
 */
 
 process deepTools {
@@ -419,7 +535,7 @@ process deepTools {
 
 
 /*
-* STEP 7.1 Generate config file for ngsplot
+* STEP 8.1 Generate config file for ngsplot
 */
 
 process ngs_config_generate {
@@ -454,7 +570,7 @@ process ngs_config_generate {
 
 
 /*
-* STEP 7.2 Ngsplot
+* STEP 8.2 Ngsplot
 */
 
 process ngsplot {
@@ -505,7 +621,7 @@ process ngsplot {
 }
 
 /*
-* STEP 8 MACS
+* STEP 9 MACS
 */
 
 process macs {
@@ -560,7 +676,7 @@ process macs {
 }
 
 /*
- * STEP 9 MultiQC
+ * STEP 10 MultiQC
  */
 
 process multiqc {
