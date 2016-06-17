@@ -322,12 +322,15 @@ process picard {
 
 process countstat1 {
 
-
     cpus 1
-    memory '8 GB'
-    time '4h'
+    memory { 2.GB * task.attempt }
+    time { 2.h * task.attempt }
+    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+    maxRetries 3
+    maxErrors '-1'
 
-    publishDir "$results_path/countstat"
+    publishDir "${params.outdir}/countstat", mode: 'copy'
+
     input:
     file ('*.bed') from bed_total.toSortedList()
 
@@ -380,12 +383,15 @@ process countstat1 {
 
 process countstat2 {
 
-
     cpus 1
-    memory '8 GB'
-    time '4h'
+    memory { 2.GB * task.attempt }
+    time { 2.h * task.attempt }
+    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+    maxRetries 3
+    maxErrors '-1'
 
-    publishDir "$results_path/countstat"
+    publishDir "${params.outdir}/countstat", mode: 'copy'
+
     input:
     file ('*.bed') from bed_dedup.toSortedList()
 
@@ -448,7 +454,7 @@ process phantompeakqualtools {
     cpus 2
     memory { 16.GB * task.attempt }
     time { 24.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
     maxRetries 3
     maxErrors '-1'
 
@@ -477,7 +483,7 @@ process combinesppout {
     cpus 1
     memory { 2.GB * task.attempt }
     time { 1.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
     maxRetries 3
     maxErrors '-1'
 
@@ -504,7 +510,7 @@ process calculateNSCRSC {
     cpus 1
     memory { 2.GB * task.attempt }
     time { 1.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
     maxRetries 3
     maxErrors '-1'
 
@@ -554,7 +560,7 @@ process deepTools {
     cpus 4
     memory { 32.GB * task.attempt }
     time { 120.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
+    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
     maxRetries 3
     maxErrors '-1'
 
