@@ -450,6 +450,7 @@ process phantompeakqualtools {
     module 'samtools'
     module 'R/3.1.0'
     module 'phantompeakqualtools'
+    module 'SPP'
 
     cpus 2
     memory { 16.GB * task.attempt }
