@@ -204,8 +204,8 @@ process bwa {
     module 'samtools'
     module 'BEDTools'
 
-    cpus 2
-    memory { 16.GB * task.attempt }
+    cpus 4
+    memory { 32.GB * task.attempt }
     time { 120.h * task.attempt }
     errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
     maxRetries 3
