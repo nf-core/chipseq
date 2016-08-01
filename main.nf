@@ -103,7 +103,7 @@ Channel
     .groupTuple(sort: true)
     .set { read_files }
 
-read_files.into  { read_files_fastqc; read_files_trimming; name_for_bwa; name_for_samtools; name_for_picard; name_for_spp }
+read_files.into  { read_files_fastqc; read_files_trimming }
 
 
 /*
@@ -197,7 +197,6 @@ process trim_galore {
  */
 
 process bwa {
-    tag "$prefix"
 
     module 'bioinfo-tools'
     module 'bwa'
@@ -215,7 +214,6 @@ process bwa {
 
     input:
     file (reads:'*') from trimmed_reads
-    set val(prefix) from name_for_bwa
 
     output:
     file '*.sam' into bwa_sam
@@ -223,7 +221,9 @@ process bwa {
 
     script:
     """
-    bwa mem -M $index $reads > ${prefix}.sam
+    f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%.R1_val_1*};f=\${f%.R2_val_2*};f=\${f%_trimmed};f=\${f%_1}
+    prefix=\$f
+    bwa mem -M $index $reads > \${prefix}.sam
     """
 }
 
@@ -232,7 +232,6 @@ process bwa {
  */
 
 process samtools {
-    tag "$prefix"
 
     module 'bioinfo-tools'
     module 'samtools'
@@ -249,7 +248,6 @@ process samtools {
 
     input:
     file bwa_sam
-    set val(prefix) from name_for_samtools
 
     output:
     file '*.sorted.bam' into bam_picard
@@ -259,12 +257,14 @@ process samtools {
 
     script:
     """
-    samtools view -bT $index ${prefix}.sam > ${prefix}.bam
-    samtools sort ${prefix}.bam ${prefix}.sorted
-    samtools index ${prefix}.sorted.bam
-    rm ${prefix}.sam
-    rm ${prefix}.bam
-    bedtools bamtobed -i ${prefix}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.sorted.bed
+    f='$bwa_sam';f=(\$f);f=\${f[0]};f=\${f%.sam}
+    prefix=\$f
+    samtools view -bT $index \${prefix}.sam > \${prefix}.bam
+    samtools sort \${prefix}.bam \${prefix}.sorted
+    samtools index \${prefix}.sorted.bam
+    rm \${prefix}.sam
+    rm \${prefix}.bam
+    bedtools bamtobed -i \${prefix}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${prefix}.sorted.bed
     """
 }
 
@@ -273,7 +273,6 @@ process samtools {
 */
 
 process picard {
-    tag "$prefix"
 
     module 'bioinfo-tools'
     module 'picard/2.0.1'
@@ -291,7 +290,6 @@ process picard {
 
     input:
     file bam_picard
-    set val(prefix) from name_for_picard
 
     output:
     file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplotconfig, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs
@@ -301,18 +299,21 @@ process picard {
 
     script:
     """
+    f='$bam_picard';f=(\$f);f=\${f[0]};f=\${f%.sort.bam}
+    prefix=\$f
+
     java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
         INPUT=$bam_picard \\
-        OUTPUT=${prefix}.dedup.bam \\
+        OUTPUT=\${prefix}.dedup.bam \\
         ASSUME_SORTED=true \\
         REMOVE_DUPLICATES=true \\
-        METRICS_FILE=${prefix}.picardDupMetrics.txt \\
+        METRICS_FILE=\${prefix}.picardDupMetrics.txt \\
         VALIDATION_STRINGENCY=LENIENT \\
         PROGRAM_RECORD_ID='null'
 
-    samtools sort ${prefix}.dedup.bam ${prefix}.dedup.sorted
-    samtools index ${prefix}.dedup.sorted.bam
-    bedtools bamtobed -i ${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.dedup.sorted.bed
+    samtools sort \${prefix}.dedup.bam \${prefix}.dedup.sorted
+    samtools index \${prefix}.dedup.sorted.bam
+    bedtools bamtobed -i \${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${prefix}.dedup.sorted.bed
     """
 }
 
@@ -335,7 +336,7 @@ process countstat1 {
     file ('*.bed') from bed_total.toSortedList()
 
     output:
-    file 'Count_stat_bed_total_reads' into results
+    file 'Count_stat_bed_total_reads' into countstat1_results
 
     """
     #! /usr/bin/env perl
@@ -396,7 +397,7 @@ process countstat2 {
     file ('*.bed') from bed_dedup.toSortedList()
 
     output:
-    file 'Count_stat_bed_dedup_reads' into results
+    file 'Count_stat_bed_dedup_reads' into countstat2_results
 
     """
     #! /usr/bin/env perl
@@ -444,7 +445,6 @@ process countstat2 {
 */
 
 process phantompeakqualtools {
-    tag "$prefix"
 
     module 'bioinfo-tools'
     module 'samtools'
@@ -463,7 +463,6 @@ process phantompeakqualtools {
 
     input:
     file bam_dedup_spp
-    set val(prefix) from name_for_spp
 
     output:
     file '*.pdf'
@@ -471,7 +470,9 @@ process phantompeakqualtools {
 
     script:
     """
-    run_spp.R -c=$bam_dedup_spp -savp -out=${prefix}.spp.out
+    f='$bam_dedup_spp';f=(\$f);f=\${f[0]};f=\${f%.dedup.sort.bam}
+    prefix=\$f
+    run_spp.R -c=$bam_dedup_spp -savp -out=\${prefix}.spp.out
     """
 }
 
@@ -521,7 +522,7 @@ process calculateNSCRSC {
     file cross_correlation
 
     output:
-    file 'crosscorrelation_processed.txt' into results
+    file 'crosscorrelation_processed.txt' into calculateNSCRSC_results
 
     script:
     """
