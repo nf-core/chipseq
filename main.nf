@@ -120,12 +120,14 @@ macs_para = Channel
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
 
+
 /*
  * STEP 1 - FastQC
  */
 
 process fastqc {
-    tag "$prefix"
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'FastQC'
@@ -139,7 +141,7 @@ process fastqc {
     publishDir "${params.outdir}/fastqc", mode: 'copy'
 
     input:
-    set val(prefix), file(reads:'*') from read_files_fastqc
+    set val(name), file(reads:'*') from read_files_fastqc
 
     output:
     file '*_fastqc.{zip,html}' into fastqc_results
@@ -156,7 +158,8 @@ process fastqc {
  */
 
 process trim_galore {
-    tag "$prefix"
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'FastQC'
@@ -173,7 +176,7 @@ process trim_galore {
     publishDir "${params.outdir}/trim_galore", mode: 'copy'
 
     input:
-    set val(prefix), file(reads:'*') from read_files_trimming
+    set val(name), file(reads:'*') from read_files_trimming
 
     output:
     file '*fq' into trimmed_reads
@@ -192,12 +195,14 @@ process trim_galore {
     }
 }
 
+
 /*
  * STEP 3.1 - align with bwa
  */
 
 process bwa {
-    tag "$prefix"
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'bwa'
@@ -215,7 +220,7 @@ process bwa {
 
     input:
     file (reads:'*') from trimmed_reads
-    set val(prefix) from name_for_bwa
+    set val(name) from name_for_bwa
 
     output:
     file '*.sam' into bwa_sam
@@ -223,16 +228,20 @@ process bwa {
 
     script:
     """
-    bwa mem -M $index $reads > ${prefix}.sam
+    f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%.R1_val_1*};f=\${f%.R2_val_2*};f=\${f%_trimmed};f=\${f%_1}
+    prefix=\$f
+    bwa mem -M $index $reads > \${prefix}.sam
     """
 }
+
 
 /*
  * STEP 3.2 - post-alignment processing
  */
 
 process samtools {
-    tag "$prefix"
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'samtools'
@@ -249,7 +258,7 @@ process samtools {
 
     input:
     file bwa_sam
-    set val(prefix) from name_for_samtools
+    set val(name) from name_for_samtools
 
     output:
     file '*.sorted.bam' into bam_picard
@@ -259,21 +268,25 @@ process samtools {
 
     script:
     """
-    samtools view -bT $index ${prefix}.sam > ${prefix}.bam
-    samtools sort ${prefix}.bam ${prefix}.sorted
-    samtools index ${prefix}.sorted.bam
-    rm ${prefix}.sam
-    rm ${prefix}.bam
-    bedtools bamtobed -i ${prefix}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.sorted.bed
+    f='$bwa_sam';f=(\$f);f=\${f[0]};f=\${f%.sam}
+    prefix=\$f
+    samtools view -bT $index \${prefix}.sam > \${prefix}.bam
+    samtools sort \${prefix}.bam \${prefix}.sorted
+    samtools index \${prefix}.sorted.bam
+    rm \${prefix}.sam
+    rm \${prefix}.bam
+    bedtools bamtobed -i \${prefix}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${prefix}.sorted.bed
     """
 }
 
+
 /*
-* STEP 4 Picard
-*/
+ * STEP 4 Picard
+ */
 
 process picard {
-    tag "$prefix"
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'picard/2.0.1'
@@ -291,7 +304,7 @@ process picard {
 
     input:
     file bam_picard
-    set val(prefix) from name_for_picard
+    set val(name) from name_for_picard
 
     output:
     file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplotconfig, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs
@@ -301,24 +314,28 @@ process picard {
 
     script:
     """
+    f='$bam_picard';f=(\$f);f=\${f[0]};f=\${f%.sort.bam}
+    prefix=\$f
+
     java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
         INPUT=$bam_picard \\
-        OUTPUT=${prefix}.dedup.bam \\
+        OUTPUT=\${prefix}.dedup.bam \\
         ASSUME_SORTED=true \\
         REMOVE_DUPLICATES=true \\
-        METRICS_FILE=${prefix}.picardDupMetrics.txt \\
+        METRICS_FILE=\${prefix}.picardDupMetrics.txt \\
         VALIDATION_STRINGENCY=LENIENT \\
         PROGRAM_RECORD_ID='null'
 
-    samtools sort ${prefix}.dedup.bam ${prefix}.dedup.sorted
-    samtools index ${prefix}.dedup.sorted.bam
-    bedtools bamtobed -i ${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.dedup.sorted.bed
+    samtools sort \${prefix}.dedup.bam \${prefix}.dedup.sorted
+    samtools index \${prefix}.dedup.sorted.bam
+    bedtools bamtobed -i \${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${prefix}.dedup.sorted.bed
     """
 }
 
+
 /*
-* STEP 5.1 Count_statistics_total
-*/
+ * STEP 5.1 Count_statistics_total
+ */
 
 process countstat1 {
 
@@ -335,7 +352,7 @@ process countstat1 {
     file ('*.bed') from bed_total.toSortedList()
 
     output:
-    file 'Count_stat_bed_total_reads' into results
+    file 'Count_stat_bed_total_reads' into countstat1_results
 
     """
     #! /usr/bin/env perl
@@ -377,9 +394,10 @@ process countstat1 {
     """
 }
 
+
 /*
-* STEP 5.2 Count_statistics_dedup
-*/
+ * STEP 5.2 Count_statistics_dedup
+ */
 
 process countstat2 {
 
@@ -396,7 +414,7 @@ process countstat2 {
     file ('*.bed') from bed_dedup.toSortedList()
 
     output:
-    file 'Count_stat_bed_dedup_reads' into results
+    file 'Count_stat_bed_dedup_reads' into countstat2_results
 
     """
     #! /usr/bin/env perl
@@ -440,11 +458,12 @@ process countstat2 {
 
 
 /*
-* STEP 6.1 Phantompeakqualtools
-*/
+ * STEP 6.1 Phantompeakqualtools
+ */
 
 process phantompeakqualtools {
-    tag "$prefix"
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'samtools'
@@ -463,7 +482,7 @@ process phantompeakqualtools {
 
     input:
     file bam_dedup_spp
-    set val(prefix) from name_for_spp
+    set val(name) from name_for_spp
 
     output:
     file '*.pdf'
@@ -471,13 +490,16 @@ process phantompeakqualtools {
 
     script:
     """
-    run_spp.R -c=$bam_dedup_spp -savp -out=${prefix}.spp.out
+    f='$bam_dedup_spp';f=(\$f);f=\${f[0]};f=\${f%.dedup.sort.bam}
+    prefix=\$f
+    run_spp.R -c=$bam_dedup_spp -savp -out=\${prefix}.spp.out
     """
 }
 
+
 /*
-* STEP 6.2 Combine_spp_out
-*/
+ * STEP 6.2 Combine_spp_out
+ */
 
 process combinesppout {
 
@@ -502,9 +524,10 @@ process combinesppout {
     """
 }
 
+
 /*
-* STEP 6.3 Calculate_NSC_RSC
-*/
+ * STEP 6.3 Calculate_NSC_RSC
+ */
 
 process calculateNSCRSC {
 
@@ -521,7 +544,7 @@ process calculateNSCRSC {
     file cross_correlation
 
     output:
-    file 'crosscorrelation_processed.txt' into results
+    file 'crosscorrelation_processed.txt' into calculateNSCRSC_results
 
     script:
     """
@@ -550,8 +573,8 @@ process calculateNSCRSC {
 
 
 /*
-* STEP 7 deepTools
-*/
+ * STEP 7 deepTools
+ */
 
 process deepTools {
 
@@ -622,8 +645,8 @@ process deepTools {
 
 
 /*
-* STEP 8.1 Generate config file for ngsplot
-*/
+ * STEP 8.1 Generate config file for ngsplot
+ */
 
 process ngs_config_generate {
 
@@ -659,10 +682,9 @@ process ngs_config_generate {
 }
 
 
-
 /*
-* STEP 8.2 Ngsplot
-*/
+ * STEP 8.2 Ngsplot
+ */
 
 process ngsplot {
 
@@ -715,9 +737,10 @@ process ngsplot {
     """
 }
 
+
 /*
-* STEP 9 MACS
-*/
+ * STEP 9 MACS
+ */
 
 process macs {
 
@@ -765,6 +788,7 @@ process macs {
     """
 }
 
+
 /*
  * STEP 10 MultiQC
  */
@@ -794,6 +818,7 @@ process multiqc {
     multiqc -f .
     """
 }
+
 
 
 /*
