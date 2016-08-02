@@ -103,7 +103,7 @@ Channel
     .groupTuple(sort: true)
     .set { read_files }
 
-read_files.into  { read_files_fastqc; read_files_trimming }
+read_files.into  { read_files_fastqc; read_files_trimming; name_for_bwa; name_for_samtools; name_for_picard; name_for_spp }
 
 
 /*
@@ -120,12 +120,14 @@ macs_para = Channel
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
 
+
 /*
  * STEP 1 - FastQC
  */
 
 process fastqc {
-    tag "$prefix"
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'FastQC'
@@ -139,7 +141,7 @@ process fastqc {
     publishDir "${params.outdir}/fastqc", mode: 'copy'
 
     input:
-    set val(prefix), file(reads:'*') from read_files_fastqc
+    set val(name), file(reads:'*') from read_files_fastqc
 
     output:
     file '*_fastqc.{zip,html}' into fastqc_results
@@ -156,7 +158,8 @@ process fastqc {
  */
 
 process trim_galore {
-    tag "$prefix"
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'FastQC'
@@ -173,7 +176,7 @@ process trim_galore {
     publishDir "${params.outdir}/trim_galore", mode: 'copy'
 
     input:
-    set val(prefix), file(reads:'*') from read_files_trimming
+    set val(name), file(reads:'*') from read_files_trimming
 
     output:
     file '*fq' into trimmed_reads
@@ -192,11 +195,14 @@ process trim_galore {
     }
 }
 
+
 /*
  * STEP 3.1 - align with bwa
  */
 
 process bwa {
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'bwa'
@@ -214,6 +220,7 @@ process bwa {
 
     input:
     file (reads:'*') from trimmed_reads
+    set val(name) from name_for_bwa
 
     output:
     file '*.sam' into bwa_sam
@@ -227,11 +234,14 @@ process bwa {
     """
 }
 
+
 /*
  * STEP 3.2 - post-alignment processing
  */
 
 process samtools {
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'samtools'
@@ -248,6 +258,7 @@ process samtools {
 
     input:
     file bwa_sam
+    set val(name) from name_for_samtools
 
     output:
     file '*.sorted.bam' into bam_picard
@@ -268,11 +279,14 @@ process samtools {
     """
 }
 
+
 /*
-* STEP 4 Picard
-*/
+ * STEP 4 Picard
+ */
 
 process picard {
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'picard/2.0.1'
@@ -290,6 +304,7 @@ process picard {
 
     input:
     file bam_picard
+    set val(name) from name_for_picard
 
     output:
     file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplotconfig, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs
@@ -317,9 +332,10 @@ process picard {
     """
 }
 
+
 /*
-* STEP 5.1 Count_statistics_total
-*/
+ * STEP 5.1 Count_statistics_total
+ */
 
 process countstat1 {
 
@@ -378,9 +394,10 @@ process countstat1 {
     """
 }
 
+
 /*
-* STEP 5.2 Count_statistics_dedup
-*/
+ * STEP 5.2 Count_statistics_dedup
+ */
 
 process countstat2 {
 
@@ -441,10 +458,12 @@ process countstat2 {
 
 
 /*
-* STEP 6.1 Phantompeakqualtools
-*/
+ * STEP 6.1 Phantompeakqualtools
+ */
 
 process phantompeakqualtools {
+
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'samtools'
@@ -463,6 +482,7 @@ process phantompeakqualtools {
 
     input:
     file bam_dedup_spp
+    set val(name) from name_for_spp
 
     output:
     file '*.pdf'
@@ -476,9 +496,10 @@ process phantompeakqualtools {
     """
 }
 
+
 /*
-* STEP 6.2 Combine_spp_out
-*/
+ * STEP 6.2 Combine_spp_out
+ */
 
 process combinesppout {
 
@@ -503,9 +524,10 @@ process combinesppout {
     """
 }
 
+
 /*
-* STEP 6.3 Calculate_NSC_RSC
-*/
+ * STEP 6.3 Calculate_NSC_RSC
+ */
 
 process calculateNSCRSC {
 
@@ -551,8 +573,8 @@ process calculateNSCRSC {
 
 
 /*
-* STEP 7 deepTools
-*/
+ * STEP 7 deepTools
+ */
 
 process deepTools {
 
@@ -623,8 +645,8 @@ process deepTools {
 
 
 /*
-* STEP 8.1 Generate config file for ngsplot
-*/
+ * STEP 8.1 Generate config file for ngsplot
+ */
 
 process ngs_config_generate {
 
@@ -660,10 +682,9 @@ process ngs_config_generate {
 }
 
 
-
 /*
-* STEP 8.2 Ngsplot
-*/
+ * STEP 8.2 Ngsplot
+ */
 
 process ngsplot {
 
@@ -716,9 +737,10 @@ process ngsplot {
     """
 }
 
+
 /*
-* STEP 9 MACS
-*/
+ * STEP 9 MACS
+ */
 
 process macs {
 
@@ -766,6 +788,7 @@ process macs {
     """
 }
 
+
 /*
  * STEP 10 MultiQC
  */
@@ -795,6 +818,7 @@ process multiqc {
     multiqc -f .
     """
 }
+
 
 
 /*
