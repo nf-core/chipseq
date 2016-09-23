@@ -55,7 +55,7 @@ params.genome = 'GRCh37'
 params.index = params.genomes[ params.genome ].bwa
 params.name = "NGI ChIP-seq Best Practice"
 params.reads = "data/*{1,2}*.fastq.gz"
-params.macsconfig = "data/macs.config"
+params.macsconfig = "data/macsconfig"
 params.extendReadsLen = 100
 params.outdir = './results'
 
@@ -93,11 +93,17 @@ if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify 
  * Create a channel for read files
  */
 
-reads = Channel
-    .fromPath( params.reads )
-    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+ Channel
+     .fromPath( params.reads )
+     .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+     .map { path ->
+         def prefix = readPrefix(path, params.reads)
+         tuple(prefix, path)
+     }
+     .groupTuple(sort: true)
+     .set { read_files }
 
-reads.into  { raw_reads_fastqc; raw_reads_trimgalore }
+read_files.into  { raw_reads_fastqc; raw_reads_trimgalore }
 
 
 /*
@@ -115,13 +121,14 @@ macs_para = Channel
     }
 
 
+
 /*
  * STEP 1 - FastQC
  */
 
 process fastqc {
 
-    tag "$reads"
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'FastQC'
@@ -135,7 +142,7 @@ process fastqc {
     publishDir "${params.outdir}/fastqc", mode: 'copy'
 
     input:
-    file reads from raw_reads_fastqc
+    set val(name), file(reads:'*') from raw_reads_fastqc
 
     output:
     file '*_fastqc.{zip,html}' into fastqc_results
@@ -153,7 +160,7 @@ process fastqc {
 
 process trim_galore {
 
-    tag "$reads"
+    tag "$name"
 
     module 'bioinfo-tools'
     module 'FastQC'
@@ -167,10 +174,10 @@ process trim_galore {
     maxRetries 3
     maxErrors '-1'
 
-    publishDir "${params.outdir}/trim_galore", mode: 'copy'
+    publishDir "${params.outdir}/trimgalore", mode: 'copy'
 
     input:
-    file reads from raw_reads_trimgalore
+    set val(name), file(reads:'*') from raw_reads_trimgalore
 
     output:
     file '*.gz' into trimmed_reads
@@ -304,7 +311,7 @@ process picard {
 
     script:
     """
-    f='$bam_picard';f=\${f%.sort.bam}
+    f='$bam_picard';f=\${f%.sorted.bam}
 
     java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
         INPUT=$bam_picard \\
@@ -338,7 +345,7 @@ process countstat {
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
-    file ('*.bed') from bed_total.toSortedList() .mix(bed_dedup.toSortedList())
+    file input from bed_total .mix(bed_dedup) .toSortedList()
 
     output:
     file 'Reads_count_statistics.txt' into countstat_results
@@ -350,7 +357,7 @@ process countstat {
     use warnings;
 
     open(OUTPUT, ">Reads_count_statistics.txt");
-    my @fileList = glob("*.bed");
+    my @fileList = qw($input);
 
     print OUTPUT "File\\tTotalCounts\\tUniqueCounts\\tUniqueStartCounts\\tUniqueRatio\\tUniqueStartRatio\\n";
 
@@ -411,12 +418,12 @@ process phantompeakqualtools {
     file bam_dedup_spp
 
     output:
-    file '*.pdf'
+    file '*.pdf' into spp_results
     file '*.spp.out' into spp_out, spp_out_mqc
 
     script:
     """
-    f='$bam_dedup_spp';f=\${f%.dedup.sort.bam}
+    f='$bam_dedup_spp';f=\${f%.dedup.sorted.bam}
     run_spp.R -c=$bam_dedup_spp -savp -out=\${f}.spp.out
     """
 }
@@ -520,10 +527,10 @@ process deepTools {
     file bai from bai_dedup_deepTools.toSortedList()
 
     output:
-    file 'fingerprints.pdf'
-    file 'multiBamSummary.npz'
-    file 'scatterplot_PearsonCorr_multiBamSummary.png'
-    file 'heatmap_SpearmanCorr_multiBamSummary.png'
+    file 'fingerprints.pdf' into deepTools_results_1
+    file 'multiBamSummary.npz' into deepTools_results_2
+    file 'scatterplot_PearsonCorr_multiBamSummary.png' into deepTools_results_3
+    file 'heatmap_SpearmanCorr_multiBamSummary.png' into deepTools_results_4
 
     script:
     """
@@ -538,18 +545,18 @@ process deepTools {
         --plotFileFormat=pdf \\
         --plotTitle="Fingerprints"
 
-    multiBamSummary bins \\
-        $bam \\
-        -out multiBamSummary.npz
+    multiBamSummary \\
+        bins \\
         --binSize=10000 \\
+        --bamfiles $bam \\
+        -out multiBamSummary.npz \\
         --extendReads=${params.extendReadsLen} \\
         --ignoreDuplicates \\
-        --centerReads \\
-        --bamfiles \\
+        --centerReads
 
     plotCorrelation \\
         -in multiBamSummary.npz \\
-        -o scatterplot_PearsonCorr_multiBamSummary.png
+        -o scatterplot_PearsonCorr_multiBamSummary.png \\
         --corMethod pearson \\
         --skipZeros \\
         --removeOutliers \\
@@ -558,7 +565,7 @@ process deepTools {
 
     plotCorrelation \\
         -in multiBamSummary.npz \\
-        -o heatmap_SpearmanCorr_multiBamSummary.png
+        -o heatmap_SpearmanCorr_multiBamSummary.png \\
         --corMethod spearman \\
         --skipZeros \\
         --plotTitle "Spearman Correlation of Read Counts" \\
@@ -600,7 +607,7 @@ process ngs_config_generate {
        table[i,1]<-datafiles[i]
        table[i,2]<-(-1)
        tmp='\"'
-       table[i,3]<-paste(tmp, gsub(".dedup.sort.bam.*\$", "", as.character(datafiles[i])), tmp, sep="")
+       table[i,3]<-paste(tmp, gsub(".dedup.sorted.bam.*\$", "", as.character(datafiles[i])), tmp, sep="")
     }
     write.table(table, file="ngsplot_config",sep='\\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
     """
@@ -633,7 +640,7 @@ process ngsplot {
     file ngsplot_config from ngsplot_config
 
     output:
-    file '*.{pdf}'
+    file '*.{pdf}' into ngsplot_results
 
     script:
 
@@ -686,7 +693,7 @@ process macs {
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
-    file '*.{bed,xls,r,narrowPeak}'
+    file '*.{bed,xls,r,narrowPeak}' into macs_results
 
     script:
 
@@ -698,11 +705,11 @@ process macs {
     if (ctrl_sample_id == '') {
         ctrl = ''
     } else {
-        ctrl = "-c ${ctrl_sample_id}.dedup.sort.bam"
+        ctrl = "-c ${ctrl_sample_id}.dedup.sorted.bam"
     }
     """
     macs2 callpeak \\
-        -t ${chip_sample_id}.dedup.sort.bam \\
+        -t ${chip_sample_id}.dedup.sorted.bam \\
         $ctrl \\
         -f BAM \\
         -g $REF \\
@@ -720,11 +727,14 @@ process multiqc {
     module 'bioinfo-tools'
     module 'MultiQC'
 
-    memory '4GB'
-    time '4h'
+    cpus 2
+    memory { 16.GB * task.attempt }
+    time { 120.h * task.attempt }
+    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
+    maxRetries 3
+    maxErrors '-1'
 
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
-    errorStrategy 'ignore'
 
     input:
     file ('fastqc/*') from fastqc_results.toList()
@@ -734,10 +744,54 @@ process multiqc {
     file ('phantompeakqualtools/*') from spp_out_mqc.toList()
 
     output:
-    file '*multiqc_report.html'
-    file '*multiqc_data'
+    file '*multiqc_report.html' into multiqc_report
+    file '*multiqc_data' into multiqc_data
 
     """
     multiqc -f .
     """
+}
+
+
+/*
+ * Helper function, given a file Path
+ * returns the file name region matching a specified glob pattern
+ * starting from the beginning of the name up to last matching group.
+ *
+ * For example:
+ *   readPrefix('/some/data/file_alpha_1.fa', 'file*_1.fa' )
+ *
+ * Returns:
+ *   'file_alpha'
+ */
+
+def readPrefix( Path actual, template ) {
+
+    final fileName = actual.getFileName().toString()
+
+    def filePattern = template.toString()
+    int p = filePattern.lastIndexOf('/')
+    if( p != -1 ) filePattern = filePattern.substring(p+1)
+    if( !filePattern.contains('*') && !filePattern.contains('?') )
+        filePattern = '*' + filePattern
+
+    def regex = filePattern
+                    .replace('.','\\.')
+                    .replace('*','(.*)')
+                    .replace('?','(.?)')
+                    .replace('{','(?:')
+                    .replace('}',')')
+                    .replace(',','|')
+
+    def matcher = (fileName =~ /$regex/)
+    if( matcher.matches() ) {
+        def end = matcher.end(matcher.groupCount() )
+        def prefix = fileName.substring(0,end)
+        while(prefix.endsWith('-') || prefix.endsWith('_') || prefix.endsWith('.') )
+          prefix=prefix[0..-2]
+
+        return prefix
+    }
+    println(fileName)
+    return fileName
 }
