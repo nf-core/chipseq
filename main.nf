@@ -229,11 +229,7 @@ process bwa {
     """
     f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%.*1_val_1};f=\${f%_1_val_1};f=\${f%_trimmed}
 
-    bwa \\
-      mem \\
-      -M $index \\
-      $reads \\
-      | samtools view -bT $index - > \${f}.bam
+    bwa mem -M $index $reads | samtools view -bT $index - > \${f}.bam
     """
 }
 
@@ -330,7 +326,7 @@ process picard {
 
 
 /*
- * STEP 5 Reads_count_statistics
+ * STEP 5 Read_count_statistics
  */
 
 process countstat {
@@ -348,7 +344,7 @@ process countstat {
     file input from bed_total .mix(bed_dedup) .toSortedList()
 
     output:
-    file 'Reads_count_statistics.txt' into countstat_results
+    file 'read_count_statistics.txt' into countstat_results
 
     """
     #! /usr/bin/env perl
@@ -356,7 +352,7 @@ process countstat {
     use strict;
     use warnings;
 
-    open(OUTPUT, ">Reads_count_statistics.txt");
+    open(OUTPUT, ">read_count_statistics.txt");
     my @fileList = qw($input);
 
     print OUTPUT "File\\tTotalCounts\\tUniqueCounts\\tUniqueStartCounts\\tUniqueRatio\\tUniqueStartRatio\\n";
@@ -527,10 +523,8 @@ process deepTools {
     file bai from bai_dedup_deepTools.toSortedList()
 
     output:
-    file 'fingerprints.pdf' into deepTools_results_1
-    file 'multiBamSummary.npz' into deepTools_results_2
-    file 'scatterplot_PearsonCorr_multiBamSummary.png' into deepTools_results_3
-    file 'heatmap_SpearmanCorr_multiBamSummary.png' into deepTools_results_4
+    file 'multiBamSummary.npz' into deepTools_bamsummary
+    file '*.{pdf,png}' into deepTools_results
 
     script:
     """
