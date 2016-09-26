@@ -46,15 +46,20 @@ nextflow run NGI-ChIPseq/main.nf
 The typical command for running the pipeline is as follows:
 
 ```
-nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq' --macsconfig 'macssetup.config'
+nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
 ```
-
-
 
 ### `--reads`
 Location of the input FastQ files:
+
+Single-end reads:
 ```
- --reads 'path/to/data/sample_*_{1,2}.fastq'
+ --reads 'path/to/data/*.fastq.gz'
+```
+
+Paired-end reads:
+```
+ --reads 'path/to/data/sample_*_{1,2}.fastq.gz'
 ```
 
 **NB: Must be enclosed in quotes!**
@@ -83,7 +88,7 @@ _NB:_ For single-sample peaking calling without a control sample, skip the field
 The reference genome to use of the analysis, needs to be one of the genome specified in the config file.
 The human `GRCh37` genome is set as default.
 ```
---genome 'GRCm38'
+--genome 'GRCh37'
 ```
 The `example_uppmax_config` file currently has the location of references for `GRCh37` (Human), `GRCm38` (Mouse)
 and `sacCer2` (Yeast).

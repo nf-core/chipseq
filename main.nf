@@ -8,7 +8,7 @@
  @Authors
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
- Release 2016-06-08
+ Release 2016-09-23
 ----------------------------------------------------------------------------------------
  Basic command:
  $ nextflow main.nf
@@ -20,12 +20,12 @@
  --macsconfig [path to config file for MACS: line format: chip_sample_id,ctrl_sample_id,analysis_id]
 
  For example:
- $ nextflow main.nf -c ~/.nextflow/config --reads '*.fastq' --macsconfig 'macssetup.config'
- $ nextflow main.nf -c ~/.nextflow/config --reads '*.R{1,2}.fastq' --macsconfig 'macssetup.config'
+ $ nextflow main.nf -c ~/.nextflow/config --reads '*.fastq.gz' --macsconfig 'macssetup.config'
+ $ nextflow main.nf -c ~/.nextflow/config --reads '*.R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
 ---------------------------------------------------------------------------------------
  The pipeline can determine whether the input data is single or paired end. This relies on
  specifying the input files correctly. For paired en data us the example above, i.e.
- 'sample_*_{1,2}.fastq'. Without the glob {1,2} (or similiar) the data will be treated
+ 'sample_*_{1,2}.fastq.gz'. Without the glob {1,2} (or similiar) the data will be treated
  as single end.
 ----------------------------------------------------------------------------------------
  Pipeline overview:
@@ -48,14 +48,14 @@
  */
 
 // Pipeline version
-version = 1.1
+version = 1.2
 
 // Configurable variables
 params.genome = 'GRCh37'
 params.index = params.genomes[ params.genome ].bwa
-params.name = "ChIP-seq"
-params.reads = "data/*{1,2}*.fastq"
-params.macsconfig = "data/macs.config"
+params.name = "NGI ChIP-seq Best Practice"
+params.reads = "data/*{1,2}*.fastq.gz"
+params.macsconfig = "data/macsconfig"
 params.extendReadsLen = 100
 params.outdir = './results'
 
@@ -93,17 +93,17 @@ if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify 
  * Create a channel for read files
  */
 
-Channel
-    .fromPath( params.reads )
-    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
-    .map { path ->
-        def prefix = readPrefix(path, params.reads)
-        tuple(prefix, path)
-    }
-    .groupTuple(sort: true)
-    .set { read_files }
+ Channel
+     .fromPath( params.reads )
+     .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+     .map { path ->
+         def prefix = readPrefix(path, params.reads)
+         tuple(prefix, path)
+     }
+     .groupTuple(sort: true)
+     .set { read_files }
 
-read_files.into  { read_files_fastqc; read_files_trimming; name_for_bwa; name_for_samtools; name_for_picard; name_for_spp }
+read_files.into  { raw_reads_fastqc; raw_reads_trimgalore }
 
 
 /*
@@ -119,6 +119,7 @@ macs_para = Channel
         analysis_id = list[2]
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
+
 
 
 /*
@@ -141,14 +142,14 @@ process fastqc {
     publishDir "${params.outdir}/fastqc", mode: 'copy'
 
     input:
-    set val(name), file(reads:'*') from read_files_fastqc
+    set val(name), file(reads:'*') from raw_reads_fastqc
 
     output:
     file '*_fastqc.{zip,html}' into fastqc_results
 
     script:
     """
-    fastqc $reads
+    fastqc -q $reads
     """
 }
 
@@ -166,31 +167,31 @@ process trim_galore {
     module 'cutadapt'
     module 'TrimGalore'
 
-    cpus 3
-    memory { 3.GB * task.attempt }
-    time { 16.h * task.attempt }
+    cpus 2
+    memory { 4.GB * task.attempt }
+    time { 8.h * task.attempt }
     errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
     maxRetries 3
     maxErrors '-1'
 
-    publishDir "${params.outdir}/trim_galore", mode: 'copy'
+    publishDir "${params.outdir}/trimgalore", mode: 'copy'
 
     input:
-    set val(name), file(reads:'*') from read_files_trimming
+    set val(name), file(reads:'*') from raw_reads_trimgalore
 
     output:
-    file '*fq' into trimmed_reads
+    file '*.gz' into trimmed_reads
     file '*trimming_report.txt' into trimgalore_results
 
     script:
     single = reads instanceof Path
     if(single) {
         """
-        trim_galore $reads
+        trim_galore --gzip $reads
         """
     } else {
         """
-        trim_galore --paired $reads
+        trim_galore --paired --gzip $reads
         """
     }
 }
@@ -202,16 +203,15 @@ process trim_galore {
 
 process bwa {
 
-    tag "$name"
+    tag "$reads"
 
     module 'bioinfo-tools'
     module 'bwa'
     module 'samtools'
-    module 'BEDTools'
 
-    cpus 4
-    memory { 32.GB * task.attempt }
-    time { 120.h * task.attempt }
+    cpus 8
+    memory { 64.GB * task.attempt }
+    time { 48.h * task.attempt }
     errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
     maxRetries 3
     maxErrors '-1'
@@ -219,18 +219,17 @@ process bwa {
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
-    file (reads:'*') from trimmed_reads
-    set val(name) from name_for_bwa
+    file reads from trimmed_reads
 
     output:
-    file '*.sam' into bwa_sam
+    file '*.bam' into bwa_bam
     stdout into bwa_logs
 
     script:
     """
-    f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%.R1_val_1*};f=\${f%.R2_val_2*};f=\${f%_trimmed};f=\${f%_1}
-    prefix=\$f
-    bwa mem -M $index $reads > \${prefix}.sam
+    f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%.*1_val_1};f=\${f%_1_val_1};f=\${f%_trimmed}
+
+    bwa mem -M $index $reads | samtools view -bT $index - > \${f}.bam
     """
 }
 
@@ -241,7 +240,7 @@ process bwa {
 
 process samtools {
 
-    tag "$name"
+    tag "$bwa_bam"
 
     module 'bioinfo-tools'
     module 'samtools'
@@ -257,25 +256,20 @@ process samtools {
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
-    file bwa_sam
-    set val(name) from name_for_samtools
+    file bwa_bam
 
     output:
     file '*.sorted.bam' into bam_picard
-    file '*.sorted.bam.bai'
+    file '*.sorted.bam.bai' into bwa_bai
     file '*.sorted.bed' into bed_total
-    stdout into bwa_logs
 
     script:
     """
-    f='$bwa_sam';f=(\$f);f=\${f[0]};f=\${f%.sam}
-    prefix=\$f
-    samtools view -bT $index \${prefix}.sam > \${prefix}.bam
-    samtools sort \${prefix}.bam \${prefix}.sorted
-    samtools index \${prefix}.sorted.bam
-    rm \${prefix}.sam
-    rm \${prefix}.bam
-    bedtools bamtobed -i \${prefix}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${prefix}.sorted.bed
+    f='$bwa_bam';f=\${f%.bam}
+
+    samtools sort \${f}.bam \${f}.sorted
+    samtools index \${f}.sorted.bam
+    bedtools bamtobed -i \${f}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${f}.sorted.bed
     """
 }
 
@@ -286,7 +280,7 @@ process samtools {
 
 process picard {
 
-    tag "$name"
+    tag "$bam_picard"
 
     module 'bioinfo-tools'
     module 'picard/2.0.1'
@@ -304,7 +298,6 @@ process picard {
 
     input:
     file bam_picard
-    set val(name) from name_for_picard
 
     output:
     file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplotconfig, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs
@@ -314,33 +307,32 @@ process picard {
 
     script:
     """
-    f='$bam_picard';f=(\$f);f=\${f[0]};f=\${f%.sort.bam}
-    prefix=\$f
+    f='$bam_picard';f=\${f%.sorted.bam}
 
     java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
         INPUT=$bam_picard \\
-        OUTPUT=\${prefix}.dedup.bam \\
+        OUTPUT=\${f}.dedup.bam \\
         ASSUME_SORTED=true \\
         REMOVE_DUPLICATES=true \\
-        METRICS_FILE=\${prefix}.picardDupMetrics.txt \\
+        METRICS_FILE=\${f}.picardDupMetrics.txt \\
         VALIDATION_STRINGENCY=LENIENT \\
         PROGRAM_RECORD_ID='null'
 
-    samtools sort \${prefix}.dedup.bam \${prefix}.dedup.sorted
-    samtools index \${prefix}.dedup.sorted.bam
-    bedtools bamtobed -i \${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${prefix}.dedup.sorted.bed
+    samtools sort \${f}.dedup.bam \${f}.dedup.sorted
+    samtools index \${f}.dedup.sorted.bam
+    bedtools bamtobed -i \${f}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${f}.dedup.sorted.bed
     """
 }
 
 
 /*
- * STEP 5.1 Count_statistics_total
+ * STEP 5 Read_count_statistics
  */
 
-process countstat1 {
+process countstat {
 
-    cpus 1
-    memory { 2.GB * task.attempt }
+    cpus 2
+    memory { 4.GB * task.attempt }
     time { 2.h * task.attempt }
     errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
     maxRetries 3
@@ -349,10 +341,10 @@ process countstat1 {
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
-    file ('*.bed') from bed_total.toSortedList()
+    file input from bed_total .mix(bed_dedup) .toSortedList()
 
     output:
-    file 'Count_stat_bed_total_reads' into countstat1_results
+    file 'read_count_statistics.txt' into countstat_results
 
     """
     #! /usr/bin/env perl
@@ -360,70 +352,8 @@ process countstat1 {
     use strict;
     use warnings;
 
-    open(OUTPUT, ">Count_stat_bed_total_reads");
-    my @fileList = glob("*.bed");
-
-    print OUTPUT "File\\tTotalCounts\\tUniqueCounts\\tUniqueStartCounts\\tUniqueRatio\\tUniqueStartRatio\\n";
-
-    foreach my \$f(@fileList){
-
-     open(IN,"<\$f")||die \$!;
-     my \$Tcnt=0;
-     my \$prev="NA";
-     my \$lcnt=0;
-     my \$Tcnt_2=0;
-     my \$prev_2="NA";
-
-     while(<IN>){
-       chomp;
-       my @line=split("\\t",\$_);
-       \$lcnt++;
-       my \$t = join("_",@line[0..2]);
-       \$Tcnt++ unless(\$t eq \$prev);
-       \$prev=\$t;
-
-       my \$t_2 = join("_",@line[0..1]);
-       \$Tcnt_2++ unless(\$t_2 eq \$prev_2);
-       \$prev_2=\$t_2;
-     }
-
-     print OUTPUT "\$f\\t\$lcnt\\t\$Tcnt\\t\$Tcnt_2\\t".(\$Tcnt/\$lcnt)."\\t".(\$Tcnt_2/\$lcnt)."\\n";
-     close(IN);
-    }
-    close(OUTPUT);
-    """
-}
-
-
-/*
- * STEP 5.2 Count_statistics_dedup
- */
-
-process countstat2 {
-
-    cpus 1
-    memory { 2.GB * task.attempt }
-    time { 2.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
-    maxRetries 3
-    maxErrors '-1'
-
-    publishDir "${params.outdir}/countstat", mode: 'copy'
-
-    input:
-    file ('*.bed') from bed_dedup.toSortedList()
-
-    output:
-    file 'Count_stat_bed_dedup_reads' into countstat2_results
-
-    """
-    #! /usr/bin/env perl
-
-    use strict;
-    use warnings;
-
-    open(OUTPUT, ">Count_stat_bed_dedup_reads");
-    my @fileList = glob("*.bed");
+    open(OUTPUT, ">read_count_statistics.txt");
+    my @fileList = qw($input);
 
     print OUTPUT "File\\tTotalCounts\\tUniqueCounts\\tUniqueStartCounts\\tUniqueRatio\\tUniqueStartRatio\\n";
 
@@ -463,7 +393,7 @@ process countstat2 {
 
 process phantompeakqualtools {
 
-    tag "$name"
+    tag "$bam_dedup_spp"
 
     module 'bioinfo-tools'
     module 'samtools'
@@ -482,17 +412,15 @@ process phantompeakqualtools {
 
     input:
     file bam_dedup_spp
-    set val(name) from name_for_spp
 
     output:
-    file '*.pdf'
+    file '*.pdf' into spp_results
     file '*.spp.out' into spp_out, spp_out_mqc
 
     script:
     """
-    f='$bam_dedup_spp';f=(\$f);f=\${f[0]};f=\${f%.dedup.sort.bam}
-    prefix=\$f
-    run_spp.R -c=$bam_dedup_spp -savp -out=\${prefix}.spp.out
+    f='$bam_dedup_spp';f=\${f%.dedup.sorted.bam}
+    run_spp.R -c=$bam_dedup_spp -savp -out=\${f}.spp.out
     """
 }
 
@@ -595,10 +523,8 @@ process deepTools {
     file bai from bai_dedup_deepTools.toSortedList()
 
     output:
-    file 'fingerprints.pdf'
-    file 'multiBamSummary.npz'
-    file 'scatterplot_PearsonCorr_multiBamSummary.png'
-    file 'heatmap_SpearmanCorr_multiBamSummary.png'
+    file 'multiBamSummary.npz' into deepTools_bamsummary
+    file '*.{pdf,png}' into deepTools_results
 
     script:
     """
@@ -613,18 +539,18 @@ process deepTools {
         --plotFileFormat=pdf \\
         --plotTitle="Fingerprints"
 
-    multiBamSummary bins \\
-        $bam \\
-        -out multiBamSummary.npz
+    multiBamSummary \\
+        bins \\
         --binSize=10000 \\
+        --bamfiles $bam \\
+        -out multiBamSummary.npz \\
         --extendReads=${params.extendReadsLen} \\
         --ignoreDuplicates \\
-        --centerReads \\
-        --bamfiles \\
+        --centerReads
 
     plotCorrelation \\
         -in multiBamSummary.npz \\
-        -o scatterplot_PearsonCorr_multiBamSummary.png
+        -o scatterplot_PearsonCorr_multiBamSummary.png \\
         --corMethod pearson \\
         --skipZeros \\
         --removeOutliers \\
@@ -633,7 +559,7 @@ process deepTools {
 
     plotCorrelation \\
         -in multiBamSummary.npz \\
-        -o heatmap_SpearmanCorr_multiBamSummary.png
+        -o heatmap_SpearmanCorr_multiBamSummary.png \\
         --corMethod spearman \\
         --skipZeros \\
         --plotTitle "Spearman Correlation of Read Counts" \\
@@ -675,7 +601,7 @@ process ngs_config_generate {
        table[i,1]<-datafiles[i]
        table[i,2]<-(-1)
        tmp='\"'
-       table[i,3]<-paste(tmp, gsub(".dedup.sort.bam.*\$", "", as.character(datafiles[i])), tmp, sep="")
+       table[i,3]<-paste(tmp, gsub(".dedup.sorted.bam.*\$", "", as.character(datafiles[i])), tmp, sep="")
     }
     write.table(table, file="ngsplot_config",sep='\\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
     """
@@ -708,7 +634,7 @@ process ngsplot {
     file ngsplot_config from ngsplot_config
 
     output:
-    file '*.{pdf}'
+    file '*.{pdf}' into ngsplot_results
 
     script:
 
@@ -746,8 +672,8 @@ process macs {
     module 'MACS'
     module 'samtools'
 
-    cpus 2
-    memory { 16.GB * task.attempt }
+    cpus 4
+    memory { 32.GB * task.attempt }
     time { 24.h * task.attempt }
     errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
     maxRetries 3
@@ -761,7 +687,7 @@ process macs {
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
-    file '*.{bed,xls,r,narrowPeak}'
+    file '*.{bed,xls,r,narrowPeak}' into macs_results
 
     script:
 
@@ -773,12 +699,12 @@ process macs {
     if (ctrl_sample_id == '') {
         ctrl = ''
     } else {
-        ctrl = "-c ${ctrl_sample_id}.dedup.sort.bam"
+        ctrl = "-c ${ctrl_sample_id}.dedup.sorted.bam"
     }
     """
     macs2 callpeak \\
-        -t ${chip_sample_id}.dedup.sort.bam \\
-        $ctrl
+        -t ${chip_sample_id}.dedup.sorted.bam \\
+        $ctrl \\
         -f BAM \\
         -g $REF \\
         -n $analysis_id \\
@@ -795,11 +721,14 @@ process multiqc {
     module 'bioinfo-tools'
     module 'MultiQC'
 
-    memory '4GB'
-    time '4h'
+    cpus 2
+    memory { 16.GB * task.attempt }
+    time { 120.h * task.attempt }
+    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
+    maxRetries 3
+    maxErrors '-1'
 
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
-    errorStrategy 'ignore'
 
     input:
     file ('fastqc/*') from fastqc_results.toList()
@@ -809,14 +738,13 @@ process multiqc {
     file ('phantompeakqualtools/*') from spp_out_mqc.toList()
 
     output:
-    file '*multiqc_report.html'
-    file '*multiqc_data'
+    file '*multiqc_report.html' into multiqc_report
+    file '*multiqc_data' into multiqc_data
 
     """
     multiqc -f .
     """
 }
-
 
 
 /*
@@ -858,5 +786,6 @@ def readPrefix( Path actual, template ) {
 
         return prefix
     }
+    println(fileName)
     return fileName
 }
