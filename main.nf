@@ -605,6 +605,7 @@ process ngs_config_generate {
        tmp='\"'
        table[i,3]<-paste(tmp, gsub(".dedup.sorted.bam.*\$", "", as.character(datafiles[i])), tmp, sep="")
     }
+    table<-table[order(table[,1]),]
     write.table(table, file="ngsplot_config",sep='\\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
     """
 }
