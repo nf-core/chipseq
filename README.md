@@ -4,6 +4,10 @@ in Stockholm, Sweden
 
 Authors: Chuan Wang (@chuan-wang) and Phil Ewels (@ewels)
 
+# UNDER DEVELOPMENT
+
+This pipeline is currently under active development and has very little in the way of testing. You may well have problems running it. Any help debugging is very welcome! Please fork, make changes and submit a pull request.
+
 ## Installation
 ### NextFlow installation
 To use this pipeline, you need to have a working version of NextFlow installed. You can find more
