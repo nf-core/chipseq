@@ -66,23 +66,34 @@ params.rlocation = "$HOME/R/nxtflow_libs/"
 nxtflow_libs = file(params.rlocation)
 nxtflow_libs.mkdirs()
 
-single = 'null'
+def single
+
+// Custom trimming options
+params.clip_r1 = 0
+params.clip_r2 = 0
+params.three_prime_clip_r1 = 0
+params.three_prime_clip_r2 = 0
 
 log.info "===================================="
 log.info " ChIP-seq: v${version}"
 log.info "===================================="
-log.info "Reads        : ${params.reads}"
-log.info "Genome       : ${params.genome}"
-log.info "BWA Index    : ${params.index}"
-log.info "MACS Config  : ${params.macsconfig}"
-log.info "Extend Reads : ${params.extendReadsLen} bp"
-log.info "Current home : $HOME"
-log.info "Current user : $USER"
-log.info "Current path : $PWD"
-log.info "R libraries  : ${params.rlocation}"
-log.info "Script dir   : $baseDir"
-log.info "Working dir  : $workDir"
-log.info "Output dir   : ${params.outdir}"
+log.info "Reads          : ${params.reads}"
+log.info "Genome         : ${params.genome}"
+log.info "BWA Index      : ${params.index}"
+log.info "MACS Config    : ${params.macsconfig}"
+log.info "Extend Reads   : ${params.extendReadsLen} bp"
+log.info "Current home   : $HOME"
+log.info "Current user   : $USER"
+log.info "Current path   : $PWD"
+log.info "R libraries    : ${params.rlocation}"
+log.info "Script dir     : $baseDir"
+log.info "Working dir    : $workDir"
+log.info "Output dir     : ${params.outdir}"
+if( params.clip_r1 > 0) log.info "Trim R1        : ${params.clip_r1}"
+if( params.clip_r2 > 0) log.info "Trim R2        : ${params.clip_r2}"
+if( params.three_prime_clip_r1 > 0) log.info "Trim 3' R1     : ${params.three_prime_clip_r1}"
+if( params.three_prime_clip_r2 > 0) log.info "Trim 3' R2     : ${params.three_prime_clip_r2}"
+log.info "Config Profile : ${workflow.profile}"
 log.info "===================================="
 
 // Validate inputs
@@ -90,29 +101,21 @@ index = file(params.index)
 macsconfig = file(params.macsconfig)
 if( !index.exists() ) exit 1, "Missing BWA index: '$index'"
 if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
+if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
 /*
- * Create a channel for read files
+ * Create a channel for input read files
  */
-
- Channel
-     .fromPath( params.reads )
-     .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
-     .map { path ->
-         def prefix = readPrefix(path, params.reads)
-         tuple(prefix, path)
-     }
-     .groupTuple(sort: true)
-     .set { read_files }
-
-read_files.into  { raw_reads_fastqc; raw_reads_trimgalore }
+Channel
+    .fromFilePairs( params.reads )
+    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+    .into { raw_reads_fastqc; raw_reads_trimgalore }
 
 
 /*
  * Create a channel for macs config file
  */
-
-macs_para = Channel
+Channel
     .from(macsconfig.readLines())
     .map { line ->
         list = line.split(',')
@@ -121,30 +124,22 @@ macs_para = Channel
         analysis_id = list[2]
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
+    .into{ macs_para }
 
 
 
 /*
  * STEP 1 - FastQC
  */
-
 process fastqc {
-
     tag "$name"
-
-    module 'bioinfo-tools'
-    module 'FastQC'
-
+    
     memory { 2.GB * task.attempt }
     time { 4.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'warning' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/fastqc", mode: 'copy'
 
     input:
-    set val(name), file(reads:'*') from raw_reads_fastqc
+    set val(name), file(reads) from raw_reads_fastqc
 
     output:
     file '*_fastqc.{zip,html}' into fastqc_results
@@ -159,41 +154,34 @@ process fastqc {
 /*
  * STEP 2 - Trim Galore!
  */
-
 process trim_galore {
-
     tag "$name"
-
-    module 'bioinfo-tools'
-    module 'FastQC'
-    module 'cutadapt'
-    module 'TrimGalore'
 
     cpus 2
     memory { 4.GB * task.attempt }
     time { 8.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/trimgalore", mode: 'copy'
 
     input:
-    set val(name), file(reads:'*') from raw_reads_trimgalore
+    set val(name), file(reads) from raw_reads_trimgalore
 
     output:
-    file '*.gz' into trimmed_reads
+    file '*.fq.gz' into trimmed_reads
     file '*trimming_report.txt' into trimgalore_results
 
     script:
     single = reads instanceof Path
+    c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
+    c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
+    tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
+    tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
     if(single) {
         """
-        trim_galore --gzip $reads
+        trim_galore --gzip $c_r1 $tpc_r1 $reads
         """
     } else {
         """
-        trim_galore --paired --gzip $reads
+        trim_galore --paired --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $reads
         """
     }
 }
@@ -202,22 +190,12 @@ process trim_galore {
 /*
  * STEP 3.1 - align with bwa
  */
-
 process bwa {
-
     tag "$reads"
-
-    module 'bioinfo-tools'
-    module 'bwa'
-    module 'samtools'
 
     cpus 8
     memory { 64.GB * task.attempt }
     time { 48.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
@@ -229,8 +207,7 @@ process bwa {
 
     script:
     """
-    f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%.*1_val_1};f=\${f%_1_val_1};f=\${f%_trimmed}
-
+    f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_trimmed}
     bwa mem -M $index $reads | samtools view -bT $index - > \${f}.bam
     """
 }
@@ -241,20 +218,11 @@ process bwa {
  */
 
 process samtools {
-
     tag "$bwa_bam"
-
-    module 'bioinfo-tools'
-    module 'samtools'
-    module 'BEDTools'
 
     cpus 2
     memory { 16.GB * task.attempt }
     time { 120.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
@@ -268,7 +236,6 @@ process samtools {
     script:
     """
     f='$bwa_bam';f=\${f%.bam}
-
     samtools sort \${f}.bam \${f}.sorted
     samtools index \${f}.sorted.bam
     bedtools bamtobed -i \${f}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${f}.sorted.bed
@@ -281,21 +248,11 @@ process samtools {
  */
 
 process picard {
-
     tag "$bam_picard"
-
-    module 'bioinfo-tools'
-    module 'picard/2.0.1'
-    module 'BEDTools'
-    module 'samtools'
 
     cpus 2
     memory { 16.GB * task.attempt }
     time { 24.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/picard", mode: 'copy'
 
     input:
@@ -336,21 +293,16 @@ process countstat {
     cpus 2
     memory { 4.GB * task.attempt }
     time { 2.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
-    file input from bed_total .mix(bed_dedup) .toSortedList()
+    file input from bed_total.mix(bed_dedup).toSortedList()
 
     output:
     file 'read_count_statistics.txt' into countstat_results
 
     """
-    #! /usr/bin/env perl
-
+    #!/usr/bin/env perl
     use strict;
     use warnings;
 
@@ -394,22 +346,11 @@ process countstat {
  */
 
 process phantompeakqualtools {
-
     tag "$bam_dedup_spp"
-
-    module 'bioinfo-tools'
-    module 'samtools'
-    module 'R/3.1.0'
-    module 'phantompeakqualtools'
-    module 'SPP'
 
     cpus 2
     memory { 16.GB * task.attempt }
     time { 24.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -436,10 +377,6 @@ process combinesppout {
     cpus 1
     memory { 2.GB * task.attempt }
     time { 1.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -464,10 +401,6 @@ process calculateNSCRSC {
     cpus 1
     memory { 2.GB * task.attempt }
     time { 1.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -508,16 +441,9 @@ process calculateNSCRSC {
 
 process deepTools {
 
-    module 'bioinfo-tools'
-    module 'deepTools'
-
     cpus 4
     memory { 32.GB * task.attempt }
     time { 120.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -580,14 +506,10 @@ process ngs_config_generate {
 
     memory { 2.GB * task.attempt }
     time { 1.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'terminate' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
-    file input_files from bam_dedup_ngsplotconfig.toSortedList()
+    file input_files from bam_dedup_ngsplotconfig.flatten().toSortedList()
 
     output:
     file 'ngsplot_config' into ngsplot_config
@@ -617,35 +539,24 @@ process ngs_config_generate {
 
 process ngsplot {
 
-    module 'bioinfo-tools'
-    module 'samtools'
-    module 'R/3.2.3'
-    module 'ngsplot'
-
     cpus 2
     memory { 16.GB * task.attempt }
     time { 120.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
-    file input_bam_files from bam_dedup_ngsplot.toSortedList()
-    file input_bai_files from bai_dedup_ngsplot.toSortedList()
+    file input_bam_files from bam_dedup_ngsplot.flatten().toSortedList()
+    file input_bai_files from bai_dedup_ngsplot.flatten().toSortedList()
     file ngsplot_config from ngsplot_config
 
     output:
-    file '*.{pdf}' into ngsplot_results
+    file '*.pdf' into ngsplot_results
 
     script:
-
     def REF
     if (params.genome == 'GRCh37'){ REF = 'hg19' }
     else if (params.genome == 'GRCm38'){ REF = 'mm10' }
     else { error "No reference / reference not supported available for ngsplot! >${params.genome}<" }
-
     """
     \$NGSPLOT/bin/ngs.plot.r \\
         -G $REF \\
@@ -671,39 +582,26 @@ process ngsplot {
 
 process macs {
 
-    module 'bioinfo-tools'
-    module 'MACS'
-    module 'samtools'
-
     cpus 4
     memory { 32.GB * task.attempt }
     time { 24.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
-    maxRetries 3
-    maxErrors '-1'
-
     publishDir "${params.outdir}/macs", mode: 'copy'
 
     input:
-    file bam_for_macs from bam_dedup_macs.toSortedList()
-    file bai_for_macs from bai_dedup_macs.toSortedList()
+    file bam_for_macs from bam_dedup_macs.flatten().toSortedList()
+    file bai_for_macs from bai_dedup_macs.flatten().toSortedList()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
     file '*.{bed,xls,r,narrowPeak}' into macs_results
 
     script:
-
     def REF
     if (params.genome == 'GRCh37'){ REF = 'hs' }
     else if (params.genome == 'GRCm38'){ REF = 'mm' }
     else { error "No reference / reference not supported available for MACS! >${params.genome}<" }
-
-    if (ctrl_sample_id == '') {
-        ctrl = ''
-    } else {
-        ctrl = "-c ${ctrl_sample_id}.dedup.sorted.bam"
-    }
+    
+    def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
     """
     macs2 callpeak \\
         -t ${chip_sample_id}.dedup.sorted.bam \\
@@ -721,74 +619,24 @@ process macs {
  */
 
 process multiqc {
-    module 'bioinfo-tools'
-    module 'MultiQC'
 
-    cpus 2
-    memory { 16.GB * task.attempt }
-    time { 120.h * task.attempt }
-    errorStrategy { task.exitStatus == 143 ? 'retry' : 'ignore' }
-    maxRetries 3
-    maxErrors '-1'
-
+    memory '4GB'
+    time '4h'
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
-    file ('fastqc/*') from fastqc_results.toList()
-    file ('trimgalore/*') from trimgalore_results.toList()
-    file ('bwa/*') from bwa_logs.toList()
-    file ('picard/*') from picard_reports.toList()
-    file ('phantompeakqualtools/*') from spp_out_mqc.toList()
+    file ('fastqc/*') from fastqc_results.flatten().toList()
+    file ('trimgalore/*') from trimgalore_results.flatten().toList()
+    file ('bwa/*') from bwa_logs.flatten().toList()
+    file ('picard/*') from picard_reports.flatten().toList()
+    file ('phantompeakqualtools/*') from spp_out_mqc.flatten().toList()
 
     output:
-    file '*multiqc_report.html' into multiqc_report
-    file '*multiqc_data' into multiqc_data
-
+    file '*multiqc_report.html'
+    file '*multiqc_data'
+    
+    script:
     """
     multiqc -f .
     """
-}
-
-
-/*
- * Helper function, given a file Path
- * returns the file name region matching a specified glob pattern
- * starting from the beginning of the name up to last matching group.
- *
- * For example:
- *   readPrefix('/some/data/file_alpha_1.fa', 'file*_1.fa' )
- *
- * Returns:
- *   'file_alpha'
- */
-
-def readPrefix( Path actual, template ) {
-
-    final fileName = actual.getFileName().toString()
-
-    def filePattern = template.toString()
-    int p = filePattern.lastIndexOf('/')
-    if( p != -1 ) filePattern = filePattern.substring(p+1)
-    if( !filePattern.contains('*') && !filePattern.contains('?') )
-        filePattern = '*' + filePattern
-
-    def regex = filePattern
-                    .replace('.','\\.')
-                    .replace('*','(.*)')
-                    .replace('?','(.?)')
-                    .replace('{','(?:')
-                    .replace('}',')')
-                    .replace(',','|')
-
-    def matcher = (fileName =~ /$regex/)
-    if( matcher.matches() ) {
-        def end = matcher.end(matcher.groupCount() )
-        def prefix = fileName.substring(0,end)
-        while(prefix.endsWith('-') || prefix.endsWith('_') || prefix.endsWith('.') )
-          prefix=prefix[0..-2]
-
-        return prefix
-    }
-    println(fileName)
-    return fileName
 }
