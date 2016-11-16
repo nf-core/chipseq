@@ -133,7 +133,7 @@ Channel
  */
 process fastqc {
     tag "$name"
-    
+
     memory { 2.GB * task.attempt }
     time { 4.h * task.attempt }
     publishDir "${params.outdir}/fastqc", mode: 'copy'
@@ -558,7 +558,7 @@ process ngsplot {
     else if (params.genome == 'GRCm38'){ REF = 'mm10' }
     else { error "No reference / reference not supported available for ngsplot! >${params.genome}<" }
     """
-    \$NGSPLOT/bin/ngs.plot.r \\
+    ngs.plot.r \\
         -G $REF \\
         -R genebody \\
         -C $ngsplot_config \\
@@ -566,7 +566,7 @@ process ngsplot {
         -D ensembl \\
         -FL 300
 
-    \$NGSPLOT/bin/ngs.plot.r \\
+    ngs.plot.r \\
         -G $REF \\
         -R tss \\
         -C $ngsplot_config \\
@@ -600,7 +600,7 @@ process macs {
     if (params.genome == 'GRCh37'){ REF = 'hs' }
     else if (params.genome == 'GRCm38'){ REF = 'mm' }
     else { error "No reference / reference not supported available for MACS! >${params.genome}<" }
-    
+
     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
     """
     macs2 callpeak \\
@@ -634,7 +634,7 @@ process multiqc {
     output:
     file '*multiqc_report.html'
     file '*multiqc_data'
-    
+
     script:
     """
     multiqc -f .
