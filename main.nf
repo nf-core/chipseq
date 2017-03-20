@@ -204,10 +204,10 @@ process bwa {
     stdout into bwa_logs
 
     script:
+    prefix = reads[0].toString() - ~/(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
     """
-    set -o pipefail   # Capture exit codes from bwa, not samtools
-    f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_trimmed}
-    bwa mem -M $index $reads | samtools view -bT $index - > \${f}.bam
+    set -o pipefail
+    bwa mem -M $index $reads | samtools view -bT $index - > ${prefix}.bam
     """
 }
 
@@ -229,12 +229,12 @@ process samtools {
     file '*.sorted.bed' into bed_total
 
     script:
+    prefix = bwa_bam[0].toString() - ~/(\.bam)?$/
     """
-    set -o pipefail   # Capture exit codes from bedtools, not sorting
-    f='$bwa_bam';f=\${f%.bam}
-    samtools sort \${f}.bam \${f}.sorted
-    samtools index \${f}.sorted.bam
-    bedtools bamtobed -i \${f}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${f}.sorted.bed
+    set -o pipefail
+    samtools sort ${prefix}.bam ${prefix}.sorted
+    samtools index ${prefix}.sorted.bam
+    bedtools bamtobed -i ${prefix}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.sorted.bed
     """
 }
 
@@ -257,22 +257,21 @@ process picard {
     file '*.picardDupMetrics.txt' into picard_reports
 
     script:
+    prefix = bam_picard[0].toString() - ~/(\.sorted)?(\.bam)?$/
     """
-    set -o pipefail   # Capture exit codes from bedtools, not sorting
-    f='$bam_picard';f=\${f%.sorted.bam}
-
+    set -o pipefail
     java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
         INPUT=$bam_picard \\
-        OUTPUT=\${f}.dedup.bam \\
+        OUTPUT=${prefix}.dedup.bam \\
         ASSUME_SORTED=true \\
         REMOVE_DUPLICATES=true \\
-        METRICS_FILE=\${f}.picardDupMetrics.txt \\
+        METRICS_FILE=${prefix}.picardDupMetrics.txt \\
         VALIDATION_STRINGENCY=LENIENT \\
         PROGRAM_RECORD_ID='null'
 
-    samtools sort \${f}.dedup.bam \${f}.dedup.sorted
-    samtools index \${f}.dedup.sorted.bam
-    bedtools bamtobed -i \${f}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${f}.dedup.sorted.bed
+    samtools sort ${prefix}.dedup.bam ${prefix}.dedup.sorted
+    samtools index ${prefix}.dedup.sorted.bam
+    bedtools bamtobed -i ${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.dedup.sorted.bed
     """
 }
 
@@ -290,42 +289,9 @@ process countstat {
     output:
     file 'read_count_statistics.txt' into countstat_results
 
+    script:
     """
-    #!/usr/bin/env perl
-    use strict;
-    use warnings;
-
-    open(OUTPUT, ">read_count_statistics.txt");
-    my @fileList = qw($input);
-
-    print OUTPUT "File\\tTotalCounts\\tUniqueCounts\\tUniqueStartCounts\\tUniqueRatio\\tUniqueStartRatio\\n";
-
-    foreach my \$f(@fileList){
-
-     open(IN,"<\$f")||die \$!;
-     my \$Tcnt=0;
-     my \$prev="NA";
-     my \$lcnt=0;
-     my \$Tcnt_2=0;
-     my \$prev_2="NA";
-
-     while(<IN>){
-       chomp;
-       my @line=split("\\t",\$_);
-       \$lcnt++;
-       my \$t = join("_",@line[0..2]);
-       \$Tcnt++ unless(\$t eq \$prev);
-       \$prev=\$t;
-
-       my \$t_2 = join("_",@line[0..1]);
-       \$Tcnt_2++ unless(\$t_2 eq \$prev_2);
-       \$prev_2=\$t_2;
-     }
-
-     print OUTPUT "\$f\\t\$lcnt\\t\$Tcnt\\t\$Tcnt_2\\t".(\$Tcnt/\$lcnt)."\\t".(\$Tcnt_2/\$lcnt)."\\n";
-     close(IN);
-    }
-    close(OUTPUT);
+    countstat.pl $input
     """
 }
 
@@ -346,9 +312,9 @@ process phantompeakqualtools {
     file '*.spp.out' into spp_out, spp_out_mqc
 
     script:
+    prefix = bam_dedup_spp[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
-    f='$bam_dedup_spp';f=\${f%.dedup.sorted.bam}
-    run_spp.R -c=$bam_dedup_spp -savp -out=\${f}.spp.out
+    run_spp.R -c=$bam_dedup_spp -savp -out=${prefix}.spp.out
     """
 }
 
@@ -388,26 +354,7 @@ process calculateNSCRSC {
 
     script:
     """
-    #!/usr/bin/env Rscript
-
-    data<-read.table("${cross_correlation}",header=FALSE)
-
-    data[,12]<-NA
-    data[,13]<-NA
-    data[,14]<-NA
-    data[,15]<-NA
-
-    colnames(data)[14]<-"NSC"
-    colnames(data)[15]<-"RSC"
-
-    for (i in 1:nrow(data)){
-	       data[i,12]<-as.numeric(unlist(strsplit(as.character(data[i,4]),","))[1])
-	       data[i,13]<-as.numeric(unlist(strsplit(as.character(data[i,6]),","))[1])
-	       data[i,14]<-round(data[i,12]/as.numeric(data[i,8]),2)
-	       data[i,15]<-round((data[i,12]-as.numeric(data[i,8]))/(data[i,13]-as.numeric(data[i,8])),2)
-    }
-
-    write.table(data, file="crosscorrelation_processed.txt", quote=FALSE, sep='\\t', row.names=FALSE)
+    calculateNSCRSC.r $cross_correlation
     """
 }
 
@@ -486,19 +433,7 @@ process ngs_config_generate {
 
     script:
     """
-    #!/usr/bin/env Rscript
-
-    datafiles = c( "${(input_files as List).join('", "')}" )
-    table<-matrix(0, nrow=length(datafiles), ncol=3)
-    table<-as.data.frame(table)
-    for (i in 1:length(datafiles)){
-       table[i,1]<-datafiles[i]
-       table[i,2]<-(-1)
-       tmp='\"'
-       table[i,3]<-paste(tmp, gsub(".dedup.sorted.bam.*\$", "", as.character(datafiles[i])), tmp, sep="")
-    }
-    table<-table[order(table[,1]),]
-    write.table(table, file="ngsplot_config",sep='\\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
+    ngs_config_generate.r $input_files
     """
 }
 
@@ -562,7 +497,6 @@ process macs {
     if (params.genome == 'GRCh37'){ REF = 'hs' }
     else if (params.genome == 'GRCm38'){ REF = 'mm' }
     else { error "No reference / reference not supported available for MACS! >${params.genome}<" }
-
     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
     """
     macs2 callpeak \\
