@@ -53,7 +53,8 @@ vim: syntax=groovy
 version = 1.2
 
 // Configurable variables
-params.genome = 'GRCh37'
+params.project = false
+params.genome = false
 params.index = params.genomes[ params.genome ].bwa
 params.name = "NGI ChIP-seq Best Practice"
 params.reads = "data/*{1,2}*.fastq.gz"
@@ -61,11 +62,25 @@ params.macsconfig = "data/macsconfig"
 params.extendReadsLen = 100
 params.outdir = './results'
 
+// Validate inputs
+index = file(params.index)
+macsconfig = file(params.macsconfig)
+if( !index.exists() ) exit 1, "Missing BWA index: '$index'"
+if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
+if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
+
 // R library locations
+params.rlocation = false
+if (params.rlocation){
+    nxtflow_libs = file(params.rlocation)
+    nxtflow_libs.mkdirs()
+}
+
 params.rlocation = "$HOME/R/nxtflow_libs/"
 nxtflow_libs = file(params.rlocation)
 nxtflow_libs.mkdirs()
 
+// Variable initialisation
 def single
 
 // Custom trimming options
@@ -95,13 +110,6 @@ if( params.three_prime_clip_r1 > 0) log.info "Trim 3' R1     : ${params.three_pr
 if( params.three_prime_clip_r2 > 0) log.info "Trim 3' R2     : ${params.three_prime_clip_r2}"
 log.info "Config Profile : ${workflow.profile}"
 log.info "===================================="
-
-// Validate inputs
-index = file(params.index)
-macsconfig = file(params.macsconfig)
-if( !index.exists() ) exit 1, "Missing BWA index: '$index'"
-if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
-if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
 /*
  * Create a channel for input read files
@@ -168,6 +176,7 @@ process trim_galore {
     output:
     file '*.fq.gz' into trimmed_reads
     file '*trimming_report.txt' into trimgalore_results
+    file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
 
     script:
     single = reads instanceof Path
@@ -177,11 +186,11 @@ process trim_galore {
     tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
     if(single) {
         """
-        trim_galore --gzip $c_r1 $tpc_r1 $reads
+        trim_galore --fastqc --gzip $c_r1 $tpc_r1 $reads
         """
     } else {
         """
-        trim_galore --paired --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $reads
+        trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $reads
         """
     }
 }
@@ -207,6 +216,7 @@ process bwa {
 
     script:
     """
+    set -o pipefail   # Capture exit codes from bwa, not samtools
     f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_trimmed}
     bwa mem -M $index $reads | samtools view -bT $index - > \${f}.bam
     """
@@ -235,6 +245,7 @@ process samtools {
 
     script:
     """
+    set -o pipefail   # Capture exit codes from bedtools, not sorting
     f='$bwa_bam';f=\${f%.bam}
     samtools sort \${f}.bam \${f}.sorted
     samtools index \${f}.sorted.bam
@@ -266,6 +277,7 @@ process picard {
 
     script:
     """
+    set -o pipefail   # Capture exit codes from bedtools, not sorting
     f='$bam_picard';f=\${f%.sorted.bam}
 
     java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
