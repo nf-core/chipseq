@@ -95,15 +95,16 @@ and their keys. Common genomes that are supported are:
 * _S. cerevisiae_
   * `--genome 'R64-1-1'`
 
-> There are numerous others - check the config file for more.
+There are numerous others - check the config file for more.
 
-### `--extendReadsLen`
+### `--extendReadsLen`
 Amount of base pairs to extend the reads for the deepTools analysis.
 
 Default: `100`
 
 ### `--index`
-If you prefer, you can specify the full path to your reference genome when you run the pipeline:
+Instead of specifying genome and using the UPPMAX reference genome indices, you can specify the full
+path to your reference genome when you run the pipeline:
 ```
 --index [path to BWA index]
 ```
@@ -117,7 +118,7 @@ Default: `./results`
 Some steps in the pipeline run R with required modules. By default, the pipeline will install
 these modules to the specified directory if not already available.
 
-Default: `~/R/nxtflow_libs/` (UPPMAX config only)
+Default: `~/R/nxtflow_libs/` _(UPPMAX config only)_
 
 ### `-c`
 Specify the path to a specific config file (this is a core NextFlow command). Useful if using different UPPMAX
@@ -165,7 +166,7 @@ configuration options can be used by specifying `-profile <name>` when running t
 ## Credits
 These scripts were written for use at the [National Genomics Infrastructure](https://portal.scilifelab.se/genomics/)
 at [SciLifeLab](http://www.scilifelab.se/) in Stockholm, Sweden.
-Written by Chuan Wang (@chuan-wang) and Phil Ewels (@ewels).
+Written by Chuan Wang ([@chuan-wang](https://github.com/chuan-wang)) and Phil Ewels ([@ewels](https://github.com/ewels)).
 
 <p align="center"><a href="stand_alone/http://www.scilifelab.se/" target="_blank"><img src="docs/images/SciLifeLab_logo.png" title="SciLifeLab"></a></p>
 
