@@ -141,9 +141,6 @@ Channel
  */
 process fastqc {
     tag "$name"
-
-    memory { 2.GB * task.attempt }
-    time { 4.h * task.attempt }
     publishDir "${params.outdir}/fastqc", mode: 'copy'
 
     input:
@@ -164,10 +161,6 @@ process fastqc {
  */
 process trim_galore {
     tag "$name"
-
-    cpus 2
-    memory { 4.GB * task.attempt }
-    time { 8.h * task.attempt }
     publishDir "${params.outdir}/trimgalore", mode: 'copy'
 
     input:
@@ -201,10 +194,6 @@ process trim_galore {
  */
 process bwa {
     tag "$reads"
-
-    cpus 8
-    memory { 64.GB * task.attempt }
-    time { 48.h * task.attempt }
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
@@ -229,10 +218,6 @@ process bwa {
 
 process samtools {
     tag "$bwa_bam"
-
-    cpus 2
-    memory { 16.GB * task.attempt }
-    time { 120.h * task.attempt }
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
@@ -260,10 +245,6 @@ process samtools {
 
 process picard {
     tag "$bam_picard"
-
-    cpus 2
-    memory { 16.GB * task.attempt }
-    time { 24.h * task.attempt }
     publishDir "${params.outdir}/picard", mode: 'copy'
 
     input:
@@ -301,10 +282,6 @@ process picard {
  */
 
 process countstat {
-
-    cpus 2
-    memory { 4.GB * task.attempt }
-    time { 2.h * task.attempt }
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
@@ -359,10 +336,6 @@ process countstat {
 
 process phantompeakqualtools {
     tag "$bam_dedup_spp"
-
-    cpus 2
-    memory { 16.GB * task.attempt }
-    time { 24.h * task.attempt }
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -385,10 +358,6 @@ process phantompeakqualtools {
  */
 
 process combinesppout {
-
-    cpus 1
-    memory { 2.GB * task.attempt }
-    time { 1.h * task.attempt }
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -409,10 +378,6 @@ process combinesppout {
  */
 
 process calculateNSCRSC {
-
-    cpus 1
-    memory { 2.GB * task.attempt }
-    time { 1.h * task.attempt }
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -452,10 +417,6 @@ process calculateNSCRSC {
  */
 
 process deepTools {
-
-    cpus 4
-    memory { 32.GB * task.attempt }
-    time { 120.h * task.attempt }
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -515,9 +476,6 @@ process deepTools {
  */
 
 process ngs_config_generate {
-
-    memory { 2.GB * task.attempt }
-    time { 1.h * task.attempt }
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
@@ -550,10 +508,6 @@ process ngs_config_generate {
  */
 
 process ngsplot {
-
-    cpus 2
-    memory { 16.GB * task.attempt }
-    time { 120.h * task.attempt }
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
@@ -593,10 +547,6 @@ process ngsplot {
  */
 
 process macs {
-
-    cpus 4
-    memory { 32.GB * task.attempt }
-    time { 24.h * task.attempt }
     publishDir "${params.outdir}/macs", mode: 'copy'
 
     input:
@@ -631,9 +581,6 @@ process macs {
  */
 
 process multiqc {
-
-    memory '4GB'
-    time '4h'
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
