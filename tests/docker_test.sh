@@ -33,7 +33,7 @@ else
 fi
 
 echo "Starting nextflow..."
-echo "nextflow run $script_path -resume -profile testing --bwa_index ${data_dir}/BWAIndex_sacCer2/genome.fa --macsconfig ${data_dir}/macsconfig.txt --reads \"${data_dir}/*.fastq.gz\""
+echo "nextflow run $script_path -resume -profile testing --bwa_index ${data_dir}/BWAIndex_sacCer2/genome.fa --macsconfig ${data_dir}/macsconfig.txt --reads \"${data_dir}/*_R{1,2}.fastq.gz\""
 echo "-----"
-nextflow run $script_path -resume -profile testing --bwa_index ${data_dir}/BWAIndex_sacCer2/genome.fa --macsconfig ${data_dir}/macsconfig.txt --reads "${data_dir}/*.fastq.gz"
+nextflow run $script_path -resume -profile testing --bwa_index ${data_dir}/BWAIndex_sacCer2/genome.fa --macsconfig ${data_dir}/macsconfig.txt --reads "${data_dir}/*_R{1,2}.fastq.gz"
 
