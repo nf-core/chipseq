@@ -108,6 +108,7 @@ if( params.clip_r2 > 0) log.info "Trim R2        : ${params.clip_r2}"
 if( params.three_prime_clip_r1 > 0) log.info "Trim 3' R1     : ${params.three_prime_clip_r1}"
 if( params.three_prime_clip_r2 > 0) log.info "Trim 3' R2     : ${params.three_prime_clip_r2}"
 log.info "Config Profile : ${workflow.profile}"
+if(workflow.commitId){ log.info "Pipeline Commit: ${workflow.commitId}" }
 log.info "===================================="
 
 /*
