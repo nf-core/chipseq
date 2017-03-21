@@ -128,12 +128,6 @@ The output directory where the results will be saved.
 
 Default: `./results`
 
-### `--rlocation`
-Some steps in the pipeline run R with required modules. By default, the pipeline will install
-these modules to the specified directory if not already available.
-
-Default: `~/R/nxtflow_libs/` _(UPPMAX config only)_
-
 ### `-c`
 Specify the path to a specific config file (this is a core NextFlow command). Useful if using different UPPMAX
 projects or different sets of reference genomes. **NB:** one hyphen only (core Nextflow parameter).

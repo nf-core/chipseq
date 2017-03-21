@@ -79,17 +79,6 @@ if( params.bwa_index ){
 }
 if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
-// R library locations
-params.rlocation = false
-if (params.rlocation){
-    nxtflow_libs = file(params.rlocation)
-    nxtflow_libs.mkdirs()
-}
-
-params.rlocation = "$HOME/R/nxtflow_libs/"
-nxtflow_libs = file(params.rlocation)
-nxtflow_libs.mkdirs()
-
 // Variable initialisation
 def single
 
@@ -111,7 +100,6 @@ log.info "Extend Reads   : ${params.extendReadsLen} bp"
 log.info "Current home   : $HOME"
 log.info "Current user   : $USER"
 log.info "Current path   : $PWD"
-log.info "R libraries    : ${params.rlocation}"
 log.info "Script dir     : $baseDir"
 log.info "Working dir    : $workDir"
 log.info "Output dir     : ${params.outdir}"
