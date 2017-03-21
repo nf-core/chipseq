@@ -1,5 +1,9 @@
 # ![NGI-ChIPseq](https://raw.githubusercontent.com/SciLifeLab/NGI-ChIPseq/master/docs/images/NGI-ChIPseq_logo.png)
 
+[![Build Status](https://travis-ci.org/SciLifeLab/NGI-ChIPseq.svg?branch=master)](https://travis-ci.org/SciLifeLab/NGI-ChIPseq)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.22.2-brightgreen.svg
+)](https://www.nextflow.io/)
+
 > # UNDER DEVELOPMENT
 > This pipeline is currently under active development and has very little in the way of testing. You may well have problems running it. Any help debugging is very welcome! Please fork, make changes and submit a pull request.
 
