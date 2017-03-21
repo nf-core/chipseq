@@ -53,7 +53,8 @@ vim: syntax=groovy
 version = 1.2
 
 // Configurable variables
-params.genome = 'GRCh37'
+params.project = false
+params.genome = false
 params.index = params.genomes[ params.genome ].bwa
 params.name = "NGI ChIP-seq Best Practice"
 params.reads = "data/*{1,2}*.fastq.gz"
@@ -61,11 +62,25 @@ params.macsconfig = "data/macsconfig"
 params.extendReadsLen = 100
 params.outdir = './results'
 
+// Validate inputs
+index = file(params.index)
+macsconfig = file(params.macsconfig)
+if( !index.exists() ) exit 1, "Missing BWA index: '$index'"
+if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
+if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
+
 // R library locations
+params.rlocation = false
+if (params.rlocation){
+    nxtflow_libs = file(params.rlocation)
+    nxtflow_libs.mkdirs()
+}
+
 params.rlocation = "$HOME/R/nxtflow_libs/"
 nxtflow_libs = file(params.rlocation)
 nxtflow_libs.mkdirs()
 
+// Variable initialisation
 def single
 
 // Custom trimming options
@@ -95,13 +110,6 @@ if( params.three_prime_clip_r1 > 0) log.info "Trim 3' R1     : ${params.three_pr
 if( params.three_prime_clip_r2 > 0) log.info "Trim 3' R2     : ${params.three_prime_clip_r2}"
 log.info "Config Profile : ${workflow.profile}"
 log.info "===================================="
-
-// Validate inputs
-index = file(params.index)
-macsconfig = file(params.macsconfig)
-if( !index.exists() ) exit 1, "Missing BWA index: '$index'"
-if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
-if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
 /*
  * Create a channel for input read files
@@ -133,9 +141,6 @@ Channel
  */
 process fastqc {
     tag "$name"
-
-    memory { 2.GB * task.attempt }
-    time { 4.h * task.attempt }
     publishDir "${params.outdir}/fastqc", mode: 'copy'
 
     input:
@@ -156,10 +161,6 @@ process fastqc {
  */
 process trim_galore {
     tag "$name"
-
-    cpus 2
-    memory { 4.GB * task.attempt }
-    time { 8.h * task.attempt }
     publishDir "${params.outdir}/trimgalore", mode: 'copy'
 
     input:
@@ -168,6 +169,7 @@ process trim_galore {
     output:
     file '*.fq.gz' into trimmed_reads
     file '*trimming_report.txt' into trimgalore_results
+    file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
 
     script:
     single = reads instanceof Path
@@ -177,11 +179,11 @@ process trim_galore {
     tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
     if(single) {
         """
-        trim_galore --gzip $c_r1 $tpc_r1 $reads
+        trim_galore --fastqc --gzip $c_r1 $tpc_r1 $reads
         """
     } else {
         """
-        trim_galore --paired --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $reads
+        trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $reads
         """
     }
 }
@@ -192,10 +194,6 @@ process trim_galore {
  */
 process bwa {
     tag "$reads"
-
-    cpus 8
-    memory { 64.GB * task.attempt }
-    time { 48.h * task.attempt }
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
@@ -207,6 +205,7 @@ process bwa {
 
     script:
     """
+    set -o pipefail   # Capture exit codes from bwa, not samtools
     f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_trimmed}
     bwa mem -M $index $reads | samtools view -bT $index - > \${f}.bam
     """
@@ -219,10 +218,6 @@ process bwa {
 
 process samtools {
     tag "$bwa_bam"
-
-    cpus 2
-    memory { 16.GB * task.attempt }
-    time { 120.h * task.attempt }
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
@@ -235,6 +230,7 @@ process samtools {
 
     script:
     """
+    set -o pipefail   # Capture exit codes from bedtools, not sorting
     f='$bwa_bam';f=\${f%.bam}
     samtools sort \${f}.bam \${f}.sorted
     samtools index \${f}.sorted.bam
@@ -249,10 +245,6 @@ process samtools {
 
 process picard {
     tag "$bam_picard"
-
-    cpus 2
-    memory { 16.GB * task.attempt }
-    time { 24.h * task.attempt }
     publishDir "${params.outdir}/picard", mode: 'copy'
 
     input:
@@ -266,6 +258,7 @@ process picard {
 
     script:
     """
+    set -o pipefail   # Capture exit codes from bedtools, not sorting
     f='$bam_picard';f=\${f%.sorted.bam}
 
     java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
@@ -289,10 +282,6 @@ process picard {
  */
 
 process countstat {
-
-    cpus 2
-    memory { 4.GB * task.attempt }
-    time { 2.h * task.attempt }
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
@@ -347,10 +336,6 @@ process countstat {
 
 process phantompeakqualtools {
     tag "$bam_dedup_spp"
-
-    cpus 2
-    memory { 16.GB * task.attempt }
-    time { 24.h * task.attempt }
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -373,10 +358,6 @@ process phantompeakqualtools {
  */
 
 process combinesppout {
-
-    cpus 1
-    memory { 2.GB * task.attempt }
-    time { 1.h * task.attempt }
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -397,10 +378,6 @@ process combinesppout {
  */
 
 process calculateNSCRSC {
-
-    cpus 1
-    memory { 2.GB * task.attempt }
-    time { 1.h * task.attempt }
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -440,10 +417,6 @@ process calculateNSCRSC {
  */
 
 process deepTools {
-
-    cpus 4
-    memory { 32.GB * task.attempt }
-    time { 120.h * task.attempt }
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -503,9 +476,6 @@ process deepTools {
  */
 
 process ngs_config_generate {
-
-    memory { 2.GB * task.attempt }
-    time { 1.h * task.attempt }
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
@@ -538,10 +508,6 @@ process ngs_config_generate {
  */
 
 process ngsplot {
-
-    cpus 2
-    memory { 16.GB * task.attempt }
-    time { 120.h * task.attempt }
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
@@ -581,10 +547,6 @@ process ngsplot {
  */
 
 process macs {
-
-    cpus 4
-    memory { 32.GB * task.attempt }
-    time { 24.h * task.attempt }
     publishDir "${params.outdir}/macs", mode: 'copy'
 
     input:
@@ -619,9 +581,6 @@ process macs {
  */
 
 process multiqc {
-
-    memory '4GB'
-    time '4h'
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
