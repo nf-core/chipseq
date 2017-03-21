@@ -10,20 +10,20 @@ vim: syntax=groovy
  @Authors
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
- Release 2016-09-23
 ----------------------------------------------------------------------------------------
  Basic command:
  $ nextflow main.nf
 
  Pipeline variables can be configured with the following command line options:
  --genome [ID]
- --index [path to bwa index] (alternative to --genome)
+ OR --index [path to bwa index] (alternative to --genome)
+ OR --fasta [path to fasta reference] (builds bwa index)
  --reads [path to input files]
  --macsconfig [path to config file for MACS: line format: chip_sample_id,ctrl_sample_id,analysis_id]
 
  For example:
- $ nextflow main.nf -c ~/.nextflow/config --reads '*.fastq.gz' --macsconfig 'macssetup.config'
- $ nextflow main.nf -c ~/.nextflow/config --reads '*.R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
+ $ nextflow run SciLifeLab/NGI-ChIPseq --reads '*.fastq.gz' --macsconfig 'macssetup.config'
+ $ nextflow run SciLifeLab/NGI-ChIPseq --reads '*.R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
 ---------------------------------------------------------------------------------------
  The pipeline can determine whether the input data is single or paired end. This relies on
  specifying the input files correctly. For paired en data us the example above, i.e.
@@ -55,7 +55,8 @@ version = 1.2
 // Configurable variables
 params.project = false
 params.genome = false
-params.index = params.genomes[ params.genome ].bwa
+params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
+params.bwa_index = params.genomes[ params.genome ].bwa ?: false : false
 params.name = "NGI ChIP-seq Best Practice"
 params.reads = "data/*{1,2}*.fastq.gz"
 params.macsconfig = "data/macsconfig"
@@ -63,10 +64,19 @@ params.extendReadsLen = 100
 params.outdir = './results'
 
 // Validate inputs
-index = file(params.index)
 macsconfig = file(params.macsconfig)
-if( !index.exists() ) exit 1, "Missing BWA index: '$index'"
 if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
+if( params.bwa_index ){
+    bwa_index = Channel
+        .fromPath(params.bwa_index)
+        .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index}" }
+        .toList()
+} else if ( params.fasta ){
+    fasta = file(params.fasta)
+    if( !fasta.exists() ) exit 1, "Fasta file not found: ${params.fasta}"
+} else {
+    exit 1, "No reference genome specified!"
+}
 if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
 // R library locations
@@ -94,7 +104,8 @@ log.info " ChIP-seq: v${version}"
 log.info "===================================="
 log.info "Reads          : ${params.reads}"
 log.info "Genome         : ${params.genome}"
-log.info "BWA Index      : ${params.index}"
+if(params.bwa_index)  log.info "BWA Index      : ${params.bwa_index}"
+else if(params.fasta) log.info "Fasta Ref      : ${params.fasta}"
 log.info "MACS Config    : ${params.macsconfig}"
 log.info "Extend Reads   : ${params.extendReadsLen} bp"
 log.info "Current home   : $HOME"
@@ -133,6 +144,30 @@ Channel
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
     .into{ macs_para }
+
+
+
+/*
+ * PREPROCESSING - Build STAR index
+ */
+if(!params.bwa_index && fasta){
+    process makeBWAindex {
+        tag fasta
+        publishDir path: "${params.outdir}/reference_genome", saveAs: { params.saveReference ? it : null }, mode: 'copy'
+
+        input:
+        file fasta from fasta
+
+        output:
+        file "BWAIndex" into bwa_index
+
+        script:
+        """
+        mkdir BWAIndex
+        bwa index -a bwtsw $fasta
+        """
+    }
+}
 
 
 
@@ -198,6 +233,7 @@ process bwa {
 
     input:
     file reads from trimmed_reads
+    file index from bwa_index.first()
 
     output:
     file '*.bam' into bwa_bam
@@ -217,11 +253,11 @@ process bwa {
  */
 
 process samtools {
-    tag "$bwa_bam"
+    tag "$prefix"
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
-    file bwa_bam
+    file bam from bwa_bam
 
     output:
     file '*.sorted.bam' into bam_picard
@@ -229,7 +265,7 @@ process samtools {
     file '*.sorted.bed' into bed_total
 
     script:
-    prefix = bwa_bam[0].toString() - ~/(\.bam)?$/
+    prefix = bam[0].toString() - ~/(\.bam)?$/
     """
     set -o pipefail
     samtools sort ${prefix}.bam ${prefix}.sorted
@@ -244,11 +280,11 @@ process samtools {
  */
 
 process picard {
-    tag "$bam_picard"
+    tag "$prefix"
     publishDir "${params.outdir}/picard", mode: 'copy'
 
     input:
-    file bam_picard
+    file bam from bam_picard
 
     output:
     file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplotconfig, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs
@@ -257,11 +293,11 @@ process picard {
     file '*.picardDupMetrics.txt' into picard_reports
 
     script:
-    prefix = bam_picard[0].toString() - ~/(\.sorted)?(\.bam)?$/
+    prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
     """
     set -o pipefail
     java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
-        INPUT=$bam_picard \\
+        INPUT=$bam \\
         OUTPUT=${prefix}.dedup.bam \\
         ASSUME_SORTED=true \\
         REMOVE_DUPLICATES=true \\
@@ -301,20 +337,20 @@ process countstat {
  */
 
 process phantompeakqualtools {
-    tag "$bam_dedup_spp"
+    tag "$prefix"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
-    file bam_dedup_spp
+    file bam from bam_dedup_spp
 
     output:
     file '*.pdf' into spp_results
     file '*.spp.out' into spp_out, spp_out_mqc
 
     script:
-    prefix = bam_dedup_spp[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
+    prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
-    run_spp.R -c=$bam_dedup_spp -savp -out=${prefix}.spp.out
+    run_spp.R -c=$bam -savp -out=${prefix}.spp.out
     """
 }
 
@@ -364,6 +400,7 @@ process calculateNSCRSC {
  */
 
 process deepTools {
+    tag "$bam"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -515,10 +552,11 @@ process macs {
  */
 
 process multiqc {
+    tag "$prefix"
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
-    file ('fastqc/*') from fastqc_results.flatten().toList()
+    file (fastqc:'fastqc/*') from fastqc_results.flatten().toList()
     file ('trimgalore/*') from trimgalore_results.flatten().toList()
     file ('bwa/*') from bwa_logs.flatten().toList()
     file ('picard/*') from picard_reports.flatten().toList()
@@ -529,7 +567,9 @@ process multiqc {
     file '*multiqc_data'
 
     script:
+    prefix = fastqc[0].toString() - '_fastqc.html' - 'fastqc/'
     """
+    cp $baseDir/conf/multiqc_config.yaml multiqc_config.yaml
     multiqc -f .
     """
 }
