@@ -517,11 +517,15 @@ process macs {
     output:
     file '*.{bed,xls,r,narrowPeak}' into macs_results
 
+    when:
+    REF
+
     script:
-    def REF
+    def REF = false
     if (params.genome == 'GRCh37'){ REF = 'hs' }
     else if (params.genome == 'GRCm38'){ REF = 'mm' }
-    else { error "No reference / reference not supported available for MACS! >${params.genome}<" }
+    else if (params.genome == false){ log.warn "($chip_sample_id) No reference supplied for MACS. Use '--genome GRCh37' or '--genome GRCm38' to run MACS." }
+    else { log.warn "($chip_sample_id) Reference '${params.genome}' not supported for MACS (only GRCh37 and GRCm38)." }
     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
     """
     macs2 callpeak \\

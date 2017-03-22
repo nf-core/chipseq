@@ -103,8 +103,9 @@ RUN echo "r <- getOption('repos'); r['CRAN'] <- 'https://ftp.acc.umu.se/mirror/C
     rm /opt/SPP_${SPP_VERSION}.tar.gz && \
     curl -fsSL https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/phantompeakqualtools/ccQualityControl.${PHANTOMPEAKQUALTOOLS_VERSION}.tar.gz -o /opt/phantompeakqualtools.${PHANTOMPEAKQUALTOOLS_VERSION}.tar.gz && \
     tar xvzf /opt/phantompeakqualtools.${PHANTOMPEAKQUALTOOLS_VERSION}.tar.gz -C /opt/ && \
+    chmod 755 /opt/phantompeakqualtools/* && \
     rm /opt/phantompeakqualtools.${PHANTOMPEAKQUALTOOLS_VERSION}.tar.gz
-ENV PATH=${PATH}:/opt/phantompeakqualtools.${PHANTOMPEAKQUALTOOLS_VERSION}
+ENV PATH=${PATH}:/opt/phantompeakqualtools
 
 # Install DeepTools
 ENV DEEPTOOLS_VERSION="2.4.3"
