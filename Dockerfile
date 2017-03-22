@@ -75,6 +75,7 @@ ENV BEDTOOLS_VERSION="bedtools-2.26.0"
 RUN curl -fsSL https://github.com/arq5x/bedtools2/releases/download/v2.26.0/${BEDTOOLS_VERSION}.tar.gz -o /opt/${BEDTOOLS_VERSION}.tar.gz && \
     tar xvzf /opt/${BEDTOOLS_VERSION}.tar.gz -C /opt/ && \
     cd /opt/bedtools2; make && \
+    cp /opt/bedtools2/bin/* /usr/local/bin/ && \
     rm /opt/${BEDTOOLS_VERSION}.tar.gz
 
 # Install R
