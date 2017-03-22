@@ -232,7 +232,7 @@ process bwa {
     prefix = reads[0].toString() - ~/(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
     """
     set -o pipefail
-    bwa mem -M $index $reads | samtools view -bT $index - > ${prefix}.bam
+    bwa mem -M ${index}/genome.fa $reads | samtools view -bT $index - > ${prefix}.bam
     """
 }
 
@@ -242,7 +242,7 @@ process bwa {
  */
 
 process samtools {
-    tag "$prefix"
+    tag "${bam.baseName}"
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
@@ -254,12 +254,11 @@ process samtools {
     file '*.sorted.bed' into bed_total
 
     script:
-    prefix = bam[0].toString() - ~/(\.bam)?$/
     """
     set -o pipefail
-    samtools sort ${prefix}.bam ${prefix}.sorted
-    samtools index ${prefix}.sorted.bam
-    bedtools bamtobed -i ${prefix}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.sorted.bed
+    samtools sort $bam -o ${bam.baseName}.sorted.bam
+    samtools index ${bam.baseName}.sorted.bam
+    bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
     """
 }
 
@@ -294,7 +293,7 @@ process picard {
         VALIDATION_STRINGENCY=LENIENT \\
         PROGRAM_RECORD_ID='null'
 
-    samtools sort ${prefix}.dedup.bam ${prefix}.dedup.sorted
+    samtools sort ${prefix}.dedup.bam -o ${prefix}.dedup.sorted.bam
     samtools index ${prefix}.dedup.sorted.bam
     bedtools bamtobed -i ${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.dedup.sorted.bed
     """
