@@ -25,4 +25,4 @@ for (i in 1:nrow(data)){
        data[i,15]<-round((data[i,12]-as.numeric(data[i,8]))/(data[i,13]-as.numeric(data[i,8])),2)
 }
 
-write.table(data, file="crosscorrelation_processed.txt", quote=FALSE, sep='\t', row.names=FALSE)
+write.table(data, file="cross_correlation_processed.txt", quote=FALSE, sep='\t', row.names=FALSE)
