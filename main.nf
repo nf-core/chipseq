@@ -458,7 +458,7 @@ process deepTools {
             --skipZeros \\
             --removeOutliers \\
             --plotTitle "Pearson Correlation of Read Counts" \\
-            --whatToPlot scatterplot \\
+            --whatToPlot scatterplot
 
         plotCorrelation \\
             -in multiBamSummary.npz \\
@@ -468,7 +468,7 @@ process deepTools {
             --plotTitle "Spearman Correlation of Read Counts" \\
             --whatToPlot heatmap \\
             --colorMap RdYlBu \\
-            --plotNumbers \\
+            --plotNumbers
     fi
     """
 }
