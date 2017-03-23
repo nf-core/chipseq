@@ -13,7 +13,7 @@ table<-as.data.frame(table)
 for (i in 1:length(datafiles)){
    table[i,1]<-datafiles[i]
    table[i,2]<-(-1)
-   table[i,3]<-paste(tmp, gsub(".dedup.sorted.bam.*$", "", as.character(datafiles[i])), '"', sep="")
+   table[i,3]<-paste('"', gsub(".dedup.sorted.bam.*$", "", as.character(datafiles[i])), '"', sep="")
 }
 table<-table[order(table[,1]),]
 write.table(table, file="ngsplot_config",sep='\t', quote=FALSE, row.names=FALSE, col.names=FALSE)

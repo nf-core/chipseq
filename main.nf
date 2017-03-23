@@ -135,6 +135,18 @@ Channel
     .into{ macs_para }
 
 
+/*
+ * Reference to use for MACS and ngs.plot.r
+ */
+def REF = false
+if (params.genome == 'GRCh37'){ REF = 'hs' }
+else if (params.genome == 'GRCm38'){ REF = 'mm' }
+else if (params.genome == false){
+    log.warn "No reference supplied for MACS / ngs_plot. Use '--genome GRCh37' or '--genome GRCm38' to run MACS and ngs_plot."
+} else {
+    log.warn "Reference '${params.genome}' not supported by MACS / ngs_plot (only GRCh37 and GRCm38)."
+}
+
 
 /*
  * PREPROCESSING - Build STAR index
@@ -217,7 +229,7 @@ process trim_galore {
  * STEP 3.1 - align with bwa
  */
 process bwa {
-    tag "$reads"
+    tag "${reads[0].baseName}"
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
@@ -305,6 +317,7 @@ process picard {
  */
 
 process countstat {
+    tag "${input[0].baseName}"
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
@@ -338,7 +351,8 @@ process phantompeakqualtools {
     script:
     prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
-    run_spp.R -c=$bam -savp -out=${prefix}.spp.out
+    script_path=\$(which run_spp.R)
+    Rscript \${script_path} -c="$bam" -savp -out="${prefix}.spp.out"
     """
 }
 
@@ -348,6 +362,7 @@ process phantompeakqualtools {
  */
 
 process combinesppout {
+    tag "${spp_out_list[0].baseName}"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -355,6 +370,7 @@ process combinesppout {
 
     output:
     file 'cross_correlation.txt' into cross_correlation
+    val "${spp_out_list[0].baseName}" into cross_correlation_name
 
     script:
     """
@@ -368,10 +384,12 @@ process combinesppout {
  */
 
 process calculateNSCRSC {
+    tag "$cross_correlation_name"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
     file cross_correlation
+    val cross_correlation_name
 
     output:
     file 'crosscorrelation_processed.txt' into calculateNSCRSC_results
@@ -388,7 +406,7 @@ process calculateNSCRSC {
  */
 
 process deepTools {
-    tag "$bam"
+    tag "${bam[0].baseName}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -448,6 +466,7 @@ process deepTools {
  */
 
 process ngs_config_generate {
+    tag "${input_files[0].baseName}"
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
@@ -478,11 +497,9 @@ process ngsplot {
     output:
     file '*.pdf' into ngsplot_results
 
+    when: REF
+
     script:
-    def REF
-    if (params.genome == 'GRCh37'){ REF = 'hg19' }
-    else if (params.genome == 'GRCm38'){ REF = 'mm10' }
-    else { error "No reference / reference not supported available for ngsplot! >${params.genome}<" }
     """
     ngs.plot.r \\
         -G $REF \\
@@ -517,15 +534,9 @@ process macs {
     output:
     file '*.{bed,xls,r,narrowPeak}' into macs_results
 
-    when:
-    REF
+    when: REF
 
     script:
-    def REF = false
-    if (params.genome == 'GRCh37'){ REF = 'hs' }
-    else if (params.genome == 'GRCm38'){ REF = 'mm' }
-    else if (params.genome == false){ log.warn "($chip_sample_id) No reference supplied for MACS. Use '--genome GRCh37' or '--genome GRCm38' to run MACS." }
-    else { log.warn "($chip_sample_id) Reference '${params.genome}' not supported for MACS (only GRCh37 and GRCm38)." }
     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
     """
     macs2 callpeak \\

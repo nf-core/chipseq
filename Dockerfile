@@ -8,6 +8,7 @@ LABEL author="Phil Ewels" \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         g++ \
+        gawk \
         gcc \
         gfortran \
         libboost-all-dev \
@@ -23,6 +24,9 @@ RUN apt-get update && \
         python-dev \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Use gawk instead of awk (needed for phantompeakqualtools)
+RUN update-alternatives --set awk /usr/bin/gawk
 
 # Install pip
 RUN curl -fsSL https://bootstrap.pypa.io/get-pip.py -o /opt/get-pip.py && \
@@ -85,6 +89,13 @@ RUN curl -fsSL https://cran.r-project.org/src/base/R-3/${R_VERSION}.tar.gz -o /o
     cd /opt/${R_VERSION};./configure;make;make install && \
     rm /opt/${R_VERSION}.tar.gz
 
+# Install core R dependencies
+RUN echo "r <- getOption('repos'); r['CRAN'] <- 'https://ftp.acc.umu.se/mirror/CRAN/'; options(repos = r);" > ~/.Rprofile && \
+    Rscript -e "install.packages('caTools',dependencies=TRUE)" && \
+    Rscript -e "install.packages('snow',dependencies=TRUE)" && \
+    Rscript -e "install.packages('doMC',dependencies=TRUE)" && \
+    Rscript -e "install.packages('utils',dependencies=TRUE)"
+
 # Install R Bioconductor packages
 RUN echo 'source("https://bioconductor.org/biocLite.R")' > /opt/packages.r && \
     echo 'biocLite()' >> /opt/packages.r && \
@@ -95,15 +106,13 @@ RUN echo 'source("https://bioconductor.org/biocLite.R")' > /opt/packages.r && \
 # Install phantompeakqualtools
 ENV SPP_VERSION="1.14"
 ENV PHANTOMPEAKQUALTOOLS_VERSION="v.1.1"
-RUN echo "r <- getOption('repos'); r['CRAN'] <- 'https://ftp.acc.umu.se/mirror/CRAN/'; options(repos = r);" > ~/.Rprofile && \
-    Rscript -e "install.packages('caTools',dependencies=TRUE)" && \
-    Rscript -e "install.packages('snow',dependencies=TRUE)" && \
-    curl -fsSL https://github.com/hms-dbmi/spp/archive/${SPP_VERSION}.tar.gz -o /opt/SPP_${SPP_VERSION}.tar.gz && \
+RUN curl -fsSL https://github.com/hms-dbmi/spp/archive/${SPP_VERSION}.tar.gz -o /opt/SPP_${SPP_VERSION}.tar.gz && \
     Rscript -e "install.packages('/opt/SPP_${SPP_VERSION}.tar.gz',dependencies=TRUE)" && \
     rm /opt/SPP_${SPP_VERSION}.tar.gz && \
     curl -fsSL https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/phantompeakqualtools/ccQualityControl.${PHANTOMPEAKQUALTOOLS_VERSION}.tar.gz -o /opt/phantompeakqualtools.${PHANTOMPEAKQUALTOOLS_VERSION}.tar.gz && \
     tar xvzf /opt/phantompeakqualtools.${PHANTOMPEAKQUALTOOLS_VERSION}.tar.gz -C /opt/ && \
     chmod 755 /opt/phantompeakqualtools/* && \
+    echo 'alias run_spp.R="Rscript /opt/phantompeakqualtools/run_spp.R"' >> ~/.bashrc && \
     rm /opt/phantompeakqualtools.${PHANTOMPEAKQUALTOOLS_VERSION}.tar.gz
 ENV PATH=${PATH}:/opt/phantompeakqualtools
 
@@ -115,10 +124,7 @@ RUN pip install git+git://github.com/fidelram/deepTools.git@$DEEPTOOLS_VERSION
 ENV NGSPLOT_VERSION="2.61"
 RUN curl -fsSL https://github.com/shenlab-sinai/ngsplot/archive/${NGSPLOT_VERSION}.tar.gz -o /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz && \
     tar xvzf /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz -C /opt/ && \
-    rm /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz && \
-    Rscript -e "install.packages('doMC',dependencies=TRUE)" && \
-    Rscript -e "install.packages('caTools',dependencies=TRUE)" && \
-    Rscript -e "install.packages('utils',dependencies=TRUE)"
+    rm /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz
 ENV PATH=${PATH}:/opt/ngsplot_${NGSPLOT_VERSION}/bin
 ENV NGSPLOT=/opt/ngsplot_${NGSPLOT_VERSION}/
 
