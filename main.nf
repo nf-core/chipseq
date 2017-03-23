@@ -139,10 +139,14 @@ Channel
  * Reference to use for MACS and ngs.plot.r
  */
 def REF = false
-if (params.genome == 'GRCh37') REF = 'hs'
-else if (params.genome == 'GRCm38') REF = 'mm'
-else if (params.genome == false) log.warn "No reference supplied for MACS / NGSPlot. Use '--genome GRCh37' or '--genome GRCm38' to run MACS & NGSPlot.\n"
-else log.warn "Reference '${params.genome}' not supported by MACS / NGSPlot (only GRCh37 and GRCm38).\n"
+if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19' }
+else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10' }
+else if (params.genome == false){
+    log.warn "No reference supplied for MACS / ngs_plot. Use '--genome GRCh37' or '--genome GRCm38' to run MACS and ngs_plot."
+} else {
+    log.warn "Reference '${params.genome}' not supported by MACS / ngs_plot (only GRCh37 and GRCm38)."
+}
+
 
 /*
  * PREPROCESSING - Build BWA index
@@ -467,14 +471,14 @@ process ngsplot {
     output:
     file '*.pdf' into ngsplot_results
 
-    when: REF
+    when: REF_ngsplot
 
     script:
     """
     ngs_config_generate.r $input_bam_files
 
     ngs.plot.r \\
-        -G $REF \\
+        -G $REF_ngsplot \\
         -R genebody \\
         -C ngsplot_config \\
         -O Genebody \\
@@ -482,7 +486,7 @@ process ngsplot {
         -FL 300
 
     ngs.plot.r \\
-        -G $REF \\
+        -G $REF_ngsplot \\
         -R tss \\
         -C ngsplot_config \\
         -O TSS \\
@@ -507,7 +511,7 @@ process macs {
     output:
     file '*.{bed,xls,r,narrowPeak}' into macs_results
 
-    when: REF
+    when: REF_macs
 
     script:
     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
@@ -516,7 +520,7 @@ process macs {
         -t ${chip_sample_id}.dedup.sorted.bam \\
         $ctrl \\
         -f BAM \\
-        -g $REF \\
+        -g $REF_macs \\
         -n $analysis_id \\
         -q 0.01
     """

@@ -94,22 +94,15 @@ _NB:_ For single-sample peaking calling without a control sample, skip the field
 
 ### `--genome`
 The reference genome to use of the analysis, needs to be one of the genome specified in the config file.
-
 Default: `None` (default can be set using a Nextflow configuration file, see below).
 
-See [`conf/uppmax.config`](conf/uppmax.config) for a list of the supported reference genomes
-and their keys. Common genomes that are supported are:
-
+*Currently only the human and mouse genomes are fully supported by this pipeline. For other genomes `MACS` and `NGSplot` will not run!*
 * Human
   * `--genome GRCh37`
 * Mouse
   * `--genome GRCm38`
-* Drosophila
-  * `--genome BDGP6`
-* _S. cerevisiae_
-  * `--genome 'R64-1-1'`
 
-There are numerous others - check the config file for more.
+See [`conf/uppmax.config`](conf/uppmax.config) for a list of the reference genomes and their keys.
 
 ### `--extendReadsLen`
 Amount of base pairs to extend the reads for the deepTools analysis.
@@ -177,4 +170,3 @@ at [SciLifeLab](http://www.scilifelab.se/) in Stockholm, Sweden.
 Written by Chuan Wang ([@chuan-wang](https://github.com/chuan-wang)) and Phil Ewels ([@ewels](https://github.com/ewels)).
 
 <p align="center"><a href="stand_alone/http://www.scilifelab.se/" target="_blank"><img src="https://raw.githubusercontent.com/SciLifeLab/NGI-ChIPseq/master/docs/images/SciLifeLab_logo.png" title="SciLifeLab"></a></p>
-
