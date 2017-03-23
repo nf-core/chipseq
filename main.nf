@@ -145,7 +145,7 @@ else if (params.genome == false) log.warn "No reference supplied for MACS / NGSP
 else log.warn "Reference '${params.genome}' not supported by MACS / NGSPlot (only GRCh37 and GRCm38).\n"
 
 /*
- * PREPROCESSING - Build STAR index
+ * PREPROCESSING - Build BWA index
  */
 if(!params.bwa_index && fasta){
     process makeBWAindex {
