@@ -410,54 +410,71 @@ process deepTools {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
-    file bam from bam_dedup_deepTools.toSortedList()
-    file bai from bai_dedup_deepTools.toSortedList()
+    file bam from bam_dedup_deepTools.flatten().toSortedList()
+    file bai from bai_dedup_deepTools.flatten().toSortedList()
 
     output:
     file 'multiBamSummary.npz' into deepTools_bamsummary
     file '*.{pdf,png}' into deepTools_results
 
     script:
-    """
-    plotFingerprint \\
-        -b $bam \\
-        --plotFile fingerprints.pdf \\
-        --extendReads=${params.extendReadsLen} \\
-        --skipZeros \\
-        --ignoreDuplicates \\
-        --numberOfSamples 50000 \\
-        --binSize=500 \\
-        --plotFileFormat=pdf \\
-        --plotTitle="Fingerprints"
+    num_bams = bai.size()
+    if(num_bams < 2){
+        log.warn("Only $num_bams BAM files - skipping multiBam deepTool steps")
+        """
+        plotFingerprint \\
+            -b $bam \\
+            --plotFile fingerprints.pdf \\
+            --extendReads=${params.extendReadsLen} \\
+            --skipZeros \\
+            --ignoreDuplicates \\
+            --numberOfSamples 50000 \\
+            --binSize=500 \\
+            --plotFileFormat=pdf \\
+            --plotTitle="Fingerprints"
+        """
+    } else {
+        """
+        plotFingerprint \\
+            -b $bam \\
+            --plotFile fingerprints.pdf \\
+            --extendReads=${params.extendReadsLen} \\
+            --skipZeros \\
+            --ignoreDuplicates \\
+            --numberOfSamples 50000 \\
+            --binSize=500 \\
+            --plotFileFormat=pdf \\
+            --plotTitle="Fingerprints"
 
-    multiBamSummary \\
-        bins \\
-        --binSize=10000 \\
-        --bamfiles $bam \\
-        -out multiBamSummary.npz \\
-        --extendReads=${params.extendReadsLen} \\
-        --ignoreDuplicates \\
-        --centerReads
+        multiBamSummary \\
+            bins \\
+            --binSize=10000 \\
+            --bamfiles $bam \\
+            -out multiBamSummary.npz \\
+            --extendReads=${params.extendReadsLen} \\
+            --ignoreDuplicates \\
+            --centerReads
 
-    plotCorrelation \\
-        -in multiBamSummary.npz \\
-        -o scatterplot_PearsonCorr_multiBamSummary.png \\
-        --corMethod pearson \\
-        --skipZeros \\
-        --removeOutliers \\
-        --plotTitle "Pearson Correlation of Read Counts" \\
-        --whatToPlot scatterplot \\
+        plotCorrelation \\
+            -in multiBamSummary.npz \\
+            -o scatterplot_PearsonCorr_multiBamSummary.png \\
+            --corMethod pearson \\
+            --skipZeros \\
+            --removeOutliers \\
+            --plotTitle "Pearson Correlation of Read Counts" \\
+            --whatToPlot scatterplot
 
-    plotCorrelation \\
-        -in multiBamSummary.npz \\
-        -o heatmap_SpearmanCorr_multiBamSummary.png \\
-        --corMethod spearman \\
-        --skipZeros \\
-        --plotTitle "Spearman Correlation of Read Counts" \\
-        --whatToPlot heatmap \\
-        --colorMap RdYlBu \\
-        --plotNumbers \\
-    """
+        plotCorrelation \\
+            -in multiBamSummary.npz \\
+            -o heatmap_SpearmanCorr_multiBamSummary.png \\
+            --corMethod spearman \\
+            --skipZeros \\
+            --plotTitle "Spearman Correlation of Read Counts" \\
+            --whatToPlot heatmap \\
+            --colorMap RdYlBu \\
+            --plotNumbers
+        """
+    }
 }
 
 
