@@ -150,13 +150,13 @@ Spearman correlation coefficient in each square is calculated with the read coun
 
 * `assay_peaks.xls`
   * Tabular file which contains information about called peaks. Information include:
-    * - chromosome name
-    * - start position of peak
-    * - end position of peak
-    * - length of peak region
-    * - absolute peak summit position
-    * - pileup height at peak summit, -log10(pvalue) for the peak summit (e.g. pvalue =1e-10, then this value should be 10)
-    * - fold enrichment for this peak summit against random Poisson distribution with local lambda, -log10(qvalue) at peak summit
+    * chromosome name
+    * start position of peak
+    * end position of peak
+    * length of peak region
+    * absolute peak summit position
+    * pileup height at peak summit, -log10(pvalue) for the peak summit (e.g. pvalue =1e-10, then this value should be 10)
+    * fold enrichment for this peak summit against random Poisson distribution with local lambda, -log10(qvalue) at peak summit
 * `assay_peaks.narrowPeak`
   * BED6+4 format file which contains the peak locations together with peak summit, pvalue and qvalue.
 * `assay_summits.bed`
@@ -169,7 +169,7 @@ Spearman correlation coefficient in each square is calculated with the read coun
   * R script with which a PDF image about the model based on your data can be produced.
 * `.bdg`
   * bedGraph format files which can be imported to UCSC genome browser or be converted into even smaller bigWig files.
-  
+
 *Refer to https://github.com/taoliu/MACS for the specifications of the output fields.*
 
 ## MultiQC
