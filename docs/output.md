@@ -56,6 +56,7 @@ Single-end data will have slightly different file names and only one FastQ file 
   * Trimmed FastQ data
 * `sample.fastq.gz_trimming_report.txt`
   * Trimming report (describes which parameters that were used)
+* `sample_trimmed_fastqc.html`
 * `sample_trimmed_fastqc.zip`
   * FastQC report for trimmed reads
 
@@ -148,7 +149,28 @@ Spearman correlation coefficient in each square is calculated with the read coun
 **Output directory: `results/macs`**
 
 * `assay_peaks.xls`
-  * raw ChIP-seq peaks identified by MACS. Refer to https://github.com/taoliu/MACS for the specifications of the output fields.
+  * Tabular file which contains information about called peaks. Information include:
+    * chromosome name
+    * start position of peak
+    * end position of peak
+    * length of peak region
+    * absolute peak summit position
+    * pileup height at peak summit, -log10(pvalue) for the peak summit (e.g. pvalue =1e-10, then this value should be 10)
+    * fold enrichment for this peak summit against random Poisson distribution with local lambda, -log10(qvalue) at peak summit
+* `assay_peaks.narrowPeak`
+  * BED6+4 format file which contains the peak locations together with peak summit, pvalue and qvalue.
+* `assay_summits.bed`
+  * BED format file which contains the peak summits locations for every peaks.
+* `assay_peaks.broadPeak`
+  * BED6+3 format file which is similar to narrowPeak file, except for missing the column for annotating peak summits.
+* `assay_peaks.gappedPeak`
+  * BED12+3 format file which contains both the broad region and narrow peaks.
+* `assay_model.r`
+  * R script with which a PDF image about the model based on your data can be produced.
+* `.bdg`
+  * bedGraph format files which can be imported to UCSC genome browser or be converted into even smaller bigWig files.
+
+*Refer to https://github.com/taoliu/MACS for the specifications of the output fields.*
 
 ## MultiQC
 [MultiQC](http://multiqc.info) is a visualisation tool that generates a single HTML report summarising all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available in within the report data directory.
