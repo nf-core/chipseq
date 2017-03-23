@@ -469,6 +469,9 @@ process deepTools {
             --whatToPlot heatmap \\
             --colorMap RdYlBu \\
             --plotNumbers
+
+    else
+        echo "Only one BAM input file found. Skipping multiBam commands."
     fi
     """
 }
