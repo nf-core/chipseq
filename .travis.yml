@@ -1,0 +1,16 @@
+sudo: required
+
+language: java
+
+jdk: openjdk8
+
+services:
+  - docker
+install:
+  - mkdir /tmp/nextflow
+  - cd /tmp/nextflow
+  - wget -qO- get.nextflow.io | bash
+  - sudo ln -s /tmp/nextflow/nextflow /usr/local/bin/nextflow
+  - cd ${TRAVIS_BUILD_DIR}/tests/
+
+script: "./docker_test.sh"

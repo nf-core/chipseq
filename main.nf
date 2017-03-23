@@ -10,20 +10,20 @@ vim: syntax=groovy
  @Authors
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
- Release 2016-09-23
 ----------------------------------------------------------------------------------------
  Basic command:
  $ nextflow main.nf
 
  Pipeline variables can be configured with the following command line options:
  --genome [ID]
- --index [path to bwa index] (alternative to --genome)
+ OR --index [path to bwa index] (alternative to --genome)
+ OR --fasta [path to fasta reference] (builds bwa index)
  --reads [path to input files]
  --macsconfig [path to config file for MACS: line format: chip_sample_id,ctrl_sample_id,analysis_id]
 
  For example:
- $ nextflow main.nf -c ~/.nextflow/config --reads '*.fastq.gz' --macsconfig 'macssetup.config'
- $ nextflow main.nf -c ~/.nextflow/config --reads '*.R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
+ $ nextflow run SciLifeLab/NGI-ChIPseq --reads '*.fastq.gz' --macsconfig 'macssetup.config'
+ $ nextflow run SciLifeLab/NGI-ChIPseq --reads '*.R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
 ---------------------------------------------------------------------------------------
  The pipeline can determine whether the input data is single or paired end. This relies on
  specifying the input files correctly. For paired en data us the example above, i.e.
@@ -55,7 +55,8 @@ version = 1.2
 // Configurable variables
 params.project = false
 params.genome = false
-params.index = params.genomes[ params.genome ].bwa
+params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
+params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.name = "NGI ChIP-seq Best Practice"
 params.reads = "data/*{1,2}*.fastq.gz"
 params.macsconfig = "data/macsconfig"
@@ -63,22 +64,20 @@ params.extendReadsLen = 100
 params.outdir = './results'
 
 // Validate inputs
-index = file(params.index)
 macsconfig = file(params.macsconfig)
-if( !index.exists() ) exit 1, "Missing BWA index: '$index'"
 if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
-if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
-
-// R library locations
-params.rlocation = false
-if (params.rlocation){
-    nxtflow_libs = file(params.rlocation)
-    nxtflow_libs.mkdirs()
+if( params.bwa_index ){
+    bwa_index = Channel
+        .fromPath(params.bwa_index)
+        .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index}" }
+        .toList()
+} else if ( params.fasta ){
+    fasta = file(params.fasta)
+    if( !fasta.exists() ) exit 1, "Fasta file not found: ${params.fasta}"
+} else {
+    exit 1, "No reference genome specified!"
 }
-
-params.rlocation = "$HOME/R/nxtflow_libs/"
-nxtflow_libs = file(params.rlocation)
-nxtflow_libs.mkdirs()
+if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
 // Variable initialisation
 def single
@@ -94,13 +93,13 @@ log.info " ChIP-seq: v${version}"
 log.info "===================================="
 log.info "Reads          : ${params.reads}"
 log.info "Genome         : ${params.genome}"
-log.info "BWA Index      : ${params.index}"
+if(params.bwa_index)  log.info "BWA Index      : ${params.bwa_index}"
+else if(params.fasta) log.info "Fasta Ref      : ${params.fasta}"
 log.info "MACS Config    : ${params.macsconfig}"
 log.info "Extend Reads   : ${params.extendReadsLen} bp"
 log.info "Current home   : $HOME"
 log.info "Current user   : $USER"
 log.info "Current path   : $PWD"
-log.info "R libraries    : ${params.rlocation}"
 log.info "Script dir     : $baseDir"
 log.info "Working dir    : $workDir"
 log.info "Output dir     : ${params.outdir}"
@@ -109,6 +108,7 @@ if( params.clip_r2 > 0) log.info "Trim R2        : ${params.clip_r2}"
 if( params.three_prime_clip_r1 > 0) log.info "Trim 3' R1     : ${params.three_prime_clip_r1}"
 if( params.three_prime_clip_r2 > 0) log.info "Trim 3' R2     : ${params.three_prime_clip_r2}"
 log.info "Config Profile : ${workflow.profile}"
+if(workflow.commitId){ log.info "Pipeline Commit: ${workflow.commitId}" }
 log.info "===================================="
 
 /*
@@ -133,6 +133,42 @@ Channel
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
     .into{ macs_para }
+
+
+/*
+ * Reference to use for MACS and ngs.plot.r
+ */
+def REF = false
+if (params.genome == 'GRCh37'){ REF = 'hs' }
+else if (params.genome == 'GRCm38'){ REF = 'mm' }
+else if (params.genome == false){
+    log.warn "No reference supplied for MACS / ngs_plot. Use '--genome GRCh37' or '--genome GRCm38' to run MACS and ngs_plot."
+} else {
+    log.warn "Reference '${params.genome}' not supported by MACS / ngs_plot (only GRCh37 and GRCm38)."
+}
+
+
+/*
+ * PREPROCESSING - Build STAR index
+ */
+if(!params.bwa_index && fasta){
+    process makeBWAindex {
+        tag fasta
+        publishDir path: "${params.outdir}/reference_genome", saveAs: { params.saveReference ? it : null }, mode: 'copy'
+
+        input:
+        file fasta from fasta
+
+        output:
+        file "BWAIndex" into bwa_index
+
+        script:
+        """
+        mkdir BWAIndex
+        bwa index -a bwtsw $fasta
+        """
+    }
+}
 
 
 
@@ -193,21 +229,22 @@ process trim_galore {
  * STEP 3.1 - align with bwa
  */
 process bwa {
-    tag "$reads"
+    tag "$prefix"
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
     file reads from trimmed_reads
+    file index from bwa_index.first()
 
     output:
     file '*.bam' into bwa_bam
     stdout into bwa_logs
 
     script:
+    prefix = reads[0].toString() - ~/(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
     """
-    set -o pipefail   # Capture exit codes from bwa, not samtools
-    f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_R1};f=\${f%_1};f=\${f%_trimmed}
-    bwa mem -M $index $reads | samtools view -bT $index - > \${f}.bam
+    set -o pipefail
+    bwa mem -M ${index}/genome.fa $reads | samtools view -bT $index - > ${prefix}.bam
     """
 }
 
@@ -217,11 +254,11 @@ process bwa {
  */
 
 process samtools {
-    tag "$bwa_bam"
+    tag "${bam.baseName}"
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
-    file bwa_bam
+    file bam from bwa_bam
 
     output:
     file '*.sorted.bam' into bam_picard
@@ -230,11 +267,10 @@ process samtools {
 
     script:
     """
-    set -o pipefail   # Capture exit codes from bedtools, not sorting
-    f='$bwa_bam';f=\${f%.bam}
-    samtools sort \${f}.bam \${f}.sorted
-    samtools index \${f}.sorted.bam
-    bedtools bamtobed -i \${f}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${f}.sorted.bed
+    set -o pipefail
+    samtools sort $bam -o ${bam.baseName}.sorted.bam
+    samtools index ${bam.baseName}.sorted.bam
+    bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
     """
 }
 
@@ -244,11 +280,11 @@ process samtools {
  */
 
 process picard {
-    tag "$bam_picard"
+    tag "$prefix"
     publishDir "${params.outdir}/picard", mode: 'copy'
 
     input:
-    file bam_picard
+    file bam from bam_picard
 
     output:
     file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplotconfig, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs
@@ -257,22 +293,21 @@ process picard {
     file '*.picardDupMetrics.txt' into picard_reports
 
     script:
+    prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
     """
-    set -o pipefail   # Capture exit codes from bedtools, not sorting
-    f='$bam_picard';f=\${f%.sorted.bam}
-
+    set -o pipefail
     java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
-        INPUT=$bam_picard \\
-        OUTPUT=\${f}.dedup.bam \\
+        INPUT=$bam \\
+        OUTPUT=${prefix}.dedup.bam \\
         ASSUME_SORTED=true \\
         REMOVE_DUPLICATES=true \\
-        METRICS_FILE=\${f}.picardDupMetrics.txt \\
+        METRICS_FILE=${prefix}.picardDupMetrics.txt \\
         VALIDATION_STRINGENCY=LENIENT \\
         PROGRAM_RECORD_ID='null'
 
-    samtools sort \${f}.dedup.bam \${f}.dedup.sorted
-    samtools index \${f}.dedup.sorted.bam
-    bedtools bamtobed -i \${f}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > \${f}.dedup.sorted.bed
+    samtools sort ${prefix}.dedup.bam -o ${prefix}.dedup.sorted.bam
+    samtools index ${prefix}.dedup.sorted.bam
+    bedtools bamtobed -i ${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.dedup.sorted.bed
     """
 }
 
@@ -282,6 +317,7 @@ process picard {
  */
 
 process countstat {
+    tag "${input[0].baseName}"
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
@@ -290,42 +326,9 @@ process countstat {
     output:
     file 'read_count_statistics.txt' into countstat_results
 
+    script:
     """
-    #!/usr/bin/env perl
-    use strict;
-    use warnings;
-
-    open(OUTPUT, ">read_count_statistics.txt");
-    my @fileList = qw($input);
-
-    print OUTPUT "File\\tTotalCounts\\tUniqueCounts\\tUniqueStartCounts\\tUniqueRatio\\tUniqueStartRatio\\n";
-
-    foreach my \$f(@fileList){
-
-     open(IN,"<\$f")||die \$!;
-     my \$Tcnt=0;
-     my \$prev="NA";
-     my \$lcnt=0;
-     my \$Tcnt_2=0;
-     my \$prev_2="NA";
-
-     while(<IN>){
-       chomp;
-       my @line=split("\\t",\$_);
-       \$lcnt++;
-       my \$t = join("_",@line[0..2]);
-       \$Tcnt++ unless(\$t eq \$prev);
-       \$prev=\$t;
-
-       my \$t_2 = join("_",@line[0..1]);
-       \$Tcnt_2++ unless(\$t_2 eq \$prev_2);
-       \$prev_2=\$t_2;
-     }
-
-     print OUTPUT "\$f\\t\$lcnt\\t\$Tcnt\\t\$Tcnt_2\\t".(\$Tcnt/\$lcnt)."\\t".(\$Tcnt_2/\$lcnt)."\\n";
-     close(IN);
-    }
-    close(OUTPUT);
+    countstat.pl $input
     """
 }
 
@@ -335,20 +338,21 @@ process countstat {
  */
 
 process phantompeakqualtools {
-    tag "$bam_dedup_spp"
+    tag "$prefix"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
-    file bam_dedup_spp
+    file bam from bam_dedup_spp
 
     output:
     file '*.pdf' into spp_results
     file '*.spp.out' into spp_out, spp_out_mqc
 
     script:
+    prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
-    f='$bam_dedup_spp';f=\${f%.dedup.sorted.bam}
-    run_spp.R -c=$bam_dedup_spp -savp -out=\${f}.spp.out
+    script_path=\$(which run_spp.R)
+    Rscript \${script_path} -c="$bam" -savp -out="${prefix}.spp.out"
     """
 }
 
@@ -358,6 +362,7 @@ process phantompeakqualtools {
  */
 
 process combinesppout {
+    tag "${spp_out_list[0].baseName}"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -365,6 +370,7 @@ process combinesppout {
 
     output:
     file 'cross_correlation.txt' into cross_correlation
+    val "${spp_out_list[0].baseName}" into cross_correlation_name
 
     script:
     """
@@ -378,36 +384,19 @@ process combinesppout {
  */
 
 process calculateNSCRSC {
+    tag "$cross_correlation_name"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
     file cross_correlation
+    val cross_correlation_name
 
     output:
     file 'crosscorrelation_processed.txt' into calculateNSCRSC_results
 
     script:
     """
-    #!/usr/bin/env Rscript
-
-    data<-read.table("${cross_correlation}",header=FALSE)
-
-    data[,12]<-NA
-    data[,13]<-NA
-    data[,14]<-NA
-    data[,15]<-NA
-
-    colnames(data)[14]<-"NSC"
-    colnames(data)[15]<-"RSC"
-
-    for (i in 1:nrow(data)){
-	       data[i,12]<-as.numeric(unlist(strsplit(as.character(data[i,4]),","))[1])
-	       data[i,13]<-as.numeric(unlist(strsplit(as.character(data[i,6]),","))[1])
-	       data[i,14]<-round(data[i,12]/as.numeric(data[i,8]),2)
-	       data[i,15]<-round((data[i,12]-as.numeric(data[i,8]))/(data[i,13]-as.numeric(data[i,8])),2)
-    }
-
-    write.table(data, file="crosscorrelation_processed.txt", quote=FALSE, sep='\\t', row.names=FALSE)
+    calculateNSCRSC.r $cross_correlation
     """
 }
 
@@ -417,6 +406,7 @@ process calculateNSCRSC {
  */
 
 process deepTools {
+    tag "${bam[0].baseName}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -481,6 +471,7 @@ process deepTools {
  */
 
 process ngs_config_generate {
+    tag "${input_files[0].baseName}"
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
@@ -491,19 +482,7 @@ process ngs_config_generate {
 
     script:
     """
-    #!/usr/bin/env Rscript
-
-    datafiles = c( "${(input_files as List).join('", "')}" )
-    table<-matrix(0, nrow=length(datafiles), ncol=3)
-    table<-as.data.frame(table)
-    for (i in 1:length(datafiles)){
-       table[i,1]<-datafiles[i]
-       table[i,2]<-(-1)
-       tmp='\"'
-       table[i,3]<-paste(tmp, gsub(".dedup.sorted.bam.*\$", "", as.character(datafiles[i])), tmp, sep="")
-    }
-    table<-table[order(table[,1]),]
-    write.table(table, file="ngsplot_config",sep='\\t', quote=FALSE, row.names=FALSE, col.names=FALSE)
+    ngs_config_generate.r $input_files
     """
 }
 
@@ -523,11 +502,9 @@ process ngsplot {
     output:
     file '*.pdf' into ngsplot_results
 
+    when: REF
+
     script:
-    def REF
-    if (params.genome == 'GRCh37'){ REF = 'hg19' }
-    else if (params.genome == 'GRCm38'){ REF = 'mm10' }
-    else { error "No reference / reference not supported available for ngsplot! >${params.genome}<" }
     """
     ngs.plot.r \\
         -G $REF \\
@@ -562,12 +539,9 @@ process macs {
     output:
     file '*.{bed,xls,r,narrowPeak}' into macs_results
 
-    script:
-    def REF
-    if (params.genome == 'GRCh37'){ REF = 'hs' }
-    else if (params.genome == 'GRCm38'){ REF = 'mm' }
-    else { error "No reference / reference not supported available for MACS! >${params.genome}<" }
+    when: REF
 
+    script:
     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
     """
     macs2 callpeak \\
@@ -586,10 +560,11 @@ process macs {
  */
 
 process multiqc {
+    tag "$prefix"
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
-    file ('fastqc/*') from fastqc_results.flatten().toList()
+    file (fastqc:'fastqc/*') from fastqc_results.flatten().toList()
     file ('trimgalore/*') from trimgalore_results.flatten().toList()
     file ('bwa/*') from bwa_logs.flatten().toList()
     file ('picard/*') from picard_reports.flatten().toList()
@@ -600,7 +575,9 @@ process multiqc {
     file '*multiqc_data'
 
     script:
+    prefix = fastqc[0].toString() - '_fastqc.html' - 'fastqc/'
     """
+    cp $baseDir/conf/multiqc_config.yaml multiqc_config.yaml
     multiqc -f .
     """
 }
