@@ -229,7 +229,7 @@ process trim_galore {
  * STEP 3.1 - align with bwa
  */
 process bwa {
-    tag "${reads[0].baseName}"
+    tag "$prefix"
     publishDir "${params.outdir}/bwa", mode: 'copy'
 
     input:
@@ -241,7 +241,7 @@ process bwa {
     stdout into bwa_logs
 
     script:
-    prefix = reads[0].toString() - ~/(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
+    prefix = reads[0].toString() - ~/(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
     """
     set -o pipefail
     bwa mem -M ${index}/genome.fa $reads | samtools view -bT $index - > ${prefix}.bam
@@ -410,12 +410,11 @@ process deepTools {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
-    file bam from bam_dedup_deepTools.toSortedList()
-    file bai from bai_dedup_deepTools.toSortedList()
+    file bam from bam_dedup_deepTools.flatten().toSortedList()
+    file bai from bai_dedup_deepTools.flatten().toSortedList()
 
     output:
-    file 'multiBamSummary.npz' into deepTools_bamsummary
-    file '*.{pdf,png}' into deepTools_results
+    file '*.{pdf,png,npz}' into deepTools_results
 
     script:
     """
@@ -430,33 +429,39 @@ process deepTools {
         --plotFileFormat=pdf \\
         --plotTitle="Fingerprints"
 
-    multiBamSummary \\
-        bins \\
-        --binSize=10000 \\
-        --bamfiles $bam \\
-        -out multiBamSummary.npz \\
-        --extendReads=${params.extendReadsLen} \\
-        --ignoreDuplicates \\
-        --centerReads
+    if ((\$(echo "$bam" | wc -w)  > 1));
+    then
+        multiBamSummary \\
+            bins \\
+            --binSize=10000 \\
+            --bamfiles $bam \\
+            -out multiBamSummary.npz \\
+            --extendReads=${params.extendReadsLen} \\
+            --ignoreDuplicates \\
+            --centerReads
 
-    plotCorrelation \\
-        -in multiBamSummary.npz \\
-        -o scatterplot_PearsonCorr_multiBamSummary.png \\
-        --corMethod pearson \\
-        --skipZeros \\
-        --removeOutliers \\
-        --plotTitle "Pearson Correlation of Read Counts" \\
-        --whatToPlot scatterplot \\
+        plotCorrelation \\
+            -in multiBamSummary.npz \\
+            -o scatterplot_PearsonCorr_multiBamSummary.png \\
+            --corMethod pearson \\
+            --skipZeros \\
+            --removeOutliers \\
+            --plotTitle "Pearson Correlation of Read Counts" \\
+            --whatToPlot scatterplot
 
-    plotCorrelation \\
-        -in multiBamSummary.npz \\
-        -o heatmap_SpearmanCorr_multiBamSummary.png \\
-        --corMethod spearman \\
-        --skipZeros \\
-        --plotTitle "Spearman Correlation of Read Counts" \\
-        --whatToPlot heatmap \\
-        --colorMap RdYlBu \\
-        --plotNumbers \\
+        plotCorrelation \\
+            -in multiBamSummary.npz \\
+            -o heatmap_SpearmanCorr_multiBamSummary.png \\
+            --corMethod spearman \\
+            --skipZeros \\
+            --plotTitle "Spearman Correlation of Read Counts" \\
+            --whatToPlot heatmap \\
+            --colorMap RdYlBu \\
+            --plotNumbers
+
+    else
+        echo "Only one BAM input file found. Skipping multiBam commands."
+    fi
     """
 }
 
