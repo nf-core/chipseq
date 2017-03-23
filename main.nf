@@ -70,7 +70,6 @@ if( params.bwa_index ){
     bwa_index = Channel
         .fromPath(params.bwa_index)
         .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index}" }
-        .toList()
 } else if ( params.fasta ){
     fasta = file(params.fasta)
     if( !fasta.exists() ) exit 1, "Fasta file not found: ${params.fasta}"
@@ -142,9 +141,9 @@ def REF = false
 if (params.genome == 'GRCh37'){ REF = 'hs' }
 else if (params.genome == 'GRCm38'){ REF = 'mm' }
 else if (params.genome == false){
-    log.warn "No reference supplied for MACS / ngs_plot. Use '--genome GRCh37' or '--genome GRCm38' to run MACS and ngs_plot."
+    log.warn "No reference supplied for MACS / ngs_plot. Use '--genome GRCh37' or '--genome GRCm38' to run MACS and ngs_plot.\n"
 } else {
-    log.warn "Reference '${params.genome}' not supported by MACS / ngs_plot (only GRCh37 and GRCm38)."
+    log.warn "Reference '${params.genome}' not supported by MACS / ngs_plot (only GRCh37 and GRCm38).\n"
 }
 
 
@@ -410,17 +409,16 @@ process deepTools {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
-    file bam from bam_dedup_deepTools.flatten().toSortedList()
-    file bai from bai_dedup_deepTools.flatten().toSortedList()
+    file bam from bam_dedup_deepTools.collect()
+    file bai from bai_dedup_deepTools.collect()
 
     output:
     file 'multiBamSummary.npz' into deepTools_bamsummary
     file '*.{pdf,png}' into deepTools_results
 
     script:
-    num_bams = bai.size()
-    if(num_bams < 2){
-        log.warn("Only $num_bams BAM files - skipping multiBam deepTool steps")
+    if(bam instanceof Path){
+        log.warn("Only 1 BAM file - skipping multiBam deepTool steps")
         """
         plotFingerprint \\
             -b $bam \\
@@ -487,7 +485,7 @@ process ngs_config_generate {
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
-    file input_files from bam_dedup_ngsplotconfig.flatten().toSortedList()
+    file input_files from bam_dedup_ngsplotconfig.collect()
 
     output:
     file 'ngsplot_config' into ngsplot_config
@@ -507,8 +505,8 @@ process ngsplot {
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
-    file input_bam_files from bam_dedup_ngsplot.flatten().toSortedList()
-    file input_bai_files from bai_dedup_ngsplot.flatten().toSortedList()
+    file input_bam_files from bam_dedup_ngsplot.collect()
+    file input_bai_files from bai_dedup_ngsplot.collect()
     file ngsplot_config from ngsplot_config
 
     output:
@@ -544,8 +542,8 @@ process macs {
     publishDir "${params.outdir}/macs", mode: 'copy'
 
     input:
-    file bam_for_macs from bam_dedup_macs.flatten().toSortedList()
-    file bai_for_macs from bai_dedup_macs.flatten().toSortedList()
+    file bam_for_macs from bam_dedup_macs.collect()
+    file bai_for_macs from bai_dedup_macs.collect()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
@@ -576,11 +574,11 @@ process multiqc {
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
-    file (fastqc:'fastqc/*') from fastqc_results.flatten().toList()
-    file ('trimgalore/*') from trimgalore_results.flatten().toList()
-    file ('bwa/*') from bwa_logs.flatten().toList()
-    file ('picard/*') from picard_reports.flatten().toList()
-    file ('phantompeakqualtools/*') from spp_out_mqc.flatten().toList()
+    file (fastqc:'fastqc/*') from fastqc_results.collect()
+    file ('trimgalore/*') from trimgalore_results.collect()
+    file ('bwa/*') from bwa_logs.collect()
+    file ('picard/*') from picard_reports.collect()
+    file ('phantompeakqualtools/*') from spp_out_mqc.collect()
 
     output:
     file '*multiqc_report.html'
