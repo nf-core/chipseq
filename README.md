@@ -1,4 +1,8 @@
-# ![NGI-ChIPseq](docs/images/NGI-ChIPseq_logo.png)
+# ![NGI-ChIPseq](https://raw.githubusercontent.com/SciLifeLab/NGI-ChIPseq/master/docs/images/NGI-ChIPseq_logo.png)
+
+[![Build Status](https://travis-ci.org/SciLifeLab/NGI-ChIPseq.svg?branch=master)](https://travis-ci.org/SciLifeLab/NGI-ChIPseq)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.22.2-brightgreen.svg
+)](https://www.nextflow.io/)
 
 > # UNDER DEVELOPMENT
 > This pipeline is currently under active development and has very little in the way of testing. You may well have problems running it. Any help debugging is very welcome! Please fork, make changes and submit a pull request.
@@ -76,6 +80,16 @@ ChIPSampleID2,CtrlSampleID2,AnalysisID2
 ChIPSampleID3,,AnalysisID3
 ```
 
+1. Column 1: ChIP sample name
+  * Typically the file basename, shared between both reads
+  * _eg._ for `chip_sample_1_R1.fastq.gz` and `chip_sample_1_R2.fastq.gz`, enter `chip_sample_1`
+2. Column 2: Control sample name
+  * Typically the input file basename, shared between both reads
+  * _eg._ for `chip_input_R1.fastq.gz` and `chip_input_R2.fastq.gz`, enter `chip_input`
+3. Column 3: Analysis ID
+  * The analysis ID. Used for the output directory name.
+  * Should be unique for each sample / line in the file.
+
 _NB:_ For single-sample peaking calling without a control sample, skip the field of `CtrlSampleID`.
 
 ### `--genome`
@@ -102,23 +116,17 @@ Amount of base pairs to extend the reads for the deepTools analysis.
 
 Default: `100`
 
-### `--index`
+### `--bwa_index`
 Instead of specifying genome and using the UPPMAX reference genome indices, you can specify the full
 path to your reference genome when you run the pipeline:
 ```
---index [path to BWA index]
+--bwa_index [path to BWA index]
 ```
 
 ### `--outdir`
 The output directory where the results will be saved.
 
 Default: `./results`
-
-### `--rlocation`
-Some steps in the pipeline run R with required modules. By default, the pipeline will install
-these modules to the specified directory if not already available.
-
-Default: `~/R/nxtflow_libs/` _(UPPMAX config only)_
 
 ### `-c`
 Specify the path to a specific config file (this is a core NextFlow command). Useful if using different UPPMAX
@@ -168,5 +176,5 @@ These scripts were written for use at the [National Genomics Infrastructure](htt
 at [SciLifeLab](http://www.scilifelab.se/) in Stockholm, Sweden.
 Written by Chuan Wang ([@chuan-wang](https://github.com/chuan-wang)) and Phil Ewels ([@ewels](https://github.com/ewels)).
 
-<p align="center"><a href="stand_alone/http://www.scilifelab.se/" target="_blank"><img src="docs/images/SciLifeLab_logo.png" title="SciLifeLab"></a></p>
+<p align="center"><a href="stand_alone/http://www.scilifelab.se/" target="_blank"><img src="https://raw.githubusercontent.com/SciLifeLab/NGI-ChIPseq/master/docs/images/SciLifeLab_logo.png" title="SciLifeLab"></a></p>
 
