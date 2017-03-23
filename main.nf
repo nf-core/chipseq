@@ -55,6 +55,7 @@ version = 1.2
 // Configurable variables
 params.project = false
 params.genome = false
+params.genomes = []
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.name = "NGI ChIP-seq Best Practice"
@@ -70,7 +71,6 @@ if( params.bwa_index ){
     bwa_index = Channel
         .fromPath(params.bwa_index)
         .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index}" }
-        .toList()
 } else if ( params.fasta ){
     fasta = file(params.fasta)
     if( !fasta.exists() ) exit 1, "Fasta file not found: ${params.fasta}"
@@ -150,7 +150,7 @@ else if (params.genome == false){
 
 
 /*
- * PREPROCESSING - Build STAR index
+ * PREPROCESSING - Build BWA index
  */
 if(!params.bwa_index && fasta){
     process makeBWAindex {
@@ -199,6 +199,8 @@ process fastqc {
 process trim_galore {
     tag "$name"
     publishDir "${params.outdir}/trimgalore", mode: 'copy'
+    publishDir "${params.outdir}/trimgalore", mode: 'copy',
+        saveAs: {filename -> filename.indexOf("_fastqc") > 0 ? "FastQC/$filename" : "$filename"}
 
     input:
     set val(name), file(reads) from raw_reads_trimgalore
@@ -288,7 +290,7 @@ process picard {
     file bam from bam_picard
 
     output:
-    file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplotconfig, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs
+    file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs
     file '*.dedup.sorted.bam.bai' into bai_dedup_deepTools, bai_dedup_ngsplot, bai_dedup_macs
     file '*.dedup.sorted.bed' into bed_dedup
     file '*.picardDupMetrics.txt' into picard_reports
@@ -340,7 +342,7 @@ process countstat {
 
 process phantompeakqualtools {
     tag "$prefix"
-    publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
+    publishDir "${params.outdir}/phantompeakqualtools", pattern: '*.pdf', mode: 'copy'
 
     input:
     file bam from bam_dedup_spp
@@ -359,45 +361,23 @@ process phantompeakqualtools {
 
 
 /*
- * STEP 6.2 Combine_spp_out
+ * STEP 6.2 Combine and calculate NSC & RSC
  */
 
-process combinesppout {
+process calculateNSCRSC {
     tag "${spp_out_list[0].baseName}"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
-    file spp_out_list from spp_out.toSortedList()
+    file spp_out_list from spp_out.collect()
 
     output:
-    file 'cross_correlation.txt' into cross_correlation
-    val "${spp_out_list[0].baseName}" into cross_correlation_name
+    file 'cross_correlation_processed.txt' into calculateNSCRSC_results
 
     script:
     """
     cat $spp_out_list > cross_correlation.txt
-    """
-}
-
-
-/*
- * STEP 6.3 Calculate_NSC_RSC
- */
-
-process calculateNSCRSC {
-    tag "$cross_correlation_name"
-    publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
-
-    input:
-    file cross_correlation
-    val cross_correlation_name
-
-    output:
-    file 'crosscorrelation_processed.txt' into calculateNSCRSC_results
-
-    script:
-    """
-    calculateNSCRSC.r $cross_correlation
+    calculateNSCRSC.r cross_correlation.txt
     """
 }
 
@@ -411,27 +391,40 @@ process deepTools {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
-    file bam from bam_dedup_deepTools.flatten().toSortedList()
-    file bai from bai_dedup_deepTools.flatten().toSortedList()
+    file bam from bam_dedup_deepTools.collect()
+    file bai from bai_dedup_deepTools.collect()
 
     output:
     file '*.{pdf,png,npz}' into deepTools_results
 
     script:
-    """
-    plotFingerprint \\
-        -b $bam \\
-        --plotFile fingerprints.pdf \\
-        --extendReads=${params.extendReadsLen} \\
-        --skipZeros \\
-        --ignoreDuplicates \\
-        --numberOfSamples 50000 \\
-        --binSize=500 \\
-        --plotFileFormat=pdf \\
-        --plotTitle="Fingerprints"
+    if(bam instanceof Path){
+        log.warn("Only 1 BAM file - skipping multiBam deepTool steps")
+        """
+        plotFingerprint \\
+            -b $bam \\
+            --plotFile fingerprints.pdf \\
+            --extendReads=${params.extendReadsLen} \\
+            --skipZeros \\
+            --ignoreDuplicates \\
+            --numberOfSamples 50000 \\
+            --binSize=500 \\
+            --plotFileFormat=pdf \\
+            --plotTitle="Fingerprints"
+        """
+    } else {
+        """
+        plotFingerprint \\
+            -b $bam \\
+            --plotFile fingerprints.pdf \\
+            --extendReads=${params.extendReadsLen} \\
+            --skipZeros \\
+            --ignoreDuplicates \\
+            --numberOfSamples 50000 \\
+            --binSize=500 \\
+            --plotFileFormat=pdf \\
+            --plotTitle="Fingerprints"
 
-    if ((\$(echo "$bam" | wc -w)  > 1));
-    then
         multiBamSummary \\
             bins \\
             --binSize=10000 \\
@@ -459,46 +452,22 @@ process deepTools {
             --whatToPlot heatmap \\
             --colorMap RdYlBu \\
             --plotNumbers
-
-    else
-        echo "Only one BAM input file found. Skipping multiBam commands."
-    fi
-    """
+        """
+    }
 }
 
 
 /*
- * STEP 8.1 Generate config file for ngsplot
- */
-
-process ngs_config_generate {
-    tag "${input_files[0].baseName}"
-    publishDir "${params.outdir}/ngsplot", mode: 'copy'
-
-    input:
-    file input_files from bam_dedup_ngsplotconfig.flatten().toSortedList()
-
-    output:
-    file 'ngsplot_config' into ngsplot_config
-
-    script:
-    """
-    ngs_config_generate.r $input_files
-    """
-}
-
-
-/*
- * STEP 8.2 Ngsplot
+ * STEP 8 Ngsplot
  */
 
 process ngsplot {
+    tag "${input_bam_files[0].baseName}"
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
-    file input_bam_files from bam_dedup_ngsplot.flatten().toSortedList()
-    file input_bai_files from bai_dedup_ngsplot.flatten().toSortedList()
-    file ngsplot_config from ngsplot_config
+    file input_bam_files from bam_dedup_ngsplot.collect()
+    file input_bai_files from bai_dedup_ngsplot.collect()
 
     output:
     file '*.pdf' into ngsplot_results
@@ -507,10 +476,12 @@ process ngsplot {
 
     script:
     """
+    ngs_config_generate.r $input_bam_files
+
     ngs.plot.r \\
         -G $REF_ngsplot \\
         -R genebody \\
-        -C $ngsplot_config \\
+        -C ngsplot_config \\
         -O Genebody \\
         -D ensembl \\
         -FL 300
@@ -518,7 +489,7 @@ process ngsplot {
     ngs.plot.r \\
         -G $REF_ngsplot \\
         -R tss \\
-        -C $ngsplot_config \\
+        -C ngsplot_config \\
         -O TSS \\
         -FL 300
     """
@@ -530,11 +501,12 @@ process ngsplot {
  */
 
 process macs {
+    tag "${bam_for_macs[0].baseName}"
     publishDir "${params.outdir}/macs", mode: 'copy'
 
     input:
-    file bam_for_macs from bam_dedup_macs.flatten().toSortedList()
-    file bai_for_macs from bai_dedup_macs.flatten().toSortedList()
+    file bam_for_macs from bam_dedup_macs.collect()
+    file bai_for_macs from bai_dedup_macs.collect()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
@@ -565,11 +537,12 @@ process multiqc {
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
-    file (fastqc:'fastqc/*') from fastqc_results.flatten().toList()
-    file ('trimgalore/*') from trimgalore_results.flatten().toList()
-    file ('bwa/*') from bwa_logs.flatten().toList()
-    file ('picard/*') from picard_reports.flatten().toList()
-    file ('phantompeakqualtools/*') from spp_out_mqc.flatten().toList()
+    file (fastqc:'fastqc/*') from fastqc_results.collect()
+    file ('trimgalore/*') from trimgalore_results.collect()
+    file ('bwa/*') from bwa_logs.collect()
+    file ('picard/*') from picard_reports.collect()
+    file ('phantompeakqualtools/*') from spp_out_mqc.collect()
+    file ('phantompeakqualtools/*') from calculateNSCRSC_results.collect()
 
     output:
     file '*multiqc_report.html'

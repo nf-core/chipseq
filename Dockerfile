@@ -125,12 +125,13 @@ ENV NGSPLOT_VERSION="2.61"
 RUN curl -fsSL https://github.com/shenlab-sinai/ngsplot/archive/${NGSPLOT_VERSION}.tar.gz -o /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz && \
     tar xvzf /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz -C /opt/ && \
     rm /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz
-ENV PATH=${PATH}:/opt/ngsplot_${NGSPLOT_VERSION}/bin
-ENV NGSPLOT=/opt/ngsplot_${NGSPLOT_VERSION}/
+ENV PATH=${PATH}:/opt/ngsplot-${NGSPLOT_VERSION}/bin
+ENV NGSPLOT=/opt/ngsplot-${NGSPLOT_VERSION}/
 
 # Install MACS
 RUN pip install MACS2
 
 # Install MultiQC
-ENV MULTIQC_VERSION v0.9
+# ENV MULTIQC_VERSION v0.9
+ENV MULTIQC_VERSION master
 RUN pip install git+git://github.com/ewels/MultiQC.git@$MULTIQC_VERSION
