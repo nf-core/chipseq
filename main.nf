@@ -206,7 +206,7 @@ process bwa {
     script:
     """
     set -o pipefail   # Capture exit codes from bwa, not samtools
-    f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_trimmed}
+    f='$reads';f=(\$f);f=\${f[0]};f=\${f%.gz};f=\${f%.fastq};f=\${f%.fq};f=\${f%_val_1};f=\${f%_R1};f=\${f%_1};f=\${f%_trimmed}
     bwa mem -M $index $reads | samtools view -bT $index - > \${f}.bam
     """
 }
@@ -424,8 +424,7 @@ process deepTools {
     file bai from bai_dedup_deepTools.flatten().toSortedList()
 
     output:
-    file 'multiBamSummary.npz' into deepTools_bamsummary
-    file '*.{pdf,png}' into deepTools_results
+    file '*.{pdf,png,npz}' into deepTools_results
 
     script:
     """
