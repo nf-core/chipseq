@@ -198,7 +198,6 @@ process fastqc {
  */
 process trim_galore {
     tag "$name"
-    publishDir "${params.outdir}/trimgalore", mode: 'copy'
     publishDir "${params.outdir}/trimgalore", mode: 'copy',
         saveAs: {filename -> filename.indexOf("_fastqc") > 0 ? "FastQC/$filename" : "$filename"}
 
