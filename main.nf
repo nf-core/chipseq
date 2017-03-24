@@ -138,7 +138,8 @@ Channel
 /*
  * Reference to use for MACS and ngs.plot.r
  */
-def REF = false
+def REF_macs = false
+def REF_ngsplot = false
 if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19' }
 else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10' }
 else if (params.genome == false){
