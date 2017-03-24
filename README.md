@@ -1,7 +1,7 @@
 # ![NGI-ChIPseq](https://raw.githubusercontent.com/SciLifeLab/NGI-ChIPseq/master/docs/images/NGI-ChIPseq_logo.png)
 
 [![Build Status](https://travis-ci.org/SciLifeLab/NGI-ChIPseq.svg?branch=master)](https://travis-ci.org/SciLifeLab/NGI-ChIPseq)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.22.2-brightgreen.svg
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.24.0-brightgreen.svg
 )](https://www.nextflow.io/)
 
 > # UNDER DEVELOPMENT

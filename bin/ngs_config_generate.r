@@ -5,7 +5,7 @@ datafiles <- commandArgs(trailingOnly=TRUE)
 
 # Check input args
 if (length(datafiles) < 1) {
-  stop("Usage: calculateNSCRSC.r [input-1] [input-2]..", call.=FALSE)
+  stop("Usage: ngs_config_generate.r [input-1] [input-2]..", call.=FALSE)
 }
 
 table<-matrix(0, nrow=length(datafiles), ncol=3)
