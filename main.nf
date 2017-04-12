@@ -296,9 +296,15 @@ process picard {
 
     script:
     prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
+    if( task.memory == null ){
+        log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
+        avail_mem = 3
+    } else {
+        avail_mem = task.memory.toGiga()
+    }
     """
     set -o pipefail
-    java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
+    java -Xmx${avail_mem}g -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
         INPUT=$bam \\
         OUTPUT=${prefix}.dedup.bam \\
         ASSUME_SORTED=true \\
