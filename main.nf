@@ -62,6 +62,9 @@ params.name = "NGI ChIP-seq Best Practice"
 params.reads = "data/*{1,2}*.fastq.gz"
 params.macsconfig = "data/macsconfig"
 params.extendReadsLen = 100
+params.saveReference = false
+params.saveTrimmed = false
+params.saveAlignedIntermediates = false
 params.outdir = './results'
 
 // Validate inputs
@@ -103,6 +106,9 @@ log.info "Current path   : $PWD"
 log.info "Script dir     : $baseDir"
 log.info "Working dir    : $workDir"
 log.info "Output dir     : ${params.outdir}"
+log.info "Save Reference : ${params.saveReference}"
+log.info "Save Trimmed   : ${params.saveTrimmed}"
+log.info "Save Intermeds : ${params.saveAlignedIntermediates}"
 if( params.clip_r1 > 0) log.info "Trim R1        : ${params.clip_r1}"
 if( params.clip_r2 > 0) log.info "Trim R2        : ${params.clip_r2}"
 if( params.three_prime_clip_r1 > 0) log.info "Trim 3' R1     : ${params.three_prime_clip_r1}"
@@ -198,8 +204,12 @@ process fastqc {
  */
 process trim_galore {
     tag "$name"
-    publishDir "${params.outdir}/trimgalore", mode: 'copy',
-        saveAs: {filename -> filename.indexOf("_fastqc") > 0 ? "FastQC/$filename" : "$filename"}
+    publishDir "${params.outdir}/trim_galore", mode: 'copy',
+        saveAs: {filename ->
+            if (filename.indexOf("_fastqc") > 0) "FastQC/$filename"
+            else if (filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
+            else params.saveTrimmed ? filename : null
+        }
 
     input:
     set val(name), file(reads) from raw_reads_trimgalore
@@ -232,7 +242,7 @@ process trim_galore {
  */
 process bwa {
     tag "$prefix"
-    publishDir "${params.outdir}/bwa", mode: 'copy'
+    publishDir "${params.outdir}/bwa", mode: 'copy', saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
 
     input:
     file reads from trimmed_reads
@@ -257,7 +267,7 @@ process bwa {
 
 process samtools {
     tag "${bam.baseName}"
-    publishDir "${params.outdir}/bwa", mode: 'copy'
+    publishDir "${params.outdir}/bwa", mode: 'copy', saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
 
     input:
     file bam from bwa_bam
