@@ -121,6 +121,19 @@ The output directory where the results will be saved.
 
 Default: `./results`
 
+### `--saveReference`
+Supply this parameter to save any generated reference genome files to your results folder.
+These can then be used for future pipeline runs, reducing processing times.
+
+### `--saveTrimmed`
+By default, trimmed FastQ files will not be saved to the results directory. Specify this
+flag (or set to true in your config file) to copy these files when complete.
+
+### `--saveAlignedIntermediates`
+As above, by default intermediate BAM files will not be saved. The final BAM files created
+after the Picard MarkDuplicates step are always saved. Set to true to also copy out BAM
+files from BWA and sorting steps.
+
 ### `-c`
 Specify the path to a specific config file (this is a core NextFlow command). Useful if using different UPPMAX
 projects or different sets of reference genomes. **NB:** one hyphen only (core Nextflow parameter).
