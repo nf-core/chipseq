@@ -34,7 +34,7 @@ fi
 
 run_name="Test RNA Run: "$(date +%s)
 
-nf_cmd="nextflow run $script_path -resume -name \"$run_name\" -profile docker --genome EF4 --bwa_index ${data_dir}/BWAIndex_sacCer2/ --macsconfig ${data_dir}/macsconfig.txt --reads \"${data_dir}/*_R{1,2}.fastq.gz\" -with-trace -with-timeline"
+nf_cmd="nextflow run $script_path -resume -name \"$run_name\" -profile docker --genome EF4 --bwa_index ${data_dir}/BWAIndex_sacCer2/ --macsconfig ${data_dir}/macsconfig.txt --reads \"${data_dir}/*_R{1,2}.fastq.gz\""
 echo "Starting nextflow... Command:"
 echo $nf_cmd
 echo "--------------------------------------------------"

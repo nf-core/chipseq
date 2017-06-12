@@ -32,6 +32,7 @@ params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false 
 params.reads = "data/*{1,2}*.fastq.gz"
 params.macsconfig = "data/macsconfig"
 params.extendReadsLen = 100
+params.notrim = false
 params.saveReference = false
 params.saveTrimmed = false
 params.saveAlignedIntermediates = false
@@ -137,6 +138,7 @@ summary['Script dir']     = workflow.projectDir
 summary['Save Reference'] = params.saveReference
 summary['Save Trimmed']   = params.saveTrimmed
 summary['Save Intermeds'] = params.saveAlignedIntermediates
+if(params.notrim)       summary['Trimming Step'] = 'Skipped'
 if( params.clip_r1 > 0) summary['Trim R1'] = params.clip_r1
 if( params.clip_r2 > 0) summary['Trim R2'] = params.clip_r2
 if( params.three_prime_clip_r1 > 0) summary["Trim 3' R1"] = params.three_prime_clip_r1
@@ -198,36 +200,42 @@ process fastqc {
 /*
  * STEP 2 - Trim Galore!
  */
-process trim_galore {
-    tag "$name"
-    publishDir "${params.outdir}/trim_galore", mode: 'copy',
-        saveAs: {filename ->
-            if (filename.indexOf("_fastqc") > 0) "FastQC/$filename"
-            else if (filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
-            else params.saveTrimmed ? filename : null
+if(params.notrim){
+    trimmed_reads = read_files_trimming
+    trimgalore_results = []
+    trimgalore_fastqc_reports = []
+} else {
+    process trim_galore {
+        tag "$name"
+        publishDir "${params.outdir}/trim_galore", mode: 'copy',
+            saveAs: {filename ->
+                if (filename.indexOf("_fastqc") > 0) "FastQC/$filename"
+                else if (filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
+                else params.saveTrimmed ? filename : null
+            }
+
+        input:
+        set val(name), file(reads) from raw_reads_trimgalore
+
+        output:
+        file '*.fq.gz' into trimmed_reads
+        file '*trimming_report.txt' into trimgalore_results
+        file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
+
+        script:
+        c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
+        c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
+        tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
+        tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
+        if (params.singleEnd) {
+            """
+            trim_galore --fastqc --gzip $c_r1 $tpc_r1 $reads
+            """
+        } else {
+            """
+            trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $reads
+            """
         }
-
-    input:
-    set val(name), file(reads) from raw_reads_trimgalore
-
-    output:
-    file '*.fq.gz' into trimmed_reads
-    file '*trimming_report.txt' into trimgalore_results
-    file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
-
-    script:
-    c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
-    c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
-    tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
-    tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
-    if (params.singleEnd) {
-        """
-        trim_galore --fastqc --gzip $c_r1 $tpc_r1 $reads
-        """
-    } else {
-        """
-        trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $reads
-        """
     }
 }
 
