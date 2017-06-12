@@ -11,36 +11,6 @@ vim: syntax=groovy
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
 ----------------------------------------------------------------------------------------
- Basic command:
- $ nextflow main.nf
-
- Pipeline variables can be configured with the following command line options:
- --genome [ID]
- OR --index [path to bwa index] (alternative to --genome)
- OR --fasta [path to fasta reference] (builds bwa index)
- --reads [path to input files]
- --macsconfig [path to config file for MACS: line format: chip_sample_id,ctrl_sample_id,analysis_id]
-
- For example:
- $ nextflow run SciLifeLab/NGI-ChIPseq --reads '*.fastq.gz' --macsconfig 'macssetup.config'
- $ nextflow run SciLifeLab/NGI-ChIPseq --reads '*.R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
----------------------------------------------------------------------------------------
- The pipeline can determine whether the input data is single or paired end. This relies on
- specifying the input files correctly. For paired en data us the example above, i.e.
- 'sample_*_{1,2}.fastq.gz'. Without the glob {1,2} (or similiar) the data will be treated
- as single end.
-----------------------------------------------------------------------------------------
- Pipeline overview:
- - FastQC
- - TrimGalore
- - bwa
- - picard
- - phantompeakqualtools
- - deeptools
- - ngsplot
- - macs2
- - MultiQC
-----------------------------------------------------------------------------------------
 */
 
 
@@ -53,12 +23,12 @@ vim: syntax=groovy
 version = 1.2
 
 // Configurable variables
+params.name = false
 params.project = false
 params.genome = false
 params.genomes = []
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
-params.name = "NGI ChIP-seq Best Practice"
 params.reads = "data/*{1,2}*.fastq.gz"
 params.macsconfig = "data/macsconfig"
 params.extendReadsLen = 100
@@ -66,6 +36,7 @@ params.saveReference = false
 params.saveTrimmed = false
 params.saveAlignedIntermediates = false
 params.outdir = './results'
+params.email = false
 
 // Validate inputs
 macsconfig = file(params.macsconfig)
@@ -82,8 +53,12 @@ if( params.bwa_index ){
 }
 if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
-// Variable initialisation
-def single
+// Has the run name been specified by the user?
+//  this has the bonus effect of catching both -name and --name
+custom_runName = params.name
+if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
+  custom_runName = workflow.runName
+}
 
 // Custom trimming options
 params.clip_r1 = 0
@@ -91,40 +66,24 @@ params.clip_r2 = 0
 params.three_prime_clip_r1 = 0
 params.three_prime_clip_r2 = 0
 
-log.info "===================================="
-log.info " ChIP-seq: v${version}"
-log.info "===================================="
-log.info "Reads          : ${params.reads}"
-log.info "Genome         : ${params.genome}"
-if(params.bwa_index)  log.info "BWA Index      : ${params.bwa_index}"
-else if(params.fasta) log.info "Fasta Ref      : ${params.fasta}"
-log.info "MACS Config    : ${params.macsconfig}"
-log.info "Extend Reads   : ${params.extendReadsLen} bp"
-log.info "Current home   : $HOME"
-log.info "Current user   : $USER"
-log.info "Current path   : $PWD"
-log.info "Script dir     : $baseDir"
-log.info "Working dir    : $workDir"
-log.info "Output dir     : ${params.outdir}"
-log.info "Save Reference : ${params.saveReference}"
-log.info "Save Trimmed   : ${params.saveTrimmed}"
-log.info "Save Intermeds : ${params.saveAlignedIntermediates}"
-if( params.clip_r1 > 0) log.info "Trim R1        : ${params.clip_r1}"
-if( params.clip_r2 > 0) log.info "Trim R2        : ${params.clip_r2}"
-if( params.three_prime_clip_r1 > 0) log.info "Trim 3' R1     : ${params.three_prime_clip_r1}"
-if( params.three_prime_clip_r2 > 0) log.info "Trim 3' R2     : ${params.three_prime_clip_r2}"
-log.info "Config Profile : ${workflow.profile}"
-if(workflow.commitId){ log.info "Pipeline Commit: ${workflow.commitId}" }
-log.info "===================================="
+// Config / R locations
+params.multiqc_config = "$baseDir/conf/multiqc_config.yaml"
+multiqc_config = file(params.multiqc_config)
+params.rlocation = false
+if (params.rlocation){
+    nxtflow_libs = file(params.rlocation)
+    nxtflow_libs.mkdirs()
+}
+
 
 /*
  * Create a channel for input read files
  */
+params.singleEnd = false
 Channel
-    .fromFilePairs( params.reads, size: -1 )
-    .ifEmpty { error "Cannot find any reads matching: ${params.reads}" }
+    .fromFilePairs( params.reads, size: params.singleEnd ? 1 : 2 )
+    .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nIf this is single-end data, please specify --singleEnd on the command line." }
     .into { raw_reads_fastqc; raw_reads_trimgalore }
-
 
 /*
  * Create a channel for macs config file
@@ -155,13 +114,49 @@ else if (params.genome == false){
 }
 
 
+// Header log info
+log.info "========================================="
+log.info " NGI-ChIPseq: ChIP-Seq Best Practice v${version}"
+log.info "========================================="
+def summary = [:]
+summary['Run Name']     = custom_runName ?: workflow.runName
+summary['Reads']        = params.reads
+summary['Data Type']    = params.singleEnd ? 'Single-End' : 'Paired-End'
+summary['Genome']       = params.genome
+if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
+else if(params.fasta) summary['Fasta Ref'] = params.fasta
+summary['MACS Config']    = params.macsconfig
+summary['Extend Reads']   = "$params.extendReadsLen bp"
+summary['Current home']   = "$HOME"
+summary['Current user']   = "$USER"
+summary['Current path']   = "$PWD"
+summary['Working dir']    = workflow.workDir
+summary['Output dir']     = params.outdir
+summary['R libraries']    = params.rlocation
+summary['Script dir']     = workflow.projectDir
+summary['Save Reference'] = params.saveReference
+summary['Save Trimmed']   = params.saveTrimmed
+summary['Save Intermeds'] = params.saveAlignedIntermediates
+if( params.clip_r1 > 0) summary['Trim R1'] = params.clip_r1
+if( params.clip_r2 > 0) summary['Trim R2'] = params.clip_r2
+if( params.three_prime_clip_r1 > 0) summary["Trim 3' R1"] = params.three_prime_clip_r1
+if( params.three_prime_clip_r2 > 0) summary["Trim 3' R2"] = params.three_prime_clip_r2
+summary['Config Profile'] = (workflow.profile == 'standard' ? 'UPPMAX' : workflow.profile)
+if(params.project) summary['UPPMAX Project'] = params.project
+if(params.email) summary['E-mail Address'] = params.email
+if(workflow.commitId) summary['Pipeline Commit']= workflow.commitId
+log.info summary.collect { k,v -> "${k.padRight(15)}: $v" }.join("\n")
+log.info "===================================="
+
+
 /*
  * PREPROCESSING - Build BWA index
  */
 if(!params.bwa_index && fasta){
     process makeBWAindex {
         tag fasta
-        publishDir path: "${params.outdir}/reference_genome", saveAs: { params.saveReference ? it : null }, mode: 'copy'
+        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+                   saveAs: { params.saveReference ? it : null }, mode: 'copy'
 
         input:
         file fasta from fasta
@@ -184,7 +179,8 @@ if(!params.bwa_index && fasta){
  */
 process fastqc {
     tag "$name"
-    publishDir "${params.outdir}/fastqc", mode: 'copy'
+    publishDir "${params.outdir}/fastqc", mode: 'copy',
+        saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
 
     input:
     set val(name), file(reads) from raw_reads_fastqc
@@ -220,12 +216,11 @@ process trim_galore {
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
 
     script:
-    single = reads instanceof Path
     c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
     c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
     tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
     tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
-    if(single) {
+    if (params.singleEnd) {
         """
         trim_galore --fastqc --gzip $c_r1 $tpc_r1 $reads
         """
@@ -242,7 +237,8 @@ process trim_galore {
  */
 process bwa {
     tag "$prefix"
-    publishDir "${params.outdir}/bwa", mode: 'copy', saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
+    publishDir path: { params.saveAlignedIntermediates ? "${params.outdir}/bwa" : params.outdir }, mode: 'copy',
+               saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
 
     input:
     file reads from trimmed_reads
@@ -267,7 +263,8 @@ process bwa {
 
 process samtools {
     tag "${bam.baseName}"
-    publishDir "${params.outdir}/bwa", mode: 'copy', saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
+    publishDir path: { params.saveAlignedIntermediates ? "${params.outdir}/bwa" : params.outdir }, mode: 'copy',
+               saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
 
     input:
     file bam from bwa_bam
@@ -307,16 +304,16 @@ process picard {
     script:
     prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
     if( task.memory == null ){
-        log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
-        avail_mem = 3000
+        log.warn "[Picard MarkDuplicates] Available memory not known - defaulting to 6GB ($prefix)"
+        avail_mem = 6000
     } else {
         avail_mem = task.memory.toMega()
         if( avail_mem <= 0){
-            avail_mem = 3000
-            log.info "[Picard MarkDuplicates] Available memory 0 - defaulting to 3GB. Specify process memory requirements to change this."
+            avail_mem = 6000
+            log.warn "[Picard MarkDuplicates] Available memory 0 - defaulting to 6GB ($prefix)"
         } else if( avail_mem < 250){
             avail_mem = 250
-            log.info "[Picard MarkDuplicates] Available memory under 250MB - defaulting to 250MB. Specify process memory requirements to change this."
+            log.warn "[Picard MarkDuplicates] Available memory under 250MB - defaulting to 250MB ($prefix)"
         }
     }
     """
@@ -364,7 +361,8 @@ process countstat {
 
 process phantompeakqualtools {
     tag "$prefix"
-    publishDir "${params.outdir}/phantompeakqualtools", pattern: '*.pdf', mode: 'copy'
+    publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy',
+                saveAs: {filename -> filename.indexOf(".out") > 0 ? "logs/$filename" : "$filename"}
 
     input:
     file bam from bam_dedup_spp
@@ -376,8 +374,8 @@ process phantompeakqualtools {
     script:
     prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
-    script_path=\$(which run_spp.R)
-    Rscript \${script_path} -c="$bam" -savp -out="${prefix}.spp.out"
+    SCRIPT_PATH=\$(which run_spp.R)
+    Rscript \$SCRIPT_PATH -c="$bam" -savp -out="${prefix}.spp.out"
     """
 }
 
@@ -559,6 +557,7 @@ process multiqc {
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
+    file multiqc_config
     file (fastqc:'fastqc/*') from fastqc_results.collect()
     file ('trimgalore/*') from trimgalore_results.collect()
     file ('bwa/*') from bwa_logs.collect()
@@ -567,13 +566,94 @@ process multiqc {
     file ('phantompeakqualtools/*') from calculateNSCRSC_results.collect()
 
     output:
-    file '*multiqc_report.html'
-    file '*multiqc_data'
+    file '*multiqc_report.html' into multiqc_report
+    file '*_data'
+    val prefix into multiqc_prefix
 
     script:
     prefix = fastqc[0].toString() - '_fastqc.html' - 'fastqc/'
+    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
+    rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     """
-    cp $baseDir/conf/multiqc_config.yaml multiqc_config.yaml
-    multiqc -f .
+    multiqc -f $rtitle $rfilename --config $multiqc_config . 2>&1
     """
 }
+
+/*
+ * STEP 11 - Output Description HTML
+ */
+process output_documentation {
+    tag "$prefix"
+    publishDir "${params.outdir}/Documentation", mode: 'copy'
+
+    input:
+    val prefix from multiqc_prefix
+
+    output:
+    file "results_description.html"
+
+    script:
+    def rlocation = params.rlocation ?: ''
+    """
+    markdown_to_html.r $baseDir/docs/output.md results_description.html $rlocation
+    """
+}
+
+
+/*
+ * Completion e-mail notification
+ */
+workflow.onComplete {
+
+    // Build the e-mail subject and header
+    def subject = "NGI-ChIPseq Pipeline Complete: $workflow.runName"
+    subject += "\nContent-Type: text/html"
+
+    // Set up the e-mail variables
+    def email_fields = [:]
+    email_fields['version'] = version
+    email_fields['runName'] = custom_runName ?: workflow.runName
+    email_fields['success'] = workflow.success
+    email_fields['dateComplete'] = workflow.complete
+    email_fields['duration'] = workflow.duration
+    email_fields['exitStatus'] = workflow.exitStatus
+    email_fields['errorMessage'] = (workflow.errorMessage ?: 'None')
+    email_fields['errorReport'] = (workflow.errorReport ?: 'None')
+    email_fields['commandLine'] = workflow.commandLine
+    email_fields['projectDir'] = workflow.projectDir
+    email_fields['summary'] = summary
+    email_fields['summary']['Date Started'] = workflow.start
+    email_fields['summary']['Date Completed'] = workflow.complete
+    email_fields['summary']['Nextflow Version'] = workflow.nextflow.version
+    email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
+    email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
+    email_fields['summary']['Pipeline script file path'] = workflow.scriptFile
+    email_fields['summary']['Pipeline script hash ID'] = workflow.scriptId
+    if(workflow.repository) email_fields['summary']['Pipeline repository Git URL'] = workflow.repository
+    if(workflow.commitId) email_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
+    if(workflow.revision) email_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
+    if(workflow.container) email_fields['summary']['Docker image'] = workflow.container
+
+    // Render the e-mail HTML template
+    def f = new File("$baseDir/assets/summary_email.html")
+    def engine = new groovy.text.GStringTemplateEngine()
+    def template = engine.createTemplate(f).make(email_fields)
+    def email_html = template.toString()
+
+    // Send the HTML e-mail
+    if (params.email) {
+        [ 'mail', '-s', subject, params.email ].execute() << email_html
+    }
+
+    // Write summary e-mail HTML to a file
+    def output_d = new File( "${params.outdir}/Documentation/" )
+    if( !output_d.exists() ) {
+      output_d.mkdirs()
+    }
+    def output_f = new File( output_d, "pipeline_report.html" )
+    output_f.withWriter { w ->
+        w << email_html
+    }
+
+}
+
