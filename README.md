@@ -12,13 +12,13 @@ The pipeline uses [Nextflow](https://www.nextflow.io), a bioinformatics workflow
 This pipeline is primarily used with a SLURM cluster on the Swedish [UPPMAX systems](https://www.uppmax.uu.se). However, the pipeline should be able to run on any system that Nextflow supports. We have done some limited testing using Docker and AWS, and the pipeline comes with some configuration for these systems. See the [installation docs](docs/installation.md) for more information.
 
 ### Documentation
-The NGI-MethylSeq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
+The NGI-ChIPseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
 
 1. [Installation and configuration](docs/installation.md)
 2. [Running the pipeline](docs/usage.md)
 3. [Output and how to interpret the results](docs/output.md)
 
-If you're interested in running the pipeline in the cloud, please read the docs about using our pipeline with Amazon Web Services on the [NGI-RNAseq pipeline](https://github.com/SciLifeLab/NGI-RNAseq/blob/master/docs/amazon_web_services.md) (the instructions should work with this pipeline as well).
+If you're interested in running the pipeline in the cloud, please read the docs about using our pipeline with Amazon Web Services on the [NGI-ChIPseq pipeline](https://github.com/SciLifeLab/NGI-ChIPseq/blob/master/docs/amazon_web_services.md) (the instructions should work with this pipeline as well).
 
 ## Credits
 These scripts were written for use at the [National Genomics Infrastructure](https://portal.scilifelab.se/genomics/)

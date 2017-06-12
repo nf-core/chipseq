@@ -83,14 +83,16 @@ process {
 ### Reference Genomes
 The NGI-ChIPseq pipeline needs a reference genome for alignment and annotation. If not already available, start by downloading the relevant reference, for example from [illumina iGenomes](https://support.illumina.com/sequencing/sequencing_software/igenome.html).
 
-A reference genome path can be specified on the command line each time you run with `--bwa_index`.
+A reference genome path can be specified on the command line each time you run with `--bwa_index`. If no BWA index
+is available, one can be generated using a FASTA file supplied with `--fasta`.
 Alternatively, add the paths to the config under a relevant id and just specify this id with `--genome ID` when you run the pipeline _(this can also be set as a default in your config)_:
 
 ```groovy
 params {
   genomes {
     'YOUR-ID' {
-      bwa  = '<PATH TO BWA REF>/'
+      bwa  = '<path to the bwa index folder>'
+      fasta = '<path to the fasta file>' // used if bwa index not given
     }
     'OTHER-GENOME' {
       // [..]
@@ -149,7 +151,7 @@ A reference genome is still required by the pipeline. See the above [Reference G
 A test suite for docker comes with the pipeline, and can be run by moving to the [`tests` directory](https://github.com/ewels/NGI-ChIPseq/tree/master/tests) and running `./docker_test.sh`. This will download a small lambda genome and some data, and attempt to run the pipeline through docker on that small dataset. This is automatically run using [Travis](https://travis-ci.org/SciLifeLab/NGI-ChIPseq/) whenever changes are made to the pipeline.
 
 ## 3.4) Configuration: Amazon EC2
-There are multiple ways of running this pipeline over Amazon's EC2 service. Please see the [NGI-RNAseq pipeline docs](https://github.com/SciLifeLab/NGI-RNAseq/blob/master/docs/amazon_web_services.md) for more information.
+There are multiple ways of running this pipeline over Amazon's EC2 service. Please see the [NGI-ChIPseq pipeline docs](https://github.com/SciLifeLab/NGI-ChIPseq/blob/master/docs/amazon_web_services.md) for more information.
 
 ---
 

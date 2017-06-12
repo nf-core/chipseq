@@ -87,7 +87,10 @@ The syntax for this reference configuration is as follows:
 ```groovy
 params {
   genomes {
-    'GRCh37' { bwa = '<path to the bwa index folder>' }
+    'GRCh37' {
+        bwa = '<path to the bwa index folder>'
+        fasta = '<path to the fasta file>' // used if bwa index not given
+    }
     // Any number of additional genomes, key is used with --genome
   }
 }
@@ -97,6 +100,13 @@ params {
 If you prefer, you can specify the full path to your reference genome when you run the pipeline:
 ```bash
 --bwa_index '[path to BWA index]'
+```
+
+### `--fasta`
+If you don't have a BWA index available, you can pass a FASTA file to the pipeline and a BWA index
+will be generated for you. Combine with `--saveReference` to save for future runs.
+```bash
+--fasta '[path to FASTA file]'
 ```
 
 ### `--saveReference`
