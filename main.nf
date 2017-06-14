@@ -36,6 +36,7 @@ params.notrim = false
 params.saveReference = false
 params.saveTrimmed = false
 params.saveAlignedIntermediates = false
+params.broad = false
 params.outdir = './results'
 params.email = false
 
@@ -127,6 +128,7 @@ summary['Genome']       = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
 else if(params.fasta) summary['Fasta Ref'] = params.fasta
 summary['MACS Config']    = params.macsconfig
+summary['MACS broad peaks'] = params.broad
 summary['Extend Reads']   = "$params.extendReadsLen bp"
 summary['Current home']   = "$HOME"
 summary['Current user']   = "$USER"
@@ -544,10 +546,12 @@ process macs {
 
     script:
     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+    broad = params.broad ? "--broad" : ''
     """
     macs2 callpeak \\
         -t ${chip_sample_id}.dedup.sorted.bam \\
         $ctrl \\
+        $broad \\
         -f BAM \\
         -g $REF_macs \\
         -n $analysis_id \\
@@ -664,4 +668,3 @@ workflow.onComplete {
     }
 
 }
-
