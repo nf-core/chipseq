@@ -49,20 +49,22 @@ ChIPSampleID3,,AnalysisID3
 ```
 
 1. Column 1: ChIP sample name
-  * Typically the file basename, shared between both reads
-  * _eg._ for `chip_sample_1_R1.fastq.gz` and `chip_sample_1_R2.fastq.gz`, enter `chip_sample_1`
+    * Typically the file **base name**, shared between both reads _(no file type extension)_
+    * _eg._ for `chip_sample_1_R1.fastq.gz` and `chip_sample_1_R2.fastq.gz`, enter `chip_sample_1`
 2. Column 2: Control sample name
-  * Typically the input file basename, shared between both reads
-  * _eg._ for `chip_input_R1.fastq.gz` and `chip_input_R2.fastq.gz`, enter `chip_input`
+    * Typically the input file **base name**, shared between both reads _(no file type extension)_
+    * _eg._ for `chip_input_R1.fastq.gz` and `chip_input_R2.fastq.gz`, enter `chip_input`
 3. Column 3: Analysis ID
-  * The analysis ID. Used for the output directory name.
-  * Should be unique for each sample / line in the file.
+    * The analysis ID. Used for the output directory name.
+    * Should be unique for each sample / line in the file.
 
-_NB:_ For single-sample peaking calling without a control sample, skip the field of `CtrlSampleID`.
+For single-sample peaking calling without a control sample, leave the second column blank
+(control sample name).
 
 
 ### `--extendReadsLen`
-Amount of base pairs to extend the reads for the deepTools analysis.
+Number of base pairs to extend the reads for the deepTools analysis. This number should be
+based on the length of your reads and the expected fragment length.
 
 Default: `100`
 
