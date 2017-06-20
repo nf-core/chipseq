@@ -127,6 +127,12 @@ RUN curl -fsSL https://github.com/shenlab-sinai/ngsplot/archive/${NGSPLOT_VERSIO
     rm /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz
 ENV PATH=${PATH}:/opt/ngsplot-${NGSPLOT_VERSION}/bin
 ENV NGSPLOT=/opt/ngsplot-${NGSPLOT_VERSION}/
+RUN curl -fsSL https://export.uppmax.uu.se/b2013064/test-data/ngi-chipseq_test_set.tar.bz2 -o /opt/ngi-chipseq_test_set.tar.bz2 && \
+    tar xvjf /opt/ngi-chipseq_test_set.tar.bz2 -C /opt/ && \
+    echo y | ngsplotdb.py install /opt/ngi-chipseq_test_set/ngsplotdb_mm10_75_3.00.tar.gz && \
+    echo y | ngsplotdb.py install /opt/ngi-chipseq_test_set/ngsplotdb_hg19_75_3.00.tar.gz && \
+    rm /opt/ngi-chipseq_test_set.tar.bz2 && \
+    rm -rf /opt/ngi-chipseq_test_set
 
 # Install MACS
 RUN pip install MACS2
