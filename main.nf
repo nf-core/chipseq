@@ -618,7 +618,10 @@ process output_documentation {
 workflow.onComplete {
 
     // Set up the e-mail variables
-    def subject = "NGI-ChIPseq Pipeline Complete: $workflow.runName"
+    def subject = "[NGI-ChIPseq] Successful: $workflow.runName"
+    if(!workflow.success){
+      subject = "[NGI-ChIPseq] FAILED: $workflow.runName"
+    }
     def email_fields = [:]
     email_fields['version'] = version
     email_fields['runName'] = custom_runName ?: workflow.runName
@@ -656,7 +659,7 @@ workflow.onComplete {
 
     // Render the sendmail template
     def smail_fields = [ email: params.email, subject: subject, email_txt: email_txt, email_html: email_html, baseDir: "$baseDir" ]
-    def sf = new File("$baseDir/assets/sendmail_template.html")
+    def sf = new File("$baseDir/assets/sendmail_template.txt")
     def sendmail_template = engine.createTemplate(sf).make(smail_fields)
     def sendmail_html = sendmail_template.toString()
 
