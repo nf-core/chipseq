@@ -20,6 +20,7 @@ RUN apt-get update && \
         libpcre3-dev \
         libreadline-dev \
         libssl-dev \
+        libxml2-dev \
         make \
         python-dev \
         zlib1g-dev \
