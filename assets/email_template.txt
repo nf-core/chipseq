@@ -1,0 +1,34 @@
+===============================================
+ NGI-ChIPseq: ChIP-Seq Best Practice v${version}
+===============================================
+Run Name: $runName
+
+<% if (success){
+    out << "## NGI-ChIPseq execution completed successfully! ##"
+} else {
+    out << """####################################################
+## NGI-ChIPseq execution completed unsuccessfully! ##
+####################################################
+The exit status of the task that caused the workflow execution to fail was: $exitStatus.
+The full error message was:
+${errorReport}
+"""
+} %>s
+
+The workflow was completed at $dateComplete (duration: $duration)
+
+The command used to launch the workflow was as follows:
+
+  $commandLine
+
+
+
+Pipeline Configuration:
+-----------------------
+<% out << summary.collect{ k,v -> " - $k: $v" }.join("\n") %>
+
+--
+NGI-ChIPseq is a bioinformatics best-practice analysis pipeline used for ChIP-sequencing data at the National Genomics Infastructure at SciLifeLab Stockholm, Sweden.
+The pipeline uses Nextflow, a bioinformatics workflow tool. It pre-processes raw data from FastQ inputs, aligns the reads and performs extensive quality-control on the results.
+For more information, please see the pipeline homepage: https://github.com/SciLifeLab/NGI-ChIPseq
+
