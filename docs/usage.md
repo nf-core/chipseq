@@ -154,15 +154,15 @@ The output directory where the results will be saved.
 ### `--email`
 Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to speicfy this on the command line for every run.
 
-### `--clusterOptions`
-Submit arbitrary SLURM options (UPPMAX profile only). For instance, you could use `--clusterOptions '-p devcore'`
-to run on the development node (though won't work with default process time requests).
-
-### `--multiqc_config`
-If you would like to supply a custom config file to MultiQC, you can specify a path with `--multiqc_config`. This is used instead of the config file specific to the pipeline.
-
 ### `-name`
 Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic.
+
+**NB:** Single hyphen (core Nextflow option)
+
+### `-resume`
+Specify this when restarting a pipeline. Nextflow will used cached results from any pipeline steps where the inputs are the same, continuing from where it got to previously.
+
+You can also supply a run name to resume a specific run: `-resume [run-name]`. Use the `nextflow log` command to show previous run names.
 
 **NB:** Single hyphen (core Nextflow option)
 
@@ -178,6 +178,13 @@ environment module as is the default. So we specify a config file using `-c` tha
 ```groovy
 process.$multiqc.module = []
 ```
+
+### `--clusterOptions`
+Submit arbitrary SLURM options (UPPMAX profile only). For instance, you could use `--clusterOptions '-p devcore'`
+to run on the development node (though won't work with default process time requests).
+
+### `--multiqc_config`
+If you would like to supply a custom config file to MultiQC, you can specify a path with `--multiqc_config`. This is used instead of the config file specific to the pipeline.
 
 ---
 
