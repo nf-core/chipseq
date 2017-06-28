@@ -276,7 +276,6 @@ process bwa {
     script:
     prefix = reads[0].toString() - ~/(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
     """
-    set -o pipefail
     bwa mem -M ${index}/genome.fa $reads | samtools view -bT $index - > ${prefix}.bam
     """
 }
@@ -301,7 +300,6 @@ process samtools {
 
     script:
     """
-    set -o pipefail
     samtools sort $bam -o ${bam.baseName}.sorted.bam
     samtools index ${bam.baseName}.sorted.bam
     bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
@@ -342,7 +340,6 @@ process picard {
         }
     }
     """
-    set -o pipefail
     java -Xmx${avail_mem}m -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
         INPUT=$bam \\
         OUTPUT=${prefix}.dedup.bam \\
