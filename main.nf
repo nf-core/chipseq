@@ -86,6 +86,7 @@ params.three_prime_clip_r2 = 0
 // Config / R locations
 params.multiqc_config = "$baseDir/conf/multiqc_config.yaml"
 multiqc_config = file(params.multiqc_config)
+output_docs = file("$baseDir/docs/output.md")
 params.rlocation = false
 if (params.rlocation){
     nxtflow_libs = file(params.rlocation)
@@ -612,6 +613,7 @@ process output_documentation {
 
     input:
     val prefix from multiqc_prefix
+    file output from output_docs
 
     output:
     file "results_description.html"
@@ -619,7 +621,7 @@ process output_documentation {
     script:
     def rlocation = params.rlocation ?: ''
     """
-    markdown_to_html.r $baseDir/docs/output.md results_description.html $rlocation
+    markdown_to_html.r $output results_description.html $rlocation
     """
 }
 
