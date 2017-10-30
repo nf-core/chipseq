@@ -54,6 +54,7 @@ params.saveAlignedIntermediates = false
 params.broad = false
 params.outdir = './results'
 params.email = false
+params.plaintext_email = false
 
 // Validate inputs
 macsconfig = file(params.macsconfig)
@@ -86,6 +87,7 @@ params.three_prime_clip_r2 = 0
 // Config / R locations
 params.multiqc_config = "$baseDir/conf/multiqc_config.yaml"
 multiqc_config = file(params.multiqc_config)
+output_docs = file("$baseDir/docs/output.md")
 params.rlocation = false
 if (params.rlocation){
     nxtflow_libs = file(params.rlocation)
@@ -612,6 +614,7 @@ process output_documentation {
 
     input:
     val prefix from multiqc_prefix
+    file output from output_docs
 
     output:
     file "results_description.html"
@@ -619,7 +622,7 @@ process output_documentation {
     script:
     def rlocation = params.rlocation ?: ''
     """
-    markdown_to_html.r $baseDir/docs/output.md results_description.html $rlocation
+    markdown_to_html.r $output results_description.html $rlocation
     """
 }
 
@@ -678,16 +681,24 @@ workflow.onComplete {
     // Send the HTML e-mail
     if (params.email) {
         try {
+          if( params.plaintext_email ){ throw GroovyException('Send plaintext e-mail, not HTML') }
           // Try to send HTML e-mail using sendmail
           [ 'sendmail', '-t' ].execute() << sendmail_html
-          log.debug "[NGI-ChIPseq] Sent summary e-mail using sendmail"
+          log.info "[NGI-ChIPseq] Sent summary e-mail to $params.email (sendmail)"
         } catch (all) {
           // Catch failures and try with plaintext
           [ 'mail', '-s', subject, params.email ].execute() << email_txt
-          log.debug "[NGI-ChIPseq] Sendmail failed, failing back to sending summary e-mail using mail"
+          log.info "[NGI-ChIPseq] Sent summary e-mail to $params.email (mail)"
         }
-        log.info "[NGI-ChIPseq] Sent summary e-mail to $params.email"
     }
+
+    // Switch the embedded MIME images with base64 encoded src
+    ngichipseqlogo = new File("$baseDir/assets/NGI-ChIPseq_logo.png").bytes.encodeBase64().toString()
+    scilifelablogo = new File("$baseDir/assets/SciLifeLab_logo.png").bytes.encodeBase64().toString()
+    ngilogo = new File("$baseDir/assets/NGI_logo.png").bytes.encodeBase64().toString()
+    email_html = email_html.replaceAll(~/cid:ngichipseqlogo/, "data:image/png;base64,$ngichipseqlogo")
+    email_html = email_html.replaceAll(~/cid:scilifelablogo/, "data:image/png;base64,$scilifelablogo")
+    email_html = email_html.replaceAll(~/cid:ngilogo/, "data:image/png;base64,$ngilogo")
 
     // Write summary e-mail HTML to a file
     def output_d = new File( "${params.outdir}/Documentation/" )
