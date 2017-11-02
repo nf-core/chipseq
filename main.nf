@@ -136,6 +136,7 @@ if (params.rlocation){
 }
 
 multiqc_config = file(params.multiqc_config)
+output_docs = file("$baseDir/docs/output.md")
 
 // Custom trimming options
 params.clip_r1 = 0
