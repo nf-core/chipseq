@@ -4,37 +4,107 @@
 vim: syntax=groovy
 -*- mode: groovy;-*-
 ========================================================================================
-                    C H I P - S E Q   B E S T   P R A C T I C E
+                  NGI  C H I P - S E Q   B E S T   P R A C T I C E
 ========================================================================================
- ChIP-seq Analysis Pipeline. Started May 2016.
- @Authors
+ ChIP-seq Best Practice Analysis Pipeline. Started May 2016.
+ #### Homepage / Documentation
+ https://github.com/SciLifeLab/NGI-ChIPseq
+ @#### Authors
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
 ----------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
+Pipeline overview:
+ - 1:   FastQC for raw sequencing reads quality control
+ - 2:   Trim Galore! for adapter trimming
+ - 3.1: BWA alignment against reference genome
+ - 3.2: Post-alignment processing and format conversion
+ - 3.3: Statistics about unmapped reads
+ - 4:   Picard for duplicate read identification
+ - 5:   Statistics about read counts
+ - 6.1: Phantompeakqualtools for normalized strand cross-correlation (NSC) and relative strand cross-correlation (RSC)
+ - 6.2: Summarize NSC and RSC
+ - 7:   deepTools for fingerprint and correlation plots of reads over genome-wide bins
+ - 8:   NGSplot for distribution of reads around transcription start sites (TSS) and gene bodies
+ - 9:   MACS for peak calling (with option for saturation analysis)
+ - 10:  MultiQC
+ ----------------------------------------------------------------------------------------
 */
 
+def helpMessage() {
+    log.info"""
+    =========================================
+     NGI-ChIPseq : ChIP-Seq Best Practice v${version}
+    =========================================
+    Usage:
 
+    The typical command for running the pipeline is as follows:
+
+    nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config'
+
+    Mandatory arguments:
+      --reads                       Path to input data (must be surrounded with quotes).
+      --genome                      Name of iGenomes reference
+      --macsconfig                  Configuration file for peaking calling using MACS. Format: ChIPSampleID,CtrlSampleID,AnalysisID
+
+    Options:
+      --singleEnd                   Specifies that the input is single end reads
+      --saturation                  Run saturation analysis by peak calling with subsets of reads
+      --broad                       Run MACS with the --broad flag.
+
+    Presets:
+      --extendReadsLen [int]        Number of base pairs to extend the reads for the deepTools analysis. Default: 100
+
+    References
+      --fasta                       Path to Fasta reference
+      --bwa_index                   Path to BWA index
+      --saveReference               Save the generated reference files in the Results directory.
+      --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
+
+    Trimming options
+      --notrim                      Specifying --notrim will skip the adapter trimming step.
+      --saveTrimmed                 Save the trimmed Fastq files in the the Results directory.
+      --clip_r1 [int]               Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads)
+      --clip_r2 [int]               Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only)
+      --three_prime_clip_r1 [int]   Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed
+      --three_prime_clip_r2 [int]   Instructs Trim Galore to re move bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed
+
+    Other options:
+      --outdir                      The output directory where the results will be saved
+      --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
+      --rlocation                   Location to save R-libraries used in the pipeline. Default value is ~/R/nxtflow_libs/
+      --clusterOptions              Extra SLURM options, used in conjunction with Uppmax.config
+      -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic.
+    """.stripIndent()
+}
 
 /*
  * SET UP CONFIGURATION VARIABLES
  */
 
 // Pipeline version
-version = 1.2
+version = 1.3
+
+// Show help emssage
+params.help = false
+if (params.help){
+    helpMessage()
+    exit 0
+}
 
 // Check that Nextflow version is up to date enough
 // try / throw / catch works for NF versions < 0.25 when this was implemented
-nf_required_version = '0.25.1'
+nf_required_version = '0.25.0'
 try {
-  if( ! nextflow.version.matches(">= $nf_required_version") ){
-    throw GroovyException('Nextflow version too old')
-  }
+    if( ! nextflow.version.matches(">= $nf_required_version") ){
+        throw GroovyException('Nextflow version too old')
+    }
 } catch (all) {
-  log.error "====================================================\n" +
-            "  Nextflow version $nf_required_version required! You are running v$workflow.nextflow.version.\n" +
-            "  Pipeline execution will continue, but things may break.\n" +
-            "  Please run `nextflow self-update` to update Nextflow.\n" +
-            "============================================================"
+    log.error "====================================================\n" +
+              "  Nextflow version $nf_required_version required! You are running v$workflow.nextflow.version.\n" +
+              "  Pipeline execution will continue, but things may break.\n" +
+              "  Please run `nextflow self-update` to update Nextflow.\n" +
+              "============================================================"
 }
 
 // Configurable variables
@@ -46,15 +116,33 @@ params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : 
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.reads = "data/*{1,2}*.fastq.gz"
 params.macsconfig = "data/macsconfig"
+params.multiqc_config = "$baseDir/conf/multiqc_config.yaml"
 params.extendReadsLen = 100
 params.notrim = false
 params.saveReference = false
 params.saveTrimmed = false
 params.saveAlignedIntermediates = false
+params.saturation = false
 params.broad = false
 params.outdir = './results'
 params.email = false
 params.plaintext_email = false
+
+// R library locations
+params.rlocation = false
+if (params.rlocation){
+    nxtflow_libs = file(params.rlocation)
+    nxtflow_libs.mkdirs()
+}
+
+multiqc_config = file(params.multiqc_config)
+output_docs = file("$baseDir/docs/output.md")
+
+// Custom trimming options
+params.clip_r1 = 0
+params.clip_r2 = 0
+params.three_prime_clip_r1 = 0
+params.three_prime_clip_r2 = 0
 
 // Validate inputs
 macsconfig = file(params.macsconfig)
@@ -77,23 +165,6 @@ custom_runName = params.name
 if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
   custom_runName = workflow.runName
 }
-
-// Custom trimming options
-params.clip_r1 = 0
-params.clip_r2 = 0
-params.three_prime_clip_r1 = 0
-params.three_prime_clip_r2 = 0
-
-// Config / R locations
-params.multiqc_config = "$baseDir/conf/multiqc_config.yaml"
-multiqc_config = file(params.multiqc_config)
-output_docs = file("$baseDir/docs/output.md")
-params.rlocation = false
-if (params.rlocation){
-    nxtflow_libs = file(params.rlocation)
-    nxtflow_libs.mkdirs()
-}
-
 
 /*
  * Create a channel for input read files
@@ -118,7 +189,6 @@ Channel
     }
     .into{ macs_para }
 
-
 /*
  * Reference to use for MACS and ngs.plot.r
  */
@@ -138,25 +208,26 @@ log.info "========================================="
 log.info " NGI-ChIPseq: ChIP-Seq Best Practice v${version}"
 log.info "========================================="
 def summary = [:]
-summary['Run Name']     = custom_runName ?: workflow.runName
-summary['Reads']        = params.reads
-summary['Data Type']    = params.singleEnd ? 'Single-End' : 'Paired-End'
-summary['Genome']       = params.genome
+summary['Run Name']            = custom_runName ?: workflow.runName
+summary['Reads']               = params.reads
+summary['Data Type']           = params.singleEnd ? 'Single-End' : 'Paired-End'
+summary['Genome']              = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
 else if(params.fasta) summary['Fasta Ref'] = params.fasta
-summary['MACS Config']    = params.macsconfig
-summary['MACS broad peaks'] = params.broad
-summary['Extend Reads']   = "$params.extendReadsLen bp"
-summary['Current home']   = "$HOME"
-summary['Current user']   = "$USER"
-summary['Current path']   = "$PWD"
-summary['Working dir']    = workflow.workDir
-summary['Output dir']     = params.outdir
-summary['R libraries']    = params.rlocation
-summary['Script dir']     = workflow.projectDir
-summary['Save Reference'] = params.saveReference
-summary['Save Trimmed']   = params.saveTrimmed
-summary['Save Intermeds'] = params.saveAlignedIntermediates
+summary['MACS Config']         = params.macsconfig
+summary['Saturation analysis'] = params.saturation
+summary['MACS broad peaks']    = params.broad
+summary['Extend Reads']        = "$params.extendReadsLen bp"
+summary['Current home']        = "$HOME"
+summary['Current user']        = "$USER"
+summary['Current path']        = "$PWD"
+summary['Working dir']         = workflow.workDir
+summary['Output dir']          = params.outdir
+summary['R libraries']         = params.rlocation
+summary['Script dir']          = workflow.projectDir
+summary['Save Reference']      = params.saveReference
+summary['Save Trimmed']        = params.saveTrimmed
+summary['Save Intermeds']      = params.saveAlignedIntermediates
 if(params.notrim)       summary['Trimming Step'] = 'Skipped'
 if( params.clip_r1 > 0) summary['Trim R1'] = params.clip_r1
 if( params.clip_r2 > 0) summary['Trim R2'] = params.clip_r2
@@ -194,7 +265,6 @@ if(!params.bwa_index && fasta){
 }
 
 
-
 /*
  * STEP 1 - FastQC
  */
@@ -208,10 +278,12 @@ process fastqc {
 
     output:
     file '*_fastqc.{zip,html}' into fastqc_results
+    file '.command.out' into fastqc_stdout
 
     script:
     """
     fastqc -q $reads
+    fastqc --version
     """
 }
 
@@ -238,7 +310,7 @@ if(params.notrim){
 
         output:
         file '*.fq.gz' into trimmed_reads
-        file '*trimming_report.txt' into trimgalore_results
+        file '*trimming_report.txt' into trimgalore_results, trimgalore_logs
         file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
 
         script:
@@ -276,7 +348,7 @@ process bwa {
     stdout into bwa_logs
 
     script:
-    prefix = reads[0].toString() - ~/(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
+    prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
     """
     bwa mem -M ${index}/genome.fa $reads | samtools view -bT $index - > ${prefix}.bam
     """
@@ -296,7 +368,7 @@ process samtools {
     file bam from bwa_bam
 
     output:
-    file '*.sorted.bam' into bam_picard
+    file '*.sorted.bam' into bam_picard, bam_for_unmapped
     file '*.sorted.bam.bai' into bwa_bai
     file '*.sorted.bed' into bed_total
 
@@ -308,6 +380,29 @@ process samtools {
     """
 }
 
+
+/*
+ * STEP 3.3 - Statistics about unmapped reads against ref genome
+ */
+
+process bwa_unmapped {
+    publishDir "${params.outdir}/bwa/unmapped", mode: 'copy'
+
+    input:
+    file input_files from bam_for_unmapped.collect()
+
+    output:
+    file 'unmapped_refgenome.txt' into bwa_unmapped
+
+    script:
+    """
+    for i in $input_files
+    do
+      printf "\${i}\t"
+      samtools view -c -f0x4 \${i}
+    done > unmapped_refgenome.txt
+    """
+}
 
 /*
  * STEP 4 Picard
@@ -561,16 +656,31 @@ process macs {
     script:
     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
     broad = params.broad ? "--broad" : ''
-    """
-    macs2 callpeak \\
-        -t ${chip_sample_id}.dedup.sorted.bam \\
-        $ctrl \\
-        $broad \\
-        -f BAM \\
-        -g $REF_macs \\
-        -n $analysis_id \\
-        -q 0.01
-    """
+    if(params.saturation){
+        each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+        """
+        samtools view -b -s ${sampling} ${chip_sample_id}.dedup.sorted.bam > ${chip_sample_id}.${sampling}.dedup.sorted.bam
+        macs2 callpeak \\
+            -t ${chip_sample_id}.${sampling}.dedup.sorted.bam \\
+            $ctrl \\
+            $broad \\
+            -f BAM \\
+            -g $REF_macs \\
+            -n $analysis_id \\
+            -q 0.01
+        """
+    } else {
+        """
+        macs2 callpeak \\
+            -t ${chip_sample_id}.dedup.sorted.bam \\
+            $ctrl \\
+            $broad \\
+            -f BAM \\
+            -g $REF_macs \\
+            -n $analysis_id \\
+            -q 0.01
+        """
+    }
 }
 
 

@@ -109,7 +109,7 @@ RUN echo 'source("https://bioconductor.org/biocLite.R")' > /opt/packages.r && \
     mkdir /usr/local/lib/R/site-library
 
 # Install phantompeakqualtools
-ENV SPP_VERSION="1.14"
+ENV SPP_VERSION="1.15"
 ENV PHANTOMPEAKQUALTOOLS_VERSION="v.1.1"
 RUN curl -fsSL https://github.com/hms-dbmi/spp/archive/${SPP_VERSION}.tar.gz -o /opt/SPP_${SPP_VERSION}.tar.gz && \
     Rscript -e "install.packages('/opt/SPP_${SPP_VERSION}.tar.gz',dependencies=TRUE)" && \
