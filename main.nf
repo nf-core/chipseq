@@ -677,6 +677,7 @@ process macs {
     script:
     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
     broad = params.broad ? "--broad" : ''
+    """
     macs2 callpeak \\
         -t ${chip_sample_id}.dedup.sorted.bam \\
         $ctrl \\
@@ -685,6 +686,7 @@ process macs {
         -g $REF_macs \\
         -n $analysis_id \\
         -q 0.01
+    """
 }
 
 
