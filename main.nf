@@ -192,7 +192,7 @@ Channel
         analysis_id = list[2]
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
-    .into{ macs_para, saturation_para }
+    .into{ macs_para; saturation_para }
 
 /*
  * Reference to use for MACS and ngs.plot.r
