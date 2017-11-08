@@ -62,6 +62,7 @@ def helpMessage() {
     References
       --fasta                       Path to Fasta reference
       --bwa_index                   Path to BWA index
+      --blacklist                   Path to blacklist regions to be filtered out (.BED format)
       --saveReference               Save the generated reference files in the Results directory.
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
 
@@ -129,6 +130,7 @@ params.saveAlignedIntermediates = false
 params.saturation = false
 params.broad = false
 params.blacklist_filtering = false
+params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
 params.outdir = './results'
 params.email = false
 params.plaintext_email = false
@@ -161,6 +163,10 @@ if( params.bwa_index ){
     if( !fasta.exists() ) exit 1, "Fasta file not found: ${params.fasta}"
 } else {
     exit 1, "No reference genome specified!"
+}
+if ( params.blacklist_filtering ){
+    blacklist = file(params.blacklist)
+    if( !blacklist.exists() ) exit 1, "Blacklist file not found: ${params.blacklist}"
 }
 if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
@@ -200,8 +206,8 @@ Channel
 def REF_macs = false
 def REF_ngsplot = false
 def blacklist = false
-if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19'; blacklist =  file("$baseDir/blacklists/hg19-blacklist.bed") }
-else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10'; blacklist =  file("$baseDir/blacklists/mm10.blacklist.bed") }
+if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19' }
+else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10' }
 else if (params.genome == false){
     log.warn "No reference supplied for MACS / ngs_plot. Use '--genome GRCh37' or '--genome GRCm38' to run MACS and ngs_plot."
 } else {
@@ -224,7 +230,7 @@ summary['MACS Config']         = params.macsconfig
 summary['Saturation analysis'] = params.saturation
 summary['MACS broad peaks']    = params.broad
 summary['Blacklist filtering'] = params.blacklist_filtering
-if( params.blacklist_filtering ) summary['Blacklist'] = blacklist
+if( params.blacklist_filtering ) summary['Blacklist'] = params.blacklist
 summary['Extend Reads']        = "$params.extendReadsLen bp"
 summary['Current home']        = "$HOME"
 summary['Current user']        = "$USER"
@@ -725,7 +731,6 @@ if (params.saturation) {
          -q 0.01
      """
   }
-
 }
 
 
@@ -739,6 +744,7 @@ process chippeakanno {
 
     input:
     file macs_peaks_collection from macs_peaks.collect()
+    file blacklist from blacklist
 
     output:
     file '*.{txt,bed}' into chippeakanno_results
@@ -751,6 +757,7 @@ process chippeakanno {
     post_peak_calling_processing.r $params.rlocation $REF_macs $filtering $macs_peaks_collection
     """
 }
+
 
 /*
  * STEP 11 MultiQC

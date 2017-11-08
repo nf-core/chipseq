@@ -70,6 +70,12 @@ Running saturation analysis by sub-sampling the sequence reads of ChIP sample fr
 ### `--blacklist_filtering`
 Filtering ENCODE blacklisted regions from ChIP-seq peaks.
 
+### `--blacklist`
+If you prefer, you can specify the full path to the blacklist regions (should be in .BED format) to be filtered out when you run the pipeline:
+```bash
+--blacklist '[path to blacklisted regions]'
+```
+
 ### `--extendReadsLen`
 Number of base pairs to extend the reads for the deepTools analysis. This number should be
 based on the length of your reads and the expected fragment length.
