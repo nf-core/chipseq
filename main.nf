@@ -707,7 +707,7 @@ if (params.saturation) {
 
      input:
      file bam_for_saturation from bam_dedup_saturation.collect()
-     file bai_for_saturation from bam_dedup_saturation.collect()
+     file bai_for_saturation from bai_dedup_saturation.collect()
      set chip_sample_id, ctrl_sample_id, analysis_id from saturation_para
 
      output:
