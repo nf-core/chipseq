@@ -565,11 +565,12 @@ process deepTools {
             --plotFileFormat=pdf \\
             --plotTitle="Fingerprints"
 
+        prefix = bam.toString() - ~/(.bam)?$/
         bamCoverage \\
            -b $bam \\
            --extendReads=${params.extendReadsLen} \\
            --normalizeUsingRPKM \\
-           -o coverage.bw
+           -o \${prefix}.bw
         """
     } else {
         """
@@ -584,11 +585,15 @@ process deepTools {
             --plotFileFormat=pdf \\
             --plotTitle="Fingerprints"
 
-        bamCoverage \\
-           -b $bam \\
-           --extendReads=${params.extendReadsLen} \\
-           --normalizeUsingRPKM \\
-           -o coverage.bw
+        for bamfile in ${bam}
+        do
+            prefix = \$bamfile.toString() - ~/(.bam)?$/
+            bamCoverage \\
+              -b \$bamfile \\
+              --extendReads=${params.extendReadsLen} \\
+              --normalizeUsingRPKM \\
+              -o \${prefix}.bw
+        done
 
         multiBamSummary \\
             bins \\
