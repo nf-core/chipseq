@@ -553,6 +553,7 @@ process deepTools {
     script:
     if(bam instanceof Path){
         log.warn("Only 1 BAM file - skipping multiBam deepTool steps")
+        prefix = bam[0].toString() - ~/(\.bam)?$/
         """
         plotFingerprint \\
             -b $bam \\
@@ -569,7 +570,7 @@ process deepTools {
            -b $bam \\
            --extendReads=${params.extendReadsLen} \\
            --normalizeUsingRPKM \\
-           -o ${bam.baseName}.bw
+           -o ${prefix}.bw
         """
     } else {
         """
@@ -586,11 +587,12 @@ process deepTools {
 
         for bamfile in ${bam}
         do
+            prefix = \$bamfile[0].toString() - ~/(\.bam)?$/
             bamCoverage \\
               -b \$bamfile \\
               --extendReads=${params.extendReadsLen} \\
               --normalizeUsingRPKM \\
-              -o \${bamfile.baseName}.bw
+              -o \${prefix}.bw
         done
 
         multiBamSummary \\
