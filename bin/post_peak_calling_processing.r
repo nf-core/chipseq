@@ -65,8 +65,10 @@ if(ref=="hs"){
 }
 
 # Read in blacklist file and convert into range object
-blacklist<-read.table(Blacklist,header=FALSE)
-blacklist_range<-with(blacklist,GRanges(sub("chr","",V1),IRanges(start=V2,end=V3),strand=Rle(rep("+",nrow(blacklist)))))
+if (Blacklist!="No-filtering") {
+	blacklist<-read.table(Blacklist,header=FALSE)
+    blacklist_range<-with(blacklist,GRanges(sub("chr","",V1),IRanges(start=V2,end=V3),strand=Rle(rep("+",nrow(blacklist)))))
+}
 
 # Process output files from MACS: filtering peaks that overlap with blacklisted regions and annotating peaks
 for (i in 1:length(input)) {
@@ -76,23 +78,29 @@ for (i in 1:length(input)) {
     data_range<-with(data,GRanges(chr,IRanges(start=start,end=end),strand=Rle(rep("+",nrow(data))),length=length,summit=abs_summit,pileup=pileup,pvalue=X.log10.pvalue.,fold_enrichment=fold_enrichment,qvalue=X.log10.qvalue.,id=name))
 
     # Filtering peaks that overlap with blacklisted regions
-    filtered<-data_range[data_range %outside% blacklist_range]
+    if (Blacklist!="No-filtering"){
+    	final<-data_range[data_range %outside% blacklist_range]
+    	filter_flag<-"_filtered"
+    } else{
+    	final<-data_range
+    	filter_flag<-""
+    }
     
-    # Write filtered peaks to file
-    filtered_df<-as.data.frame(filtered)
-    newfilename<-paste(sub("_peaks.xls","",basename(input[i])),"_filtered.txt",sep="")
-    write.table(filtered_df,file=newfilename,quote=FALSE,sep="\t",eol="\n")
+    # Write peaks to txt and bed files
+    final_df<-as.data.frame(final)
+    newfilename<-paste(sub("_peaks.xls","",basename(input[i])),filter_flag,".txt",sep="")
+    write.table(final_df,file=newfilename,quote=FALSE,sep="\t",eol="\n")
     
-    df<-data.frame(seqnames=seqnames(filtered),starts=start(filtered)-1,ends=end(filtered),names=c(rep(".",length(filtered))),scores=c(rep(".",length(filtered))),strands=strand(filtered))
-    newfilename<-paste(sub("_peaks.xls","",basename(input[i])),"_filtered.bed",sep="")
+    df<-data.frame(seqnames=seqnames(final),starts=start(final)-1,ends=end(final),names=c(rep(".",length(final))),scores=c(rep(".",length(final))),strands=strand(final))
+    newfilename<-paste(sub("_peaks.xls","",basename(input[i])),filter_flag,".bed",sep="")
     write.table(df, file=newfilename, quote=F, sep="\t", row.names=F, col.names=F)
 
     # Annotation
-    filtered_anno<-annotatePeakInBatch(filtered, AnnotationData=annoData,output="overlapping", maxgap=5000L)
+    final_anno<-annotatePeakInBatch(final, AnnotationData=annoData,output="overlapping", maxgap=5000L)
 
     # Adding gene symbol
-    if(class(try(filtered_anno<-addGeneIDs(annotatedPeak=filtered_anno,orgAnn=orgAnnData,IDs2Add="symbol")))=="try-error"){
-	    feature_ids <- unique(filtered_anno$feature)
+    if(class(try(final_anno<-addGeneIDs(annotatedPeak=final_anno,orgAnn=orgAnnData,IDs2Add="symbol")))=="try-error"){
+	    feature_ids <- unique(final_anno$feature)
 	    feature_ids <- feature_ids[!is.na(feature_ids)]
 	    feature_ids <- feature_ids[feature_ids!=""]
 	
@@ -107,14 +115,14 @@ for (i in 1:length(input)) {
 	        IDs2Add<-rbind(IDs2Add,IDs2Add.duplicated)
 	    }
 	
-	    filtered_anno$external_gene_name<-IDs2Add[match(IDs2Add$ensembl_gene_id,filtered_anno$feature),]$external_gene_name
+	    final_anno$external_gene_name<-IDs2Add[match(IDs2Add$ensembl_gene_id,final_anno$feature),]$external_gene_name
     }
     else{
-	    filtered_anno<-addGeneIDs(annotatedPeak=filtered_anno,orgAnn=orgAnnData,IDs2Add="symbol")
+	    final_anno<-addGeneIDs(annotatedPeak=final_anno,orgAnn=orgAnnData,IDs2Add="symbol")
     }
 
-    # Write filtered and annotated peaks to file
-    filtered_anno_df<-as.data.frame(filtered_anno)
-    newfilename<-paste(sub("_peaks.xls","",basename(input[i])),"_filtered_and_annotated.txt",sep="")
-    write.table(filtered_anno_df,file=newfilename,quote=FALSE,sep="\t",eol="\n")
+    # Write annotated peaks to file
+    final_anno_df<-as.data.frame(final_anno)
+    newfilename<-paste(sub("_peaks.xls","",basename(input[i])),filter_flag,"_annotated.txt",sep="")
+    write.table(final_anno_df,file=newfilename,quote=FALSE,sep="\t",eol="\n")
 }

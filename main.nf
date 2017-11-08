@@ -746,8 +746,9 @@ process chippeakanno {
     when: REF_macs
 
     script:
+    filtering = params.blacklist_filtering ? "${blacklist}" : "No-filtering"
     """
-    post_peak_calling_processing.r $params.rlocation $REF_macs $blacklist $macs_peaks_collection
+    post_peak_calling_processing.r $params.rlocation $REF_macs $filtering $macs_peaks_collection
     """
 }
 
