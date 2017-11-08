@@ -587,7 +587,7 @@ process deepTools {
 
         for bamfile in ${bam}
         do
-            prefix = \$bamfile[0].toString() - ~/(\.bam)?$/
+            prefix = \$bamfile[0].toString() - ~/(\\.bam)?\$\/
             bamCoverage \\
               -b \$bamfile \\
               --extendReads=${params.extendReadsLen} \\
