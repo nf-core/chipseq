@@ -472,7 +472,6 @@ process picard {
  */
 
 process countstat {
-    tag "${input[0].baseName}"
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
@@ -518,7 +517,6 @@ process phantompeakqualtools {
  */
 
 process calculateNSCRSC {
-    tag "${spp_out_list[0].baseName}"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -553,7 +551,6 @@ process deepTools {
     script:
     if(bam instanceof Path){
         log.warn("Only 1 BAM file - skipping multiBam deepTool steps")
-        prefix = bam[0].toString() - ~/(\.bam)?$/
         """
         plotFingerprint \\
             -b $bam \\
@@ -570,7 +567,7 @@ process deepTools {
            -b $bam \\
            --extendReads=${params.extendReadsLen} \\
            --normalizeUsingRPKM \\
-           -o ${prefix}.bw
+           -o ${bam}.bw
         """
     } else {
         """
@@ -587,12 +584,11 @@ process deepTools {
 
         for bamfile in ${bam}
         do
-            prefix = \$bamfile[0].toString() - ~/(\\.bam)?\$/
             bamCoverage \\
               -b \$bamfile \\
               --extendReads=${params.extendReadsLen} \\
               --normalizeUsingRPKM \\
-              -o \${prefix}.bw
+              -o \${bamfile}.bw
         done
 
         multiBamSummary \\
@@ -681,7 +677,7 @@ process macs {
 
     output:
     file '*.{bed,r,narrowPeak}' into macs_results
-    file '*.{xls}' into macs_peaks
+    file '*.xls' into macs_peaks
 
     when: REF_macs
 
@@ -714,16 +710,16 @@ if (params.saturation) {
      file bam_for_saturation from bam_dedup_saturation.collect()
      file bai_for_saturation from bai_dedup_saturation.collect()
      set chip_sample_id, ctrl_sample_id, analysis_id from saturation_para
+     each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 
      output:
-     file '*.{bed,xls,r,narrowPeak}' into saturation_results
+     file '*.xls' into saturation_results
 
      when: REF_macs
 
      script:
      def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
      broad = params.broad ? "--broad" : ''
-     each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
      """
      samtools view -b -s ${sampling} ${chip_sample_id}.dedup.sorted.bam > ${chip_sample_id}.${sampling}.dedup.sorted.bam
      macs2 callpeak \\
@@ -732,7 +728,7 @@ if (params.saturation) {
          $broad \\
          -f BAM \\
          -g $REF_macs \\
-         -n $analysis_id.$sampling \\
+         -n ${analysis_id}.${sampling} \\
          -q 0.01
      """
   }
