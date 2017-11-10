@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
 
+# R scripts for generating config file for ngsplot
+# Version 1.0
+# Author chuan-wang@github
+
 # Command line argument processing
 datafiles <- commandArgs(trailingOnly=TRUE)
 

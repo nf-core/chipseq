@@ -359,7 +359,8 @@ process bwa {
 
     output:
     file '*.bam' into bwa_bam
-    stdout into bwa_logs
+    file '.command.log' into bwa_logs
+    stdout into bwa_stdout
 
     script:
     prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
@@ -385,9 +386,11 @@ process samtools {
     file '*.sorted.bam' into bam_picard, bam_for_unmapped
     file '*.sorted.bam.bai' into bwa_bai
     file '*.sorted.bed' into bed_total
+    file '.command.out' into samtools_stdout
 
     script:
     """
+    samtools --version
     samtools sort $bam -o ${bam.baseName}.sorted.bam
     samtools index ${bam.baseName}.sorted.bam
     bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
@@ -434,6 +437,7 @@ process picard {
     file '*.dedup.sorted.bam.bai' into bai_dedup_deepTools, bai_dedup_ngsplot, bai_dedup_macs, bai_dedup_saturation
     file '*.dedup.sorted.bed' into bed_dedup
     file '*.picardDupMetrics.txt' into picard_reports
+    file '.command.log' into picard_logs
 
     script:
     prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
@@ -459,6 +463,9 @@ process picard {
         METRICS_FILE=${prefix}.picardDupMetrics.txt \\
         VALIDATION_STRINGENCY=LENIENT \\
         PROGRAM_RECORD_ID='null'
+
+    # Print version number to standard out
+    echo "File name: $prefix Picard version "\$(java -Xmx${avail_mem}m -jar \$PICARD_HOME/picard.jar  MarkDuplicates --version 2>&1)
 
     samtools sort ${prefix}.dedup.bam -o ${prefix}.dedup.sorted.bam
     samtools index ${prefix}.dedup.sorted.bam
@@ -547,6 +554,7 @@ process deepTools {
 
     output:
     file '*.{pdf,png,npz,bw}' into deepTools_results
+    file '.command.log' into deeptools_logs
 
     script:
     if(bam instanceof Path){
@@ -562,6 +570,9 @@ process deepTools {
             --binSize=500 \\
             --plotFileFormat=pdf \\
             --plotTitle="Fingerprints"
+
+        plotFingerprint \\
+            --version
 
         bamCoverage \\
            -b $bam \\
@@ -581,6 +592,9 @@ process deepTools {
             --binSize=500 \\
             --plotFileFormat=pdf \\
             --plotTitle="Fingerprints"
+
+        plotFingerprint \\
+            --version
 
         for bamfile in ${bam}
         do
@@ -678,6 +692,7 @@ process macs {
     output:
     file '*.{bed,r,narrowPeak}' into macs_results
     file '*.xls' into macs_peaks
+    file '.command.log' into macs_logs
 
     when: REF_macs
 
@@ -693,6 +708,8 @@ process macs {
         -g $REF_macs \\
         -n $analysis_id \\
         -q 0.01
+
+    macs2 --version
     """
 }
 
@@ -745,20 +762,71 @@ process chippeakanno {
 
     input:
     file macs_peaks_collection from macs_peaks.collect()
-    file blacklist from blacklist
 
     output:
     file '*.{txt,bed}' into chippeakanno_results
+    file  '.command.log' into chippeakanno_logs
 
     when: REF_macs
 
     script:
-    filtering = params.blacklist_filtering ? "${blacklist}" : "No-filtering"
+    filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
     """
     post_peak_calling_processing.r $params.rlocation $REF_macs $filtering $macs_peaks_collection
     """
 }
 
+/*
+ * Parse software version numbers
+ */
+software_versions = [
+  'FastQC': null, 'Trim Galore!': null, 'BWA': null, 'Samtools': null, 'Picard': null, 'deepTools': null, 'Nextflow': "v$workflow.nextflow.version"
+]
+if( REF_macs!=false ) {
+    software_versions['MACS'] = null
+    software_versions['ChIPpeakAnno'] = null
+}
+
+process get_software_versions {
+    cache false
+    executor 'local'
+
+    input:
+    val fastqc from fastqc_stdout.collect()
+    val trim_galore from trimgalore_logs.collect()
+    val bwa from bwa_logs.collect()
+    val samtools from samtools_stdout.collect()
+    val picard from picard_logs.collect()
+    val deeptools from deeptools_logs.collect()
+    val macs from macs_logs.collect()
+    val chippeakanno from chippeakanno_logs.collect()
+
+    output:
+    file 'software_versions_mqc.yaml' into software_versions_yaml
+
+    exec:
+    software_versions['FastQC'] = fastqc[0].getText().find(/FastQC v(\S+)/) { match, version -> "v$version" }
+    software_versions['Trim Galore!'] = trim_galore[0].getText().find(/Trim Galore version: (\S+)/) {match, version -> "v$version"}
+    software_versions['BWA'] = bwa[0].getText().find(/Version: (\S+)/) {match, version -> "v$version"}
+    software_versions['Samtools'] = samtools[0].getText().find(/samtools (\S+)/) {match, version -> "v$version"}
+    software_versions['Picard'] = picard[0].getText().find(/Picard version ([\d\.]+)/) {match, version -> "v$version"}
+    software_versions['deepTools'] = deeptools[0].getText().find(/plotFingerprint(\S+)/) { match, version -> "v$version" }
+    if( software_versions.containsKey('MACS') ) software_versions['MACS'] = macs[0].getText().find(/macs2 (\S+)/) { match, version -> "v$version" }
+    if( software_versions.containsKey('ChIPpeakAnno') ) software_versions['ChIPpeakAnno'] = chippeakanno[0].getText().find(/ChIPpeakAnno_(\S+)/) { match, version -> "v$version" }
+
+    def sw_yaml_file = task.workDir.resolve('software_versions_mqc.yaml')
+    sw_yaml_file.text  = """
+    id: 'ngi-chipseq'
+    section_name: 'NGI-ChIPseq Software Versions'
+    section_href: 'https://github.com/SciLifeLab/NGI-ChIPseq'
+    plot_type: 'html'
+    description: 'are collected at run time from the software output.'
+    data: |
+        <dl class=\"dl-horizontal\">
+${software_versions.collect{ k,v -> "            <dt>$k</dt><dd>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</dd>" }.join("\n")}
+        </dl>
+    """.stripIndent()
+}
 
 /*
  * STEP 11 MultiQC
@@ -772,14 +840,16 @@ process multiqc {
     file multiqc_config
     file (fastqc:'fastqc/*') from fastqc_results.collect()
     file ('trimgalore/*') from trimgalore_results.collect()
-    file ('bwa/*') from bwa_logs.collect()
+    file ('bwa/*') from bwa_stdout.collect()
     file ('picard/*') from picard_reports.collect()
     file ('phantompeakqualtools/*') from spp_out_mqc.collect()
     file ('phantompeakqualtools/*') from calculateNSCRSC_results.collect()
+    file ('software_versions/*') from software_versions_yaml
 
     output:
     file '*multiqc_report.html' into multiqc_report
-    file '*_data'
+    file '*_data' into multiqc_data
+    file '.command.err' into multiqc_stderr
     val prefix into multiqc_prefix
 
     script:
@@ -789,6 +859,9 @@ process multiqc {
     """
     multiqc -f $rtitle $rfilename --config $multiqc_config . 2>&1
     """
+}
+multiqc_stderr.subscribe { stderr ->
+  software_versions['MultiQC'] = stderr.getText().find(/This is MultiQC v(\S+)/) { match, version -> "v$version" }
 }
 
 /*
@@ -846,6 +919,9 @@ workflow.onComplete {
     if(workflow.commitId) email_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
     if(workflow.revision) email_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
     if(workflow.container) email_fields['summary']['Docker image'] = workflow.container
+    email_fields['software_versions'] = software_versions
+    email_fields['software_versions']['Nextflow Build'] = workflow.nextflow.build
+    email_fields['software_versions']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
 
     // Render the TXT template
     def engine = new groovy.text.GStringTemplateEngine()

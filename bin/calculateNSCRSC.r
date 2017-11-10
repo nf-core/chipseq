@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
 
+# R scripts for calculating NSC and RSC based on output files from phantompeakqualtools
+# Version 1.0
+# Author chuan-wang@github
+
 # Command line argument processing
 args <- commandArgs(trailingOnly=TRUE)
 

@@ -1,7 +1,11 @@
 #!/usr/bin/env Rscript
 
+# R scripts for processing MACS output files (.xls)
+# Version 1.0
+# Author chuan-wang@github
+
 # Command line arguments
-args = commandArgs(trailingOnly=TRUE)
+args <- commandArgs(trailingOnly=TRUE)
 
 R_lib <- as.character(args[1])
 ref <- as.character(args[2])
@@ -132,3 +136,6 @@ for (i in 1:length(input)) {
         write.table(final_anno_df,file=newfilename,quote=FALSE,sep="\t",eol="\n")
     }
 }
+
+# Show software versions
+sessionInfo()
