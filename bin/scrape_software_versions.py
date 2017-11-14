@@ -27,7 +27,7 @@ results['Samtools'] = '<span style="color:#999999;\">N/A</span>'
 results['BEDTools'] = '<span style="color:#999999;\">N/A</span>'
 results['Picard'] = '<span style="color:#999999;\">N/A</span>'
 results['deepTools'] = '<span style="color:#999999;\">N/A</span>'
-results['NGSplot] = '<span style="color:#999999;\">N/A</span>'
+results['NGSplot'] = '<span style="color:#999999;\">N/A</span>'
 results['MACS2'] = '<span style="color:#999999;\">N/A</span>'
 results['MultiQC'] = '<span style="color:#999999;\">N/A</span>'
 

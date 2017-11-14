@@ -730,6 +730,24 @@ if (params.saturation) {
          -q 0.01
      """
   }
+
+  process saturation_r {
+     publishDir "${params.outdir}/macs/saturation", mode: 'copy'
+
+     input:
+     file countstat from countstat_results
+     file saturation_results_collection from saturation_results.collect()
+
+     output:
+     file '*.{txt,pdf}' into saturation_summary
+
+     when: REF_macs
+
+     script:
+     """
+     saturation_results_processing.r $params.rlocation $macsconfig $countstat $saturation_results_collection
+     """
+  }
 }
 
 
@@ -743,7 +761,6 @@ process chippeakanno {
 
     input:
     file macs_peaks_collection from macs_peaks.collect()
-    file blacklist from blacklist
 
     output:
     file '*.{txt,bed}' into chippeakanno_results
@@ -751,7 +768,7 @@ process chippeakanno {
     when: REF_macs
 
     script:
-    filtering = params.blacklist_filtering ? "${blacklist}" : "No-filtering"
+    filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
     """
     post_peak_calling_processing.r $params.rlocation $REF_macs $filtering $macs_peaks_collection
     """
@@ -774,9 +791,9 @@ process get_software_versions {
     echo \$(bwa 2>&1) > v_bwa.txt
     samtools --version > v_samtools.txt
     bedtools --version > v_bedtools.txt
-    echo "$bam_markduplicates Picard version "\$(java -Xmx2g -jar \$PICARD_HOME/picard.jar  MarkDuplicates --version 2>&1) > v_picard.txt
+    echo "version" \$(java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates --version 2>&1) >v_picard.txt
     echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt
-    ngs.plot.r > v_ngsplot.txt 2>&1
+    echo \$(ngs.plot.r 2>&1) > v_ngsplot.txt
     echo \$(macs2 --version 2>&1) > v_macs2.txt
     multiqc --version > v_multiqc.txt
     scrape_software_versions.py > software_versions_mqc.yaml

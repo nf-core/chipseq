@@ -99,6 +99,7 @@ RUN echo "r <- getOption('repos'); r['CRAN'] <- 'https://ftp.acc.umu.se/mirror/C
     Rscript -e "install.packages('stringr',dependencies=TRUE)" && \
     Rscript -e "install.packages('markdown',dependencies=TRUE)" && \
     Rscript -e "install.packages('evaluate',dependencies=TRUE)" && \
+    Rscript -e "install.packages('ggplot2',dependencies=TRUE)" && \
     Rscript -e "install.packages('knitr',dependencies=TRUE)"
 
 # Install R Bioconductor packages
