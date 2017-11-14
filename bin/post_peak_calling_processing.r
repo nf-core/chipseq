@@ -2,7 +2,7 @@
 
 # R scripts for processing MACS output files (.xls)
 # Version 1.0
-# Author chuan-wang@github
+# Author @chuan-wang https://github.com/chuan-wang
 
 # Command line arguments
 args <- commandArgs(trailingOnly=TRUE)
