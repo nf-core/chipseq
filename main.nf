@@ -24,10 +24,13 @@ Pipeline overview:
  - 5:   Statistics about read counts
  - 6.1: Phantompeakqualtools for normalized strand cross-correlation (NSC) and relative strand cross-correlation (RSC)
  - 6.2: Summarize NSC and RSC
- - 7:   deepTools for fingerprint and correlation plots of reads over genome-wide bins
+ - 7:   deepTools for fingerprint, coverage bigwig, and correlation plots of reads over genome-wide bins
  - 8:   NGSplot for distribution of reads around transcription start sites (TSS) and gene bodies
- - 9:   MACS for peak calling (with option for saturation analysis)
- - 10:  MultiQC
+ - 9.1: MACS for peak calling
+ - 9.2: Saturation analysis using MACS when specified
+ - 10:  Post peak calling processing: blacklist filtering and annotation
+ - 11:  MultiQC
+ - 12:  Output Description HTML
  ----------------------------------------------------------------------------------------
 */
 
@@ -50,7 +53,8 @@ def helpMessage() {
     Options:
       --singleEnd                   Specifies that the input is single end reads
       --saturation                  Run saturation analysis by peak calling with subsets of reads
-      --broad                       Run MACS with the --broad flag.
+      --broad                       Run MACS with the --broad flag
+      --blacklist_filtering         Filter ENCODE blacklisted regions from ChIP-seq peaks. It only works when --genome is set as GRCh37 or GRCm38
 
     Presets:
       --extendReadsLen [int]        Number of base pairs to extend the reads for the deepTools analysis. Default: 100
@@ -58,6 +62,7 @@ def helpMessage() {
     References
       --fasta                       Path to Fasta reference
       --bwa_index                   Path to BWA index
+      --blacklist                   Path to blacklist regions (.BED format), used for filtering out called peaks. Note that --blacklist_filtering is required
       --saveReference               Save the generated reference files in the Results directory.
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
 
@@ -74,7 +79,7 @@ def helpMessage() {
       --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
       --rlocation                   Location to save R-libraries used in the pipeline. Default value is ~/R/nxtflow_libs/
       --clusterOptions              Extra SLURM options, used in conjunction with Uppmax.config
-      -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic.
+      -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
     """.stripIndent()
 }
 
@@ -83,7 +88,7 @@ def helpMessage() {
  */
 
 // Pipeline version
-version = 1.3
+version = 1.4
 
 // Show help emssage
 params.help = false
@@ -124,6 +129,8 @@ params.saveTrimmed = false
 params.saveAlignedIntermediates = false
 params.saturation = false
 params.broad = false
+params.blacklist_filtering = false
+params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
 params.outdir = './results'
 params.email = false
 params.plaintext_email = false
@@ -157,6 +164,10 @@ if( params.bwa_index ){
 } else {
     exit 1, "No reference genome specified!"
 }
+if ( params.blacklist_filtering ){
+    blacklist = file(params.blacklist)
+    if( !blacklist.exists() ) exit 1, "Blacklist file not found: ${params.blacklist}"
+}
 if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
 // Has the run name been specified by the user?
@@ -187,7 +198,7 @@ Channel
         analysis_id = list[2]
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
-    .into{ macs_para }
+    .into{ macs_para; saturation_para }
 
 /*
  * Reference to use for MACS and ngs.plot.r
@@ -217,6 +228,8 @@ else if(params.fasta) summary['Fasta Ref'] = params.fasta
 summary['MACS Config']         = params.macsconfig
 summary['Saturation analysis'] = params.saturation
 summary['MACS broad peaks']    = params.broad
+summary['Blacklist filtering'] = params.blacklist_filtering
+if( params.blacklist_filtering ) summary['Blacklist BED'] = params.blacklist
 summary['Extend Reads']        = "$params.extendReadsLen bp"
 summary['Current home']        = "$HOME"
 summary['Current user']        = "$USER"
@@ -228,11 +241,11 @@ summary['Script dir']          = workflow.projectDir
 summary['Save Reference']      = params.saveReference
 summary['Save Trimmed']        = params.saveTrimmed
 summary['Save Intermeds']      = params.saveAlignedIntermediates
-if(params.notrim)       summary['Trimming Step'] = 'Skipped'
-if( params.clip_r1 > 0) summary['Trim R1'] = params.clip_r1
-if( params.clip_r2 > 0) summary['Trim R2'] = params.clip_r2
-if( params.three_prime_clip_r1 > 0) summary["Trim 3' R1"] = params.three_prime_clip_r1
-if( params.three_prime_clip_r2 > 0) summary["Trim 3' R2"] = params.three_prime_clip_r2
+if( params.notrim )       summary['Trimming Step'] = 'Skipped'
+if( params.clip_r1 > 0 ) summary['Trim R1'] = params.clip_r1
+if( params.clip_r2 > 0 ) summary['Trim R2'] = params.clip_r2
+if( params.three_prime_clip_r1 > 0 ) summary["Trim 3' R1"] = params.three_prime_clip_r1
+if( params.three_prime_clip_r2 > 0 ) summary["Trim 3' R2"] = params.three_prime_clip_r2
 summary['Config Profile'] = (workflow.profile == 'standard' ? 'UPPMAX' : workflow.profile)
 if(params.project) summary['UPPMAX Project'] = params.project
 if(params.email) summary['E-mail Address'] = params.email
@@ -283,7 +296,6 @@ process fastqc {
     script:
     """
     fastqc -q $reads
-    fastqc --version
     """
 }
 
@@ -310,7 +322,7 @@ if(params.notrim){
 
         output:
         file '*.fq.gz' into trimmed_reads
-        file '*trimming_report.txt' into trimgalore_results, trimgalore_logs
+        file '*trimming_report.txt' into trimgalore_results
         file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
 
         script:
@@ -345,7 +357,7 @@ process bwa {
 
     output:
     file '*.bam' into bwa_bam
-    stdout into bwa_logs
+    stdout into bwa_stdout
 
     script:
     prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
@@ -386,6 +398,7 @@ process samtools {
  */
 
 process bwa_unmapped {
+    tag "${input_files[0].baseName}"
     publishDir "${params.outdir}/bwa/unmapped", mode: 'copy'
 
     input:
@@ -416,8 +429,8 @@ process picard {
     file bam from bam_picard
 
     output:
-    file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs
-    file '*.dedup.sorted.bam.bai' into bai_dedup_deepTools, bai_dedup_ngsplot, bai_dedup_macs
+    file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
+    file '*.dedup.sorted.bam.bai' into bai_dedup_deepTools, bai_dedup_ngsplot, bai_dedup_macs, bai_dedup_saturation
     file '*.dedup.sorted.bed' into bed_dedup
     file '*.picardDupMetrics.txt' into picard_reports
 
@@ -534,7 +547,7 @@ process deepTools {
     file bai from bai_dedup_deepTools.collect()
 
     output:
-    file '*.{pdf,png,npz}' into deepTools_results
+    file '*.{pdf,png,npz,bw}' into deepTools_results
 
     script:
     if(bam instanceof Path){
@@ -550,6 +563,12 @@ process deepTools {
             --binSize=500 \\
             --plotFileFormat=pdf \\
             --plotTitle="Fingerprints"
+
+        bamCoverage \\
+           -b $bam \\
+           --extendReads=${params.extendReadsLen} \\
+           --normalizeUsingRPKM \\
+           -o ${bam}.bw
         """
     } else {
         """
@@ -563,6 +582,15 @@ process deepTools {
             --binSize=500 \\
             --plotFileFormat=pdf \\
             --plotTitle="Fingerprints"
+
+        for bamfile in ${bam}
+        do
+            bamCoverage \\
+              -b \$bamfile \\
+              --extendReads=${params.extendReadsLen} \\
+              --normalizeUsingRPKM \\
+              -o \${bamfile}.bw
+        done
 
         multiBamSummary \\
             bins \\
@@ -636,7 +664,7 @@ process ngsplot {
 
 
 /*
- * STEP 9 MACS
+ * STEP 9.1 MACS
  */
 
 process macs {
@@ -649,43 +677,137 @@ process macs {
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
-    file '*.{bed,xls,r,narrowPeak}' into macs_results
+    file '*.{bed,r,narrowPeak}' into macs_results
+    file '*.xls' into macs_peaks
 
     when: REF_macs
 
     script:
     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
     broad = params.broad ? "--broad" : ''
-    if(params.saturation){
-        each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
-        """
-        samtools view -b -s ${sampling} ${chip_sample_id}.dedup.sorted.bam > ${chip_sample_id}.${sampling}.dedup.sorted.bam
-        macs2 callpeak \\
-            -t ${chip_sample_id}.${sampling}.dedup.sorted.bam \\
-            $ctrl \\
-            $broad \\
-            -f BAM \\
-            -g $REF_macs \\
-            -n $analysis_id \\
-            -q 0.01
-        """
-    } else {
-        """
-        macs2 callpeak \\
-            -t ${chip_sample_id}.dedup.sorted.bam \\
-            $ctrl \\
-            $broad \\
-            -f BAM \\
-            -g $REF_macs \\
-            -n $analysis_id \\
-            -q 0.01
-        """
-    }
+    """
+    macs2 callpeak \\
+        -t ${chip_sample_id}.dedup.sorted.bam \\
+        $ctrl \\
+        $broad \\
+        -f BAM \\
+        -g $REF_macs \\
+        -n $analysis_id \\
+        -q 0.01
+    """
 }
 
 
 /*
- * STEP 10 MultiQC
+ * STEP 9.2 Saturation analysis
+ */
+if (params.saturation) {
+
+  process saturation {
+     tag "${bam_for_saturation[0].baseName}"
+     publishDir "${params.outdir}/macs/saturation", mode: 'copy'
+
+     input:
+     file bam_for_saturation from bam_dedup_saturation.collect()
+     file bai_for_saturation from bai_dedup_saturation.collect()
+     set chip_sample_id, ctrl_sample_id, analysis_id from saturation_para
+     each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+
+     output:
+     file '*.xls' into saturation_results
+
+     when: REF_macs
+
+     script:
+     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+     broad = params.broad ? "--broad" : ''
+     """
+     samtools view -b -s ${sampling} ${chip_sample_id}.dedup.sorted.bam > ${chip_sample_id}.${sampling}.dedup.sorted.bam
+     macs2 callpeak \\
+         -t ${chip_sample_id}.${sampling}.dedup.sorted.bam \\
+         $ctrl \\
+         $broad \\
+         -f BAM \\
+         -g $REF_macs \\
+         -n ${analysis_id}.${sampling} \\
+         -q 0.01
+     """
+  }
+
+  process saturation_r {
+     tag "${saturation_results_collection[0].baseName}"
+     publishDir "${params.outdir}/macs/saturation", mode: 'copy'
+
+     input:
+     file macsconfig from macsconfig
+     file countstat from countstat_results
+     file saturation_results_collection from saturation_results.collect()
+
+     output:
+     file '*.{txt,pdf}' into saturation_summary
+
+     when: REF_macs
+
+     script:
+     """
+     saturation_results_processing.r $params.rlocation $macsconfig $countstat $saturation_results_collection
+     """
+  }
+}
+
+
+/*
+ * STEP 10 Post peak calling processing
+ */
+
+process chippeakanno {
+    tag "${macs_peaks_collection[0].baseName}"
+    publishDir "${params.outdir}/macs/chippeakanno", mode: 'copy'
+
+    input:
+    file macs_peaks_collection from macs_peaks.collect()
+
+    output:
+    file '*.{txt,bed}' into chippeakanno_results
+
+    when: REF_macs
+
+    script:
+    filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
+    """
+    post_peak_calling_processing.r $params.rlocation $REF_macs $filtering $macs_peaks_collection
+    """
+}
+
+/*
+ * Parse software version numbers
+ */
+process get_software_versions {
+
+    output:
+    file 'software_versions_mqc.yaml' into software_versions_yaml
+
+    script:
+    """
+    echo $version > v_ngi_chipseq.txt
+    echo $workflow.nextflow.version > v_nextflow.txt
+    fastqc --version > v_fastqc.txt
+    trim_galore --version > v_trim_galore.txt
+    echo \$(bwa 2>&1) > v_bwa.txt
+    samtools --version > v_samtools.txt
+    bedtools --version > v_bedtools.txt
+    echo "version" \$(java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates --version 2>&1) >v_picard.txt
+    echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt
+    echo \$(ngs.plot.r 2>&1) > v_ngsplot.txt
+    echo \$(macs2 --version 2>&1) > v_macs2.txt
+    multiqc --version > v_multiqc.txt
+    scrape_software_versions.py > software_versions_mqc.yaml
+    """
+}
+
+
+/*
+ * STEP 11 MultiQC
  */
 
 process multiqc {
@@ -696,14 +818,16 @@ process multiqc {
     file multiqc_config
     file (fastqc:'fastqc/*') from fastqc_results.collect()
     file ('trimgalore/*') from trimgalore_results.collect()
-    file ('bwa/*') from bwa_logs.collect()
+    file ('bwa/*') from bwa_stdout.collect()
     file ('picard/*') from picard_reports.collect()
     file ('phantompeakqualtools/*') from spp_out_mqc.collect()
     file ('phantompeakqualtools/*') from calculateNSCRSC_results.collect()
+    file ('software_versions/*') from software_versions_yaml.collect()
 
     output:
     file '*multiqc_report.html' into multiqc_report
-    file '*_data'
+    file '*_data' into multiqc_data
+    file '.command.err' into multiqc_stderr
     val prefix into multiqc_prefix
 
     script:
@@ -716,7 +840,7 @@ process multiqc {
 }
 
 /*
- * STEP 11 - Output Description HTML
+ * STEP 12 - Output Description HTML
  */
 process output_documentation {
     tag "$prefix"

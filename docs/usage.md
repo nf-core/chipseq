@@ -64,6 +64,18 @@ For single-sample peaking calling without a control sample, leave the second col
 ### `--broad`
 Run MACS with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff 0.1.
 
+### `--saturation`
+Run saturation analysis by sub-sampling the sequence reads of ChIP sample from 10% to 100% with 10% interval, then calling ChIP-seq peaks with MACS. For one test there will be 10 sets of ChIP-seq peaks. A summary file (.CSV) will be provided with the numbers of ChIP-seq peaks.
+
+### `--blacklist_filtering`
+Specifying this flag instructs the pipeline to use bundled ENCODE blacklist regions to filter out known blacklisted regions in the called ChIP-seq peaks. Please note that this is only supported when --genome is set to `GRCh37` or `GRCm38`.
+
+### `--blacklist`
+If you prefer, you can specify the full path to the blacklist regions (should be in .BED format) which will be filtered out from the called ChIP-seq peaks. Please note that `--blacklist_filtering` is required for using this option.
+```bash
+--blacklist_filtering --blacklist '[path to blacklisted regions]'
+```
+
 ### `--extendReadsLen`
 Number of base pairs to extend the reads for the deepTools analysis. This number should be
 based on the length of your reads and the expected fragment length.
