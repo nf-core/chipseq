@@ -398,6 +398,7 @@ process samtools {
  */
 
 process bwa_unmapped {
+    tag "${input_files[0].baseName}"
     publishDir "${params.outdir}/bwa/unmapped", mode: 'copy'
 
     input:
@@ -470,6 +471,7 @@ process picard {
  */
 
 process countstat {
+    tag "${input[0].baseName}"
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
@@ -515,6 +517,7 @@ process phantompeakqualtools {
  */
 
 process calculateNSCRSC {
+    tag "${spp_out_list[0].baseName}"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -732,9 +735,11 @@ if (params.saturation) {
   }
 
   process saturation_r {
+     tag "${saturation_results_collection[0].baseName}"
      publishDir "${params.outdir}/macs/saturation", mode: 'copy'
 
      input:
+     file macsconfig from macsconfig
      file countstat from countstat_results
      file saturation_results_collection from saturation_results.collect()
 

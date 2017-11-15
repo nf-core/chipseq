@@ -21,7 +21,7 @@ if (!require("ggplot2")){
 }
 
 # Read in MACS config file
-macsconfig <- read.csv(countstat,header=F)
+macsconfig <- read.csv(config,header=F)
 
 # Read in statistics of read counts
 readcount <- read.table(countstat,header=T)
