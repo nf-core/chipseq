@@ -386,7 +386,6 @@ process samtools {
     file '*.sorted.bam' into bam_picard, bam_for_unmapped
     file '*.sorted.bam.bai' into bwa_bai
     file '*.sorted.bed' into bed_total
-    file '*.flagstat.txt' into samtools_flagstats
     file '*.stats.txt' into samtools_stats
 
     script:
@@ -394,7 +393,6 @@ process samtools {
     samtools sort $bam -o ${bam.baseName}.sorted.bam
     samtools index ${bam.baseName}.sorted.bam
     bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
-    samtools flagstat ${bam.baseName}.sorted.bam > ${bam.baseName}.flagstat.txt
     samtools stats ${bam.baseName}.sorted.bam > ${bam.baseName}.stats.txt
     """
 }
@@ -826,7 +824,6 @@ process multiqc {
     file (fastqc:'fastqc/*') from fastqc_results.collect()
     file ('trimgalore/*') from trimgalore_results.collect()
     file ('samtools/*') from samtools_stats.collect()
-    file ('samtools/*') from samtools_flagstats.collect()
     file ('picard/*') from picard_reports.collect()
     file ('phantompeakqualtools/*') from spp_out_mqc.collect()
     file ('phantompeakqualtools/*') from calculateNSCRSC_results.collect()
