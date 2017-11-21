@@ -357,7 +357,6 @@ process bwa {
 
     output:
     file '*.bam' into bwa_bam
-    stdout into bwa_stdout
 
     script:
     prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
@@ -373,8 +372,12 @@ process bwa {
 
 process samtools {
     tag "${bam.baseName}"
-    publishDir path: { params.saveAlignedIntermediates ? "${params.outdir}/bwa" : params.outdir }, mode: 'copy',
-               saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
+    publishDir path: "${params.outdir}/bwa", mode: 'copy',
+               saveAs: { filename ->
+                   if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
+                   else if (filename.indexOf(".flagstat.txt") == -1) "flagstats/$filename"
+                   else params.saveAlignedIntermediates ? filename : null
+               }
 
     input:
     file bam from bwa_bam
@@ -383,12 +386,16 @@ process samtools {
     file '*.sorted.bam' into bam_picard, bam_for_unmapped
     file '*.sorted.bam.bai' into bwa_bai
     file '*.sorted.bed' into bed_total
+    file '*.flagstat.txt' into samtools_flagstats
+    file '*.stats.txt' into samtools_stats
 
     script:
     """
     samtools sort $bam -o ${bam.baseName}.sorted.bam
     samtools index ${bam.baseName}.sorted.bam
     bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
+    samtools flagstat ${bam.baseName}.sorted.bam > ${bam.baseName}.flagstat.txt
+    samtools stats ${bam.baseName}.sorted.bam > ${bam.baseName}.stats.txt
     """
 }
 
@@ -818,7 +825,8 @@ process multiqc {
     file multiqc_config
     file (fastqc:'fastqc/*') from fastqc_results.collect()
     file ('trimgalore/*') from trimgalore_results.collect()
-    file ('bwa/*') from bwa_stdout.collect()
+    file ('samtools/*') from samtools_stats.collect()
+    file ('samtools/*') from samtools_flagstats.collect()
     file ('picard/*') from picard_reports.collect()
     file ('phantompeakqualtools/*') from spp_out_mqc.collect()
     file ('phantompeakqualtools/*') from calculateNSCRSC_results.collect()
