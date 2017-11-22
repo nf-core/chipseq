@@ -241,16 +241,19 @@ summary['Script dir']          = workflow.projectDir
 summary['Save Reference']      = params.saveReference
 summary['Save Trimmed']        = params.saveTrimmed
 summary['Save Intermeds']      = params.saveAlignedIntermediates
-if( params.notrim )       summary['Trimming Step'] = 'Skipped'
-if( params.clip_r1 > 0 ) summary['Trim R1'] = params.clip_r1
-if( params.clip_r2 > 0 ) summary['Trim R2'] = params.clip_r2
-if( params.three_prime_clip_r1 > 0 ) summary["Trim 3' R1"] = params.three_prime_clip_r1
-if( params.three_prime_clip_r2 > 0 ) summary["Trim 3' R2"] = params.three_prime_clip_r2
+if( params.notrim ){
+    summary['Trimming Step'] = 'Skipped'
+} else {
+    summary['Trim R1'] = params.clip_r1
+    summary['Trim R2'] = params.clip_r2
+    summary["Trim 3' R1"] = params.three_prime_clip_r1
+    summary["Trim 3' R2"] = params.three_prime_clip_r2
+}
 summary['Config Profile'] = (workflow.profile == 'standard' ? 'UPPMAX' : workflow.profile)
 if(params.project) summary['UPPMAX Project'] = params.project
 if(params.email) summary['E-mail Address'] = params.email
 if(workflow.commitId) summary['Pipeline Commit']= workflow.commitId
-log.info summary.collect { k,v -> "${k.padRight(15)}: $v" }.join("\n")
+log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
 log.info "===================================="
 
 
@@ -560,14 +563,15 @@ process deepTools {
         """
         plotFingerprint \\
             -b $bam \\
-            --plotFile fingerprints.pdf \\
+            --plotFile ${bam.baseName}_fingerprints.pdf \\
+            --outRawCounts ${bam.baseName}_fingerprint.txt
             --extendReads=${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
             --numberOfSamples 50000 \\
             --binSize=500 \\
             --plotFileFormat=pdf \\
-            --plotTitle="Fingerprints"
+            --plotTitle="${bam.baseName} Fingerprints"
 
         bamCoverage \\
            -b $bam \\
@@ -580,6 +584,7 @@ process deepTools {
         plotFingerprint \\
             -b $bam \\
             --plotFile fingerprints.pdf \\
+            --outRawCounts fingerprint.txt
             --extendReads=${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
@@ -609,6 +614,7 @@ process deepTools {
         plotCorrelation \\
             -in multiBamSummary.npz \\
             -o scatterplot_PearsonCorr_multiBamSummary.png \\
+            --outFileCorMatrix scatterplot_PearsonCorr_multiBamSummary.txt \\
             --corMethod pearson \\
             --skipZeros \\
             --removeOutliers \\
@@ -618,6 +624,7 @@ process deepTools {
         plotCorrelation \\
             -in multiBamSummary.npz \\
             -o heatmap_SpearmanCorr_multiBamSummary.png \\
+            --outFileCorMatrix heatmap_SpearmanCorr_multiBamSummary.txt \\
             --corMethod spearman \\
             --skipZeros \\
             --plotTitle "Spearman Correlation of Read Counts" \\
