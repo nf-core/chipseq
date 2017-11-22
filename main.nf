@@ -378,7 +378,6 @@ process samtools {
     publishDir path: "${params.outdir}/bwa", mode: 'copy',
                saveAs: { filename ->
                    if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
-                   else if (filename.indexOf(".flagstat.txt") == -1) "flagstats/$filename"
                    else params.saveAlignedIntermediates ? filename : null
                }
 
