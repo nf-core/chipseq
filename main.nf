@@ -564,17 +564,17 @@ process deepTools {
             -b $bam \\
             --plotFile ${bam.baseName}_fingerprints.pdf \\
             --outRawCounts ${bam.baseName}_fingerprint.txt
-            --extendReads=${params.extendReadsLen} \\
+            --extendReads ${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
             --numberOfSamples 50000 \\
-            --binSize=500 \\
-            --plotFileFormat=pdf \\
-            --plotTitle="${bam.baseName} Fingerprints"
+            --binSize 500 \\
+            --plotFileFormat pdf \\
+            --plotTitle "${bam.baseName} Fingerprints"
 
         bamCoverage \\
            -b $bam \\
-           --extendReads=${params.extendReadsLen} \\
+           --extendReads ${params.extendReadsLen} \\
            --normalizeUsingRPKM \\
            -o ${bam}.bw
         """
@@ -584,29 +584,29 @@ process deepTools {
             -b $bam \\
             --plotFile fingerprints.pdf \\
             --outRawCounts fingerprint.txt
-            --extendReads=${params.extendReadsLen} \\
+            --extendReads ${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
             --numberOfSamples 50000 \\
-            --binSize=500 \\
-            --plotFileFormat=pdf \\
-            --plotTitle="Fingerprints"
+            --binSize 500 \\
+            --plotFileFormat pdf \\
+            --plotTitle "Fingerprints"
 
         for bamfile in ${bam}
         do
             bamCoverage \\
               -b \$bamfile \\
-              --extendReads=${params.extendReadsLen} \\
+              --extendReads ${params.extendReadsLen} \\
               --normalizeUsingRPKM \\
               -o \${bamfile}.bw
         done
 
         multiBamSummary \\
             bins \\
-            --binSize=10000 \\
+            --binSize 10000 \\
             --bamfiles $bam \\
             -out multiBamSummary.npz \\
-            --extendReads=${params.extendReadsLen} \\
+            --extendReads ${params.extendReadsLen} \\
             --ignoreDuplicates \\
             --centerReads
 
