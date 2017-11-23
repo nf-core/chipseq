@@ -563,7 +563,7 @@ process deepTools {
         plotFingerprint \\
             -b $bam \\
             --plotFile ${bam.baseName}_fingerprints.pdf \\
-            --outRawCounts ${bam.baseName}_fingerprint.txt
+            --outRawCounts ${bam.baseName}_fingerprint.txt \\
             --extendReads ${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
@@ -583,7 +583,7 @@ process deepTools {
         plotFingerprint \\
             -b $bam \\
             --plotFile fingerprints.pdf \\
-            --outRawCounts fingerprint.txt
+            --outRawCounts fingerprint.txt \\
             --extendReads ${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
