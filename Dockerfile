@@ -144,6 +144,5 @@ RUN curl -fsSL https://export.uppmax.uu.se/b2013064/test-data/ngi-chipseq_test_s
 RUN pip install MACS2
 
 # Install MultiQC
-# ENV MULTIQC_VERSION v0.9
-ENV MULTIQC_VERSION master
+ENV MULTIQC_VERSION v1.3
 RUN pip install git+git://github.com/ewels/MultiQC.git@$MULTIQC_VERSION

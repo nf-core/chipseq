@@ -241,16 +241,19 @@ summary['Script dir']          = workflow.projectDir
 summary['Save Reference']      = params.saveReference
 summary['Save Trimmed']        = params.saveTrimmed
 summary['Save Intermeds']      = params.saveAlignedIntermediates
-if( params.notrim )       summary['Trimming Step'] = 'Skipped'
-if( params.clip_r1 > 0 ) summary['Trim R1'] = params.clip_r1
-if( params.clip_r2 > 0 ) summary['Trim R2'] = params.clip_r2
-if( params.three_prime_clip_r1 > 0 ) summary["Trim 3' R1"] = params.three_prime_clip_r1
-if( params.three_prime_clip_r2 > 0 ) summary["Trim 3' R2"] = params.three_prime_clip_r2
+if( params.notrim ){
+    summary['Trimming Step'] = 'Skipped'
+} else {
+    summary['Trim R1'] = params.clip_r1
+    summary['Trim R2'] = params.clip_r2
+    summary["Trim 3' R1"] = params.three_prime_clip_r1
+    summary["Trim 3' R2"] = params.three_prime_clip_r2
+}
 summary['Config Profile'] = (workflow.profile == 'standard' ? 'UPPMAX' : workflow.profile)
 if(params.project) summary['UPPMAX Project'] = params.project
 if(params.email) summary['E-mail Address'] = params.email
 if(workflow.commitId) summary['Pipeline Commit']= workflow.commitId
-log.info summary.collect { k,v -> "${k.padRight(15)}: $v" }.join("\n")
+log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
 log.info "===================================="
 
 
@@ -357,7 +360,6 @@ process bwa {
 
     output:
     file '*.bam' into bwa_bam
-    stdout into bwa_stdout
 
     script:
     prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
@@ -373,8 +375,11 @@ process bwa {
 
 process samtools {
     tag "${bam.baseName}"
-    publishDir path: { params.saveAlignedIntermediates ? "${params.outdir}/bwa" : params.outdir }, mode: 'copy',
-               saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
+    publishDir path: "${params.outdir}/bwa", mode: 'copy',
+               saveAs: { filename ->
+                   if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
+                   else params.saveAlignedIntermediates ? filename : null
+               }
 
     input:
     file bam from bwa_bam
@@ -383,12 +388,14 @@ process samtools {
     file '*.sorted.bam' into bam_picard, bam_for_unmapped
     file '*.sorted.bam.bai' into bwa_bai
     file '*.sorted.bed' into bed_total
+    file '*.stats.txt' into samtools_stats
 
     script:
     """
     samtools sort $bam -o ${bam.baseName}.sorted.bam
     samtools index ${bam.baseName}.sorted.bam
     bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
+    samtools stats ${bam.baseName}.sorted.bam > ${bam.baseName}.stats.txt
     """
 }
 
@@ -555,18 +562,19 @@ process deepTools {
         """
         plotFingerprint \\
             -b $bam \\
-            --plotFile fingerprints.pdf \\
-            --extendReads=${params.extendReadsLen} \\
+            --plotFile ${bam.baseName}_fingerprints.pdf \\
+            --outRawCounts ${bam.baseName}_fingerprint.txt \\
+            --extendReads ${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
             --numberOfSamples 50000 \\
-            --binSize=500 \\
-            --plotFileFormat=pdf \\
-            --plotTitle="Fingerprints"
+            --binSize 500 \\
+            --plotFileFormat pdf \\
+            --plotTitle "${bam.baseName} Fingerprints"
 
         bamCoverage \\
            -b $bam \\
-           --extendReads=${params.extendReadsLen} \\
+           --extendReads ${params.extendReadsLen} \\
            --normalizeUsingRPKM \\
            -o ${bam}.bw
         """
@@ -575,35 +583,37 @@ process deepTools {
         plotFingerprint \\
             -b $bam \\
             --plotFile fingerprints.pdf \\
-            --extendReads=${params.extendReadsLen} \\
+            --outRawCounts fingerprint.txt \\
+            --extendReads ${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
             --numberOfSamples 50000 \\
-            --binSize=500 \\
-            --plotFileFormat=pdf \\
-            --plotTitle="Fingerprints"
+            --binSize 500 \\
+            --plotFileFormat pdf \\
+            --plotTitle "Fingerprints"
 
         for bamfile in ${bam}
         do
             bamCoverage \\
               -b \$bamfile \\
-              --extendReads=${params.extendReadsLen} \\
+              --extendReads ${params.extendReadsLen} \\
               --normalizeUsingRPKM \\
               -o \${bamfile}.bw
         done
 
         multiBamSummary \\
             bins \\
-            --binSize=10000 \\
+            --binSize 10000 \\
             --bamfiles $bam \\
             -out multiBamSummary.npz \\
-            --extendReads=${params.extendReadsLen} \\
+            --extendReads ${params.extendReadsLen} \\
             --ignoreDuplicates \\
             --centerReads
 
         plotCorrelation \\
             -in multiBamSummary.npz \\
             -o scatterplot_PearsonCorr_multiBamSummary.png \\
+            --outFileCorMatrix scatterplot_PearsonCorr_multiBamSummary.txt \\
             --corMethod pearson \\
             --skipZeros \\
             --removeOutliers \\
@@ -613,6 +623,7 @@ process deepTools {
         plotCorrelation \\
             -in multiBamSummary.npz \\
             -o heatmap_SpearmanCorr_multiBamSummary.png \\
+            --outFileCorMatrix heatmap_SpearmanCorr_multiBamSummary.txt \\
             --corMethod spearman \\
             --skipZeros \\
             --plotTitle "Spearman Correlation of Read Counts" \\
@@ -818,7 +829,7 @@ process multiqc {
     file multiqc_config
     file (fastqc:'fastqc/*') from fastqc_results.collect()
     file ('trimgalore/*') from trimgalore_results.collect()
-    file ('bwa/*') from bwa_stdout.collect()
+    file ('samtools/*') from samtools_stats.collect()
     file ('picard/*') from picard_reports.collect()
     file ('phantompeakqualtools/*') from spp_out_mqc.collect()
     file ('phantompeakqualtools/*') from calculateNSCRSC_results.collect()
