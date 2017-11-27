@@ -49,7 +49,7 @@ RUN pip install cutadapt
 ENV TRIMGALORE_VERSION="0.4.5"
 RUN curl -fsSL https://github.com/FelixKrueger/TrimGalore/archive/${TRIMGALORE_VERSION}.tar.gz -o /opt/trimgalore_${TRIMGALORE_VERSION}.tar.gz && \
     tar xvzf /opt/trimgalore_${TRIMGALORE_VERSION}.tar.gz -C /opt/ && \
-    ln -s /opt/trimgalore_${TRIMGALORE_VERSION}/trim_galore /usr/local/bin/trim_galore && \
+    ln -s /opt/TrimGalore-${TRIMGALORE_VERSION}/trim_galore /usr/local/bin/trim_galore && \
     rm /opt/trimgalore_${TRIMGALORE_VERSION}.tar.gz
 
 # Install BWA
