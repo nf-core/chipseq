@@ -33,9 +33,8 @@ fi
 
 run_name="Test UPPMAX ChIP-Seq Run: "$(date +%s)
 
-nf_cmd="nextflow run $script_path -resume -name \"$run_name\" -profile devel --genome EF2 --macsconfig ${data_dir}/macsconfig.txt --reads \"${data_dir}/*_R{1,2}.fastq.gz\""
+nf_cmd="nextflow run $script_path -resume -name \"$run_name\" -profile uppmax_devel --genome EF2 --macsconfig ${data_dir}/macsconfig.txt --reads \"${data_dir}/*_R{1,2}.fastq.gz\""
 echo "Starting nextflow... Command:"
 echo $nf_cmd
 echo "-----"
 eval $nf_cmd
-

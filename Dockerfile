@@ -146,3 +146,6 @@ RUN pip install MACS2
 # Install MultiQC
 ENV MULTIQC_VERSION v1.3
 RUN pip install git+git://github.com/ewels/MultiQC.git@$MULTIQC_VERSION
+
+# Create UPPMAX root directories
+RUN mkdir /pica /lupus /crex1 /crex2 /proj /scratch /sw
