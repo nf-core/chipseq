@@ -21,3 +21,6 @@ custom_data:
         headers:
             NSC: {}
             RSC: {}
+report_section_order:
+    ngi-chipseq:
+        order: -1000
