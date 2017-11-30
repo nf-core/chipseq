@@ -43,12 +43,13 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config'
+    nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile uppmax
 
     Mandatory arguments:
       --reads                       Path to input data (must be surrounded with quotes).
       --genome                      Name of iGenomes reference
       --macsconfig                  Configuration file for peaking calling using MACS. Format: ChIPSampleID,CtrlSampleID,AnalysisID
+      -profile                      Hardware config to use. uppmax / uppmax_modules / docker / aws
 
     Options:
       --singleEnd                   Specifies that the input is single end reads
@@ -88,28 +89,13 @@ def helpMessage() {
  */
 
 // Pipeline version
-version = 1.4
+version = '1.4'
 
 // Show help emssage
 params.help = false
 if (params.help){
     helpMessage()
     exit 0
-}
-
-// Check that Nextflow version is up to date enough
-// try / throw / catch works for NF versions < 0.25 when this was implemented
-nf_required_version = '0.25.0'
-try {
-    if( ! nextflow.version.matches(">= $nf_required_version") ){
-        throw GroovyException('Nextflow version too old')
-    }
-} catch (all) {
-    log.error "====================================================\n" +
-              "  Nextflow version $nf_required_version required! You are running v$workflow.nextflow.version.\n" +
-              "  Pipeline execution will continue, but things may break.\n" +
-              "  Please run `nextflow self-update` to update Nextflow.\n" +
-              "============================================================"
 }
 
 // Configurable variables
@@ -231,6 +217,8 @@ summary['MACS broad peaks']    = params.broad
 summary['Blacklist filtering'] = params.blacklist_filtering
 if( params.blacklist_filtering ) summary['Blacklist BED'] = params.blacklist
 summary['Extend Reads']        = "$params.extendReadsLen bp"
+summary['Container']           = workflow.container
+if(workflow.revision) summary['Pipeline Release'] = workflow.revision
 summary['Current home']        = "$HOME"
 summary['Current user']        = "$USER"
 summary['Current path']        = "$PWD"
@@ -241,17 +229,48 @@ summary['Script dir']          = workflow.projectDir
 summary['Save Reference']      = params.saveReference
 summary['Save Trimmed']        = params.saveTrimmed
 summary['Save Intermeds']      = params.saveAlignedIntermediates
-if( params.notrim )       summary['Trimming Step'] = 'Skipped'
-if( params.clip_r1 > 0 ) summary['Trim R1'] = params.clip_r1
-if( params.clip_r2 > 0 ) summary['Trim R2'] = params.clip_r2
-if( params.three_prime_clip_r1 > 0 ) summary["Trim 3' R1"] = params.three_prime_clip_r1
-if( params.three_prime_clip_r2 > 0 ) summary["Trim 3' R2"] = params.three_prime_clip_r2
-summary['Config Profile'] = (workflow.profile == 'standard' ? 'UPPMAX' : workflow.profile)
+if( params.notrim ){
+    summary['Trimming Step'] = 'Skipped'
+} else {
+    summary['Trim R1'] = params.clip_r1
+    summary['Trim R2'] = params.clip_r2
+    summary["Trim 3' R1"] = params.three_prime_clip_r1
+    summary["Trim 3' R2"] = params.three_prime_clip_r2
+}
+summary['Config Profile'] = workflow.profile
 if(params.project) summary['UPPMAX Project'] = params.project
 if(params.email) summary['E-mail Address'] = params.email
 if(workflow.commitId) summary['Pipeline Commit']= workflow.commitId
-log.info summary.collect { k,v -> "${k.padRight(15)}: $v" }.join("\n")
+log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
 log.info "===================================="
+
+// Check that Nextflow version is up to date enough
+// try / throw / catch works for NF versions < 0.25 when this was implemented
+nf_required_version = '0.25.0'
+try {
+    if( ! nextflow.version.matches(">= $nf_required_version") ){
+        throw GroovyException('Nextflow version too old')
+    }
+} catch (all) {
+    log.error "====================================================\n" +
+              "  Nextflow version $nf_required_version required! You are running v$workflow.nextflow.version.\n" +
+              "  Pipeline execution will continue, but things may break.\n" +
+              "  Please run `nextflow self-update` to update Nextflow.\n" +
+              "============================================================"
+}
+
+// Show a big error message if we're running on the base config and an uppmax cluster
+if( workflow.profile == 'standard'){
+    if ( "hostname".execute().text.contains('.uppmax.uu.se') ) {
+        log.error "====================================================\n" +
+                  "  WARNING! You are running with the default 'standard'\n" +
+                  "  pipeline config profile, which runs on the head node\n" +
+                  "  and assumes all software is on the PATH.\n" +
+                  "  ALL JOBS ARE RUNNING LOCALLY and stuff will probably break.\n" +
+                  "  Please use `-profile uppmax` to run on UPPMAX clusters.\n" +
+                  "============================================================"
+    }
+}
 
 
 /*
@@ -357,7 +376,6 @@ process bwa {
 
     output:
     file '*.bam' into bwa_bam
-    stdout into bwa_stdout
 
     script:
     prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
@@ -373,8 +391,11 @@ process bwa {
 
 process samtools {
     tag "${bam.baseName}"
-    publishDir path: { params.saveAlignedIntermediates ? "${params.outdir}/bwa" : params.outdir }, mode: 'copy',
-               saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
+    publishDir path: "${params.outdir}/bwa", mode: 'copy',
+               saveAs: { filename ->
+                   if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
+                   else params.saveAlignedIntermediates ? filename : null
+               }
 
     input:
     file bam from bwa_bam
@@ -383,12 +404,14 @@ process samtools {
     file '*.sorted.bam' into bam_picard, bam_for_unmapped
     file '*.sorted.bam.bai' into bwa_bai
     file '*.sorted.bed' into bed_total
+    file '*.stats.txt' into samtools_stats
 
     script:
     """
     samtools sort $bam -o ${bam.baseName}.sorted.bam
     samtools index ${bam.baseName}.sorted.bam
     bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
+    samtools stats ${bam.baseName}.sorted.bam > ${bam.baseName}.stats.txt
     """
 }
 
@@ -555,18 +578,19 @@ process deepTools {
         """
         plotFingerprint \\
             -b $bam \\
-            --plotFile fingerprints.pdf \\
-            --extendReads=${params.extendReadsLen} \\
+            --plotFile ${bam.baseName}_fingerprints.pdf \\
+            --outRawCounts ${bam.baseName}_fingerprint.txt \\
+            --extendReads ${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
             --numberOfSamples 50000 \\
-            --binSize=500 \\
-            --plotFileFormat=pdf \\
-            --plotTitle="Fingerprints"
+            --binSize 500 \\
+            --plotFileFormat pdf \\
+            --plotTitle "${bam.baseName} Fingerprints"
 
         bamCoverage \\
            -b $bam \\
-           --extendReads=${params.extendReadsLen} \\
+           --extendReads ${params.extendReadsLen} \\
            --normalizeUsingRPKM \\
            -o ${bam}.bw
         """
@@ -575,35 +599,37 @@ process deepTools {
         plotFingerprint \\
             -b $bam \\
             --plotFile fingerprints.pdf \\
-            --extendReads=${params.extendReadsLen} \\
+            --outRawCounts fingerprint.txt \\
+            --extendReads ${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
             --numberOfSamples 50000 \\
-            --binSize=500 \\
-            --plotFileFormat=pdf \\
-            --plotTitle="Fingerprints"
+            --binSize 500 \\
+            --plotFileFormat pdf \\
+            --plotTitle "Fingerprints"
 
         for bamfile in ${bam}
         do
             bamCoverage \\
               -b \$bamfile \\
-              --extendReads=${params.extendReadsLen} \\
+              --extendReads ${params.extendReadsLen} \\
               --normalizeUsingRPKM \\
               -o \${bamfile}.bw
         done
 
         multiBamSummary \\
             bins \\
-            --binSize=10000 \\
+            --binSize 10000 \\
             --bamfiles $bam \\
             -out multiBamSummary.npz \\
-            --extendReads=${params.extendReadsLen} \\
+            --extendReads ${params.extendReadsLen} \\
             --ignoreDuplicates \\
             --centerReads
 
         plotCorrelation \\
             -in multiBamSummary.npz \\
             -o scatterplot_PearsonCorr_multiBamSummary.png \\
+            --outFileCorMatrix scatterplot_PearsonCorr_multiBamSummary.txt \\
             --corMethod pearson \\
             --skipZeros \\
             --removeOutliers \\
@@ -613,6 +639,7 @@ process deepTools {
         plotCorrelation \\
             -in multiBamSummary.npz \\
             -o heatmap_SpearmanCorr_multiBamSummary.png \\
+            --outFileCorMatrix heatmap_SpearmanCorr_multiBamSummary.txt \\
             --corMethod spearman \\
             --skipZeros \\
             --plotTitle "Spearman Correlation of Read Counts" \\
@@ -818,7 +845,7 @@ process multiqc {
     file multiqc_config
     file (fastqc:'fastqc/*') from fastqc_results.collect()
     file ('trimgalore/*') from trimgalore_results.collect()
-    file ('bwa/*') from bwa_stdout.collect()
+    file ('samtools/*') from samtools_stats.collect()
     file ('picard/*') from picard_reports.collect()
     file ('phantompeakqualtools/*') from spp_out_mqc.collect()
     file ('phantompeakqualtools/*') from calculateNSCRSC_results.collect()
@@ -945,4 +972,18 @@ workflow.onComplete {
     output_tf.withWriter { w -> w << email_txt }
 
     log.info "[NGI-ChIPseq] Pipeline Complete"
+
+    if(!workflow.success){
+        if( workflow.profile == 'standard'){
+            if ( "hostname".execute().text.contains('.uppmax.uu.se') ) {
+                log.error "====================================================\n" +
+                        "  WARNING! You are running with the default 'standard'\n" +
+                        "  pipeline config profile, which runs on the head node\n" +
+                        "  and assumes all software is on the PATH.\n" +
+                        "  This is probably why everything broke.\n" +
+                        "  Please use `-profile uppmax` to run on UPPMAX clusters.\n" +
+                        "============================================================"
+            }
+        }
+    }
 }
