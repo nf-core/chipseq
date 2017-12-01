@@ -664,7 +664,7 @@ process deepTools {
             -in multiBamSummary.npz \\
             -o pcaplot_multiBamSummary.png \\
             --plotTitle "Principal Component Analysis Plot" \\
-            –-outFileNameData pcaplot_multiBamSummary.txt
+            --outFileNameData pcaplot_multiBamSummary.txt
         """
     }
 }
