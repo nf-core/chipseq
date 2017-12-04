@@ -53,7 +53,7 @@ def helpMessage() {
 
     Options:
       --singleEnd                   Specifies that the input is single end reads
-      --primary_filtering           Keep primary alignments only
+      --allow_multi_align           Secondary alignments and unmapped reads are also reported in addition to primary alignments
       --saturation                  Run saturation analysis by peak calling with subsets of reads
       --broad                       Run MACS with the --broad flag
       --blacklist_filtering         Filter ENCODE blacklisted regions from ChIP-seq peaks. It only works when --genome is set as GRCh37 or GRCm38
@@ -111,7 +111,7 @@ params.macsconfig = "data/macsconfig"
 params.multiqc_config = "$baseDir/conf/multiqc_config.yaml"
 params.extendReadsLen = 100
 params.notrim = false
-params.primary_filtering = false
+params.allow_multi_align = false
 params.saveReference = false
 params.saveTrimmed = false
 params.saveAlignedIntermediates = false
@@ -213,7 +213,7 @@ summary['Data Type']           = params.singleEnd ? 'Single-End' : 'Paired-End'
 summary['Genome']              = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
 else if(params.fasta) summary['Fasta Ref'] = params.fasta
-summary['Primary alignment filtering']     = params.primary_filtering
+summary['Multiple alignments allowed']     = params.allow_multi_align
 summary['MACS Config']         = params.macsconfig
 summary['Saturation analysis'] = params.saturation
 summary['MACS broad peaks']    = params.broad
@@ -382,7 +382,7 @@ process bwa {
 
     script:
     prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
-    filtering = params.primary_filtering ? "| samtools view -b -q 1 -F 4 -F 256" : ''
+    filtering = params.allow_multi_align ? '' : "| samtools view -b -q 1 -F 4 -F 256"
     """
     bwa mem -M ${index}/genome.fa $reads | samtools view -bT $index - $filtering > ${prefix}.bam
     """
