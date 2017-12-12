@@ -139,6 +139,9 @@ will be generated for you. Combine with `--saveReference` to save for future run
 --fasta '[path to FASTA file]'
 ```
 
+### `--allow_multi_align`
+Specifying `--allow_multi_align` will turn off the filtering of secondary alignments and unmapped reads from the BWA output file. Without this option, only primary alignments will be retained.
+
 ### `--saveReference`
 Supply this parameter to save any generated reference genome files to your results folder. These can then be used for future pipeline runs, reducing processing times.
 

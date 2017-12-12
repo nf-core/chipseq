@@ -53,6 +53,7 @@ def helpMessage() {
 
     Options:
       --singleEnd                   Specifies that the input is single end reads
+      --allow_multi_align           Secondary alignments and unmapped reads are also reported in addition to primary alignments
       --saturation                  Run saturation analysis by peak calling with subsets of reads
       --broad                       Run MACS with the --broad flag
       --blacklist_filtering         Filter ENCODE blacklisted regions from ChIP-seq peaks. It only works when --genome is set as GRCh37 or GRCm38
@@ -110,6 +111,7 @@ params.macsconfig = "data/macsconfig"
 params.multiqc_config = "$baseDir/conf/multiqc_config.yaml"
 params.extendReadsLen = 100
 params.notrim = false
+params.allow_multi_align = false
 params.saveReference = false
 params.saveTrimmed = false
 params.saveAlignedIntermediates = false
@@ -211,6 +213,7 @@ summary['Data Type']           = params.singleEnd ? 'Single-End' : 'Paired-End'
 summary['Genome']              = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
 else if(params.fasta) summary['Fasta Ref'] = params.fasta
+summary['Multiple alignments allowed']     = params.allow_multi_align
 summary['MACS Config']         = params.macsconfig
 summary['Saturation analysis'] = params.saturation
 summary['MACS broad peaks']    = params.broad
@@ -379,8 +382,9 @@ process bwa {
 
     script:
     prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
+    filtering = params.allow_multi_align ? '' : "| samtools view -b -q 1 -F 4 -F 256"
     """
-    bwa mem -M ${index}/genome.fa $reads | samtools view -bT $index - > ${prefix}.bam
+    bwa mem -M ${index}/genome.fa $reads | samtools view -bT $index - $filtering > ${prefix}.bam
     """
 }
 
@@ -573,6 +577,15 @@ process deepTools {
     file '*.{pdf,png,npz,bw}' into deepTools_results
 
     script:
+    if (!params.singleEnd) {
+        """
+        bamPEFragmentSize \\
+            --binSize 1000 \\
+            --bamfiles $bam \\
+            --histogram fragment_length_distribution_histogram.png \\
+            --plotTitle "Fragment Length Distribution"
+        """
+    }
     if(bam instanceof Path){
         log.warn("Only 1 BAM file - skipping multiBam deepTool steps")
         """
@@ -646,6 +659,12 @@ process deepTools {
             --whatToPlot heatmap \\
             --colorMap RdYlBu \\
             --plotNumbers
+
+        plotPCA \\
+            -in multiBamSummary.npz \\
+            -o pcaplot_multiBamSummary.png \\
+            --plotTitle "Principal Component Analysis Plot" \\
+            --outFileNameData pcaplot_multiBamSummary.txt
         """
     }
 }
