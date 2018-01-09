@@ -19,7 +19,7 @@ Pipeline overview:
  - 2:   Trim Galore! for adapter trimming
  - 3.1: BWA alignment against reference genome
  - 3.2: Post-alignment processing and format conversion
- - 3.3: Statistics about unmapped reads
+ - 3.3: Statistics about mapped reads
  - 4:   Picard for duplicate read identification
  - 5:   Statistics about read counts
  - 6.1: Phantompeakqualtools for normalized strand cross-correlation (NSC) and relative strand cross-correlation (RSC)
@@ -405,8 +405,8 @@ process samtools {
     file bam from bwa_bam
 
     output:
-    file '*.sorted.bam' into bam_picard, bam_for_unmapped
-    file '*.sorted.bam.bai' into bwa_bai
+    file '*.sorted.bam' into bam_picard, bam_for_mapped
+    file '*.sorted.bam.bai' into bwa_bai, bai_for_mapped
     file '*.sorted.bed' into bed_total
     file '*.stats.txt' into samtools_stats
 
@@ -421,26 +421,27 @@ process samtools {
 
 
 /*
- * STEP 3.3 - Statistics about unmapped reads against ref genome
+ * STEP 3.3 - Statistics about mapped reads against ref genome
  */
 
-process bwa_unmapped {
+process bwa_mapped {
     tag "${input_files[0].baseName}"
-    publishDir "${params.outdir}/bwa/unmapped", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mapped", mode: 'copy'
 
     input:
-    file input_files from bam_for_unmapped.collect()
+    file input_files from bam_for_mapped.collect()
+    file bai from bai_for_mapped.collect()
 
     output:
-    file 'unmapped_refgenome.txt' into bwa_unmapped
+    file 'mapped_refgenome.txt' into bwa_mapped
 
     script:
     """
     for i in $input_files
     do
       printf "\${i}\t"
-      samtools view -c -f0x4 \${i}
-    done > unmapped_refgenome.txt
+      samtools idxstats \${i} | awk '{s+=\$3}END{print s}'
+    done > mapped_refgenome.txt
     """
 }
 
