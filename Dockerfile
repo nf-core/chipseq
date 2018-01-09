@@ -46,12 +46,11 @@ RUN curl -fsSL http://www.bioinformatics.babraham.ac.uk/projects/fastqc/$FASTQC_
 RUN pip install cutadapt
 
 # Install TrimGalore
-ENV TRIMGALORE_BIN="trim_galore_v0.4.2.zip"
-RUN mkdir /opt/TrimGalore && \
-    curl -fsSL http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/$TRIMGALORE_BIN -o /opt/TrimGalore/$TRIMGALORE_BIN && \
-    unzip /opt/TrimGalore/$TRIMGALORE_BIN -d /opt/TrimGalore && \
-    ln -s /opt/TrimGalore/trim_galore /usr/local/bin/trim_galore && \
-    rm /opt/TrimGalore/$TRIMGALORE_BIN
+ENV TRIMGALORE_VERSION="0.4.5"
+RUN curl -fsSL https://github.com/FelixKrueger/TrimGalore/archive/${TRIMGALORE_VERSION}.tar.gz -o /opt/trimgalore_${TRIMGALORE_VERSION}.tar.gz && \
+    tar xvzf /opt/trimgalore_${TRIMGALORE_VERSION}.tar.gz -C /opt/ && \
+    ln -s /opt/TrimGalore-${TRIMGALORE_VERSION}/trim_galore /usr/local/bin/trim_galore && \
+    rm /opt/trimgalore_${TRIMGALORE_VERSION}.tar.gz
 
 # Install BWA
 ENV BWA_VERSION="0.7.15"
@@ -62,7 +61,7 @@ RUN curl -fsSL https://downloads.sourceforge.net/project/bio-bwa/bwa-${BWA_VERSI
     rm /opt/bwa-${BWA_VERSION}.tar.bz2
 
 # Install SAMTools
-ENV SAMTOOLS_VERSON="1.4"
+ENV SAMTOOLS_VERSON="1.6"
 RUN curl -fsSL https://github.com/samtools/samtools/releases/download/${SAMTOOLS_VERSON}/samtools-${SAMTOOLS_VERSON}.tar.bz2 -o /opt/samtools-${SAMTOOLS_VERSON}.tar.bz2 && \
     tar xvjf /opt/samtools-${SAMTOOLS_VERSON}.tar.bz2 -C /opt/ && \
     cd /opt/samtools-${SAMTOOLS_VERSON};make;make install && \
@@ -84,7 +83,7 @@ RUN curl -fsSL https://github.com/arq5x/bedtools2/releases/download/v2.26.0/${BE
     rm /opt/${BEDTOOLS_VERSION}.tar.gz
 
 # Install R
-ENV R_VERSION="R-3.3.3"
+ENV R_VERSION="R-3.4.2"
 RUN curl -fsSL https://cran.r-project.org/src/base/R-3/${R_VERSION}.tar.gz -o /opt/${R_VERSION}.tar.gz && \
     tar xvzf /opt/${R_VERSION}.tar.gz -C /opt/ && \
     cd /opt/${R_VERSION};./configure;make;make install && \
@@ -123,11 +122,11 @@ RUN curl -fsSL https://github.com/hms-dbmi/spp/archive/${SPP_VERSION}.tar.gz -o 
 ENV PATH=${PATH}:/opt/phantompeakqualtools
 
 # Install DeepTools
-ENV DEEPTOOLS_VERSION="2.4.3"
+ENV DEEPTOOLS_VERSION="2.5.4"
 RUN pip install git+git://github.com/fidelram/deepTools.git@$DEEPTOOLS_VERSION
 
 # Install ngsplot
-ENV NGSPLOT_VERSION="2.61"
+ENV NGSPLOT_VERSION="2.63"
 RUN curl -fsSL https://github.com/shenlab-sinai/ngsplot/archive/${NGSPLOT_VERSION}.tar.gz -o /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz && \
     tar xvzf /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz -C /opt/ && \
     rm /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz
@@ -144,8 +143,9 @@ RUN curl -fsSL https://export.uppmax.uu.se/b2013064/test-data/ngi-chipseq_test_s
 RUN pip install MACS2
 
 # Install MultiQC
-ENV MULTIQC_VERSION v1.3
+ENV MULTIQC_VERSION="v1.3"
 RUN pip install git+git://github.com/ewels/MultiQC.git@$MULTIQC_VERSION
 
-# Create UPPMAX root directories
-RUN mkdir /pica /lupus /crex1 /crex2 /proj /scratch /sw
+# Create root directories for UPPMAX and c3se hebbe
+RUN mkdir /pica /lupus /crex1 /crex2 /proj /scratch /sw \
+          /c3se /local /apps
