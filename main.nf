@@ -406,7 +406,7 @@ process samtools {
 
     output:
     file '*.sorted.bam' into bam_picard, bam_for_mapped
-    file '*.sorted.bam.bai' into bwa_bai
+    file '*.sorted.bam.bai' into bwa_bai, bai_for_mapped
     file '*.sorted.bed' into bed_total
     file '*.stats.txt' into samtools_stats
 
@@ -430,6 +430,7 @@ process bwa_mapped {
 
     input:
     file input_files from bam_for_mapped.collect()
+    file bai from bai_for_mapped.collect()
 
     output:
     file 'mapped_refgenome.txt' into bwa_mapped
