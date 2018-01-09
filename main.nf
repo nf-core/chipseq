@@ -439,7 +439,7 @@ process bwa_mapped {
     for i in $input_files
     do
       printf "\${i}\t"
-      samtools idxstats \${i} | awk '{s+=$3}END{print s}'
+      samtools idxstats \${i} | awk '{s+=\$3}END{print s}'
     done > mapped_refgenome.txt
     """
 }
