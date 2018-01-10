@@ -421,7 +421,7 @@ process samtools {
 
 
 /*
- * STEP 3.3 - Statistics about mapped reads against ref genome
+ * STEP 3.3 - Statistics about mapped and unmapped reads against ref genome
  */
 
 process bwa_mapped {
@@ -439,8 +439,9 @@ process bwa_mapped {
     """
     for i in $input_files
     do
-      printf "\${i}\t"
-      samtools idxstats \${i} | awk '{s+=\$3}END{print s}'
+      mapped="\$(samtools idxstats \${i} | awk '{s+=\$3}END{print s}')"
+      unmapped="\$(samtools idxstats \${i} | awk '{s+=\$4}END{print s}')"
+      printf "\${i}\t\${mapped}\t\${unmapped}\n"
     done > mapped_refgenome.txt
     """
 }
