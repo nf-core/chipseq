@@ -14,8 +14,10 @@ RUN apt-get update && \
         libboost-all-dev \
         libbz2-dev \
         libcurl4-openssl-dev \
+        libdbd-mysql \
         libgsl0-dev \
         liblzma-dev \
+        libmariadb-client-lgpl-dev \
         libncurses5-dev \
         libpcre3-dev \
         libreadline-dev \
@@ -99,12 +101,13 @@ RUN echo "r <- getOption('repos'); r['CRAN'] <- 'https://ftp.acc.umu.se/mirror/C
     Rscript -e "install.packages('markdown',dependencies=TRUE)" && \
     Rscript -e "install.packages('evaluate',dependencies=TRUE)" && \
     Rscript -e "install.packages('ggplot2',dependencies=TRUE)" && \
-    Rscript -e "install.packages('knitr',dependencies=TRUE)"
+    Rscript -e "install.packages('knitr',dependencies=TRUE)" && \
+    Rscript -e "install.packages('RMySQL',dependencies=TRUE)"
 
 # Install R Bioconductor packages
 RUN echo 'source("https://bioconductor.org/biocLite.R")' > /opt/packages.r && \
     echo 'biocLite()' >> /opt/packages.r && \
-    echo 'biocLite(c("BSgenome", "Rsamtools", "ShortRead", "GenomicRanges", "ChIPpeakAnno", "biomaRt", "BSgenome.Hsapiens.UCSC.hg19", "org.Hs.eg.db", "BSgenome.Mmusculus.UCSC.mm10", "org.Mm.eg.db"))' >> /opt/packages.r && \
+    echo 'biocLite(c("BSgenome", "Rsamtools", "ShortRead", "GenomicRanges", "GenomicFeatures", "ensembldb", "ChIPpeakAnno", "biomaRt", "BSgenome.Hsapiens.UCSC.hg19", "org.Hs.eg.db", "BSgenome.Mmusculus.UCSC.mm10", "org.Mm.eg.db"))' >> /opt/packages.r && \
     Rscript /opt/packages.r && \
     mkdir /usr/local/lib/R/site-library
 
