@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # R scripts for processing MACS output files (.xls)
-# Version 1.0
+# Version 1.1
 # Author @chuan-wang https://github.com/chuan-wang
 
 # Command line arguments
@@ -10,7 +10,8 @@ args <- commandArgs(trailingOnly=TRUE)
 R_lib <- as.character(args[1])
 ref <- as.character(args[2])
 Blacklist <- as.character(args[3])
-input <- as.character(args[4:length(args)])
+Annotation <- as.character(args[4])
+input <- as.character(args[5:length(args)])
 
 # Load / install required packages
 .libPaths( c( R_lib, .libPaths() ) )
@@ -27,46 +28,24 @@ if (!require("ChIPpeakAnno")){
     library("ChIPpeakAnno")
 }
 
-if (!require("biomaRt")){
-    source("http://bioconductor.org/biocLite.R")
-    biocLite("biomaRt", suppressUpdates=TRUE)
-    library("biomaRt")
+# Process annotation file
+annotation<-read.table(Annotation,header=FALSE)
+annotation<-annotation[!duplicated(annotation),]
+genes<-unique(as.character(annotation$V5))
+anno<-matrix(nrow=length(genes),ncol=6)
+anno<-as.data.frame(anno)
+colnames(anno)<-c("chr","start","end","strand","gene","symbol")
+anno$gene<-genes
+
+for(i in 1:nrow(anno)){
+  anno$chr[i]<-unique(as.character(annotation[as.character(annotation$V5)==anno$gene[i],]$V1))
+  anno$start[i]<-min(as.numeric(as.character(annotation[as.character(annotation$V5)==anno$gene[i],]$V2)))
+  anno$end[i]<-max(as.numeric(as.character(annotation[as.character(annotation$V5)==anno$gene[i],]$V3)))
+  anno$strand[i]<-unique(as.character(annotation[as.character(annotation$V5)==anno$gene[i],]$V4))
+  anno$symbol[i]<-unique(as.character(annotation[as.character(annotation$V5)==anno$gene[i],]$V6))
 }
 
-# Load / install required annotation databases
-if(ref=="hs"){
-	if (!require("BSgenome.Hsapiens.UCSC.hg19")){
-        source("http://bioconductor.org/biocLite.R")
-        biocLite("BSgenome.Hsapiens.UCSC.hg19", suppressUpdates=TRUE)
-        library("BSgenome.Hsapiens.UCSC.hg19")
-    }
-    if (!require("org.Hs.eg.db")){
-        source("http://bioconductor.org/biocLite.R")
-        biocLite("org.Hs.eg.db", suppressUpdates=TRUE)
-        library("org.Hs.eg.db")
-    }
-	data(TSS.human.GRCh37)
-	annoData <- annoGR(TSS.human.GRCh37, feature="gene")
-	orgAnnData <-"org.Hs.eg.db"
-	mart=useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl")
-} else if(ref=="mm"){
-	if (!require("BSgenome.Mmusculus.UCSC.mm10")){
-        source("http://bioconductor.org/biocLite.R")
-        biocLite("BSgenome.Mmusculus.UCSC.mm10", suppressUpdates=TRUE)
-        library("BSgenome.Mmusculus.UCSC.mm10")
-    }
-    if (!require("org.Mm.eg.db")){
-        source("http://bioconductor.org/biocLite.R")
-        biocLite("org.Mm.eg.db", suppressUpdates=TRUE)
-        library("org.Mm.eg.db")
-    }
-	data(TSS.mouse.GRCm38)
-	annoData <- annoGR(TSS.mouse.GRCm38, feature="gene")
-	orgAnnData <-"org.Mm.eg.db"
-	mart=useMart(biomart="ensembl", dataset="mmusculus_gene_ensembl")
-} else{
-	stop("Genome not supported!", call.=FALSE)
-}
+annoData<-with(anno,GRanges(seqnames=chr,ranges=IRanges(start=start,end=end,names=gene),strand=strand,symbol=symbol))
 
 # Read in blacklist file and convert into range object
 if (Blacklist!="No-filtering") {
@@ -84,7 +63,7 @@ for (i in 1:length(input)) {
 	else{
         # Read in raw peaks from MACS and convert into range object
         data<-read.table(input[i],header=TRUE)
-        data_range<-with(data,GRanges(chr,IRanges(start=start,end=end),strand=Rle(rep("+",nrow(data))),length=length,summit=abs_summit,pileup=pileup,pvalue=X.log10.pvalue.,fold_enrichment=fold_enrichment,qvalue=X.log10.qvalue.,id=name))
+        data_range<-with(data,GRanges(chr,IRanges(start=start,end=end),strand=Rle(rep("+",nrow(data))),length=length,pileup=pileup,pvalue=X.log10.pvalue.,fold_enrichment=fold_enrichment,qvalue=X.log10.qvalue.,id=name))
 
         # Filtering peaks that overlap with blacklisted regions
         if (Blacklist!="No-filtering"){
@@ -107,31 +86,9 @@ for (i in 1:length(input)) {
         # Annotation
         final_anno<-annotatePeakInBatch(final, AnnotationData=annoData,output="overlapping", maxgap=5000L)
 
-        # Adding gene symbol
-        if(class(try(final_anno<-addGeneIDs(annotatedPeak=final_anno,orgAnn=orgAnnData,IDs2Add="symbol")))=="try-error"){
-	        feature_ids <- unique(final_anno$feature)
-	        feature_ids <- feature_ids[!is.na(feature_ids)]
-	        feature_ids <- feature_ids[feature_ids!=""]
-	
-	        IDs2Add<-getBM(attributes=c("ensembl_gene_id","external_gene_name"), filters = "ensembl_gene_id", values = feature_ids, mart=mart)
-	
-	        duplicated_ids<-IDs2Add[duplicated(IDs2Add[,"ensembl_gene_id"]),"ensembl_gene_id"]
-
-	        if(length(duplicated_ids)>0){
-	            IDs2Add.duplicated<-IDs2Add[IDs2Add[,"ensembl_gene_id"] %in% duplicated_ids,]
-	            IDs2Add.duplicated<-condenseMatrixByColnames(as.matrix(IDs2Add.duplicated),"ensembl_gene_id")
-	            IDs2Add<-IDs2Add[!(IDs2Add[,"ensembl_gene_id"] %in% duplicated_ids),]
-	            IDs2Add<-rbind(IDs2Add,IDs2Add.duplicated)
-	        }
-	
-	        final_anno$external_gene_name<-IDs2Add[match(IDs2Add$ensembl_gene_id,final_anno$feature),]$external_gene_name
-        }
-        else{
-	        final_anno<-addGeneIDs(annotatedPeak=final_anno,orgAnn=orgAnnData,IDs2Add="symbol")
-        }
-
         # Write annotated peaks to file
         final_anno_df<-as.data.frame(final_anno)
+        final_anno_df$gene_symbol<-anno[match(final_anno_df$feature,anno$gene),]$symbol
         newfilename<-paste(sub("_peaks.xls","",basename(input[i])),filter_flag,"_annotated.txt",sep="")
         write.table(final_anno_df,file=newfilename,quote=FALSE,sep="\t",eol="\n")
     }
