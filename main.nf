@@ -28,7 +28,8 @@ Pipeline overview:
  - 8:   NGSplot for distribution of reads around transcription start sites (TSS) and gene bodies
  - 9.1: MACS for peak calling
  - 9.2: Saturation analysis using MACS when specified
- - 10:  Post peak calling processing: blacklist filtering and annotation
+ - 10.1:Prepare annotation file
+ - 10.2:Post peak calling processing: blacklist filtering and annotation
  - 11:  MultiQC
  - 12:  Output Description HTML
  ----------------------------------------------------------------------------------------
@@ -64,6 +65,7 @@ def helpMessage() {
     References
       --fasta                       Path to Fasta reference
       --bwa_index                   Path to BWA index
+      --gtf                         Path to GTF file (Require default Ensembl format but without header)
       --blacklist                   Path to blacklist regions (.BED format), used for filtering out called peaks. Note that --blacklist_filtering is required
       --saveReference               Save the generated reference files in the Results directory.
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
@@ -106,6 +108,7 @@ params.genome = false
 params.genomes = []
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
+params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
 params.reads = "data/*{1,2}*.fastq.gz"
 params.macsconfig = "data/macsconfig"
 params.multiqc_config = "$baseDir/conf/multiqc_config.yaml"
@@ -189,16 +192,16 @@ Channel
     .into{ macs_para; saturation_para }
 
 /*
- * Reference to use for MACS and ngs.plot.r
+ * Reference to use for MACS, ngs.plot.r and annotation
  */
 def REF_macs = false
 def REF_ngsplot = false
-if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19' }
-else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10' }
+if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19'; gtf = file(params.gtf) }
+else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10'; gtf = file(params.gtf) }
 else if (params.genome == false){
-    log.warn "No reference supplied for MACS / ngs_plot. Use '--genome GRCh37' or '--genome GRCm38' to run MACS and ngs_plot."
+    log.warn "No reference supplied for MACS, ngs_plot and annotation. Use '--genome GRCh37' or '--genome GRCm38' to run MACS, ngs_plot and annotation."
 } else {
-    log.warn "Reference '${params.genome}' not supported by MACS / ngs_plot (only GRCh37 and GRCm38)."
+    log.warn "Reference '${params.genome}' not supported by MACS, ngs_plot and annotation (only GRCh37 and GRCm38)."
 }
 
 
@@ -213,6 +216,7 @@ summary['Data Type']           = params.singleEnd ? 'Single-End' : 'Paired-End'
 summary['Genome']              = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
 else if(params.fasta) summary['Fasta Ref'] = params.fasta
+if(params.gtf)  summary['GTF File'] = params.gtf
 summary['Multiple alignments allowed']     = params.allow_multi_align
 summary['MACS Config']         = params.macsconfig
 summary['Saturation analysis'] = params.saturation
@@ -804,7 +808,26 @@ if (params.saturation) {
 
 
 /*
- * STEP 10 Post peak calling processing
+ * STEP 10.1 Prepare annotation file
+ */
+
+ process prepare_anno {
+
+     output:
+     file '*.{gtf}' into annotation
+
+     when: gtf
+
+     script:
+     """
+     awk -F '\\t' '{print \$9}' $gtf | sed -e 's\/\^.*gene_id \/\/g' | awk -F";| " '{print \$1 "\\t" \$4}' > genes.txt
+     awk -F '\\t' '{print \$1 "\\t" \$4 "\\t" \$5 "\\t" \$7}' $gtf > coordinates.txt
+     paste -d '\\t' coordinates.txt genes.txt >annotation.gtf
+     """
+ }
+
+/*
+ * STEP 10.2 Post peak calling processing
  */
 
 process chippeakanno {
@@ -813,6 +836,7 @@ process chippeakanno {
 
     input:
     file macs_peaks_collection from macs_peaks.collect()
+    file annotation from annotation
 
     output:
     file '*.{txt,bed}' into chippeakanno_results
@@ -822,7 +846,7 @@ process chippeakanno {
     script:
     filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
     """
-    post_peak_calling_processing.r $params.rlocation $REF_macs $filtering $macs_peaks_collection
+    post_peak_calling_processing.r $params.rlocation $REF_macs $filtering $annotation $macs_peaks_collection
     """
 }
 
