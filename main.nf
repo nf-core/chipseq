@@ -820,7 +820,7 @@ if (params.saturation) {
 
      script:
      """
-     awk -F '\\t' '{print \$9}' $gtf | sed -e 's\/\^.*gene_id \/\/g' | awk -F";| " '{print \$1 "\\t" \$4}' > genes.txt
+     awk -F '\\t' '{print \$9}' $gtf | sed -e 's/^.*gene_id //g' | awk -F";| " '{print \$1 "\\t" \$4}' > genes.txt
      awk -F '\\t' '{print \$1 "\\t" \$4 "\\t" \$5 "\\t" \$7}' $gtf > coordinates.txt
      paste -d '\\t' coordinates.txt genes.txt >annotation.gtf
      """
