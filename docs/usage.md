@@ -139,6 +139,12 @@ will be generated for you. Combine with `--saveReference` to save for future run
 --fasta '[path to FASTA file]'
 ```
 
+### `--gtf`
+The full path to GTF file can be specified for annotating peaks. Note that the GTF file should be in the default Ensembl format but without header.
+```bash
+--gtf '[path to GTF file]'
+```
+
 ### `--allow_multi_align`
 Specifying `--allow_multi_align` will turn off the filtering of secondary alignments and unmapped reads from the BWA output file. Without this option, only primary alignments will be retained.
 
