@@ -28,8 +28,7 @@ Pipeline overview:
  - 8:   NGSplot for distribution of reads around transcription start sites (TSS) and gene bodies
  - 9.1: MACS for peak calling
  - 9.2: Saturation analysis using MACS when specified
- - 10.1:Prepare annotation file
- - 10.2:Post peak calling processing: blacklist filtering and annotation
+ - 10:  Post peak calling processing: blacklist filtering and annotation
  - 11:  MultiQC
  - 12:  Output Description HTML
  ----------------------------------------------------------------------------------------
@@ -65,7 +64,7 @@ def helpMessage() {
     References
       --fasta                       Path to Fasta reference
       --bwa_index                   Path to BWA index
-      --gtf                         Path to GTF file (Require default Ensembl format but without header)
+      --gtf                         Path to GTF file (Ensembl format)
       --blacklist                   Path to blacklist regions (.BED format), used for filtering out called peaks. Note that --blacklist_filtering is required
       --saveReference               Save the generated reference files in the Results directory.
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
@@ -157,7 +156,7 @@ if( params.bwa_index ){
 }
 if( params.gtf ){
     gtf = file(params.gtf)
-    if( !gtf.exists() ) exit 1, "GTF file not found: ${params.gtf}"
+    if( !gtf.exists() ) exit 1, "GTF file not found: ${params.gtf}."
 }
 if ( params.blacklist_filtering ){
     blacklist = file(params.blacklist)
@@ -812,27 +811,7 @@ if (params.saturation) {
 
 
 /*
- * STEP 10.1 Prepare annotation file
- */
-
- process prepare_anno {
-
-     input:
-     file gtf from gtf
-
-     output:
-     file '*.{gtf}' into annotation
-
-     script:
-     """
-     awk -F '\\t' '{print \$9}' $gtf | sed -e 's/^.*gene_id //g' | awk -F";| " '{print \$1 "\\t" \$4}' > genes.txt
-     awk -F '\\t' '{print \$1 "\\t" \$4 "\\t" \$5 "\\t" \$7}' $gtf > coordinates.txt
-     paste -d '\\t' coordinates.txt genes.txt >annotation.gtf
-     """
- }
-
-/*
- * STEP 10.2 Post peak calling processing
+ * STEP 10 Post peak calling processing
  */
 
 process chippeakanno {
@@ -841,7 +820,7 @@ process chippeakanno {
 
     input:
     file macs_peaks_collection from macs_peaks.collect()
-    file annotation from annotation
+    file gtf from gtf
 
     output:
     file '*.{txt,bed}' into chippeakanno_results
@@ -851,7 +830,7 @@ process chippeakanno {
     script:
     filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
     """
-    post_peak_calling_processing.r $params.rlocation $REF_macs $filtering $annotation $macs_peaks_collection
+    post_peak_calling_processing.r $params.rlocation $REF_macs $filtering $gtf $macs_peaks_collection
     """
 }
 
