@@ -817,10 +817,11 @@ if (params.saturation) {
 
  process prepare_anno {
 
+     input:
+     file gtf from gtf
+
      output:
      file '*.{gtf}' into annotation
-
-     when: gtf
 
      script:
      """
