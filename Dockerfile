@@ -107,7 +107,7 @@ RUN echo "r <- getOption('repos'); r['CRAN'] <- 'https://ftp.acc.umu.se/mirror/C
 # Install R Bioconductor packages
 RUN echo 'source("https://bioconductor.org/biocLite.R")' > /opt/packages.r && \
     echo 'biocLite()' >> /opt/packages.r && \
-    echo 'biocLite(c("BSgenome", "Rsamtools", "ShortRead", "GenomicRanges", "GenomicFeatures", "ensembldb", "ChIPpeakAnno", "biomaRt", "BSgenome.Hsapiens.UCSC.hg19", "org.Hs.eg.db", "BSgenome.Mmusculus.UCSC.mm10", "org.Mm.eg.db"))' >> /opt/packages.r && \
+    echo 'biocLite(c("BSgenome", "Rsamtools", "ShortRead", "GenomicRanges", "GenomicFeatures", "ensembldb", "ChIPpeakAnno", "biomaRt", "rtracklayer", "BSgenome.Hsapiens.UCSC.hg19", "org.Hs.eg.db", "BSgenome.Mmusculus.UCSC.mm10", "org.Mm.eg.db"))' >> /opt/packages.r && \
     Rscript /opt/packages.r && \
     mkdir /usr/local/lib/R/site-library
 
