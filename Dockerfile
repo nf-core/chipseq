@@ -107,7 +107,7 @@ RUN echo "r <- getOption('repos'); r['CRAN'] <- 'https://ftp.acc.umu.se/mirror/C
 # Install R Bioconductor packages
 RUN echo 'source("https://bioconductor.org/biocLite.R")' > /opt/packages.r && \
     echo 'biocLite()' >> /opt/packages.r && \
-    echo 'biocLite(c("BSgenome", "Rsamtools", "ShortRead", "GenomicRanges", "GenomicFeatures", "ensembldb", "ChIPpeakAnno", "biomaRt", "BSgenome.Hsapiens.UCSC.hg19", "org.Hs.eg.db", "BSgenome.Mmusculus.UCSC.mm10", "org.Mm.eg.db"))' >> /opt/packages.r && \
+    echo 'biocLite(c("BSgenome", "Rsamtools", "ShortRead", "GenomicRanges", "GenomicFeatures", "ensembldb", "ChIPpeakAnno", "biomaRt", "rtracklayer", "BSgenome.Hsapiens.UCSC.hg19", "org.Hs.eg.db", "BSgenome.Mmusculus.UCSC.mm10", "org.Mm.eg.db"))' >> /opt/packages.r && \
     Rscript /opt/packages.r && \
     mkdir /usr/local/lib/R/site-library
 
@@ -146,7 +146,7 @@ RUN curl -fsSL https://export.uppmax.uu.se/b2013064/test-data/ngi-chipseq_test_s
 RUN pip install MACS2
 
 # Install MultiQC
-ENV MULTIQC_VERSION="v1.3"
+ENV MULTIQC_VERSION="v1.4"
 RUN pip install git+git://github.com/ewels/MultiQC.git@$MULTIQC_VERSION
 
 # Create root directories for UPPMAX and c3se hebbe

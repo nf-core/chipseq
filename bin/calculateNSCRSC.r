@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 
 # R scripts for calculating NSC and RSC based on output files from phantompeakqualtools
-# Version 1.0
 # Author @chuan-wang https://github.com/chuan-wang
 
 # Command line argument processing
