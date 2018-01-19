@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 # R scripts for processing MACS output files (.xls)
-# Version 1.1
+# Version 1.2
 # Author @chuan-wang https://github.com/chuan-wang
 
 # Command line arguments
@@ -10,7 +10,7 @@ args <- commandArgs(trailingOnly=TRUE)
 R_lib <- as.character(args[1])
 ref <- as.character(args[2])
 Blacklist <- as.character(args[3])
-Annotation <- as.character(args[4])
+GTF <- as.character(args[4])
 input <- as.character(args[5:length(args)])
 
 # Load / install required packages
@@ -28,21 +28,28 @@ if (!require("ChIPpeakAnno")){
     library("ChIPpeakAnno")
 }
 
+if (!require("rtracklayer")){
+    source("http://bioconductor.org/biocLite.R")
+    biocLite("rtracklayer", suppressUpdates=TRUE)
+    library("rtracklayer")
+}
+
 # Process annotation file
-annotation<-read.table(Annotation,header=FALSE)
+gtf<-import(GTF)
+annotation<-as.data.frame(gtf)
 annotation<-annotation[!duplicated(annotation),]
-genes<-unique(as.character(annotation$V5))
+genes<-unique(as.character(annotation$gene_id))
 anno<-matrix(nrow=length(genes),ncol=6)
 anno<-as.data.frame(anno)
 colnames(anno)<-c("chr","start","end","strand","gene","symbol")
 anno$gene<-genes
 
 for(i in 1:nrow(anno)){
-  anno$chr[i]<-unique(as.character(annotation[as.character(annotation$V5)==anno$gene[i],]$V1))
-  anno$start[i]<-min(as.numeric(as.character(annotation[as.character(annotation$V5)==anno$gene[i],]$V2)))
-  anno$end[i]<-max(as.numeric(as.character(annotation[as.character(annotation$V5)==anno$gene[i],]$V3)))
-  anno$strand[i]<-unique(as.character(annotation[as.character(annotation$V5)==anno$gene[i],]$V4))
-  anno$symbol[i]<-unique(as.character(annotation[as.character(annotation$V5)==anno$gene[i],]$V6))
+  anno$chr[i]<-unique(as.character(annotation[as.character(annotation$gene_id)==anno$gene[i],]$seqnames))
+  anno$start[i]<-min(as.numeric(as.character(annotation[as.character(annotation$gene_id)==anno$gene[i],]$start)))
+  anno$end[i]<-max(as.numeric(as.character(annotation[as.character(annotation$gene_id)==anno$gene[i],]$end)))
+  anno$strand[i]<-unique(as.character(annotation[as.character(annotation$gene_id)==anno$gene[i],]$strand))
+  anno$symbol[i]<-unique(as.character(annotation[as.character(annotation$gene_id)==anno$gene[i],]$gene_name))
 }
 
 annoData<-with(anno,GRanges(seqnames=chr,ranges=IRanges(start=start,end=end,names=gene),strand=strand,symbol=symbol))
