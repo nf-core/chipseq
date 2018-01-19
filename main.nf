@@ -155,6 +155,10 @@ if( params.bwa_index ){
 } else {
     exit 1, "No reference genome specified!"
 }
+if( params.gtf ){
+    gtf = file(params.gtf)
+    if( !gtf.exists() ) exit 1, "GTF file not found: ${params.gtf}"
+}
 if ( params.blacklist_filtering ){
     blacklist = file(params.blacklist)
     if( !blacklist.exists() ) exit 1, "Blacklist file not found: ${params.blacklist}"
@@ -196,8 +200,8 @@ Channel
  */
 def REF_macs = false
 def REF_ngsplot = false
-if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19'; gtf = file(params.gtf) }
-else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10'; gtf = file(params.gtf) }
+if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19' }
+else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10' }
 else if (params.genome == false){
     log.warn "No reference supplied for MACS, ngs_plot and annotation. Use '--genome GRCh37' or '--genome GRCm38' to run MACS, ngs_plot and annotation."
 } else {
