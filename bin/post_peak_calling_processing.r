@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 
 # R scripts for processing MACS output files (.xls)
-# Version 1.2
 # Author @chuan-wang https://github.com/chuan-wang
 
 # Command line arguments
