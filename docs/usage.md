@@ -140,7 +140,7 @@ will be generated for you. Combine with `--saveReference` to save for future run
 ```
 
 ### `--gtf`
-The full path to GTF file can be specified for annotating peaks. Note that the GTF file should be in the default Ensembl format but without header.
+The full path to GTF file can be specified for annotating peaks. Note that the GTF file should be in the Ensembl format.
 ```bash
 --gtf '[path to GTF file]'
 ```
