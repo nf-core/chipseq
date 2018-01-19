@@ -154,6 +154,7 @@ if( params.bwa_index ){
 } else {
     exit 1, "No reference genome specified!"
 }
+gtf = false
 if( params.gtf ){
     gtf = file(params.gtf)
     if( !gtf.exists() ) exit 1, "GTF file not found: ${params.gtf}."
