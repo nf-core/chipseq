@@ -1,0 +1,46 @@
+# You can use this file to create a conda environment for this pipeline:
+#   conda env create -f environment.yml
+name: nfcore-chipseq-1.4dev
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - conda-forge::openjdk=8.0.144 # Needed for FastQC - conda build hangs without this
+  - fastqc=0.11.7
+  - trim-galore=0.4.5
+  - bwa=0.7.17
+  - conda-forge::r-markdown=0.8
+  - bioconda::r-spp=1.15.2
+  - bedtools=2.27.1
+  - samtools=1.8
+  - picard=2.18.2
+  - deeptools=3.0.2
+  - macs2=2.1.1
+  - multiqc=1.5
+
+# TODO:
+# - phantompeakqualtools
+# - R: caTools
+# - R: snow
+# - R: doMC
+# - R: utils
+# - R: stringr
+# - R: markdown
+# - R: evaluate
+# - R: ggplot2
+# - R: knitr
+# - R: RMySQL
+# - Bioconductor: BSgenome
+# - Bioconductor: Rsamtools
+# - Bioconductor: ShortRead
+# - Bioconductor: GenomicRanges
+# - Bioconductor: GenomicFeatures
+# - Bioconductor: ensembldb
+# - Bioconductor: ChIPpeakAnno
+# - Bioconductor: biomaRt
+# - Bioconductor: rtracklayer
+# - Bioconductor: BSgenome.Hsapiens.UCSC.hg19
+# - Bioconductor: org.Hs.eg.db
+# - Bioconductor: BSgenome.Mmusculus.UCSC.mm10
+# - Bioconductor: org.Mm.eg.db
