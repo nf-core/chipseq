@@ -1,10 +1,10 @@
-# NGI-ChIPseq Usage
+# nf-core/ChIPseq Usage
 
 ## Running the pipeline
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
+nextflow run nf-core/ChIPseq --reads '*_R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
 ```
 
 Note that the pipeline will create files in your working directory:
@@ -20,13 +20,13 @@ results         # Finished results (configurable, see below)
 When you run the above command, Nextflow automatically pulls the pipeline code from GitHub and stores it as a cached version. When running the pipeline after this, it will always use the cached version if available - even if the pipeline has been updated since. To make sure that you're running the latest version of the pipeline, make sure that you regularly update the cached version of the pipeline:
 
 ```bash
-nextflow pull scilifelab/ngi-chipseq
+nextflow pull nf-core/ChIPseq
 ```
 
 ### Reproducibility
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-First, go to the [NGI-ChIPseq releases page](https://github.com/SciLifeLab/NGI-ChIPseq/releases) and find the latest version number - numeric only (eg. `1.4`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.4`.
+First, go to the [nf-core/ChIPseq releases page](https://github.com/nf-core/ChIPseq/releases) and find the latest version number - numeric only (eg. `1.4`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.4`.
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when youook back in the future.
 
@@ -223,10 +223,3 @@ to run on the development node (though won't work with default process time requ
 
 ### `--multiqc_config`
 If you would like to supply a custom config file to MultiQC, you can specify a path with `--multiqc_config`. This is used instead of the config file specific to the pipeline.
-
----
-
-[![SciLifeLab](images/SciLifeLab_logo.png)](http://www.scilifelab.se/)
-[![National Genomics Infrastructure](images/NGI_logo.png)](https://ngisweden.scilifelab.se/)
-
----

@@ -8,7 +8,7 @@ vim: syntax=groovy
 ========================================================================================
  ChIP-seq Best Practice Analysis Pipeline. Started May 2016.
  #### Homepage / Documentation
- https://github.com/SciLifeLab/NGI-ChIPseq
+ https://github.com/nf-core/ChIPseq
  @#### Authors
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
@@ -37,13 +37,13 @@ Pipeline overview:
 def helpMessage() {
     log.info"""
     =========================================
-     NGI-ChIPseq : ChIP-Seq Best Practice v${version}
+     nf-core/ChIPseq : ChIP-Seq Best Practice v${version}
     =========================================
     Usage:
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile uppmax
+    nextflow run nf-core/ChIPseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile uppmax
 
     Mandatory arguments:
       --reads                       Path to input data (must be surrounded with quotes).
@@ -195,7 +195,7 @@ else if (params.genome == false){
 
 // Header log info
 log.info "========================================="
-log.info " NGI-ChIPseq: ChIP-Seq Best Practice v${version}"
+log.info " nf-core/ChIPseq: ChIP-Seq Best Practice v${version}"
 log.info "========================================="
 def summary = [:]
 summary['Run Name']            = custom_runName ?: workflow.runName
@@ -908,9 +908,9 @@ process output_documentation {
 workflow.onComplete {
 
     // Set up the e-mail variables
-    def subject = "[NGI-ChIPseq] Successful: $workflow.runName"
+    def subject = "[nf-core/ChIPseq] Successful: $workflow.runName"
     if(!workflow.success){
-      subject = "[NGI-ChIPseq] FAILED: $workflow.runName"
+      subject = "[nf-core/ChIPseq] FAILED: $workflow.runName"
     }
     def email_fields = [:]
     email_fields['version'] = version
@@ -959,16 +959,16 @@ workflow.onComplete {
           if( params.plaintext_email ){ throw GroovyException('Send plaintext e-mail, not HTML') }
           // Try to send HTML e-mail using sendmail
           [ 'sendmail', '-t' ].execute() << sendmail_html
-          log.info "[NGI-ChIPseq] Sent summary e-mail to $params.email (sendmail)"
+          log.info "[nf-core/ChIPseq] Sent summary e-mail to $params.email (sendmail)"
         } catch (all) {
           // Catch failures and try with plaintext
           [ 'mail', '-s', subject, params.email ].execute() << email_txt
-          log.info "[NGI-ChIPseq] Sent summary e-mail to $params.email (mail)"
+          log.info "[nf-core/ChIPseq] Sent summary e-mail to $params.email (mail)"
         }
     }
 
     // Switch the embedded MIME images with base64 encoded src
-    ngichipseqlogo = new File("$baseDir/assets/NGI-ChIPseq_logo.png").bytes.encodeBase64().toString()
+    ngichipseqlogo = new File("$baseDir/assets/nf-core/ChIPseq_logo.png").bytes.encodeBase64().toString()
     scilifelablogo = new File("$baseDir/assets/SciLifeLab_logo.png").bytes.encodeBase64().toString()
     ngilogo = new File("$baseDir/assets/NGI_logo.png").bytes.encodeBase64().toString()
     email_html = email_html.replaceAll(~/cid:ngichipseqlogo/, "data:image/png;base64,$ngichipseqlogo")
@@ -985,7 +985,7 @@ workflow.onComplete {
     def output_tf = new File( output_d, "pipeline_report.txt" )
     output_tf.withWriter { w -> w << email_txt }
 
-    log.info "[NGI-ChIPseq] Pipeline Complete"
+    log.info "[nf-core/ChIPseq] Pipeline Complete"
 
     if(!workflow.success){
         if( workflow.profile == 'standard'){

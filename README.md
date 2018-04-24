@@ -1,33 +1,47 @@
-# ![NGI-ChIPseq](https://raw.githubusercontent.com/SciLifeLab/NGI-ChIPseq/master/docs/images/NGI-ChIPseq_logo.png)
+# ![nf-core/ChIPseq](docs/images/chipseq_logo.png)
 
 [![Build Status](https://travis-ci.org/nf-core/ChIPseq.svg?branch=master)](https://travis-ci.org/nf-core/ChIPseq)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.27.6-brightgreen.svg)](https://www.nextflow.io/)
 [![Gitter](https://img.shields.io/badge/gitter-%20join%20chat%20%E2%86%92-4fb99a.svg)](https://gitter.im/nf-core/Lobby)
 
+[![Docker Container available](https://img.shields.io/docker/automated/nfcore/chipseq.svg)](https://hub.docker.com/r/nfcore/chipseq/)
+![Singularity Container available](
+https://img.shields.io/badge/singularity-available-7E4C74.svg)
+
 ## Introduction
-NGI-ChIPseq is a bioinformatics best-practice analysis pipeline used for ChIP-seq (chromatin immunoprecipitation sequencing) data analysis at the [National Genomics Infastructure](https://ngisweden.scilifelab.se/) at [SciLifeLab Stockholm](https://www.scilifelab.se/platforms/ngi/), Sweden.
+**nf-core/ChIPseq** is a bioinformatics best-practice analysis pipeline used for chromatin immunoprecipitation (ChIP-seq) data analysis.
 
 The pipeline uses [Nextflow](https://www.nextflow.io), a bioinformatics workflow tool. It pre-processes raw data from FastQ inputs, aligns the reads and performs extensive quality-control on the results.
 
-This pipeline is primarily used with a SLURM cluster on the Swedish [UPPMAX systems](https://www.uppmax.uu.se). However, the pipeline should be able to run on any system that Nextflow supports. We have done some limited testing using Docker and AWS, and the pipeline comes with some configuration for these systems. See the [installation docs](docs/installation.md) for more information.
+### Pipeline Steps
+
+* Make BWA reference genome index (optional)
+* FastQC
+* TrimGalore!
+* Align with BWA
+* Samtools sort, index, stats & convert to BED
+* Samtools idxstats
+* Picard MarkDuplicates
+* Count read statistics
+* PhantomPeakQualTools
+* SPP: Calculate NSCRSC and cross correlation
+* DeepTools bamPEFragmentSize, plotFingerprint, bamCoverage, multiBamSummary, plotCorrelation, plotPCA
+* NGSplot
+* MACS2 peak calling
+* Saturation analysis
+* ChIP peak annotation
+* MultiQC
+
 
 ### Documentation
-The NGI-ChIPseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
+The nf-core/ChIPseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
 
 1. [Installation and configuration](docs/installation.md)
 2. [Running the pipeline](docs/usage.md)
 3. [Output and how to interpret the results](docs/output.md)
 
-If you're interested in running the pipeline in the cloud, please read the docs about using our pipeline with Amazon Web Services on the [NGI-ChIPseq pipeline](https://github.com/SciLifeLab/NGI-ChIPseq/blob/master/docs/amazon_web_services.md) (the instructions should work with this pipeline as well).
 
 ## Credits
 These scripts were written for use at the [National Genomics Infrastructure](https://portal.scilifelab.se/genomics/)
 at [SciLifeLab](http://www.scilifelab.se/) in Stockholm, Sweden.
 Written by Chuan Wang ([@chuan-wang](https://github.com/chuan-wang)) and Phil Ewels ([@ewels](https://github.com/ewels)).
-
----
-
-[![SciLifeLab](https://raw.githubusercontent.com/SciLifeLab/NGI-ChIPseq/master/docs/images/SciLifeLab_logo.png)](http://www.scilifelab.se/)
-[![National Genomics Infrastructure](https://raw.githubusercontent.com/SciLifeLab/NGI-ChIPseq/master/docs/images/NGI_logo.png)](https://ngisweden.scilifelab.se/)
-
----

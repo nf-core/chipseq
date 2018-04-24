@@ -1,7 +1,7 @@
 FROM openjdk:8
 
 LABEL author="Phil Ewels" \
-    description="Docker image containing all requirements for NGI-ChIPseq pipeline" \
+    description="Docker image containing all requirements for nf-core/ChIPseq pipeline" \
     maintainer="phil.ewels@scilifelab.se"
 
 # Install container-wide requrements gcc, pip, zlib, libssl, make, libncurses, fortran77, g++, R
@@ -135,12 +135,12 @@ RUN curl -fsSL https://github.com/shenlab-sinai/ngsplot/archive/${NGSPLOT_VERSIO
     rm /opt/ngsplot_${NGSPLOT_VERSION}.tar.gz
 ENV PATH=${PATH}:/opt/ngsplot-${NGSPLOT_VERSION}/bin
 ENV NGSPLOT=/opt/ngsplot-${NGSPLOT_VERSION}/
-RUN curl -fsSL https://export.uppmax.uu.se/b2013064/test-data/ngi-chipseq_test_set.tar.bz2 -o /opt/ngi-chipseq_test_set.tar.bz2 && \
-    tar xvjf /opt/ngi-chipseq_test_set.tar.bz2 -C /opt/ && \
-    echo y | ngsplotdb.py install /opt/ngi-chipseq_test_set/ngsplotdb_mm10_75_3.00.tar.gz && \
-    echo y | ngsplotdb.py install /opt/ngi-chipseq_test_set/ngsplotdb_hg19_75_3.00.tar.gz && \
-    rm /opt/ngi-chipseq_test_set.tar.bz2 && \
-    rm -rf /opt/ngi-chipseq_test_set
+RUN curl -fsSL https://export.uppmax.uu.se/b2013064/test-data/nfcore-chipseq_test_set.tar.bz2 -o /opt/nfcore-chipseq_test_set.tar.bz2 && \
+    tar xvjf /opt/nfcore-chipseq_test_set.tar.bz2 -C /opt/ && \
+    echo y | ngsplotdb.py install /opt/nfcore-chipseq_test_set/ngsplotdb_mm10_75_3.00.tar.gz && \
+    echo y | ngsplotdb.py install /opt/nfcore-chipseq_test_set/ngsplotdb_hg19_75_3.00.tar.gz && \
+    rm /opt/nfcore-chipseq_test_set.tar.bz2 && \
+    rm -rf /opt/nfcore-chipseq_test_set
 
 # Install MACS
 RUN pip install MACS2
