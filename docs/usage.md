@@ -114,7 +114,7 @@ If you're not running on UPPMAX (the default profile), you can create your own c
 
 The syntax for this reference configuration is as follows:
 
-```groovy
+```nextflow
 params {
   genomes {
     'GRCh37' {
@@ -213,7 +213,7 @@ projects or different sets of reference genomes.
 Note - you can use this to override defaults. For example, we run on UPPMAX but don't want to use the MultiQC
 environment module as is the default. So we specify a config file using `-c` that contains the following:
 
-```groovy
+```nextflow
 process.$multiqc.module = []
 ```
 
