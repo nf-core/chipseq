@@ -104,26 +104,10 @@ if (params.help){
 params.name = false
 params.project = false
 params.genome = false
-params.genomes = []
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
-params.reads = "data/*{1,2}*.fastq.gz"
-params.macsconfig = "data/macsconfig"
-params.multiqc_config = "$baseDir/conf/multiqc_config.yaml"
-params.extendReadsLen = 100
-params.notrim = false
-params.allow_multi_align = false
-params.saveReference = false
-params.saveTrimmed = false
-params.saveAlignedIntermediates = false
-params.saturation = false
-params.broad = false
-params.blacklist_filtering = false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
-params.outdir = './results'
-params.email = false
-params.plaintext_email = false
 
 // R library locations
 params.rlocation = false

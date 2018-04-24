@@ -7,11 +7,22 @@ jdk: openjdk8
 services:
   - docker
 install:
+  # Install Nextflow
   - mkdir /tmp/nextflow
   - cd /tmp/nextflow
   - wget -qO- get.nextflow.io | bash
   - sudo ln -s /tmp/nextflow/nextflow /usr/local/bin/nextflow
-  - cd ${TRAVIS_BUILD_DIR}/tests/
-  - mkdir results
+  # Install nf-core/tools
+  - git clone https://github.com/nf-core/tools.git /tmp/nf-core-tools
+  - cd /tmp/nf-core-tools
+  - pip install --user -e .
+  # Reset
+  - cd ${TRAVIS_BUILD_DIR}/tests
 
-script: "./docker_test.sh"
+env:
+  - NXF_VER=0.27.6
+  - ''
+
+script:
+    - "nf-core lint ${TRAVIS_BUILD_DIR}"
+    - "./run_test.sh"
