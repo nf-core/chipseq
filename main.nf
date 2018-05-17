@@ -1,10 +1,8 @@
 #!/usr/bin/env nextflow
 
 /*
-vim: syntax=groovy
--*- mode: groovy;-*-
 ========================================================================================
-                  NGI  C H I P - S E Q   B E S T   P R A C T I C E
+                  C H I P - S E Q   B E S T   P R A C T I C E
 ========================================================================================
  ChIP-seq Best Practice Analysis Pipeline. Started May 2016.
  #### Homepage / Documentation
@@ -12,6 +10,7 @@ vim: syntax=groovy
  @#### Authors
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
+ Alex Peltzer <alexander.peltzer@qbic.uni-tuebingen.de>
 ----------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------
 Pipeline overview:
@@ -241,7 +240,7 @@ log.info "===================================="
 
 // Check that Nextflow version is up to date enough
 // try / throw / catch works for NF versions < 0.25 when this was implemented
-nf_required_version = '0.25.0'
+nf_required_version = '0.28.0'
 try {
     if( ! nextflow.version.matches(">= $nf_required_version") ){
         throw GroovyException('Nextflow version too old')
@@ -469,7 +468,7 @@ process picard {
         }
     }
     """
-    java -Xmx${avail_mem}m -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
+    picard MarkDuplicates \\
         INPUT=$bam \\
         OUTPUT=${prefix}.dedup.bam \\
         ASSUME_SORTED=true \\
@@ -508,6 +507,7 @@ process countstat {
 
 /*
  * STEP 6.1 Phantompeakqualtools
+ * TODO: The "run_spp.R" script is still missing here!
  */
 
 process phantompeakqualtools {
@@ -665,6 +665,7 @@ process deepTools {
 
 /*
  * STEP 8 Ngsplot
+ * TODO ngs.plot.R is missing too!
  */
 
 process ngsplot {
