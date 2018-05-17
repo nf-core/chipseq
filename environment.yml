@@ -41,10 +41,4 @@ dependencies:
   - bioconda::bioconductor-org.hs.eg.db=3.5.0
   - bioconda::bioconductor-bsgenome.mmusculus.ucsc.mm10=1.4.0
   - bioconda::bioconductor-org.mm.eg.db=3.5.0
-
-
-
-# TODO:
-
-
-# - phantompeakqualtools
+  - bioconda::r-spp=1.15.2
