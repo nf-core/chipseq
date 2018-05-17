@@ -31,7 +31,7 @@ dependencies:
   - bioconda::bioconductor-bsgenome=1.46.0
   - bioconda::bioconductor-rsamtools=1.30.0
   - bioconda::bioconductor-shortread=1.36.0
-  - bioconda::bioconductor-genomicranges=1.28.6
+  - bioconda::bioconductor-genomicranges=1.30.3
   - bioconda::bioconductor-genomicfeatures=1.30.3
   - bioconda::bioconductor-ensembldb=2.2.2
   - bioconda::bioconductor-chippeakanno=3.12.0
