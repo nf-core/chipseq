@@ -13,7 +13,7 @@ dependencies:
   - conda-forge::r-markdown=0.8
   - bioconda::r-spp=1.15.2
   - bedtools=2.27.1
-  - samtools=1.8
+  - samtools=1.7
   - picard=2.18.2
   - deeptools=3.0.2
   - macs2=2.1.1
