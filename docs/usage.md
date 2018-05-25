@@ -1,5 +1,28 @@
 # nf-core/ChIPseq Usage
 
+## Table of contents
+
+* [Running the pipeline](#running-the-pipeline)
+* [Input Data](#input-data)
+* [Reference Genomes](#reference-genomes)
+    * [`--genome`](#--genome)
+    * [Supplying reference indices](#supplying-reference-indices)
+    * [`--saveReference`](#--savereference)
+* [Adapter Trimming](#adapter-trimming)
+* [`--notrim`](#--notrim)
+* [Job Resources](#job-resources)
+    * [Automatic resubmission](#automatic-resubmission)
+    * [Maximum resource requests](#maximum-resource-requests)
+* [Other command line parameters](#other-command-line-parameters)
+    * [`-name`](#-name-single-dash)
+    * [`-resume`](#-resume-single-dash)
+    * [`--email`](#--email)
+    * [`--plaintext_email`](#--plaintext_email)
+    * [`-c`](#-c-single-dash)
+    * [`--multiqc_config`](#--multiqc_config)
+    * [`--project`](#--project)
+    * [`--clusterOptions`](#--clusteroptions)
+
 ## Running the pipeline
 The typical command for running the pipeline is as follows:
 
@@ -178,6 +201,22 @@ files from BWA and sorting steps.
 ## Job Resources
 ### Automatic resubmission
 Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. For most of the steps in the pipeline, if the job exits on UPPMAX with an error code of `143` (exceeded requested resources) it will automatically resubmit with higher requests (2 x original, then 3 x original). If it still fails after three times then the pipeline is stopped.
+
+### Maximum resource requests
+All resource requests are checked against the following default limits (`standard` config profile shown):
+
+```bash
+--max_memory '128.GB'
+--max_cpus '16'
+--max_time '240.h'
+```
+
+If a task requests more than this amount, it will be reduced to this threshold.
+
+To adjust these limits, specify them on the command line, eg. `--max_memory '64.GB'`.
+
+Note that these limits are the maximum to be used _per task_. Nextflow will automatically attempt to parallelise as many jobs as possible given the available resources.
+
 
 ### Custom resource requests
 Wherever process-specific requirements are set in the pipeline, the default value can be changed by creating a custom config file. See the files in [`conf`](../conf) for examples.
