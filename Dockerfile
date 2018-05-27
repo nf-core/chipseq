@@ -32,4 +32,3 @@ RUN git clone https://github.com/kundajelab/phantompeakqualtools  && \
     chmod 755 /opt/phantompeakqualtools/* && \
     echo 'alias run_spp.R="Rscript /opt/phantompeakqualtools/run_spp.R"' >> ~/.bashrc 
 ENV PATH=${PATH}:/opt/phantompeakqualtools
-
