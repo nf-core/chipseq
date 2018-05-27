@@ -10,6 +10,7 @@ dependencies:
   - fastqc=0.11.7
   - trim-galore=0.4.5
   - bwa=0.7.17
+  - conda-forge::gawk=4.2.1 
   - conda-forge::r-markdown=0.8
   - bioconda::r-spp=1.15.2
   - bedtools=2.27.1
@@ -41,4 +42,4 @@ dependencies:
   - bioconda::bioconductor-org.hs.eg.db=3.5.0
   - bioconda::bioconductor-bsgenome.mmusculus.ucsc.mm10=1.4.0
   - bioconda::bioconductor-org.mm.eg.db=3.5.0
-  - bioconda::r-spp=1.15.2
+  - deeptools=3.0.2
