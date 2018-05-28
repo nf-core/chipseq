@@ -969,7 +969,7 @@ workflow.onComplete {
     }
 
     // Switch the embedded MIME images with base64 encoded src
-    ngichipseqlogo = new File("$baseDir/assets/nf-core/ChIPseq_logo.png").bytes.encodeBase64().toString()
+    ngichipseqlogo = new File("$baseDir/assets/NGI-ChIPseq_logo.png").bytes.encodeBase64().toString()
     scilifelablogo = new File("$baseDir/assets/SciLifeLab_logo.png").bytes.encodeBase64().toString()
     ngilogo = new File("$baseDir/assets/NGI_logo.png").bytes.encodeBase64().toString()
     email_html = email_html.replaceAll(~/cid:ngichipseqlogo/, "data:image/png;base64,$ngichipseqlogo")

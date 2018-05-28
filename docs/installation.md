@@ -49,7 +49,7 @@ Note that you will need to specify your UPPMAX project ID when running a pipelin
 
 **Optional Extra:** To avoid having to specify your project every time you run Nextflow, you can add it to your personal Nextflow config file instead. Add this line to `~/.nextflow/config`:
 
-```groovy
+```nextflow
 params.project = 'project_ID' // eg. b2017123
 ```
 
@@ -67,7 +67,7 @@ By default, Nextflow uses the `local` executor - in other words, all jobs are ru
 
 To specify your cluster environment, add the following line to your config file:
 
-```groovy
+```nextflow
 process {
   executor = 'YOUR_SYSTEM_TYPE'
 }
@@ -77,7 +77,7 @@ Many different cluster types are supported by Nextflow. For more information, pl
 
 Note that you may need to specify cluster options, such as a project or queue. To do so, use the `clusterOptions` config option:
 
-```groovy
+```nextflow
 process {
   executor = 'SLURM'
   clusterOptions = '-A myproject'
@@ -91,7 +91,7 @@ A reference genome path can be specified on the command line each time you run w
 is available, one can be generated using a FASTA file supplied with `--fasta`.
 Alternatively, add the paths to the config under a relevant id and just specify this id with `--genome ID` when you run the pipeline _(this can also be set as a default in your config)_:
 
-```groovy
+```nextflow
 params {
   genomes {
     'YOUR-ID' {
@@ -144,7 +144,7 @@ If your cluster uses environment modules, you can use the pipeline with these. T
 
 If running on another system, add lines to your custom config file as follows _(customise module names and versions as appropriate)_:
 
-```groovy
+```nextflow
 process {
   $fastqc.module = ['FastQC']
   $trim_galore.module = ['FastQC', 'TrimGalore']
