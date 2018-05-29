@@ -59,10 +59,16 @@ anno <- plyr::adply(unique(annotation$gene_id),
                     function(x) {
                         aux <- reduce(annotation[annotation$gene_id == x])
                         aux$symbol <- unique(annotation[annotation$gene_id == x]$gene_name)
-                        as.data.frame(aux)
+                        aux$gene_id <- x
+                        df <- as.data.frame(aux)
+                        # For some ENSG genes, there is a small gap between transcripts
+                        df$start <- min(df$start)
+                        df$end <- max(df$end)
+                        df
                     }, .id = NULL, .parallel = TRUE)
 
-annoData <- makeGRangesFromDataFrame(anno, keep.extra.columns = T)
+annoData <- unique(makeGRangesFromDataFrame(anno, keep.extra.columns = T))
+names(annoData) <- annoData$gene_id
 
 # Read in blacklist file and convert into range object
 if (Blacklist != "No-filtering") {
