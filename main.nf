@@ -102,7 +102,7 @@ if (params.help){
 // Configurable variables
 params.name = false
 params.project = false
-params.genome = false
+params.genomes = false
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
