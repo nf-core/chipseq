@@ -45,7 +45,7 @@ dependencies:
   - bioconda::bioconductor-org.mm.eg.db=3.5.0
   - deeptools=3.0.2
   - bioconda::r-spp=1.15.2
-  - bioconda::r-ngsplot=2.63.0
+  - bioconda::r-ngsplot=2.63
   - bioconda::r-ngsplotdb-hg19=3.00
   - bioconda::r-ngsplotdb-hg38=3.00
   - bioconda::r-ngsplotdb-mm10=3.00
