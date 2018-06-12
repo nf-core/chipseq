@@ -379,7 +379,7 @@ process bwa {
 
     input:
     file reads from trimmed_reads
-    file index from bwa_index.first()
+    file index from bwa_index
 
     output:
     file '*.bam' into bwa_bam
