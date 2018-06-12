@@ -24,7 +24,8 @@ install:
   - cd ${TRAVIS_BUILD_DIR}/tests
 
 env:
-  - NXF_VER=0.30.1
+  - NXF_VER=0.30.0
+  - ''
 
 script:
     # Lint the pipeline code
