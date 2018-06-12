@@ -3,6 +3,12 @@ language: java
 jdk: openjdk8
 services:
   - docker
+
+
+before_install:
+  # Pull the docker image first so the test doesn't wait for this
+- docker pull nfcore/chipseq:latest
+
 install:
   # Install Nextflow
   - mkdir /tmp/nextflow
