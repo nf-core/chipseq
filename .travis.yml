@@ -24,7 +24,7 @@ install:
   - cd ${TRAVIS_BUILD_DIR}/tests
 
 env:
-  - NXF_VER=0.30.0
+  - NXF_VER=0.30.1
   - ''
 
 script:
