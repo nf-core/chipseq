@@ -209,7 +209,7 @@ log.info """=======================================================
     | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
                                           `._,._,\'
 
-nf-core/chipseq : ChIP-Seq Best Practice v${params.version}
+ nf-core/chipseq : ChIP-Seq Best Practice v${params.version}
 ======================================================="""
 def summary = [:]
 summary['Run Name']            = custom_runName ?: workflow.runName
@@ -219,7 +219,7 @@ summary['Genome']              = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
 else if(params.fasta) summary['Fasta Ref'] = params.fasta
 if(params.gtf)  summary['GTF File'] = params.gtf
-summary['Multiple alignments allowed']     = params.allow_multi_align
+summary['Multiple alignments'] = params.allow_multi_align
 summary['MACS Config']         = params.macsconfig
 summary['Saturation analysis'] = params.saturation
 summary['MACS broad peaks']    = params.broad
