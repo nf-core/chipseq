@@ -14,13 +14,13 @@ dependencies:
   - conda-forge::r-markdown=0.8
   - bioconda::r-spp=1.15.2
   - bedtools=2.27.1
-  - samtools=1.7
-  - picard=2.18.2
+  - samtools=1.8
+  - picard=2.18.7
   - deeptools=3.0.2
   - macs2=2.1.1
   - multiqc=1.5
   - conda-forge::r-catools=1.17.1
-  - conda-forge::r-snow=0.4
+  - conda-forge::r-snow=0.4_2
   - conda-forge::r-r.utils=2.6.0
   - conda-forge::r-stringr=1.3.0
   - conda-forge::r-markdown=0.8
