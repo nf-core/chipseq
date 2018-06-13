@@ -11,7 +11,7 @@ $email_html
 --ngimimeboundary
 Content-Type: image/png;name="nf-core/ChIPseq_logo.png"
 Content-Transfer-Encoding: base64
-Content-ID: <ngichipseqlogo>
+Content-ID: <nfcorechipseqlogo>
 Content-Disposition: inline; filename="nf-core/ChIPseq_logo.png"
 
 <% out << new File("$baseDir/assets/nf-core/ChIPseq_logo.png").
