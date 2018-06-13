@@ -538,8 +538,7 @@ process phantompeakqualtools {
     script:
     prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
-    SCRIPT_PATH=\$(which run_spp.R)
-    Rscript \$SCRIPT_PATH -c="$bam" -savp -out="${prefix}.spp.out"
+    Rscript run_spp.R -c="$bam" -savp -out="${prefix}.spp.out"
     """
 }
 
