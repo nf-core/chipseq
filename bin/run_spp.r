@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+library(caTools)
 
 # run_spp.R
 # =============
