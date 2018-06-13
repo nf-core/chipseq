@@ -9,12 +9,12 @@ Content-Type: text/html; charset=utf-8
 $email_html
 
 --ngimimeboundary
-Content-Type: image/png;name="nf-core/ChIPseq_logo.png"
+Content-Type: image/png;name="nf-core/chipseq_logo.png"
 Content-Transfer-Encoding: base64
 Content-ID: <nfcorechipseqlogo>
-Content-Disposition: inline; filename="nf-core/ChIPseq_logo.png"
+Content-Disposition: inline; filename="nf-core/chipseq_logo.png"
 
-<% out << new File("$baseDir/assets/nf-core/ChIPseq_logo.png").
+<% out << new File("$baseDir/assets/nf-core/chipseq_logo.png").
   bytes.
   encodeBase64().
   toString().
