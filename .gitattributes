@@ -1,1 +1,2 @@
 *.config linguist-language=nextflow
+*.nf linguist-language=nextflow

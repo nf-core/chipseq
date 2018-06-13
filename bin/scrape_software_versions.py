@@ -4,7 +4,7 @@ from collections import OrderedDict
 import re
 
 regexes = {
-    'nf-core/ChIPseq': ['v_ngi_chipseq.txt', r"(\S+)"],
+    'nf-core/chipseq': ['v_ngi_chipseq.txt', r"(\S+)"],
     'Nextflow': ['v_nextflow.txt', r"(\S+)"],
     'FastQC': ['v_fastqc.txt', r"FastQC v(\S+)"],
     'Trim Galore!': ['v_trim_galore.txt', r"version (\S+)"],
@@ -18,7 +18,7 @@ regexes = {
     'MultiQC': ['v_multiqc.txt', r"multiqc, version (\S+)"],
 }
 results = OrderedDict()
-results['nf-core/ChIPseq'] = '<span style="color:#999999;\">N/A</span>'
+results['nf-core/chipseq'] = '<span style="color:#999999;\">N/A</span>'
 results['Nextflow'] = '<span style="color:#999999;\">N/A</span>'
 results['FastQC'] = '<span style="color:#999999;\">N/A</span>'
 results['Trim Galore!'] = '<span style="color:#999999;\">N/A</span>'
@@ -42,8 +42,8 @@ for k, v in regexes.items():
 # Dump to YAML
 print ('''
 id: 'nfcore-chipseq'
-section_name: 'nf-core/ChIPseq Software Versions'
-section_href: 'https://github.com/nf-core/ChIPseq'
+section_name: 'nf-core/chipseq Software Versions'
+section_href: 'https://github.com/nf-core/chipseq'
 plot_type: 'html'
 description: 'are collected at run time from the software output.'
 data: |
