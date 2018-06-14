@@ -99,6 +99,7 @@ if (params.help){
 // Configurable variables
 params.name = false
 params.project = false
+params.genome = false
 params.genomes = false
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
@@ -195,11 +196,6 @@ def REF_macs = false
 def REF_ngsplot = false
 if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19' }
 else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10' }
-else if (params.genome == false){
-    log.warn "No reference supplied for MACS, ngs_plot and annotation. Use '--genome GRCh37' or '--genome GRCm38' to run MACS, ngs_plot and annotation."
-} else {
-    log.warn "Reference '${params.genome}' not supported by MACS, ngs_plot and annotation (only GRCh37 and GRCm38)."
-}
 
 
 log.info """=======================================================
@@ -281,6 +277,17 @@ if( workflow.profile == 'standard'){
     }
 }
 
+// Show a big warning message if we're not running MACS
+if (!REF_macs){
+    def warnstring = params.genome ? "Reference '${params.genome}' not supported by" : 'No reference supplied for'
+    log.warn "=======================================================\n" +
+             "  WARNING! $warnstring MACS, ngs_plot\n" +
+             "  and annotation. Steps for MACS, ngs_plot and annotation\n" +
+             "  will be skipped. Use '--genome GRCh37' or '--genome GRCm38'\n" +
+             "  to run these steps.\n" +
+             "==============================================================="
+}
+
 
 /*
  * PREPROCESSING - Build BWA index
@@ -299,8 +306,8 @@ if(!params.bwa_index && fasta){
 
         script:
         """
-        mkdir BWAIndex
         bwa index -a bwtsw $fasta
+        mkdir BWAIndex && mv ${fasta}* BWAIndex
         """
     }
 }
