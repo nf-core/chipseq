@@ -1,13 +1,9 @@
 sudo: required
 language: java
 jdk: openjdk8
-services:
-  - docker
+services: docker
 
-
-before_install:
-  # Pull the docker image first so the test doesn't wait for this
-- docker pull nfcore/chipseq:latest
+before_install: docker pull nfcore/chipseq:latest
 
 install:
   # Install Nextflow
@@ -28,9 +24,9 @@ env:
   - ''
 
 script:
-    # Lint the pipeline code
-    - "nf-core lint ${TRAVIS_BUILD_DIR}"
-    # Run, build reference genome
-    - nextflow run ${TRAVIS_BUILD_DIR} -profile test,docker
-    # Basic run with supplied reference
-    - nextflow run ${TRAVIS_BUILD_DIR} -profile test,docker --genome EF4
+  # Lint the pipeline code
+  - "nf-core lint ${TRAVIS_BUILD_DIR}"
+  # Run, build reference genome
+  - nextflow run ${TRAVIS_BUILD_DIR} -profile test,docker
+  # Basic run with supplied reference
+  - nextflow run ${TRAVIS_BUILD_DIR} -profile test,docker --genome EF4
