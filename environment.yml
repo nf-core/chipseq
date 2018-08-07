@@ -1,6 +1,6 @@
 # You can use this file to create a conda environment for this pipeline:
 #   conda env create -f environment.yml
-name: nfcore-chipseq-1.4dev
+name: nfcore-chipseq-1.0dev
 channels:
   - bioconda
   - conda-forge
