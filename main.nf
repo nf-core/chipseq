@@ -63,6 +63,7 @@ def helpMessage() {
     References
       --fasta                       Path to Fasta reference
       --bwa_index                   Path to BWA index
+      --largeRef                    Build BWA Index for large reference genome (>2Gb)
       --gtf                         Path to GTF file (Ensembl format)
       --blacklist                   Path to blacklist regions (.BED format), used for filtering out called peaks. Note that --blacklist_filtering is required
       --saveReference               Save the generated reference files in the Results directory.
@@ -215,6 +216,7 @@ summary['Genome']              = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
 else if(params.fasta) summary['Fasta Ref'] = params.fasta
 if(params.gtf)  summary['GTF File'] = params.gtf
+if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
 summary['Multiple alignments'] = params.allow_multi_align
 summary['MACS Config']         = params.macsconfig
 summary['Saturation analysis'] = params.saturation
@@ -305,8 +307,9 @@ if(!params.bwa_index && fasta){
         file "BWAIndex" into bwa_index
 
         script:
+        BWAIndexOption = params.largeRef ? "bwtsw" : 'is'
         """
-        bwa index -a bwtsw $fasta
+        bwa index -a BWAIndexOption $fasta
         mkdir BWAIndex && mv ${fasta}* BWAIndex
         """
     }
@@ -729,7 +732,7 @@ process ngsplot {
  */
 
 process macs {
-    tag "${bam_for_macs[0].baseName}"
+    tag "${analysis_id}"
     publishDir "${params.outdir}/macs", mode: 'copy'
 
     input:
@@ -765,7 +768,7 @@ process macs {
 if (params.saturation) {
 
   process saturation {
-     tag "${bam_for_saturation[0].baseName}"
+     tag "${analysis_id}.${sampling}"
      publishDir "${params.outdir}/macs/saturation", mode: 'copy'
 
      input:

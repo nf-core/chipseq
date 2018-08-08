@@ -155,6 +155,9 @@ If you prefer, you can specify the full path to your reference genome when you r
 --bwa_index '[path to BWA index]'
 ```
 
+### `--largeRef`
+Build BWA Index with the `bwtsw` flag for reference genomes larger than 2Gb in size (such as human). By default the `is` option will be used.
+
 ### `--fasta`
 If you don't have a BWA index available, you can pass a FASTA file to the pipeline and a BWA index
 will be generated for you. Combine with `--saveReference` to save for future runs.
