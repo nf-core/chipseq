@@ -1,17 +1,10 @@
-# NGI-ChIPseq Results
+# nf-core/chipseq Results
 
-The NGI-ChIPseq documentation is split into a few different files:
+The nf-core/chipseq documentation is split into a few different files:
 
 * [`installation.md`](installation.md)
   * Pipeline installation and configuration instructions
 * [`usage.md`](usage.md)
-  * Instructions on how to run the NGI-ChIPseq pipeline
+  * Instructions on how to run the nf-core/chipseq pipeline
 * [`output.md`](output.md)
   * Document describing all of the results produced by the pipeline, and how to interpret them.
-
----
-
-[![SciLifeLab](images/SciLifeLab_logo.png)](http://www.scilifelab.se/)
-[![National Genomics Infrastructure](images/NGI_logo.png)](https://ngisweden.scilifelab.se/)
-
----

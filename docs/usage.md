@@ -1,10 +1,33 @@
-# NGI-ChIPseq Usage
+# nf-core/chipseq Usage
+
+## Table of contents
+
+* [Running the pipeline](#running-the-pipeline)
+* [Input Data](#input-data)
+* [Reference Genomes](#reference-genomes)
+    * [`--genome`](#--genome)
+    * [Supplying reference indices](#supplying-reference-indices)
+    * [`--saveReference`](#--savereference)
+* [Adapter Trimming](#adapter-trimming)
+* [`--notrim`](#--notrim)
+* [Job Resources](#job-resources)
+    * [Automatic resubmission](#automatic-resubmission)
+    * [Maximum resource requests](#maximum-resource-requests)
+* [Other command line parameters](#other-command-line-parameters)
+    * [`-name`](#-name-single-dash)
+    * [`-resume`](#-resume-single-dash)
+    * [`--email`](#--email)
+    * [`--plaintext_email`](#--plaintext_email)
+    * [`-c`](#-c-single-dash)
+    * [`--multiqc_config`](#--multiqc_config)
+    * [`--project`](#--project)
+    * [`--clusterOptions`](#--clusteroptions)
 
 ## Running the pipeline
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
+nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
 ```
 
 Note that the pipeline will create files in your working directory:
@@ -20,13 +43,13 @@ results         # Finished results (configurable, see below)
 When you run the above command, Nextflow automatically pulls the pipeline code from GitHub and stores it as a cached version. When running the pipeline after this, it will always use the cached version if available - even if the pipeline has been updated since. To make sure that you're running the latest version of the pipeline, make sure that you regularly update the cached version of the pipeline:
 
 ```bash
-nextflow pull scilifelab/ngi-chipseq
+nextflow pull nf-core/chipseq
 ```
 
 ### Reproducibility
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-First, go to the [NGI-ChIPseq releases page](https://github.com/SciLifeLab/NGI-ChIPseq/releases) and find the latest version number - numeric only (eg. `1.4`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.4`.
+First, go to the [nf-core/chipseq releases page](https://github.com/nf-core/chipseq/releases) and find the latest version number - numeric only (eg. `1.4`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.4`.
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when youook back in the future.
 
@@ -114,7 +137,7 @@ If you're not running on UPPMAX (the default profile), you can create your own c
 
 The syntax for this reference configuration is as follows:
 
-```groovy
+```nextflow
 params {
   genomes {
     'GRCh37' {
@@ -179,6 +202,22 @@ files from BWA and sorting steps.
 ### Automatic resubmission
 Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. For most of the steps in the pipeline, if the job exits on UPPMAX with an error code of `143` (exceeded requested resources) it will automatically resubmit with higher requests (2 x original, then 3 x original). If it still fails after three times then the pipeline is stopped.
 
+### Maximum resource requests
+All resource requests are checked against the following default limits (`standard` config profile shown):
+
+```bash
+--max_memory '128.GB'
+--max_cpus '16'
+--max_time '240.h'
+```
+
+If a task requests more than this amount, it will be reduced to this threshold.
+
+To adjust these limits, specify them on the command line, eg. `--max_memory '64.GB'`.
+
+Note that these limits are the maximum to be used _per task_. Nextflow will automatically attempt to parallelise as many jobs as possible given the available resources.
+
+
 ### Custom resource requests
 Wherever process-specific requirements are set in the pipeline, the default value can be changed by creating a custom config file. See the files in [`conf`](../conf) for examples.
 
@@ -213,7 +252,7 @@ projects or different sets of reference genomes.
 Note - you can use this to override defaults. For example, we run on UPPMAX but don't want to use the MultiQC
 environment module as is the default. So we specify a config file using `-c` that contains the following:
 
-```groovy
+```nextflow
 process.$multiqc.module = []
 ```
 
@@ -223,10 +262,3 @@ to run on the development node (though won't work with default process time requ
 
 ### `--multiqc_config`
 If you would like to supply a custom config file to MultiQC, you can specify a path with `--multiqc_config`. This is used instead of the config file specific to the pipeline.
-
----
-
-[![SciLifeLab](images/SciLifeLab_logo.png)](http://www.scilifelab.se/)
-[![National Genomics Infrastructure](images/NGI_logo.png)](https://ngisweden.scilifelab.se/)
-
----

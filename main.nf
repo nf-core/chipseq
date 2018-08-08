@@ -1,17 +1,16 @@
 #!/usr/bin/env nextflow
 
 /*
-vim: syntax=groovy
--*- mode: groovy;-*-
 ========================================================================================
-                  NGI  C H I P - S E Q   B E S T   P R A C T I C E
+                  C H I P - S E Q   B E S T   P R A C T I C E
 ========================================================================================
  ChIP-seq Best Practice Analysis Pipeline. Started May 2016.
  #### Homepage / Documentation
- https://github.com/SciLifeLab/NGI-ChIPseq
+ https://github.com/nf-core/chipseq
  @#### Authors
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
+ Alex Peltzer <alexander.peltzer@qbic.uni-tuebingen.de>
 ----------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------
 Pipeline overview:
@@ -37,13 +36,13 @@ Pipeline overview:
 def helpMessage() {
     log.info"""
     =========================================
-     NGI-ChIPseq : ChIP-Seq Best Practice v${version}
+     nf-core/chipseq : ChIP-Seq Best Practice v${params.version}
     =========================================
     Usage:
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run SciLifeLab/NGI-ChIPseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile uppmax
+    nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile uppmax
 
     Mandatory arguments:
       --reads                       Path to input data (must be surrounded with quotes).
@@ -90,9 +89,6 @@ def helpMessage() {
  * SET UP CONFIGURATION VARIABLES
  */
 
-// Pipeline version
-version = '1.4'
-
 // Show help emssage
 params.help = false
 if (params.help){
@@ -104,26 +100,11 @@ if (params.help){
 params.name = false
 params.project = false
 params.genome = false
-params.genomes = []
+params.genomes = false
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
-params.reads = "data/*{1,2}*.fastq.gz"
-params.macsconfig = "data/macsconfig"
-params.multiqc_config = "$baseDir/conf/multiqc_config.yaml"
-params.extendReadsLen = 100
-params.notrim = false
-params.allow_multi_align = false
-params.saveReference = false
-params.saveTrimmed = false
-params.saveAlignedIntermediates = false
-params.saturation = false
-params.broad = false
-params.blacklist_filtering = false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
-params.outdir = './results'
-params.email = false
-params.plaintext_email = false
 
 // R library locations
 params.rlocation = false
@@ -172,14 +153,27 @@ if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
   custom_runName = workflow.runName
 }
 
-/*
- * Create a channel for input read files
- */
-params.singleEnd = false
-Channel
-    .fromFilePairs( params.reads, size: params.singleEnd ? 1 : 2 )
-    .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nIf this is single-end data, please specify --singleEnd on the command line." }
-    .into { raw_reads_fastqc; raw_reads_trimgalore }
+if(params.readPaths){
+    if(params.singleEnd){
+        Channel
+            .from(params.readPaths)
+            .map { row -> [ row[0], [file(row[1][0])]] }
+            .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
+            .into { raw_reads_fastqc; raw_reads_trimgalore }
+    } else {
+        Channel
+            .from(params.readPaths)
+            .map { row -> [ row[0], [file(row[1][0]), file(row[1][1])]] }
+            .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
+            .into { raw_reads_fastqc; raw_reads_trimgalore }
+    }
+} else {
+    Channel
+        .fromFilePairs( params.reads, size: params.singleEnd ? 1 : 2 )
+        .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --singleEnd on the command line." }
+        .into { raw_reads_fastqc; raw_reads_trimgalore }
+}
+
 
 /*
  * Create a channel for macs config file
@@ -202,17 +196,17 @@ def REF_macs = false
 def REF_ngsplot = false
 if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19' }
 else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10' }
-else if (params.genome == false){
-    log.warn "No reference supplied for MACS, ngs_plot and annotation. Use '--genome GRCh37' or '--genome GRCm38' to run MACS, ngs_plot and annotation."
-} else {
-    log.warn "Reference '${params.genome}' not supported by MACS, ngs_plot and annotation (only GRCh37 and GRCm38)."
-}
 
 
-// Header log info
-log.info "========================================="
-log.info " NGI-ChIPseq: ChIP-Seq Best Practice v${version}"
-log.info "========================================="
+log.info """=======================================================
+                                          ,--./,-.
+          ___     __   __   __   ___     /,-._.--~\'
+    |\\ | |__  __ /  ` /  \\ |__) |__         }  {
+    | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
+                                          `._,._,\'
+
+ nf-core/chipseq : ChIP-Seq Best Practice v${params.version}
+======================================================="""
 def summary = [:]
 summary['Run Name']            = custom_runName ?: workflow.runName
 summary['Reads']               = params.reads
@@ -221,7 +215,7 @@ summary['Genome']              = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
 else if(params.fasta) summary['Fasta Ref'] = params.fasta
 if(params.gtf)  summary['GTF File'] = params.gtf
-summary['Multiple alignments allowed']     = params.allow_multi_align
+summary['Multiple alignments'] = params.allow_multi_align
 summary['MACS Config']         = params.macsconfig
 summary['Saturation analysis'] = params.saturation
 summary['MACS broad peaks']    = params.broad
@@ -256,8 +250,8 @@ log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
 log.info "===================================="
 
 // Check that Nextflow version is up to date enough
-// try / throw / catch works for NF versions < 0.25 when this was implemented
-nf_required_version = '0.25.0'
+// try / throw / catch works for NF versions < 0.30.1 when this was implemented
+nf_required_version = '0.30.1'
 try {
     if( ! nextflow.version.matches(">= $nf_required_version") ){
         throw GroovyException('Nextflow version too old')
@@ -283,6 +277,17 @@ if( workflow.profile == 'standard'){
     }
 }
 
+// Show a big warning message if we're not running MACS
+if (!REF_macs){
+    def warnstring = params.genome ? "Reference '${params.genome}' not supported by" : 'No reference supplied for'
+    log.warn "=======================================================\n" +
+             "  WARNING! $warnstring MACS, ngs_plot\n" +
+             "  and annotation. Steps for MACS, ngs_plot and annotation\n" +
+             "  will be skipped. Use '--genome GRCh37' or '--genome GRCm38'\n" +
+             "  to run these steps.\n" +
+             "==============================================================="
+}
+
 
 /*
  * PREPROCESSING - Build BWA index
@@ -301,8 +306,8 @@ if(!params.bwa_index && fasta){
 
         script:
         """
-        mkdir BWAIndex
         bwa index -a bwtsw $fasta
+        mkdir BWAIndex && mv ${fasta}* BWAIndex
         """
     }
 }
@@ -485,7 +490,7 @@ process picard {
         }
     }
     """
-    java -Xmx${avail_mem}m -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
+    picard MarkDuplicates \\
         INPUT=$bam \\
         OUTPUT=${prefix}.dedup.bam \\
         ASSUME_SORTED=true \\
@@ -524,6 +529,7 @@ process countstat {
 
 /*
  * STEP 6.1 Phantompeakqualtools
+ * TODO: The "run_spp.R" script is still missing here!
  */
 
 process phantompeakqualtools {
@@ -541,8 +547,7 @@ process phantompeakqualtools {
     script:
     prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
-    SCRIPT_PATH=\$(which run_spp.R)
-    Rscript \$SCRIPT_PATH -c="$bam" -savp -out="${prefix}.spp.out"
+    run_spp.r -c="$bam" -savp -out="${prefix}.spp.out"
     """
 }
 
@@ -613,7 +618,7 @@ process deepTools {
         bamCoverage \\
            -b $bam \\
            --extendReads ${params.extendReadsLen} \\
-           --normalizeUsingRPKM \\
+           --normalizeUsing RPKM \\
            -o ${bam}.bw
         """
     } else {
@@ -635,7 +640,7 @@ process deepTools {
             bamCoverage \\
               -b \$bamfile \\
               --extendReads ${params.extendReadsLen} \\
-              --normalizeUsingRPKM \\
+              --normalizeUsing RPKM \\
               -o \${bamfile}.bw
         done
 
@@ -681,6 +686,7 @@ process deepTools {
 
 /*
  * STEP 8 Ngsplot
+ * TODO ngs.plot.R is missing too!
  */
 
 process ngsplot {
@@ -845,7 +851,7 @@ process get_software_versions {
 
     script:
     """
-    echo $version > v_ngi_chipseq.txt
+    echo ${params.version} > v_ngi_chipseq.txt
     echo $workflow.nextflow.version > v_nextflow.txt
     fastqc --version > v_fastqc.txt
     trim_galore --version > v_trim_galore.txt
@@ -924,12 +930,12 @@ process output_documentation {
 workflow.onComplete {
 
     // Set up the e-mail variables
-    def subject = "[NGI-ChIPseq] Successful: $workflow.runName"
+    def subject = "[nf-core/chipseq] Successful: $workflow.runName"
     if(!workflow.success){
-      subject = "[NGI-ChIPseq] FAILED: $workflow.runName"
+      subject = "[nf-core/chipseq] FAILED: $workflow.runName"
     }
     def email_fields = [:]
-    email_fields['version'] = version
+    email_fields['version'] = params.version
     email_fields['runName'] = custom_runName ?: workflow.runName
     email_fields['success'] = workflow.success
     email_fields['dateComplete'] = workflow.complete
@@ -975,19 +981,19 @@ workflow.onComplete {
           if( params.plaintext_email ){ throw GroovyException('Send plaintext e-mail, not HTML') }
           // Try to send HTML e-mail using sendmail
           [ 'sendmail', '-t' ].execute() << sendmail_html
-          log.info "[NGI-ChIPseq] Sent summary e-mail to $params.email (sendmail)"
+          log.info "[nf-core/chipseq] Sent summary e-mail to $params.email (sendmail)"
         } catch (all) {
           // Catch failures and try with plaintext
           [ 'mail', '-s', subject, params.email ].execute() << email_txt
-          log.info "[NGI-ChIPseq] Sent summary e-mail to $params.email (mail)"
+          log.info "[nf-core/chipseq] Sent summary e-mail to $params.email (mail)"
         }
     }
 
     // Switch the embedded MIME images with base64 encoded src
-    ngichipseqlogo = new File("$baseDir/assets/NGI-ChIPseq_logo.png").bytes.encodeBase64().toString()
+    nfcorechipseqlogo = new File("$baseDir/assets/nf-core_chipseq_logo.png").bytes.encodeBase64().toString()
     scilifelablogo = new File("$baseDir/assets/SciLifeLab_logo.png").bytes.encodeBase64().toString()
     ngilogo = new File("$baseDir/assets/NGI_logo.png").bytes.encodeBase64().toString()
-    email_html = email_html.replaceAll(~/cid:ngichipseqlogo/, "data:image/png;base64,$ngichipseqlogo")
+    email_html = email_html.replaceAll(~/cid:nfcorechipseqlogo/, "data:image/png;base64,$nfcorechipseqlogo")
     email_html = email_html.replaceAll(~/cid:scilifelablogo/, "data:image/png;base64,$scilifelablogo")
     email_html = email_html.replaceAll(~/cid:ngilogo/, "data:image/png;base64,$ngilogo")
 
@@ -1001,7 +1007,7 @@ workflow.onComplete {
     def output_tf = new File( output_d, "pipeline_report.txt" )
     output_tf.withWriter { w -> w << email_txt }
 
-    log.info "[NGI-ChIPseq] Pipeline Complete"
+    log.info "[nf-core/chipseq] Pipeline Complete"
 
     if(!workflow.success){
         if( workflow.profile == 'standard'){

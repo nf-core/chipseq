@@ -1,1 +1,2 @@
-*.nf linguist-language=Groovy
+*.config linguist-language=nextflow
+*.nf linguist-language=nextflow

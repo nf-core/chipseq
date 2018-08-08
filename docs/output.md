@@ -1,6 +1,6 @@
-# NGI-ChIPseq Output
+# nf-core/chipseq Output
 
-**NGI-ChIPseq** is a bioinformatics best-practice analysis pipeline used for ChIP-seq (chromatin immunoprecipitation sequencing) data analysis at the [National Genomics Infastructure](https://ngisweden.scilifelab.se/) at [SciLifeLab Stockholm](https://www.scilifelab.se/platforms/ngi/), Sweden.
+**nf-core/chipseq** is a bioinformatics best-practice analysis pipeline used for ChIP-seq (chromatin immunoprecipitation sequencing) data analysis at the [National Genomics Infastructure](https://ngisweden.scilifelab.se/) at [SciLifeLab Stockholm](https://www.scilifelab.se/platforms/ngi/), Sweden.
 
 This document describes the output produced by the pipeline.
 
@@ -183,10 +183,3 @@ Spearman correlation coefficient in each square is calculated with the read coun
   * Directory containing parsed statistics from the different tools used in the pipeline
 
 For more information about how to use MultiQC reports, see http://multiqc.info
-
----
-
-[![SciLifeLab](images/SciLifeLab_logo.png)](http://www.scilifelab.se/)
-[![National Genomics Infrastructure](images/NGI_logo.png)](https://ngisweden.scilifelab.se/)
-
----

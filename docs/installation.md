@@ -1,6 +1,6 @@
-# NGI-ChIPseq Installation
+# nf-core/chipseq Installation
 
-To start using the NGI-ChIPseq pipeline, there are three steps described below:
+To start using the nf-core/chipseq pipeline, there are three steps described below:
 
 1. [Install Nextflow](#1-install-nextflow)
 2. [Install the pipeline](#2-install-the-pipeline)
@@ -26,20 +26,18 @@ mv nextflow ~/bin
 # sudo mv nextflow /usr/local/bin
 ```
 
-See [nextflow.io](https://www.nextflow.io/) and [NGI-NextflowDocs](https://github.com/SciLifeLab/NGI-NextflowDocs) for further instructions on how to install and configure Nextflow.
-
 ## 2) Install the Pipeline
-This pipeline itself needs no installation - NextFlow will automatically fetch it from GitHub if `SciLifeLab/NGI-ChIPseq` is specified as the pipeline name.
+This pipeline itself needs no installation - NextFlow will automatically fetch it from GitHub if `nf-core/chipseq` is specified as the pipeline name.
 
 ### Offline use
 
 If you need to run the pipeline on a system with no internet connection, you will need to download the files yourself from GitHub and run them directly:
 
 ```bash
-wget https://github.com/SciLifeLab/NGI-ChIPseq/archive/master.zip
+wget https://github.com/nf-core/chipseq/archive/master.zip
 unzip master.zip -d /my-pipelines/
 cd /my_data/
-nextflow run /my-pipelines/NGI-ChIPseq-master
+nextflow run /my-pipelines/nf-core/chipseq-master
 ```
 
 ## 3.1) Configuration: UPPMAX
@@ -51,7 +49,7 @@ Note that you will need to specify your UPPMAX project ID when running a pipelin
 
 **Optional Extra:** To avoid having to specify your project every time you run Nextflow, you can add it to your personal Nextflow config file instead. Add this line to `~/.nextflow/config`:
 
-```groovy
+```nextflow
 params.project = 'project_ID' // eg. b2017123
 ```
 
@@ -69,7 +67,7 @@ By default, Nextflow uses the `local` executor - in other words, all jobs are ru
 
 To specify your cluster environment, add the following line to your config file:
 
-```groovy
+```nextflow
 process {
   executor = 'YOUR_SYSTEM_TYPE'
 }
@@ -79,7 +77,7 @@ Many different cluster types are supported by Nextflow. For more information, pl
 
 Note that you may need to specify cluster options, such as a project or queue. To do so, use the `clusterOptions` config option:
 
-```groovy
+```nextflow
 process {
   executor = 'SLURM'
   clusterOptions = '-A myproject'
@@ -87,13 +85,13 @@ process {
 ```
 
 ### Reference Genomes
-The NGI-ChIPseq pipeline needs a reference genome for alignment and annotation. If not already available, start by downloading the relevant reference, for example from [illumina iGenomes](https://support.illumina.com/sequencing/sequencing_software/igenome.html).
+The nf-core/chipseq pipeline needs a reference genome for alignment and annotation. If not already available, start by downloading the relevant reference, for example from [illumina iGenomes](https://support.illumina.com/sequencing/sequencing_software/igenome.html).
 
 A reference genome path can be specified on the command line each time you run with `--bwa_index`. If no BWA index
 is available, one can be generated using a FASTA file supplied with `--fasta`.
 Alternatively, add the paths to the config under a relevant id and just specify this id with `--genome ID` when you run the pipeline _(this can also be set as a default in your config)_:
 
-```groovy
+```nextflow
 params {
   genomes {
     'YOUR-ID' {
@@ -116,29 +114,29 @@ To run the pipeline, several software packages are required. How you satisfy the
 #### Docker Image
 Docker is a software tool that allows you to run your analysis inside a "container" - basically a miniature self-contained software environment. We've already made a docker image for you, so if you can run docker and nextflow then you don't need to worry about any other software dependencies.
 
-The pipeline comes with a script to build a docker image. This runs automatically and creates a hosted docker image that you can find here: https://hub.docker.com/r/scilifelab/ngi-chipseq/
+The pipeline comes with a script to build a docker image. This runs automatically and creates a hosted docker image that you can find here: https://hub.docker.com/r/nf-core/chipseq/
 
-If you run the pipeline with `-profile docker` or `-with-docker 'scilifelab/ngi-chipseq'` then nextflow will download this docker image automatically and run using this.
+If you run the pipeline with `-profile docker` or `-with-docker 'nf-core/chipseq'` then nextflow will download this docker image automatically and run using this.
 
 Note that the docker images are tagged with version as well as the code, so this is a great way to ensure reproducibility. You can specify pipeline version when running with `-r`, for example `-r v1.4`. This uses pipeline code and docker image from this tagged version.
 
 #### Singularity image
 Many HPC environments are not able to run Docker due to problems with needing administrator privileges. [Singularity](http://singularity.lbl.gov/) is a tool designed to run on such HPC systems which is very similar to Docker. Even better, it can use create images directly from dockerhub. The UPPMAX configuration uses Singularity by default, meaning no problems with software dependencies and great reproducibility.
 
-To use the singularity image with a different config, use `-with-singularity 'docker://scilifelab/ngi-chipseq'` when running the pipeline.
+To use the singularity image with a different config, use `-with-singularity 'docker://nf-core/chipseq'` when running the pipeline.
 
 If you intend to run the pipeline offline, nextflow will not be able to automatically download the singularity image for you. Instead, you'll have to do this yourself manually first, transfer the image file and then point to that.
 
 First, pull the image file where you have an internet connection:
 
 ```bash
-singularity pull --name ngi-chipseq.img docker://scilifelab/ngi-chipseq
+singularity pull --name nfcore-chipseq.img docker://nf-core/chipseq
 ```
 
 Then transfer this file and run the pipeline with this path:
 
 ```bash
-nextflow run /path/to/NGI-ChIPseq -with-singularity /path/to/ngi-chipseq.img
+nextflow run /path/to/nf-core/chipseq -with-singularity /path/to/nfcore-chipseq.img
 ```
 
 #### Environment Modules
@@ -146,7 +144,7 @@ If your cluster uses environment modules, you can use the pipeline with these. T
 
 If running on another system, add lines to your custom config file as follows _(customise module names and versions as appropriate)_:
 
-```groovy
+```nextflow
 process {
   $fastqc.module = ['FastQC']
   $trim_galore.module = ['FastQC', 'TrimGalore']
@@ -164,12 +162,12 @@ process {
 #### Manual Installation
 If the software is not already available, you will need to install it.
 
-If you are able to use [Docker](https://www.docker.com/), you can use the [sclifelab/ngi-chipseq](https://hub.docker.com/r/scilifelab/ngi-chipseq/) image which comes with all requirements. This is pulled by Nextflow automatically if you use `-profile docker` (see below for [further instructions](#33-configuration-docker)).
+If you are able to use [Docker](https://www.docker.com/), you can use the [sclifelab/nfcore-chipseq](https://hub.docker.com/r/nf-core/chipseq/) image which comes with all requirements. This is pulled by Nextflow automatically if you use `-profile docker` (see below for [further instructions](#33-configuration-docker)).
 
 We recommend using [Bioconda](https://bioconda.github.io/) to install the required software as the process is quite easy in our experience.
 
 ## 3.3) Configuration: Docker
-Docker is a great way to run NGI-ChIPseq, as it manages all software installations and allows the pipeline to be run in an identical software environment across a range of systems.
+Docker is a great way to run nf-core/chipseq, as it manages all software installations and allows the pipeline to be run in an identical software environment across a range of systems.
 
 Nextflow has [excellent integration](https://www.nextflow.io/docs/latest/docker.html) with Docker, and beyond installing the two tools, not much else is required.
 
@@ -177,21 +175,11 @@ First, install docker on your system : [Docker Installation Instructions](https:
 
 Then, simply run the analysis pipeline:
 ```bash
-nextflow run SciLifeLab/NGI-ChIPseq -profile docker # rest of normal launch command
+nextflow run nf-core/chipseq -profile docker # rest of normal launch command
 ```
 
-Nextflow will recognise `SciLifeLab/NGI-ChIPseq` and download the pipeline from GitHub. The `-profile docker` configuration lists the [sclifelab/ngi-chipseq](https://hub.docker.com/r/scilifelab/ngi-chipseq/) image that we have created and is hosted at dockerhub, and this is downloaded.
+Nextflow will recognise `nf-core/chipseq` and download the pipeline from GitHub. The `-profile docker` configuration lists the [sclifelab/nfcore-chipseq](https://hub.docker.com/r/nf-core/chipseq/) image that we have created and is hosted at dockerhub, and this is downloaded.
 
 A reference genome is still required by the pipeline. See the above [Reference Genomes](#reference-genomes) documentation for instructions on how to configure Nextflow with preset paths to make this easier.
 
-A test suite for docker comes with the pipeline, and can be run by moving to the [`tests` directory](https://github.com/ewels/NGI-ChIPseq/tree/master/tests) and running `./docker_test.sh`. This will download a small lambda genome and some data, and attempt to run the pipeline through docker on that small dataset. This is automatically run using [Travis](https://travis-ci.org/SciLifeLab/NGI-ChIPseq/) whenever changes are made to the pipeline.
-
-## 3.4) Configuration: Amazon EC2
-There are multiple ways of running this pipeline over Amazon's EC2 service. Please see the [NGI-ChIPseq pipeline docs](https://github.com/SciLifeLab/NGI-ChIPseq/blob/master/docs/amazon_web_services.md) for more information.
-
----
-
-[![SciLifeLab](images/SciLifeLab_logo.png)](http://www.scilifelab.se/)
-[![National Genomics Infrastructure](images/NGI_logo.png)](https://ngisweden.scilifelab.se/)
-
----
+A test suite for docker comes with the pipeline, and can be run by moving to the [`tests` directory](https://github.com/ewels/nf-core/chipseq/tree/master/tests) and running `./docker_test.sh`. This will download a small lambda genome and some data, and attempt to run the pipeline through docker on that small dataset. This is automatically run using [Travis](https://travis-ci.org/nf-core/chipseq/) whenever changes are made to the pipeline.
