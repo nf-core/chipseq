@@ -1,9 +1,7 @@
 ## nf-core/chipseq v1.0
-
-
-## nf-core/chipseq v1.0dev
-This release marks the point where the pipeline was moved from nf-core/chipseq
-over to the new nf-core community, at nf-core/chipseq.
+v1.0 release of nf-core/chipseq
+* Add option for building BWA index for larger ref
+* Update software versions in uppmax-modules
 
 
 Repository moved from https://github.com/SciLifeLab/NGI-ChIPseq
