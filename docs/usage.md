@@ -4,23 +4,38 @@
 
 * [Running the pipeline](#running-the-pipeline)
 * [Input Data](#input-data)
+    * [`--reads`](#--reads)
+    * [`--singleEnd`](#--singleEnd)
+    * [`--macsconfig`](#--macsconfig)
+    * [`--broad`](#--broad)
+    * [`--saturation`](#--saturation)
+    * [`--blacklist_filtering`](#--blacklist_filtering)
+    * [`--blacklist`](#--blacklist)
+    * [`--extendReadsLen`](#--extendReadsLen)
 * [Reference Genomes](#reference-genomes)
     * [`--genome`](#--genome)
-    * [Supplying reference indices](#supplying-reference-indices)
-    * [`--saveReference`](#--savereference)
+    * [`--bwa_index`](#--bwa_index)
+    * [`--largeRef`](#--largeRef)
+    * [`--fasta`](#--fasta)
+    * [`--gtf`](#--gtf)
+    * [`--saveReference`](#--saveReference)
 * [Adapter Trimming](#adapter-trimming)
-* [`--notrim`](#--notrim)
+    * [`--notrim`](#--notrim)
+    * [`--saveTrimmed`](#--saveTrimmed)
 * [Job Resources](#job-resources)
     * [Automatic resubmission](#automatic-resubmission)
     * [Maximum resource requests](#maximum-resource-requests)
 * [Other command line parameters](#other-command-line-parameters)
-    * [`-name`](#-name-single-dash)
-    * [`-resume`](#-resume-single-dash)
+    * [`--allow_multi_align`](#--allow_multi_align)
+    * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
+    * [`--project`](#--project)
+    * [`--outdir`](#--outdir)
     * [`--email`](#--email)
     * [`--plaintext_email`](#--plaintext_email)
-    * [`-c`](#-c-single-dash)
+    * [`-name`](#-name)
+    * [`-resume`](#-resume)
+    * [`-c`](#-c)
     * [`--multiqc_config`](#--multiqc_config)
-    * [`--project`](#--project)
     * [`--clusterOptions`](#--clusteroptions)
 
 ## Running the pipeline
@@ -49,7 +64,7 @@ nextflow pull nf-core/chipseq
 ### Reproducibility
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-First, go to the [nf-core/chipseq releases page](https://github.com/nf-core/chipseq/releases) and find the latest version number - numeric only (eg. `1.4`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.4`.
+First, go to the [nf-core/chipseq releases page](https://github.com/nf-core/chipseq/releases) and find the latest version number - numeric only (eg. `1.0`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.0`.
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when youook back in the future.
 
@@ -171,9 +186,6 @@ The full path to GTF file can be specified for annotating peaks. Note that the G
 --gtf '[path to GTF file]'
 ```
 
-### `--allow_multi_align`
-Specifying `--allow_multi_align` will turn off the filtering of secondary alignments and unmapped reads from the BWA output file. Without this option, only primary alignments will be retained.
-
 ### `--saveReference`
 Supply this parameter to save any generated reference genome files to your results folder. These can then be used for future pipeline runs, reducing processing times.
 
@@ -196,10 +208,6 @@ Specifying `--notrim` will skip the adapter trimming step. Use this if your inpu
 ### `--saveTrimmed`
 By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.
 
-### `--saveAlignedIntermediates`
-By default, intermediate BAM files will not be saved. The final BAM files created
-after the Picard MarkDuplicates step are always saved. Set to true to also copy out BAM
-files from BWA and sorting steps.
 
 ## Job Resources
 ### Automatic resubmission
@@ -225,6 +233,17 @@ Note that these limits are the maximum to be used _per task_. Nextflow will auto
 Wherever process-specific requirements are set in the pipeline, the default value can be changed by creating a custom config file. See the files in [`conf`](../conf) for examples.
 
 ## Other command line parameters
+### `--allow_multi_align`
+Specifying `--allow_multi_align` will turn off the filtering of secondary alignments and unmapped reads from the BWA output file. Without this option, only primary alignments will be retained.
+
+### `--saveAlignedIntermediates`
+By default, intermediate BAM files will not be saved. The final BAM files created
+after the Picard MarkDuplicates step are always saved. Set to true to also copy out BAM
+files from BWA and sorting steps.
+
+### `--project`
+The project ID that is required for submitting slurm jobs when running this pipeline on UPPMAX clusters.
+
 ### `--outdir`
 The output directory where the results will be saved.
 
