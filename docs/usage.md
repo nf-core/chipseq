@@ -26,6 +26,7 @@
     * [Automatic resubmission](#automatic-resubmission)
     * [Maximum resource requests](#maximum-resource-requests)
 * [Other command line parameters](#other-command-line-parameters)
+
     * [`--allow_multi_align`](#--allow_multi_align)
     * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
     * [`--project`](#--project)
