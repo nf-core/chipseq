@@ -81,7 +81,9 @@ def helpMessage() {
       --outdir                      The output directory where the results will be saved
       --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
       --rlocation                   Location to save R-libraries used in the pipeline. Default value is ~/R/nxtflow_libs/
+      --project                     Project ID when running pipeline with slurm on UPPMAX clusters
       --clusterOptions              Extra SLURM options, used in conjunction with Uppmax.config
+      --seqCenter                   Text about sequencing center which will be added in the header of output bam files
       -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
     """.stripIndent()
 }
@@ -245,6 +247,7 @@ if( params.notrim ){
     summary["Trim 3' R2"] = params.three_prime_clip_r2
 }
 summary['Config Profile'] = workflow.profile
+if(params.seqCenter) summary['Seq Center'] = params.seqCenter
 if(params.project) summary['UPPMAX Project'] = params.project
 if(params.email) summary['E-mail Address'] = params.email
 if(workflow.commitId) summary['Pipeline Commit']= workflow.commitId
@@ -399,8 +402,9 @@ process bwa {
     script:
     prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
     filtering = params.allow_multi_align ? '' : "| samtools view -b -q 1 -F 4 -F 256"
+    seqCenter = params.seqCenter ? "-R '@RG\tID:${prefix}\tCN:${params.seqCenter}'" : ''
     """
-    bwa mem -M ${index}/genome.fa $reads | samtools view -bT $index - $filtering > ${prefix}.bam
+    bwa mem -M seqCenter ${index}/genome.fa $reads | samtools view -bT $index - $filtering > ${prefix}.bam
     """
 }
 

@@ -29,6 +29,7 @@
 
     * [`--allow_multi_align`](#--allow_multi_align)
     * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
+    * [`--seqCenter`](#--seqCenter)
     * [`--project`](#--project)
     * [`--outdir`](#--outdir)
     * [`--email`](#--email)
@@ -241,6 +242,9 @@ Specifying `--allow_multi_align` will turn off the filtering of secondary alignm
 By default, intermediate BAM files will not be saved. The final BAM files created
 after the Picard MarkDuplicates step are always saved. Set to true to also copy out BAM
 files from BWA and sorting steps.
+
+### `--seqCenter`
+Text about sequencing center which will be added in the header of output bam files.
 
 ### `--project`
 The project ID that is required for submitting slurm jobs when running this pipeline on UPPMAX clusters.
