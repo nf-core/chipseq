@@ -65,6 +65,7 @@ def helpMessage() {
       --bwa_index                   Path to BWA index
       --largeRef                    Build BWA Index for large reference genome (>2Gb)
       --gtf                         Path to GTF file (Ensembl format)
+      --skipDupRemoval              Skip duplication removal by picard
       --blacklist                   Path to blacklist regions (.BED format), used for filtering out called peaks. Note that --blacklist_filtering is required
       --saveReference               Save the generated reference files in the Results directory.
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
@@ -220,6 +221,7 @@ else if(params.fasta) summary['Fasta Ref'] = params.fasta
 if(params.gtf)  summary['GTF File'] = params.gtf
 if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
 summary['Multiple alignments'] = params.allow_multi_align
+summary['Skip Duplication Removal'] = params.skipDupRemoval
 summary['MACS Config']         = params.macsconfig
 summary['Saturation analysis'] = params.saturation
 summary['MACS broad peaks']    = params.broad
@@ -425,8 +427,8 @@ process samtools {
     file bam from bwa_bam
 
     output:
-    file '*.sorted.bam' into bam_picard, bam_for_mapped
-    file '*.sorted.bam.bai' into bwa_bai, bai_for_mapped
+    file '*.sorted.bam' into bam_picard, bam_for_mapped, bam_total_spp, bam_total_deepTools, bam_total_ngsplot, bam_total_macs, bam_total_saturation
+    file '*.sorted.bam.bai' into bai_bwa, bai_for_mapped, bai_total_deepTools, bai_total_ngsplot, bai_total_macs, bai_total_saturation
     file '*.sorted.bed' into bed_total
     file '*.stats.txt' into samtools_stats
 
@@ -545,13 +547,20 @@ process phantompeakqualtools {
                 saveAs: {filename -> filename.indexOf(".out") > 0 ? "logs/$filename" : "$filename"}
 
     input:
-    file bam from bam_dedup_spp
+    file bam_dedup from bam_dedup_spp
+    file bam_total from bam_total_spp
 
     output:
     file '*.pdf' into spp_results
     file '*.spp.out' into spp_out, spp_out_mqc
 
     script:
+    if(!params.skipDupRemoval){
+        bam = bam_dedup
+    }
+    else {
+        bam = bam_total
+    }
     prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
     run_spp.r -c="$bam" -savp -out="${prefix}.spp.out"
@@ -590,14 +599,25 @@ process deepTools {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
-    file bam from bam_dedup_deepTools.collect()
-    file bai from bai_dedup_deepTools.collect()
+    file bam_dedup from bam_dedup_deepTools.collect()
+    file bai_dedup from bai_dedup_deepTools.collect()
+    file bam_total from bam_total_deepTools.collect()
+    file bai_total from bai_total_deepTools.collect()
 
     output:
     file '*.{txt,pdf,png,npz,bw}' into deepTools_results
     file '*.txt' into deepTools_multiqc
 
     script:
+    if(!params.skipDupRemoval){
+        bam = bam_dedup
+        bai = bai_dedup
+
+    }
+    else {
+        bam = bam_total
+        bai = bai_total
+    }
     if (!params.singleEnd) {
         """
         bamPEFragmentSize \\
@@ -701,8 +721,10 @@ process ngsplot {
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
-    file input_bam_files from bam_dedup_ngsplot.collect()
-    file input_bai_files from bai_dedup_ngsplot.collect()
+    file bam_dedup from bam_dedup_ngsplot.collect()
+    file bai_dedup from bai_dedup_ngsplot.collect()
+    file bam_total from bam_total_ngsplot.collect()
+    file bai_total from bai_total_ngsplot.collect()
 
     output:
     file '*.pdf' into ngsplot_results
@@ -710,8 +732,16 @@ process ngsplot {
     when: REF_ngsplot
 
     script:
+    if(!params.skipDupRemoval){
+        bam = bam_dedup
+        bai = bai_dedup
+    }
+    else {
+        bam = bam_total
+        bai = bai_total
+    }
     """
-    ngs_config_generate.r $input_bam_files
+    ngs_config_generate.r $bam
 
     ngs.plot.r \\
         -G $REF_ngsplot \\
@@ -740,8 +770,10 @@ process macs {
     publishDir "${params.outdir}/macs", mode: 'copy'
 
     input:
-    file bam_for_macs from bam_dedup_macs.collect()
-    file bai_for_macs from bai_dedup_macs.collect()
+    file bam_dedup from bam_dedup_macs.collect()
+    file bai_dedup from bai_dedup_macs.collect()
+    file bam_total from bam_total_macs.collect()
+    file bai_total from bai_total_macs.collect()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
@@ -751,11 +783,22 @@ process macs {
     when: REF_macs
 
     script:
-    def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+    if(!params.skipDupRemoval){
+        bam = bam_dedup
+        bai = bai_dedup
+        def chip = "-t ${chip_sample_id}.dedup.sorted.bam"
+        def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+    }
+    else {
+        bam = bam_total
+        bai = bai_total
+        def chip = "-t ${chip_sample_id}.sorted.bam"
+        def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
+    }
     broad = params.broad ? "--broad" : ''
     """
     macs2 callpeak \\
-        -t ${chip_sample_id}.dedup.sorted.bam \\
+        $chip \\
         $ctrl \\
         $broad \\
         -f BAM \\
@@ -776,8 +819,10 @@ if (params.saturation) {
      publishDir "${params.outdir}/macs/saturation", mode: 'copy'
 
      input:
-     file bam_for_saturation from bam_dedup_saturation.collect()
-     file bai_for_saturation from bai_dedup_saturation.collect()
+     file bam_dedup from bam_dedup_saturation.collect()
+     file bai_dedup from bai_dedup_saturation.collect()
+     file bam_total from bam_total_saturation.collect()
+     file bai_total from bai_total_saturation.collect()
      set chip_sample_id, ctrl_sample_id, analysis_id from saturation_para
      each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 
@@ -787,12 +832,23 @@ if (params.saturation) {
      when: REF_macs
 
      script:
-     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+     if(!params.skipDupRemoval){
+         bam = bam_dedup
+         bai = bai_dedup
+         def chip_sample = "${chip_sample_id}.dedup.sorted.bam"
+         def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+     }
+     else {
+         bam = bam_total
+         bai = bai_total
+         def chip_sample = "${chip_sample_id}.sorted.bam"
+         def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
+     }
      broad = params.broad ? "--broad" : ''
      """
-     samtools view -b -s ${sampling} ${chip_sample_id}.dedup.sorted.bam > ${chip_sample_id}.${sampling}.dedup.sorted.bam
+     samtools view -b -s ${sampling} ${chip_sample} > ${chip_sample}.${sampling}
      macs2 callpeak \\
-         -t ${chip_sample_id}.${sampling}.dedup.sorted.bam \\
+         -t ${chip_sample}.${sampling} \\
          $ctrl \\
          $broad \\
          -f BAM \\
