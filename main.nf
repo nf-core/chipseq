@@ -402,7 +402,7 @@ process bwa {
     script:
     prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
     filtering = params.allow_multi_align ? '' : "| samtools view -b -q 1 -F 4 -F 256"
-    seqCenter = params.seqCenter ? "-R '@RG\tID:${prefix}\tCN:${params.seqCenter}'" : ''
+    seqCenter = params.seqCenter ? "-R '@RG\\tID:${prefix}\\tCN:${params.seqCenter}'" : ''
     """
     bwa mem -M $seqCenter ${index}/genome.fa $reads | samtools view -bT $index - $filtering > ${prefix}.bam
     """
