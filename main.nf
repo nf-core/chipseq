@@ -427,9 +427,9 @@ process samtools {
     file bam from bwa_bam
 
     output:
-    file '*.sorted.bam' into bam_picard, bam_for_mapped, bam_total_spp, bam_total_deepTools, bam_total_ngsplot, bam_total_macs, bam_total_saturation
-    file '*.sorted.bam.bai' into bai_bwa, bai_for_mapped, bai_total_deepTools, bai_total_ngsplot, bai_total_macs, bai_total_saturation
-    file '*.sorted.bed' into bed_total
+    file '*.sorted.bam' into bam_picard, bam_for_mapped
+    file '*.sorted.bam.bai' into bai_picard, bai_for_mapped
+    file '*.sorted.bed' into bed_total, bed_picard
     file '*.stats.txt' into samtools_stats
 
     script:
@@ -469,74 +469,74 @@ process bwa_mapped {
 /*
  * STEP 4 Picard
  */
+if (params.skipDupRemoval) {
+    bam_picard.into {bam_dedup_spp; bam_dedup_ngsplot; bam_dedup_deepTools; bam_dedup_macs; bam_dedup_saturation}
+    bai_picard.into {bai_dedup_spp; bai_dedup_ngsplot; bai_dedup_deepTools; bai_dedup_macs; bai_dedup_saturation}
+    bed_dedup = bed_picard
+    picard_reports = Channel.from(false)
+} else {
+    process picard {
+        tag "$prefix"
+        publishDir "${params.outdir}/picard", mode: 'copy'
 
-process picard {
-    tag "$prefix"
-    publishDir "${params.outdir}/picard", mode: 'copy'
+        input:
+        file bam from bam_picard
+        file bai from bai_picard
+        file bed from bed_picard
 
-    input:
-    file bam from bam_picard
+        output:
+        file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
+        file '*.dedup.sorted.bam.bai' into bai_dedup_spp, bai_dedup_ngsplot, bai_dedup_deepTools, bai_dedup_macs, bai_dedup_saturation
+        file '*.dedup.sorted.bed' into bed_dedup
+        file '*.picardDupMetrics.txt' into picard_reports
 
-    output:
-    file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
-    file '*.dedup.sorted.bam.bai' into bai_dedup_deepTools, bai_dedup_ngsplot, bai_dedup_macs, bai_dedup_saturation
-    file '*.dedup.sorted.bed' into bed_dedup
-    file '*.picardDupMetrics.txt' into picard_reports
-
-    script:
-    prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
-    if( task.memory == null ){
-        log.warn "[Picard MarkDuplicates] Available memory not known - defaulting to 6GB ($prefix)"
-        avail_mem = 6000
-    } else {
-        avail_mem = task.memory.toMega()
-        if( avail_mem <= 0){
+        script:
+        prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
+        if( task.memory == null ){
+            log.warn "[Picard MarkDuplicates] Available memory not known - defaulting to 6GB ($prefix)"
             avail_mem = 6000
-            log.warn "[Picard MarkDuplicates] Available memory 0 - defaulting to 6GB ($prefix)"
-        } else if( avail_mem < 250){
-            avail_mem = 250
-            log.warn "[Picard MarkDuplicates] Available memory under 250MB - defaulting to 250MB ($prefix)"
+        } else {
+            avail_mem = task.memory.toMega()
+            if( avail_mem <= 0){
+                avail_mem = 6000
+                log.warn "[Picard MarkDuplicates] Available memory 0 - defaulting to 6GB ($prefix)"
+            } else if( avail_mem < 250){
+                avail_mem = 250
+                log.warn "[Picard MarkDuplicates] Available memory under 250MB - defaulting to 250MB ($prefix)"
+            }
         }
-    }
-    """
-    picard MarkDuplicates \\
-        INPUT=$bam \\
-        OUTPUT=${prefix}.dedup.bam \\
-        ASSUME_SORTED=true \\
-        REMOVE_DUPLICATES=true \\
-        METRICS_FILE=${prefix}.picardDupMetrics.txt \\
-        VALIDATION_STRINGENCY=LENIENT \\
-        PROGRAM_RECORD_ID='null'
+        """
+        picard MarkDuplicates \\
+            INPUT=$bam \\
+            OUTPUT=${prefix}.dedup.bam \\
+            ASSUME_SORTED=true \\
+            REMOVE_DUPLICATES=true \\
+            METRICS_FILE=${prefix}.picardDupMetrics.txt \\
+            VALIDATION_STRINGENCY=LENIENT \\
+            PROGRAM_RECORD_ID='null'
 
-    samtools sort ${prefix}.dedup.bam -o ${prefix}.dedup.sorted.bam
-    samtools index ${prefix}.dedup.sorted.bam
-    bedtools bamtobed -i ${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.dedup.sorted.bed
-    """
+        samtools sort ${prefix}.dedup.bam -o ${prefix}.dedup.sorted.bam
+        samtools index ${prefix}.dedup.sorted.bam
+        bedtools bamtobed -i ${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.dedup.sorted.bed
+        """
+    }
 }
 
 
 /*
  * STEP 5 Read_count_statistics
  */
-
 process countstat {
     tag "${bed[0].baseName}"
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
-    file bed_dedup from bed_dedup.collect()
-    file bed_total from bed_total.collect()
+    file bed from bed_total.mix(bed_dedup).unique()
 
     output:
     file 'read_count_statistics.txt' into countstat_results
 
     script:
-    if(!params.skipDupRemoval){
-        bed = bed_dedup
-    }
-    else {
-        bed = bed_total
-    }
     """
     countstat.pl $bed
     """
@@ -554,20 +554,14 @@ process phantompeakqualtools {
                 saveAs: {filename -> filename.indexOf(".out") > 0 ? "logs/$filename" : "$filename"}
 
     input:
-    file bam_dedup from bam_dedup_spp
-    file bam_total from bam_total_spp
+    file bam from bam_dedup_spp
+    file bai from bai_dedup_spp
 
     output:
     file '*.pdf' into spp_results
     file '*.spp.out' into spp_out, spp_out_mqc
 
     script:
-    if(!params.skipDupRemoval){
-        bam = bam_dedup
-    }
-    else {
-        bam = bam_total
-    }
     prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
     run_spp.r -c="$bam" -savp -out="${prefix}.spp.out"
@@ -606,25 +600,14 @@ process deepTools {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
-    file bam_dedup from bam_dedup_deepTools.collect()
-    file bai_dedup from bai_dedup_deepTools.collect()
-    file bam_total from bam_total_deepTools.collect()
-    file bai_total from bai_total_deepTools.collect()
+    file bam from bam_dedup_deepTools.collect()
+    file bai from bai_dedup_deepTools.collect()
 
     output:
     file '*.{txt,pdf,png,npz,bw}' into deepTools_results
     file '*.txt' into deepTools_multiqc
 
     script:
-    if(!params.skipDupRemoval){
-        bam = bam_dedup
-        bai = bai_dedup
-
-    }
-    else {
-        bam = bam_total
-        bai = bai_total
-    }
     if (!params.singleEnd) {
         """
         bamPEFragmentSize \\
@@ -728,10 +711,8 @@ process ngsplot {
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
-    file bam_dedup from bam_dedup_ngsplot.collect()
-    file bai_dedup from bai_dedup_ngsplot.collect()
-    file bam_total from bam_total_ngsplot.collect()
-    file bai_total from bai_total_ngsplot.collect()
+    file bam from bam_dedup_ngsplot.collect()
+    file bai from bai_dedup_ngsplot.collect()
 
     output:
     file '*.pdf' into ngsplot_results
@@ -739,14 +720,6 @@ process ngsplot {
     when: REF_ngsplot
 
     script:
-    if(!params.skipDupRemoval){
-        bam = bam_dedup
-        bai = bai_dedup
-    }
-    else {
-        bam = bam_total
-        bai = bai_total
-    }
     """
     ngs_config_generate.r $bam
 
@@ -777,10 +750,8 @@ process macs {
     publishDir "${params.outdir}/macs", mode: 'copy'
 
     input:
-    file bam_dedup from bam_dedup_macs.collect()
-    file bai_dedup from bai_dedup_macs.collect()
-    file bam_total from bam_total_macs.collect()
-    file bai_total from bai_total_macs.collect()
+    file bam from bam_dedup_macs.collect()
+    file bai from bai_dedup_macs.collect()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
@@ -822,10 +793,8 @@ if (params.saturation) {
      publishDir "${params.outdir}/macs/saturation", mode: 'copy'
 
      input:
-     file bam_dedup from bam_dedup_saturation.collect()
-     file bai_dedup from bai_dedup_saturation.collect()
-     file bam_total from bam_total_saturation.collect()
-     file bai_total from bai_total_saturation.collect()
+     file bam from bam_dedup_saturation.collect()
+     file bai from bai_dedup_saturation.collect()
      set chip_sample_id, ctrl_sample_id, analysis_id from saturation_para
      each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 
