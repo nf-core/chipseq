@@ -28,6 +28,6 @@ Pipeline Configuration:
 <% out << summary.collect{ k,v -> " - $k: $v" }.join("\n") %>
 
 --
-nf-core/chipseq is a bioinformatics best-practice analysis pipeline used for ChIP-sequencing data at the National Genomics Infastructure at SciLifeLab Stockholm, Sweden.
+nf-core/chipseq is a bioinformatics best-practice analysis pipeline used for ChIP-sequencing data. It is developed at the National Genomics Infastructure at SciLifeLab Stockholm, Sweden.
 The pipeline uses Nextflow, a bioinformatics workflow tool. It pre-processes raw data from FastQ inputs, aligns the reads and performs extensive quality-control on the results.
 For more information, please see the pipeline homepage: https://github.com/nf-core/chipseq

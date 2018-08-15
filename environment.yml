@@ -1,6 +1,6 @@
 # You can use this file to create a conda environment for this pipeline:
 #   conda env create -f environment.yml
-name: nfcore-chipseq-1.0dev
+name: nfcore-chipseq-1.0
 channels:
   - bioconda
   - conda-forge
@@ -8,25 +8,25 @@ channels:
 dependencies:
   - conda-forge::openjdk=8.0.144 # Needed for FastQC - conda build hangs without this
   - fastqc=0.11.7
-  - trim-galore=0.4.5
+  - trim-galore=0.5.0
   - bwa=0.7.17
   - conda-forge::gawk=4.2.1
   - conda-forge::r-markdown=0.8
   - bioconda::r-spp=1.15.2
   - bedtools=2.27.1
-  - samtools=1.7
-  - picard=2.18.7
-  - deeptools=3.0.2
-  - macs2=2.1.1
-  - multiqc=1.5
-  - conda-forge::r-catools=1.17.1
+  - samtools=1.9
+  - picard=2.18.11
+  - deeptools=3.1.1
+  - macs2=2.1.1.20160309
+  - multiqc=1.6
+  - conda-forge::r-catools=1.17.1.1
   - conda-forge::r-snow=0.4_2
   - conda-forge::r-r.utils=2.6.0
-  - conda-forge::r-stringr=1.3.0
+  - conda-forge::r-stringr=1.3.1
   - conda-forge::r-markdown=0.8
   - conda-forge::r-evaluate=0.10.1
   - conda-forge::r-domc=1.3.5
-  - conda-forge::r-ggplot2=2.2.1
+  - conda-forge::r-ggplot2=3.0.0
   - conda-forge::r-knitr=1.20
   - conda-forge::r-rmysql=0.10.13
   - conda-forge::r-doparallel=1.0.11
@@ -43,7 +43,7 @@ dependencies:
   - bioconda::bioconductor-org.hs.eg.db=3.5.0
   - bioconda::bioconductor-bsgenome.mmusculus.ucsc.mm10=1.4.0
   - bioconda::bioconductor-org.mm.eg.db=3.5.0
-  - deeptools=3.0.2
+  - deeptools=3.1.1
   - bioconda::r-spp=1.15.2
   - bioconda::r-ngsplot=2.63
   - bioconda::r-ngsplotdb-hg19=3.00

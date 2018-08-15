@@ -1,4 +1,4 @@
-# nf-core/chipseq Results
+# nf-core/chipseq
 
 The nf-core/chipseq documentation is split into a few different files:
 
