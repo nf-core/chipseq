@@ -520,18 +520,25 @@ process picard {
  */
 
 process countstat {
-    tag "${input[0].baseName}"
+    tag "${bed[0].baseName}"
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
-    file input from bed_total.mix(bed_dedup).toSortedList()
+    file bed_dedup from bed_dedup.collect()
+    file bed_total from bed_total.collect()
 
     output:
     file 'read_count_statistics.txt' into countstat_results
 
     script:
+    if(!params.skipDupRemoval){
+        bed = bed_dedup
+    }
+    else {
+        bed = bed_total
+    }
     """
-    countstat.pl $input
+    countstat.pl $bed
     """
 }
 
@@ -717,7 +724,7 @@ process deepTools {
  */
 
 process ngsplot {
-    tag "${input_bam_files[0].baseName}"
+    tag "${bam[0].baseName}"
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
@@ -784,16 +791,12 @@ process macs {
 
     script:
     if(!params.skipDupRemoval){
-        bam = bam_dedup
-        bai = bai_dedup
-        def chip = "-t ${chip_sample_id}.dedup.sorted.bam"
-        def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+        chip = "-t ${chip_sample_id}.dedup.sorted.bam"
+        ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
     }
     else {
-        bam = bam_total
-        bai = bai_total
-        def chip = "-t ${chip_sample_id}.sorted.bam"
-        def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
+        chip = "-t ${chip_sample_id}.sorted.bam"
+        ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
     }
     broad = params.broad ? "--broad" : ''
     """
@@ -833,22 +836,18 @@ if (params.saturation) {
 
      script:
      if(!params.skipDupRemoval){
-         bam = bam_dedup
-         bai = bai_dedup
-         def chip_sample = "${chip_sample_id}.dedup.sorted.bam"
-         def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+         chip_sample = "${chip_sample_id}.dedup.sorted.bam"
+         ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
      }
      else {
-         bam = bam_total
-         bai = bai_total
-         def chip_sample = "${chip_sample_id}.sorted.bam"
-         def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
+         chip_sample = "${chip_sample_id}.sorted.bam"
+         ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
      }
      broad = params.broad ? "--broad" : ''
      """
-     samtools view -b -s ${sampling} ${chip_sample} > ${chip_sample}.${sampling}
+     samtools view -b -s ${sampling} ${chip_sample} > ${chip_sample}.${sampling}.bam
      macs2 callpeak \\
-         -t ${chip_sample}.${sampling} \\
+         -t ${chip_sample}.${sampling}.bam \\
          $ctrl \\
          $broad \\
          -f BAM \\
