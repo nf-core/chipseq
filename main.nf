@@ -163,19 +163,19 @@ if(params.readPaths){
             .from(params.readPaths)
             .map { row -> [ row[0], [file(row[1][0])]] }
             .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
-            .into { raw_reads_fastqc; raw_reads_trimgalore }
+            .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
     } else {
         Channel
             .from(params.readPaths)
             .map { row -> [ row[0], [file(row[1][0]), file(row[1][1])]] }
             .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
-            .into { raw_reads_fastqc; raw_reads_trimgalore }
+            .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
     }
 } else {
     Channel
         .fromFilePairs( params.reads, size: params.singleEnd ? 1 : 2 )
         .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --singleEnd on the command line." }
-        .into { raw_reads_fastqc; raw_reads_trimgalore }
+        .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
 }
 
 
@@ -191,7 +191,31 @@ Channel
         analysis_id = list[2]
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
-    .into{ macs_para; saturation_para }
+    .into{ vali_para; macs_para; saturation_para }
+
+// Validate all samples in macs config file
+def config_samples = []
+for (line in vali_para){
+    if (line.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
+        config_samples.add(line[0])
+        config_samples.add(line[1])
+    }
+}
+config_samples.removeAll{ it == '' }
+config_samples.unique(false)
+
+def fastq_samples = []
+for (sample in raw_reads_configvali){
+    if (sample.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
+        fastq_samples.add(sample[0].toString() - ~/(.R)?(_R)?(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/)
+    }
+}
+
+def missing_samples = config_samples - config_samples.intersect(fastq_samples)
+if(!missing_samples.isEmpty()){
+    exit 1, "No FastQ file found for sample in MACS config: ${missing_samples}"
+}
+
 
 /*
  * Reference to use for MACS, ngs.plot.r and annotation
