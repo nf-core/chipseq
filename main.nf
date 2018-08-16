@@ -314,7 +314,7 @@ if(!params.bwa_index && fasta){
         script:
         BWAIndexOption = params.largeRef ? "bwtsw" : 'is'
         """
-        bwa index -a BWAIndexOption $fasta
+        bwa index -a $BWAIndexOption $fasta
         mkdir BWAIndex && mv ${fasta}* BWAIndex
         """
     }
