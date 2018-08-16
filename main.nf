@@ -63,7 +63,9 @@ def helpMessage() {
     References
       --fasta                       Path to Fasta reference
       --bwa_index                   Path to BWA index
+      --largeRef                    Build BWA Index for large reference genome (>2Gb)
       --gtf                         Path to GTF file (Ensembl format)
+      --skipDupRemoval              Skip duplication removal by picard
       --blacklist                   Path to blacklist regions (.BED format), used for filtering out called peaks. Note that --blacklist_filtering is required
       --saveReference               Save the generated reference files in the Results directory.
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
@@ -80,7 +82,9 @@ def helpMessage() {
       --outdir                      The output directory where the results will be saved
       --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
       --rlocation                   Location to save R-libraries used in the pipeline. Default value is ~/R/nxtflow_libs/
+      --project                     Project ID when running pipeline with slurm on UPPMAX clusters
       --clusterOptions              Extra SLURM options, used in conjunction with Uppmax.config
+      --seqCenter                   Text about sequencing center which will be added in the header of output bam files
       -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
     """.stripIndent()
 }
@@ -215,14 +219,16 @@ summary['Genome']              = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
 else if(params.fasta) summary['Fasta Ref'] = params.fasta
 if(params.gtf)  summary['GTF File'] = params.gtf
+if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
 summary['Multiple alignments'] = params.allow_multi_align
+summary['Skip Duplication Removal'] = params.skipDupRemoval
 summary['MACS Config']         = params.macsconfig
 summary['Saturation analysis'] = params.saturation
 summary['MACS broad peaks']    = params.broad
 summary['Blacklist filtering'] = params.blacklist_filtering
 if( params.blacklist_filtering ) summary['Blacklist BED'] = params.blacklist
 summary['Extend Reads']        = "$params.extendReadsLen bp"
-summary['Container']           = workflow.container
+if(workflow.container) summary['Container']           = workflow.container
 if(workflow.revision) summary['Pipeline Release'] = workflow.revision
 summary['Current home']        = "$HOME"
 summary['Current user']        = "$USER"
@@ -243,6 +249,7 @@ if( params.notrim ){
     summary["Trim 3' R2"] = params.three_prime_clip_r2
 }
 summary['Config Profile'] = workflow.profile
+if(params.seqCenter) summary['Seq Center'] = params.seqCenter
 if(params.project) summary['UPPMAX Project'] = params.project
 if(params.email) summary['E-mail Address'] = params.email
 if(workflow.commitId) summary['Pipeline Commit']= workflow.commitId
@@ -305,8 +312,9 @@ if(!params.bwa_index && fasta){
         file "BWAIndex" into bwa_index
 
         script:
+        BWAIndexOption = params.largeRef ? "bwtsw" : 'is'
         """
-        bwa index -a bwtsw $fasta
+        bwa index -a $BWAIndexOption $fasta
         mkdir BWAIndex && mv ${fasta}* BWAIndex
         """
     }
@@ -396,8 +404,9 @@ process bwa {
     script:
     prefix = reads[0].toString() - ~/(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/
     filtering = params.allow_multi_align ? '' : "| samtools view -b -q 1 -F 4 -F 256"
+    seqCenter = params.seqCenter ? "-R '@RG\\tID:${prefix}\\tCN:${params.seqCenter}'" : ''
     """
-    bwa mem -M ${index}/genome.fa $reads | samtools view -bT $index - $filtering > ${prefix}.bam
+    bwa mem -M $seqCenter ${index}/genome.fa $reads | samtools view -bT $index - $filtering > ${prefix}.bam
     """
 }
 
@@ -419,7 +428,7 @@ process samtools {
 
     output:
     file '*.sorted.bam' into bam_picard, bam_for_mapped
-    file '*.sorted.bam.bai' into bwa_bai, bai_for_mapped
+    file '*.sorted.bam.bai' into bai_picard, bai_for_mapped
     file '*.sorted.bed' into bed_total
     file '*.stats.txt' into samtools_stats
 
@@ -460,69 +469,74 @@ process bwa_mapped {
 /*
  * STEP 4 Picard
  */
+if (params.skipDupRemoval) {
+    bam_picard.into {bam_dedup_spp; bam_dedup_ngsplot; bam_dedup_deepTools; bam_dedup_macs; bam_dedup_saturation}
+    bai_picard.into {bai_dedup_spp; bai_dedup_ngsplot; bai_dedup_deepTools; bai_dedup_macs; bai_dedup_saturation}
+    picard_reports = Channel.from(false)
+} else {
+    process picard {
+        tag "$prefix"
+        publishDir "${params.outdir}/picard", mode: 'copy'
 
-process picard {
-    tag "$prefix"
-    publishDir "${params.outdir}/picard", mode: 'copy'
+        input:
+        file bam from bam_picard
+        file bai from bai_picard
 
-    input:
-    file bam from bam_picard
+        output:
+        file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
+        file '*.dedup.sorted.bam.bai' into bai_dedup_spp, bai_dedup_ngsplot, bai_dedup_deepTools, bai_dedup_macs, bai_dedup_saturation
+        file '*.dedup.sorted.bed' into bed_dedup
+        file '*.picardDupMetrics.txt' into picard_reports
 
-    output:
-    file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
-    file '*.dedup.sorted.bam.bai' into bai_dedup_deepTools, bai_dedup_ngsplot, bai_dedup_macs, bai_dedup_saturation
-    file '*.dedup.sorted.bed' into bed_dedup
-    file '*.picardDupMetrics.txt' into picard_reports
-
-    script:
-    prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
-    if( task.memory == null ){
-        log.warn "[Picard MarkDuplicates] Available memory not known - defaulting to 6GB ($prefix)"
-        avail_mem = 6000
-    } else {
-        avail_mem = task.memory.toMega()
-        if( avail_mem <= 0){
+        script:
+        prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
+        if( task.memory == null ){
+            log.warn "[Picard MarkDuplicates] Available memory not known - defaulting to 6GB ($prefix)"
             avail_mem = 6000
-            log.warn "[Picard MarkDuplicates] Available memory 0 - defaulting to 6GB ($prefix)"
-        } else if( avail_mem < 250){
-            avail_mem = 250
-            log.warn "[Picard MarkDuplicates] Available memory under 250MB - defaulting to 250MB ($prefix)"
+        } else {
+            avail_mem = task.memory.toMega()
+            if( avail_mem <= 0){
+                avail_mem = 6000
+                log.warn "[Picard MarkDuplicates] Available memory 0 - defaulting to 6GB ($prefix)"
+            } else if( avail_mem < 250){
+                avail_mem = 250
+                log.warn "[Picard MarkDuplicates] Available memory under 250MB - defaulting to 250MB ($prefix)"
+            }
         }
-    }
-    """
-    picard MarkDuplicates \\
-        INPUT=$bam \\
-        OUTPUT=${prefix}.dedup.bam \\
-        ASSUME_SORTED=true \\
-        REMOVE_DUPLICATES=true \\
-        METRICS_FILE=${prefix}.picardDupMetrics.txt \\
-        VALIDATION_STRINGENCY=LENIENT \\
-        PROGRAM_RECORD_ID='null'
+        """
+        picard MarkDuplicates \\
+            INPUT=$bam \\
+            OUTPUT=${prefix}.dedup.bam \\
+            ASSUME_SORTED=true \\
+            REMOVE_DUPLICATES=true \\
+            METRICS_FILE=${prefix}.picardDupMetrics.txt \\
+            VALIDATION_STRINGENCY=LENIENT \\
+            PROGRAM_RECORD_ID='null'
 
-    samtools sort ${prefix}.dedup.bam -o ${prefix}.dedup.sorted.bam
-    samtools index ${prefix}.dedup.sorted.bam
-    bedtools bamtobed -i ${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.dedup.sorted.bed
-    """
+        samtools sort ${prefix}.dedup.bam -o ${prefix}.dedup.sorted.bam
+        samtools index ${prefix}.dedup.sorted.bam
+        bedtools bamtobed -i ${prefix}.dedup.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${prefix}.dedup.sorted.bed
+        """
+    }
 }
 
 
 /*
  * STEP 5 Read_count_statistics
  */
-
 process countstat {
-    tag "${input[0].baseName}"
+    tag "${bed[0].baseName}"
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
-    file input from bed_total.mix(bed_dedup).toSortedList()
+    file bed from params.skipDupRemoval ? bed_total.collect() : bed_total.mix(bed_dedup).collect()
 
     output:
     file 'read_count_statistics.txt' into countstat_results
 
     script:
     """
-    countstat.pl $input
+    countstat.pl $bed
     """
 }
 
@@ -539,6 +553,7 @@ process phantompeakqualtools {
 
     input:
     file bam from bam_dedup_spp
+    file bai from bai_dedup_spp
 
     output:
     file '*.pdf' into spp_results
@@ -690,12 +705,12 @@ process deepTools {
  */
 
 process ngsplot {
-    tag "${input_bam_files[0].baseName}"
+    tag "${bam[0].baseName}"
     publishDir "${params.outdir}/ngsplot", mode: 'copy'
 
     input:
-    file input_bam_files from bam_dedup_ngsplot.collect()
-    file input_bai_files from bai_dedup_ngsplot.collect()
+    file bam from bam_dedup_ngsplot.collect()
+    file bai from bai_dedup_ngsplot.collect()
 
     output:
     file '*.pdf' into ngsplot_results
@@ -704,7 +719,7 @@ process ngsplot {
 
     script:
     """
-    ngs_config_generate.r $input_bam_files
+    ngs_config_generate.r $bam
 
     ngs.plot.r \\
         -G $REF_ngsplot \\
@@ -729,12 +744,12 @@ process ngsplot {
  */
 
 process macs {
-    tag "${bam_for_macs[0].baseName}"
+    tag "${analysis_id}"
     publishDir "${params.outdir}/macs", mode: 'copy'
 
     input:
-    file bam_for_macs from bam_dedup_macs.collect()
-    file bai_for_macs from bai_dedup_macs.collect()
+    file bam from bam_dedup_macs.collect()
+    file bai from bai_dedup_macs.collect()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
@@ -744,11 +759,18 @@ process macs {
     when: REF_macs
 
     script:
-    def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+    if(!params.skipDupRemoval){
+        chip = "-t ${chip_sample_id}.dedup.sorted.bam"
+        ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+    }
+    else {
+        chip = "-t ${chip_sample_id}.sorted.bam"
+        ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
+    }
     broad = params.broad ? "--broad" : ''
     """
     macs2 callpeak \\
-        -t ${chip_sample_id}.dedup.sorted.bam \\
+        $chip \\
         $ctrl \\
         $broad \\
         -f BAM \\
@@ -765,12 +787,12 @@ process macs {
 if (params.saturation) {
 
   process saturation {
-     tag "${bam_for_saturation[0].baseName}"
+     tag "${analysis_id}.${sampling}"
      publishDir "${params.outdir}/macs/saturation", mode: 'copy'
 
      input:
-     file bam_for_saturation from bam_dedup_saturation.collect()
-     file bai_for_saturation from bai_dedup_saturation.collect()
+     file bam from bam_dedup_saturation.collect()
+     file bai from bai_dedup_saturation.collect()
      set chip_sample_id, ctrl_sample_id, analysis_id from saturation_para
      each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 
@@ -780,12 +802,19 @@ if (params.saturation) {
      when: REF_macs
 
      script:
-     def ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+     if(!params.skipDupRemoval){
+         chip_sample = "${chip_sample_id}.dedup.sorted.bam"
+         ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
+     }
+     else {
+         chip_sample = "${chip_sample_id}.sorted.bam"
+         ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
+     }
      broad = params.broad ? "--broad" : ''
      """
-     samtools view -b -s ${sampling} ${chip_sample_id}.dedup.sorted.bam > ${chip_sample_id}.${sampling}.dedup.sorted.bam
+     samtools view -b -s ${sampling} ${chip_sample} > ${chip_sample}.${sampling}.bam
      macs2 callpeak \\
-         -t ${chip_sample_id}.${sampling}.dedup.sorted.bam \\
+         -t ${chip_sample}.${sampling}.bam \\
          $ctrl \\
          $broad \\
          -f BAM \\

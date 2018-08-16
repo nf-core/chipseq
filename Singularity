@@ -4,10 +4,10 @@ Bootstrap:docker
 %labels
     MAINTAINER Alexander Peltzer <alexander.peltzer@qbic.uni-tuebingen.de>
     DESCRIPTION Container image containing all requirements for the nf-core/chipseq pipeline
-    VERSION 1.4dev
+    VERSION 1.0
 
 %environment
-    PATH=/opt/conda/envs/nf-core-chipseq-1.4dev/bin:$PATH
+    PATH=/opt/conda/envs/nf-core-chipseq-1.0/bin:$PATH
     export PATH
 
 %files
