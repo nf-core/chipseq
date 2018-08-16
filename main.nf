@@ -182,45 +182,43 @@ if(params.readPaths){
 /*
  * Create a channel for macs config file
  */
-if(params.macsconfig){
-    Channel
-        .from(macsconfig.readLines())
-        .map { line ->
-            list = line.split(',')
-            chip_sample_id = list[0]
-            ctrl_sample_id = list[1]
-            analysis_id = list[2]
-            [ chip_sample_id, ctrl_sample_id, analysis_id ]
-        }
-        .into{ vali_para; macs_para; saturation_para }
-
-    // Validate all samples in macs config file
-    def config_samples = []
-    for (line in vali_para){
-        if (line.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
-            config_samples.add(line[0])
-            config_samples.add(line[1])
-        }
+Channel
+    .from(macsconfig.readLines())
+    .map { line ->
+        list = line.split(',')
+        chip_sample_id = list[0]
+        ctrl_sample_id = list[1]
+        analysis_id = list[2]
+        [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
-    config_samples.removeAll{ it == '' }
-    config_samples.unique(false)
+    .into{ vali_para; macs_para; saturation_para }
 
-    def fastq_samples = []
-    for (sample in raw_reads_configvali){
-        if (sample.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
-            fastq_samples.add(sample[0].toString() - ~/(.R)?(_R)?(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/)
-        }
+// Validate all samples in macs config file
+def config_samples = []
+for (line in vali_para){
+    if (line.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
+        config_samples.add(line[0])
+        config_samples.add(line[1])
     }
+}
+config_samples.removeAll{ it == '' }
+config_samples.unique(false)
 
-    def missing_samples = config_samples - config_samples.intersect(fastq_samples)
-    if(!missing_samples.isEmpty()){
-        exit 1, "No FastQ file found for sample in MACS config: ${missing_samples}"
+def fastq_samples = []
+for (sample in raw_reads_configvali){
+    if (sample.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
+        fastq_samples.add(sample[0].toString() - ~/(.R)?(_R)?(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/)
     }
+}
 
-    def dropped_samples = fastq_samples - fastq_samples.intersect(config_samples)
-    if(!dropped_samples.isEmpty()){
-        log.warn "Sample ${dropped_samples} not included in MACS config"
-    }
+def missing_samples = config_samples - config_samples.intersect(fastq_samples)
+if(!missing_samples.isEmpty()){
+    exit 1, "No FastQ file found for sample in MACS config: ${missing_samples}"
+}
+
+def dropped_samples = fastq_samples - fastq_samples.intersect(config_samples)
+if(!dropped_samples.isEmpty()){
+    log.warn "Sample ${dropped_samples} not included in MACS config"
 }
 
 
