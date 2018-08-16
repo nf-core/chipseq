@@ -429,7 +429,7 @@ process samtools {
     output:
     file '*.sorted.bam' into bam_picard, bam_for_mapped
     file '*.sorted.bam.bai' into bai_picard, bai_for_mapped
-    file '*.sorted.bed' into bed_total, bed_picard
+    file '*.sorted.bed' into bed_total
     file '*.stats.txt' into samtools_stats
 
     script:
@@ -472,7 +472,6 @@ process bwa_mapped {
 if (params.skipDupRemoval) {
     bam_picard.into {bam_dedup_spp; bam_dedup_ngsplot; bam_dedup_deepTools; bam_dedup_macs; bam_dedup_saturation}
     bai_picard.into {bai_dedup_spp; bai_dedup_ngsplot; bai_dedup_deepTools; bai_dedup_macs; bai_dedup_saturation}
-    bed_dedup = bed_picard
     picard_reports = Channel.from(false)
 } else {
     process picard {
@@ -482,7 +481,6 @@ if (params.skipDupRemoval) {
         input:
         file bam from bam_picard
         file bai from bai_picard
-        file bed from bed_picard
 
         output:
         file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
@@ -531,7 +529,7 @@ process countstat {
     publishDir "${params.outdir}/countstat", mode: 'copy'
 
     input:
-    file bed from bed_total.mix(bed_dedup).unique()
+    file bed from params.skipDupRemoval ? bed_total.collect() : bed_total.mix(bed_dedup).collect()
 
     output:
     file 'read_count_statistics.txt' into countstat_results
