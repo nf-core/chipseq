@@ -216,6 +216,10 @@ if(!missing_samples.isEmpty()){
     exit 1, "No FastQ file found for sample in MACS config: ${missing_samples}"
 }
 
+def dropped_samples = fastq_samples - fastq_samples.intersect(config_samples)
+if(!dropped_samples.isEmpty()){
+    log.warn "Sample ${dropped_samples} not included in MACS config"
+}
 
 /*
  * Reference to use for MACS, ngs.plot.r and annotation
