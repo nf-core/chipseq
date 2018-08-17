@@ -585,13 +585,15 @@ process phantompeakqualtools {
     file bai from bai_dedup_spp
 
     output:
-    file '*.pdf' into spp_results
+    file '*.pdf' into spp_plot
     file '*.spp.out' into spp_out, spp_out_mqc
+    file '*.spp.csv' into spp_csv_mqc
 
     script:
     prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
-    run_spp.r -c="$bam" -savp -out="${prefix}.spp.out"
+    run_spp.r -c="$bam" -savp --savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
+    processSppRdata.r ${prefix}.spp.Rdata ${prefix}.spp.csv
     """
 }
 
@@ -942,7 +944,7 @@ process multiqc {
     file ('picard/*') from picard_reports.collect()
     file ('deeptools/*') from deepTools_multiqc.collect()
     file ('phantompeakqualtools/*') from spp_out_mqc.collect()
-    file ('phantompeakqualtools/*') from calculateNSCRSC_results.collect()
+    file ('phantompeakqualtools/*') from spp_csv_mqc.collect()
     file ('software_versions/*') from software_versions_yaml.collect()
 
     output:
