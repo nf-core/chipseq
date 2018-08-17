@@ -592,7 +592,7 @@ process phantompeakqualtools {
     script:
     prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
-    run_spp.r -c="$bam" -savp --savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
+    run_spp.r -c="$bam" -savp -savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
     processSppRdata.r ${prefix}.spp.Rdata ${prefix}.spp.csv
     """
 }
