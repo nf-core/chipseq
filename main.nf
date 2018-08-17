@@ -34,10 +34,17 @@ Pipeline overview:
 */
 
 def helpMessage() {
-    log.info"""
-    =========================================
-     nf-core/chipseq : ChIP-Seq Best Practice v${manifest.pipelineVersionn}
-    =========================================
+    log.info """
+    =======================================================
+                                              ,--./,-.
+              ___     __   __   __   ___     /,-._.--~\'
+        |\\ | |__  __ /  ` /  \\ |__) |__         }  {
+        | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
+                                              `._,._,\'
+
+     nf-core/chipseq : ChIP-Seq Best Practice v${params.pipelineVersion}
+    =======================================================
+
     Usage:
 
     The typical command for running the pipeline is as follows:
@@ -209,7 +216,7 @@ log.info """=======================================================
     | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
                                           `._,._,\'
 
- nf-core/chipseq : ChIP-Seq Best Practice v${manifest.pipelineVersion}
+ nf-core/chipseq : ChIP-Seq Best Practice v${params.pipelineVersion}
 ======================================================="""
 def summary = [:]
 summary['Run Name']            = custom_runName ?: workflow.runName
@@ -865,7 +872,7 @@ process get_software_versions {
 
     script:
     """
-    echo ${manifest.pipelineVersion} > v_ngi_chipseq.txt
+    echo ${params.pipelineVersion} > v_ngi_chipseq.txt
     echo $workflow.nextflow.version > v_nextflow.txt
     fastqc --version > v_fastqc.txt
     trim_galore --version > v_trim_galore.txt
@@ -949,7 +956,7 @@ workflow.onComplete {
       subject = "[nf-core/chipseq] FAILED: $workflow.runName"
     }
     def email_fields = [:]
-    email_fields['version'] = manifest.pipelineVersion
+    email_fields['version'] = params.pipelineVersion
     email_fields['runName'] = custom_runName ?: workflow.runName
     email_fields['success'] = workflow.success
     email_fields['dateComplete'] = workflow.complete
