@@ -643,8 +643,10 @@ process deepTools {
         bamPEFragmentSize \\
             --binSize 1000 \\
             --bamfiles $bam \\
-            --histogram fragment_length_distribution_histogram.png \\
-            --plotTitle "Fragment Length Distribution"
+            --o fragment_length_distribution_histogram.pdf \\
+            --plotFileFormat pdf \\
+            --plotTitle "Paired-end Fragment Size Distribution" \\
+            --outRawFragmentLengths bamPEFragmentSize_rawdata.txt
         """
     }
     if(bam instanceof Path){
@@ -726,6 +728,13 @@ process deepTools {
             -o pcaplot_multiBamSummary.png \\
             --plotTitle "Principal Component Analysis Plot" \\
             --outFileNameData pcaplot_multiBamSummary.txt
+
+        bamPEFragmentSize \\
+            -in multiBamSummary.npz \\
+            --o bamPEFragmentSize_multiBamSummary.pdf \\
+            --plotFileFormat pdf \\
+            --plotTitle "Paired-end Fragment Size Distribution" \\
+            --outRawFragmentLengths
         """
     }
 }
