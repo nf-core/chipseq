@@ -594,6 +594,7 @@ process phantompeakqualtools {
     """
     run_spp.r -c="$bam" -savp -savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
     processSppRdata.r ${prefix}.spp.Rdata ${prefix}.spp.csv
+    sed -i '1i Processed Rdata output file for strand-shift cross correlation plot from phantompeakqualtools' ${prefix}.spp.csv
     """
 }
 
