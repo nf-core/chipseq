@@ -33,10 +33,17 @@ Pipeline overview:
 */
 
 def helpMessage() {
-    log.info"""
-    =========================================
-     nf-core/chipseq : ChIP-Seq Best Practice v${params.version}
-    =========================================
+    log.info """
+    =======================================================
+                                              ,--./,-.
+              ___     __   __   __   ___     /,-._.--~\'
+        |\\ | |__  __ /  ` /  \\ |__) |__         }  {
+        | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
+                                              `._,._,\'
+
+     nf-core/chipseq : ChIP-Seq Best Practice v${params.pipelineVersion}
+    =======================================================
+
     Usage:
 
     The typical command for running the pipeline is as follows:
@@ -237,7 +244,7 @@ log.info """=======================================================
     | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
                                           `._,._,\'
 
- nf-core/chipseq : ChIP-Seq Best Practice v${params.version}
+ nf-core/chipseq : ChIP-Seq Best Practice v${params.pipelineVersion}
 ======================================================="""
 def summary = [:]
 summary['Run Name']            = custom_runName ?: workflow.runName
@@ -285,21 +292,6 @@ if(params.email) summary['E-mail Address'] = params.email
 if(workflow.commitId) summary['Pipeline Commit']= workflow.commitId
 log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
 log.info "===================================="
-
-// Check that Nextflow version is up to date enough
-// try / throw / catch works for NF versions < 0.30.1 when this was implemented
-nf_required_version = '0.30.1'
-try {
-    if( ! nextflow.version.matches(">= $nf_required_version") ){
-        throw GroovyException('Nextflow version too old')
-    }
-} catch (all) {
-    log.error "====================================================\n" +
-              "  Nextflow version $nf_required_version required! You are running v$workflow.nextflow.version.\n" +
-              "  Pipeline execution will continue, but things may break.\n" +
-              "  Please run `nextflow self-update` to update Nextflow.\n" +
-              "============================================================"
-}
 
 // Show a big error message if we're running on the base config and an uppmax cluster
 if( workflow.profile == 'standard'){
@@ -415,7 +407,7 @@ process bwa {
 
     input:
     file reads from trimmed_reads
-    file index from bwa_index.first()
+    file index from bwa_index.collect()
 
     output:
     file '*.bam' into bwa_bam
@@ -727,7 +719,8 @@ process deepTools {
             -out multiBamSummary.npz \\
             --extendReads ${params.extendReadsLen} \\
             --ignoreDuplicates \\
-            --centerReads
+            --centerReads \\
+            --smartLabels
 
         plotCorrelation \\
             -in multiBamSummary.npz \\
@@ -746,7 +739,8 @@ process deepTools {
             -o pcaplot.pdf \\
             --plotFileFormat pdf \\
             --plotTitle "Principal Component Analysis Plot" \\
-            --outFileNameData pcaplot.txt
+            --outFileNameData pcaplot.txt \\
+            --plotWidth 8
         """
     }
 }
@@ -885,7 +879,7 @@ process get_software_versions {
 
     script:
     """
-    echo ${params.version} > v_ngi_chipseq.txt
+    echo ${params.pipelineVersion} > v_ngi_chipseq.txt
     echo $workflow.nextflow.version > v_nextflow.txt
     fastqc --version > v_fastqc.txt
     trim_galore --version > v_trim_galore.txt
@@ -968,7 +962,7 @@ workflow.onComplete {
       subject = "[nf-core/chipseq] FAILED: $workflow.runName"
     }
     def email_fields = [:]
-    email_fields['version'] = params.version
+    email_fields['version'] = params.pipelineVersion
     email_fields['runName'] = custom_runName ?: workflow.runName
     email_fields['success'] = workflow.success
     email_fields['dateComplete'] = workflow.complete
