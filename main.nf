@@ -658,7 +658,8 @@ process deepTools {
             -out multiBamSummary.npz \\
             --extendReads ${params.extendReadsLen} \\
             --ignoreDuplicates \\
-            --centerReads
+            --centerReads \\
+            --smartLabels
 
         plotCorrelation \\
             -in multiBamSummary.npz \\
@@ -685,7 +686,8 @@ process deepTools {
             -in multiBamSummary.npz \\
             -o pcaplot_multiBamSummary.png \\
             --plotTitle "Principal Component Analysis Plot" \\
-            --outFileNameData pcaplot_multiBamSummary.txt
+            --outFileNameData pcaplot_multiBamSummary.txt \\
+            --plotWidth 20
         """
     }
 }
