@@ -5,8 +5,9 @@ v1.0 release of nf-core/chipseq
 * Add function to validate input files in MACS config file
 * Remove ngsplot and move the function of plotProfile in deepTools
 * Support reference genome GRCm37
-* Add pre-defined gsize for multiple reference genomes to support macs2 peak calling
-* Add blacklist files for multiple reference genomes
-* Large refactor of documentation
+* Add pre-defined genome sizes for all reference genomes to support macs2 peak calling and downstream processing
+* Add blacklist files for ce10, dm3, hg38, and mm9
+* Documents revised accordingly.
+
 
 Repository moved from https://github.com/SciLifeLab/NGI-ChIPseq
