@@ -388,7 +388,7 @@ process bwa {
 
     input:
     file reads from trimmed_reads
-    file index from bwa_index.first()
+    file index from bwa_index.collect()
 
     output:
     file '*.bam' into bwa_bam
@@ -687,7 +687,7 @@ process deepTools {
             -o pcaplot_multiBamSummary.png \\
             --plotTitle "Principal Component Analysis Plot" \\
             --outFileNameData pcaplot_multiBamSummary.txt \\
-            --plotWidth 20
+            --plotWidth 8
         """
     }
 }
