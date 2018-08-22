@@ -13,8 +13,7 @@ and processes data using the following steps:
 * [Bedtools](#bedtools) - bam to bed file conversion
 * [Picard](#picard) - duplicate reads removal
 * [Phantompeakqualtools](#phantompeakqualtools) - normalized strand cross-correlation (NSC) and relative strand cross-correlation (RSC)
-* [deepTools](#deeptools) - fingerprint and correlation plots of reads over genome-wide bins
-* [NGSplot](#ngsplot) - distribution of reads around transcription start sites (TSS) and gene bodies
+* [deepTools](#deeptools) - fingerprint, correlation plots of reads over genome-wide bins; distribution of reads around genes
 * [MACS](#macs) - peak calling
 * [MultiQC](#multiqc) - aggregate report, describing results of the whole pipeline
 
@@ -101,45 +100,44 @@ Relative strand correlation (RSC) is the ratio between the fragment-length peak 
 **Output directory: `results/phantompeakqualtools`**
 
 * `sample.dedup.sorted.pdf`
-  * The strand cross-correlation plot of aligned reads after duplicate removal
+  * The strand shift cross-correlation plot of aligned reads after duplicate removal
 * `sample.spp.out`
   * Normalized strand cross-correlation (NSC) and relative strand cross-correlation (RSC) results
+* `sample.spp.csv`
+  * Raw data for creating the strand shift cross-correlation plot
 
 ## deepTools
-[deepTools](https://deeptools.github.io/) visualizes the fingerprint of sequence reads distribution, and the pair-wise correlation of samples based on genome-wide reads counts.
+[deepTools](https://deeptools.github.io/) visualizes the distribution of fragment sizes for paired-end dataset, the fingerprint of sequence reads distribution, the distribution of sequence reads around genes in reference genome, the pair-wise correlation and PCA clustering of samples based on genome-wide reads counts.
+
+![deepTools](images/fragmentsize.png)
 
 In a fingerprint plot, a completely random distribution of reads along the genome (i.e. without enrichments in open chromatin etc.) should generate a straight diagonal line. A very specific and strong regional enrichment will be indicated by a prominent and steep rise of the cumulative sum towards the highest rank. This means that a big chunk of reads from the  sample is located in few bins which corresponds to high, narrow enrichments which are typically seen for transcription factors.
 
 ![deepTools](images/fingerprints.png)
 
+Distribution of sequence reads around genes plus upstream and downstream flanking regions in the reference genome. All genes have been normalized to the same length.
+
+![deepTools](images/readdistribution.png)
+
 Spearman correlation coefficient in each square is calculated with the read counts in genomic bins between the sample pair at the top and the right. A higher correlation coefficient value indicates higher similarity between the sample pair.
 
 ![deepTools](images/heatmap_SpearmanCorr.png)
 
+The upper panel shows the clustering of samples based on the top 2 principal components of genome-wide distribution of sequence reads. The lower panel shows the contribution weights of principal components.
+
+![deepTools](images/pcaplot.png)
+
 **Output directory: `results/deepTools`**
-
+* `fragment_size_histogram.pdf`
+  * Histogram of fragment sizes for paired-end reads
 * `fingerprint.pdf`
-  * Fingerprint plot for sequencing reads distribution
-* `heatmap_SpearmanCorr.png`
+  * Fingerprint plot for sequence reads distribution
+* `read_distribution_profile.pdf`
+  * Distribution of sequence reads around genes
+* `heatmap_SpearmanCorr.pdf`
   * Spearman pairwise correlation of samples based on read counts
-* `heatmap_PearsonCorr.png`
-  * Scatter plot of read counts between sample pairs
-
-## NGSplot
-[NGSplot](https://github.com/shenlab-sinai/ngsplot) visualizes the distribution of sequence reads around the transcription start site (TSS), as well as along the gene body plus upstream and downstream flanking regions of the closest annotated genes.
-
-![NGSplot](images/ngsplot.png)
-
-**Output directory: `results/ngsplot`**
-
-* `TSS.avgprof.pdf`
-  * Density plot of sequencing reads distribution around TSS
-* `TSS.heatmap.pdf`
-  * Heatmap of sequencing reads distribution around TSS
-* `Genebody.avgprof.pdf`
-  * Density plot of sequencing reads distribution along gene bodies
-* `Genebody.heatmap.pdf`
-  * Heatmap of sequencing reads distribution along gene body
+* `pcaplot.pdf`
+  * Sample clusters based on top 2 principal components
 
 ## MACS
 [MACS](https://github.com/taoliu/MACS), or Model-based Analysis of ChIP-Seq, is used for capturing the enriched regions of sequence reads. It takes the influence of genome complexity into consideration, and improves the spatial resolution of binding sites through combining the information of both sequencing tag position and orientation.

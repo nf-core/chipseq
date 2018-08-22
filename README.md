@@ -26,8 +26,7 @@ The pipeline uses [Nextflow](https://www.nextflow.io), a bioinformatics workflow
 * Count read statistics
 * PhantomPeakQualTools
 * SPP: Calculate NSCRSC and cross correlation
-* DeepTools bamPEFragmentSize, plotFingerprint, bamCoverage, multiBamSummary, plotCorrelation, plotPCA
-* NGSplot
+* DeepTools bamPEFragmentSize, plotFingerprint, bamCoverage, multiBamSummary, plotCorrelation, plotPCA, computeMatrix, plotProfile
 * MACS2 peak calling
 * Saturation analysis
 * ChIP peak annotation

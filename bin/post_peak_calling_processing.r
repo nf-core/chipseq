@@ -7,10 +7,9 @@
 args <- commandArgs(trailingOnly = TRUE)
 
 R_lib <- as.character(args[1])
-ref <- as.character(args[2])
-Blacklist <- as.character(args[3])
-GTF <- as.character(args[4])
-input <- as.character(args[5:length(args)])
+Blacklist <- as.character(args[2])
+GTF <- as.character(args[3])
+input <- as.character(args[4:length(args)])
 
 # Load / install required packages
 .libPaths(c(R_lib, .libPaths()))
