@@ -33,6 +33,6 @@ script:
   # Lint the pipeline code
   - "nf-core lint ${TRAVIS_BUILD_DIR}"
   # Run, build reference genome
-  - travis_wait 60 nextflow run ${TRAVIS_BUILD_DIR} -profile test,docker --saveReference
+  - travis_wait 20 nextflow run ${TRAVIS_BUILD_DIR} -profile test,docker --saveReference
   # Basic run with supplied reference
-  - travis_wait 60 nextflow run ${TRAVIS_BUILD_DIR} -profile test,docker --bwa_index ${TRAVIS_BUILD_DIR}/tests/results/reference_genome/BWAIndex/
+  - travis_wait 20 nextflow run ${TRAVIS_BUILD_DIR} -profile test,docker --bwa_index ${TRAVIS_BUILD_DIR}/tests/results/reference_genome/BWAIndex/
