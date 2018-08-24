@@ -13,8 +13,5 @@ if (length(args) != 2) {
 
 load(args[1])
 data<-crosscorr$cross.correlation
-data$peak<-""
-data[data$x==crosscorr$phantom.cc$x,]$peak="phantom"
-data[data$x==cc.peak[cc.peak$y==max(cc.peak$y),]$x,]$peak="peak"
 
-write.csv(data, file=args[2], quote=FALSE, row.names=FALSE)
+write.table(data, file=args[2], sep=",", quote=FALSE, row.names=FALSE, col.names=FALSE)

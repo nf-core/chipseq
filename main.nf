@@ -149,28 +149,22 @@ if( params.bwa_index ){
 } else {
     exit 1, "No reference genome specified!"
 }
-
 if( params.gtf ){
     Channel
         .fromPath(params.gtf)
         .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
-        .into { gtf_makeBED, gtf_chippeakanno }
+        .into { gtf_makeBED; gtf_chippeakanno }
 }
-
 if( params.bed ){
     bed = Channel
         .fromPath(params.bed)
         .ifEmpty { exit 1, "BED annotation file not found: ${params.bed}" }
-        .into { bed_deepTools }
+        .set { bed_deepTools }
 }
-
 if ( params.blacklist_filtering ){
-    blacklist = Channel
-        .fromPath(params.blacklist)
-        .ifEmpty { exit 1, "Blacklist file not found: ${params.blacklist}" }
-        .into { blacklist_chippeakanno }
+    blacklist = file(params.blacklist)
+    if( !blacklist.exists() ) exit 1, "Blacklist file not found: ${params.blacklist}"
 }
-
 if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
 // Has the run name been specified by the user?
@@ -598,14 +592,14 @@ process phantompeakqualtools {
     output:
     file '*.pdf' into spp_plot
     file '*.spp.out' into spp_out, spp_out_mqc
-    file '*.spp.csv' into spp_csv_mqc
+    file '*_mqc.csv' into spp_csv_mqc
 
     script:
     prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
     run_spp.r -c="$bam" -savp -savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
     processSppRdata.r ${prefix}.spp.Rdata ${prefix}.spp.csv
-    sed -i '1i Processed Rdata output file for strand-shift cross correlation plot from phantompeakqualtools' ${prefix}.spp.csv
+    cat phantompeakqualtools_mqc_header ${prefix}.spp.csv > ${prefix}_mqc.csv
     """
 }
 
@@ -887,13 +881,12 @@ process chippeakanno {
     input:
     file macs_peaks_collection from macs_peaks.collect()
     file gtf from gtf_chippeakanno
-    file blacklist from blacklist_chippeakanno
 
     output:
     file '*.{txt,bed}' into chippeakanno_results
 
     script:
-    filtering = params.blacklist_filtering ? "$blacklist" : "No-filtering"
+    filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
     """
     post_peak_calling_processing.r $params.rlocation $filtering $gtf $macs_peaks_collection
     """
