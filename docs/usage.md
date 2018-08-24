@@ -118,7 +118,7 @@ For single-sample peaking calling without a control sample, leave the second col
 (control sample name).
 
 ### `--macsgsize`
-Effective genome size which is used for the option `--gsize` in MACS. Should be in the format "2.1e9". See [`conf/igenomes.config`](conf/igenomes.config) for the predefined values of all supported reference genomes.
+Effective genome size which is used for the option `--gsize` in MACS. Should be in the format "2.1e9". See [`conf/igenomes.config`](conf/igenomes.config) for the predefined values of all supported reference genomes. This value is the mappable genome size or effective genome size which is defined as the genome size which can be sequenced. Because of the repetitive features on the chromsomes, the actual mappable genome size will be smaller than the original size, about 90% or 70% of the genome size.
 
 ### `--broad`
 Run MACS with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff 0.1.
@@ -148,7 +148,7 @@ Default: `100`
 ## Reference Genomes
 
 ### `--genome`
-The reference genome to use for the analysis, needs to be one of the genome specified in the config file. This is `False` by default and needs to be specified. For example:
+Key of reference genome when using the precompiled reference file bundles specified in the iGenomes config. It's not required if the user supplies all required references directly on the command line.
 * Human: `--genome GRCh37`
 * Mouse: `--genome GRCm38`
 

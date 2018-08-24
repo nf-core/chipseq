@@ -149,20 +149,28 @@ if( params.bwa_index ){
 } else {
     exit 1, "No reference genome specified!"
 }
-gtf = false
+
 if( params.gtf ){
-    gtf = file(params.gtf)
-    if( !gtf.exists() ) exit 1, "GTF file not found: ${params.gtf}."
+    Channel
+        .fromPath(params.gtf)
+        .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
+        .into { gtf_makeBED, gtf_chippeakanno }
 }
-bed = false
+
 if( params.bed ){
-    bed = file(params.bed)
-    if( !bed.exists() ) exit 1, "BED file not found: ${params.bed}."
+    bed = Channel
+        .fromPath(params.bed)
+        .ifEmpty { exit 1, "BED annotation file not found: ${params.bed}" }
+        .into { bed_deepTools }
 }
+
 if ( params.blacklist_filtering ){
-    blacklist = file(params.blacklist)
-    if( !blacklist.exists() ) exit 1, "Blacklist file not found: ${params.blacklist}"
+    blacklist = Channel
+        .fromPath(params.blacklist)
+        .ifEmpty { exit 1, "Blacklist file not found: ${params.blacklist}" }
+        .into { blacklist_chippeakanno }
 }
+
 if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
 // Has the run name been specified by the user?
@@ -233,7 +241,7 @@ if(!missing_samples.isEmpty()){
 
 def dropped_samples = fastq_samples - fastq_samples.intersect(config_samples)
 if(!dropped_samples.isEmpty()){
-    log.warn "Sample ${dropped_samples} not included in MACS config"
+    exit 1, "Sample ${dropped_samples} not included in MACS config"
 }
 
 
@@ -331,6 +339,27 @@ if(!params.bwa_index && fasta){
     }
 }
 
+/*
+ * PREPROCESSING - Build BED file
+ */
+if(!params.bed){
+    process makeBED {
+        tag "$gtf"
+        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+                   saveAs: { params.saveReference ? it : null }, mode: 'copy'
+
+        input:
+        file gtf from gtf_makeBED
+
+        output:
+        file "${gtf.baseName}.bed" into bed_deepTools
+
+        script: // This script is bundled with the pipeline, in nfcore/chipseq/bin/
+        """
+        gtf2bed $gtf > ${gtf.baseName}.bed
+        """
+    }
+}
 
 /*
  * STEP 1 - FastQC
@@ -614,7 +643,7 @@ process deepTools {
     input:
     file bam from bam_dedup_deepTools.collect()
     file bai from bai_dedup_deepTools.collect()
-    file bed from bed
+    file bed from bed_deepTools
 
     output:
     file '*.{txt,pdf,png,npz,bw}' into deepTools_results
@@ -857,13 +886,14 @@ process chippeakanno {
 
     input:
     file macs_peaks_collection from macs_peaks.collect()
-    file gtf from gtf
+    file gtf from gtf_chippeakanno
+    file blacklist from blacklist_chippeakanno
 
     output:
     file '*.{txt,bed}' into chippeakanno_results
 
     script:
-    filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
+    filtering = params.blacklist_filtering ? "$blacklist" : "No-filtering"
     """
     post_peak_calling_processing.r $params.rlocation $filtering $gtf $macs_peaks_collection
     """
