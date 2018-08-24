@@ -119,6 +119,7 @@ params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : fals
 params.bed = params.genome ? params.genomes[ params.genome ].bed ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
 params.macsgsize = params.genome ? params.genomes[ params.genome ].macsgsize ?: false : false
+phantompeakqualtools_mqc_header = file("$baseDir/assets/phantompeakqualtools_mqc_header")
 
 // R library locations
 params.rlocation = false
@@ -149,17 +150,15 @@ if( params.bwa_index ){
 } else {
     exit 1, "No reference genome specified!"
 }
+gtf = false
 if( params.gtf ){
-    Channel
-        .fromPath(params.gtf)
-        .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
-        .into { gtf_makeBED; gtf_chippeakanno }
+    gtf = file(params.gtf)
+    if( !gtf.exists() ) exit 1, "GTF file not found: ${params.gtf}."
 }
+bed = false
 if( params.bed ){
-    bed = Channel
-        .fromPath(params.bed)
-        .ifEmpty { exit 1, "BED annotation file not found: ${params.bed}" }
-        .set { bed_deepTools }
+    bed = file(params.bed)
+    if( !bed.exists() ) exit 1, "BED file not found: ${params.bed}."
 }
 if ( params.blacklist_filtering ){
     blacklist = file(params.blacklist)
@@ -343,10 +342,10 @@ if(!params.bed){
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
 
         input:
-        file gtf from gtf_makeBED
+        file gtf from gtf
 
         output:
-        file "${gtf.baseName}.bed" into bed_deepTools
+        file "${gtf.baseName}.bed" into bed
 
         script: // This script is bundled with the pipeline, in nfcore/chipseq/bin/
         """
@@ -588,6 +587,7 @@ process phantompeakqualtools {
     input:
     file bam from bam_dedup_spp
     file bai from bai_dedup_spp
+    file phantompeakqualtools_mqc_header
 
     output:
     file '*.pdf' into spp_plot
@@ -599,7 +599,7 @@ process phantompeakqualtools {
     """
     run_spp.r -c="$bam" -savp -savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
     processSppRdata.r ${prefix}.spp.Rdata ${prefix}.spp.csv
-    cat phantompeakqualtools_mqc_header ${prefix}.spp.csv > ${prefix}_mqc.csv
+    cat $phantompeakqualtools_mqc_header ${prefix}.spp.csv > ${prefix}_mqc.csv
     """
 }
 
@@ -637,7 +637,7 @@ process deepTools {
     input:
     file bam from bam_dedup_deepTools.collect()
     file bai from bai_dedup_deepTools.collect()
-    file bed from bed_deepTools
+    file bed from bed
 
     output:
     file '*.{txt,pdf,png,npz,bw}' into deepTools_results
@@ -880,7 +880,7 @@ process chippeakanno {
 
     input:
     file macs_peaks_collection from macs_peaks.collect()
-    file gtf from gtf_chippeakanno
+    file gtf from gtf
 
     output:
     file '*.{txt,bed}' into chippeakanno_results
