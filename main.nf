@@ -23,13 +23,12 @@ Pipeline overview:
  - 5:   Statistics about read counts
  - 6.1: Phantompeakqualtools for normalized strand cross-correlation (NSC) and relative strand cross-correlation (RSC)
  - 6.2: Summarize NSC and RSC
- - 7:   deepTools for fingerprint, coverage bigwig, and correlation plots of reads over genome-wide bins
- - 8:   NGSplot for distribution of reads around transcription start sites (TSS) and gene bodies
- - 9.1: MACS for peak calling
- - 9.2: Saturation analysis using MACS when specified
- - 10:  Post peak calling processing: blacklist filtering and annotation
- - 11:  MultiQC
- - 12:  Output Description HTML
+ - 7:   deepTools for fingerprint, coverage bigwig, correlation plots of reads over genome-wide bins, and distribution of reads around gene bodies
+ - 8.1: MACS for peak calling
+ - 8.2: Saturation analysis using MACS when specified
+ - 9:  Post peak calling processing: blacklist filtering and annotation
+ - 10:  MultiQC
+ - 11:  Output Description HTML
  ----------------------------------------------------------------------------------------
 */
 
@@ -61,6 +60,7 @@ def helpMessage() {
       --singleEnd                   Specifies that the input is single end reads
       --allow_multi_align           Secondary alignments and unmapped reads are also reported in addition to primary alignments
       --saturation                  Run saturation analysis by peak calling with subsets of reads
+      --macsgsize                   Effective genome size for the MACS --gsize option. Should be in the format "2.1e9"
       --broad                       Run MACS with the --broad flag
       --blacklist_filtering         Filter ENCODE blacklisted regions from ChIP-seq peaks. It only works when --genome is set as GRCh37 or GRCm38
 
@@ -72,6 +72,7 @@ def helpMessage() {
       --bwa_index                   Path to BWA index
       --largeRef                    Build BWA Index for large reference genome (>2Gb)
       --gtf                         Path to GTF file (Ensembl format)
+      --bed                         Path to BED file (Ensembl format)
       --skipDupRemoval              Skip duplication removal by picard
       --blacklist                   Path to blacklist regions (.BED format), used for filtering out called peaks. Note that --blacklist_filtering is required
       --saveReference               Save the generated reference files in the Results directory.
@@ -115,7 +116,10 @@ params.genomes = false
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
+params.bed = params.genome ? params.genomes[ params.genome ].bed ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
+params.macsgsize = params.genome ? params.genomes[ params.genome ].macsgsize ?: false : false
+phantompeakqualtools_mqc_header = file("$baseDir/assets/phantompeakqualtools_mqc_header")
 
 // R library locations
 params.rlocation = false
@@ -151,6 +155,11 @@ if( params.gtf ){
     gtf = file(params.gtf)
     if( !gtf.exists() ) exit 1, "GTF file not found: ${params.gtf}."
 }
+bed = false
+if( params.bed ){
+    bed = file(params.bed)
+    if( !bed.exists() ) exit 1, "BED file not found: ${params.bed}."
+}
 if ( params.blacklist_filtering ){
     blacklist = file(params.blacklist)
     if( !blacklist.exists() ) exit 1, "Blacklist file not found: ${params.blacklist}"
@@ -170,19 +179,19 @@ if(params.readPaths){
             .from(params.readPaths)
             .map { row -> [ row[0], [file(row[1][0])]] }
             .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
-            .into { raw_reads_fastqc; raw_reads_trimgalore }
+            .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
     } else {
         Channel
             .from(params.readPaths)
             .map { row -> [ row[0], [file(row[1][0]), file(row[1][1])]] }
             .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
-            .into { raw_reads_fastqc; raw_reads_trimgalore }
+            .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
     }
 } else {
     Channel
         .fromFilePairs( params.reads, size: params.singleEnd ? 1 : 2 )
         .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --singleEnd on the command line." }
-        .into { raw_reads_fastqc; raw_reads_trimgalore }
+        .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
 }
 
 
@@ -198,15 +207,35 @@ Channel
         analysis_id = list[2]
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
-    .into{ macs_para; saturation_para }
+    .into{ vali_para; macs_para; saturation_para }
 
-/*
- * Reference to use for MACS, ngs.plot.r and annotation
- */
-def REF_macs = false
-def REF_ngsplot = false
-if (params.genome == 'GRCh37'){ REF_macs = 'hs'; REF_ngsplot = 'hg19' }
-else if (params.genome == 'GRCm38'){ REF_macs = 'mm'; REF_ngsplot = 'mm10' }
+// Validate all samples in macs config file
+def config_samples = []
+for (line in vali_para){
+    if (line.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
+        config_samples.add(line[0])
+        config_samples.add(line[1])
+    }
+}
+config_samples.removeAll{ it == '' }
+config_samples.unique(false)
+
+def fastq_samples = []
+for (sample in raw_reads_configvali){
+    if (sample.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
+        fastq_samples.add(sample[0].toString() - ~/(.R)?(_R)?(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/)
+    }
+}
+
+def missing_samples = config_samples - config_samples.intersect(fastq_samples)
+if(!missing_samples.isEmpty()){
+    exit 1, "No FastQ file found for sample in MACS config: ${missing_samples}"
+}
+
+def dropped_samples = fastq_samples - fastq_samples.intersect(config_samples)
+if(!dropped_samples.isEmpty()){
+    exit 1, "Sample ${dropped_samples} not included in MACS config"
+}
 
 
 log.info """=======================================================
@@ -226,14 +255,16 @@ summary['Genome']              = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
 else if(params.fasta) summary['Fasta Ref'] = params.fasta
 if(params.gtf)  summary['GTF File'] = params.gtf
+if(params.bed)  summary['BED File'] = params.bed
 if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
 summary['Multiple alignments'] = params.allow_multi_align
 summary['Skip Duplication Removal'] = params.skipDupRemoval
 summary['MACS Config']         = params.macsconfig
+summary['MACS gsize']          = params.macsgsize
 summary['Saturation analysis'] = params.saturation
 summary['MACS broad peaks']    = params.broad
 summary['Blacklist filtering'] = params.blacklist_filtering
-if( params.blacklist_filtering ) summary['Blacklist BED'] = params.blacklist
+if(params.blacklist_filtering) summary['Blacklist BED'] = params.blacklist
 summary['Extend Reads']        = "$params.extendReadsLen bp"
 if(workflow.container) summary['Container']           = workflow.container
 if(workflow.revision) summary['Pipeline Release'] = workflow.revision
@@ -276,17 +307,6 @@ if( workflow.profile == 'standard'){
     }
 }
 
-// Show a big warning message if we're not running MACS
-if (!REF_macs){
-    def warnstring = params.genome ? "Reference '${params.genome}' not supported by" : 'No reference supplied for'
-    log.warn "=======================================================\n" +
-             "  WARNING! $warnstring MACS, ngs_plot\n" +
-             "  and annotation. Steps for MACS, ngs_plot and annotation\n" +
-             "  will be skipped. Use '--genome GRCh37' or '--genome GRCm38'\n" +
-             "  to run these steps.\n" +
-             "==============================================================="
-}
-
 
 /*
  * PREPROCESSING - Build BWA index
@@ -312,6 +332,27 @@ if(!params.bwa_index && fasta){
     }
 }
 
+/*
+ * PREPROCESSING - Build BED file
+ */
+if(!params.bed){
+    process makeBED {
+        tag "$gtf"
+        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+                   saveAs: { params.saveReference ? it : null }, mode: 'copy'
+
+        input:
+        file gtf from gtf
+
+        output:
+        file "${gtf.baseName}.bed" into bed
+
+        script: // This script is bundled with the pipeline, in nfcore/chipseq/bin/
+        """
+        gtf2bed $gtf > ${gtf.baseName}.bed
+        """
+    }
+}
 
 /*
  * STEP 1 - FastQC
@@ -462,8 +503,8 @@ process bwa_mapped {
  * STEP 4 Picard
  */
 if (params.skipDupRemoval) {
-    bam_picard.into {bam_dedup_spp; bam_dedup_ngsplot; bam_dedup_deepTools; bam_dedup_macs; bam_dedup_saturation}
-    bai_picard.into {bai_dedup_spp; bai_dedup_ngsplot; bai_dedup_deepTools; bai_dedup_macs; bai_dedup_saturation}
+    bam_picard.into {bam_dedup_spp; bam_dedup_deepTools; bam_dedup_macs; bam_dedup_saturation}
+    bai_picard.into {bai_dedup_spp; bai_dedup_deepTools; bai_dedup_macs; bai_dedup_saturation}
     picard_reports = Channel.from(false)
 } else {
     process picard {
@@ -475,8 +516,8 @@ if (params.skipDupRemoval) {
         file bai from bai_picard
 
         output:
-        file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_ngsplot, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
-        file '*.dedup.sorted.bam.bai' into bai_dedup_spp, bai_dedup_ngsplot, bai_dedup_deepTools, bai_dedup_macs, bai_dedup_saturation
+        file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
+        file '*.dedup.sorted.bam.bai' into bai_dedup_spp, bai_dedup_deepTools, bai_dedup_macs, bai_dedup_saturation
         file '*.dedup.sorted.bed' into bed_dedup
         file '*.picardDupMetrics.txt' into picard_reports
 
@@ -546,15 +587,19 @@ process phantompeakqualtools {
     input:
     file bam from bam_dedup_spp
     file bai from bai_dedup_spp
+    file phantompeakqualtools_mqc_header
 
     output:
-    file '*.pdf' into spp_results
+    file '*.pdf' into spp_plot
     file '*.spp.out' into spp_out, spp_out_mqc
+    file '*_mqc.csv' into spp_csv_mqc
 
     script:
     prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
-    run_spp.r -c="$bam" -savp -out="${prefix}.spp.out"
+    run_spp.r -c="$bam" -savp -savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
+    processSppRdata.r ${prefix}.spp.Rdata ${prefix}.spp.csv
+    cat $phantompeakqualtools_mqc_header ${prefix}.spp.csv > ${prefix}_mqc.csv
     """
 }
 
@@ -592,6 +637,7 @@ process deepTools {
     input:
     file bam from bam_dedup_deepTools.collect()
     file bai from bai_dedup_deepTools.collect()
+    file bed from bed
 
     output:
     file '*.{txt,pdf,png,npz,bw}' into deepTools_results
@@ -603,8 +649,10 @@ process deepTools {
         bamPEFragmentSize \\
             --binSize 1000 \\
             --bamfiles $bam \\
-            --histogram fragment_length_distribution_histogram.png \\
-            --plotTitle "Fragment Length Distribution"
+            --o fragment_size_histogram.pdf \\
+            --plotFileFormat pdf \\
+            --plotTitle "Paired-end Fragment Size Distribution" \\
+            --outRawFragmentLengths bamPEFragmentSize_rawdata.txt
         """
     }
     if(bam instanceof Path){
@@ -612,21 +660,39 @@ process deepTools {
         """
         plotFingerprint \\
             -b $bam \\
-            --plotFile ${bam.baseName}_fingerprints.pdf \\
-            --outRawCounts ${bam.baseName}_fingerprint.txt \\
+            --plotFile fingerprints.pdf \\
+            --outRawCounts fingerprint.txt \\
             --extendReads ${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
             --numberOfSamples 50000 \\
             --binSize 500 \\
             --plotFileFormat pdf \\
-            --plotTitle "${bam.baseName} Fingerprints"
+            --plotTitle "Fingerprints"
 
         bamCoverage \\
            -b $bam \\
            --extendReads ${params.extendReadsLen} \\
            --normalizeUsing RPKM \\
            -o ${bam}.bw
+
+        computeMatrix \\
+            scale-regions \\
+            --scoreFileName ${bam}.bw \\
+            --regionsFileName $bed \\
+            --beforeRegionStartLength 3000 \\
+            --afterRegionStartLength 3000 \\
+            --regionBodyLength 5000 \\
+            --outFileName computeMatrix.out.gz \\
+            --skipZeros \\
+            --smartLabels
+
+        plotProfile \\
+            --matrixFile computeMatrix.out.gz \\
+            --outFileName read_distribution_profile.pdf \\
+            --plotFileFormat pdf \\
+            --outFileNameData read_distribution_profile.txt \\
+            --plotTitle "Reads Distribution Profile"
         """
     } else {
         """
@@ -651,6 +717,24 @@ process deepTools {
               -o \${bamfile}.bw
         done
 
+        computeMatrix \\
+            scale-regions \\
+            --scoreFileName *.bw \\
+            --regionsFileName $bed \\
+            --beforeRegionStartLength 3000 \\
+            --afterRegionStartLength 3000 \\
+            --regionBodyLength 5000 \\
+            --outFileName computeMatrix.out.gz \\
+            --skipZeros \\
+            --smartLabels
+
+        plotProfile \\
+            --matrixFile computeMatrix.out.gz \\
+            --outFileName reads_distribution_profile.pdf \\
+            --plotFileFormat pdf \\
+            --outFileNameData read_distribution_profile.txt \\
+            --plotTitle "Reads Distribution Profile"
+
         multiBamSummary \\
             bins \\
             --binSize 10000 \\
@@ -663,18 +747,9 @@ process deepTools {
 
         plotCorrelation \\
             -in multiBamSummary.npz \\
-            -o scatterplot_PearsonCorr_multiBamSummary.png \\
-            --outFileCorMatrix scatterplot_PearsonCorr_multiBamSummary.txt \\
-            --corMethod pearson \\
-            --skipZeros \\
-            --removeOutliers \\
-            --plotTitle "Pearson Correlation of Read Counts" \\
-            --whatToPlot scatterplot
-
-        plotCorrelation \\
-            -in multiBamSummary.npz \\
-            -o heatmap_SpearmanCorr_multiBamSummary.png \\
-            --outFileCorMatrix heatmap_SpearmanCorr_multiBamSummary.txt \\
+            -o heatmap_SpearmanCorr.pdf \\
+            --plotFileFormat pdf \\
+            --outFileCorMatrix heatmap_SpearmanCorr.txt \\
             --corMethod spearman \\
             --skipZeros \\
             --plotTitle "Spearman Correlation of Read Counts" \\
@@ -684,9 +759,10 @@ process deepTools {
 
         plotPCA \\
             -in multiBamSummary.npz \\
-            -o pcaplot_multiBamSummary.png \\
+            -o pcaplot.pdf \\
+            --plotFileFormat pdf \\
             --plotTitle "Principal Component Analysis Plot" \\
-            --outFileNameData pcaplot_multiBamSummary.txt \\
+            --outFileNameData pcaplot.txt \\
             --plotWidth 8
         """
     }
@@ -694,47 +770,7 @@ process deepTools {
 
 
 /*
- * STEP 8 Ngsplot
- * TODO ngs.plot.R is missing too!
- */
-
-process ngsplot {
-    tag "${bam[0].baseName}"
-    publishDir "${params.outdir}/ngsplot", mode: 'copy'
-
-    input:
-    file bam from bam_dedup_ngsplot.collect()
-    file bai from bai_dedup_ngsplot.collect()
-
-    output:
-    file '*.pdf' into ngsplot_results
-
-    when: REF_ngsplot
-
-    script:
-    """
-    ngs_config_generate.r $bam
-
-    ngs.plot.r \\
-        -G $REF_ngsplot \\
-        -R genebody \\
-        -C ngsplot_config \\
-        -O Genebody \\
-        -D ensembl \\
-        -FL 300
-
-    ngs.plot.r \\
-        -G $REF_ngsplot \\
-        -R tss \\
-        -C ngsplot_config \\
-        -O TSS \\
-        -FL 300
-    """
-}
-
-
-/*
- * STEP 9.1 MACS
+ * STEP 8.1 MACS
  */
 
 process macs {
@@ -749,8 +785,6 @@ process macs {
     output:
     file '*.{bed,r,narrowPeak}' into macs_results
     file '*.xls' into macs_peaks
-
-    when: REF_macs
 
     script:
     if(!params.skipDupRemoval){
@@ -768,7 +802,7 @@ process macs {
         $ctrl \\
         $broad \\
         -f BAM \\
-        -g $REF_macs \\
+        -g $params.macsgsize \\
         -n $analysis_id \\
         -q 0.01
     """
@@ -776,7 +810,7 @@ process macs {
 
 
 /*
- * STEP 9.2 Saturation analysis
+ * STEP 8.2 Saturation analysis
  */
 if (params.saturation) {
 
@@ -792,8 +826,6 @@ if (params.saturation) {
 
      output:
      file '*.xls' into saturation_results
-
-     when: REF_macs
 
      script:
      if(!params.skipDupRemoval){
@@ -812,7 +844,7 @@ if (params.saturation) {
          $ctrl \\
          $broad \\
          -f BAM \\
-         -g $REF_macs \\
+         -g $params.macsgsize \\
          -n ${analysis_id}.${sampling} \\
          -q 0.01
      """
@@ -830,8 +862,6 @@ if (params.saturation) {
      output:
      file '*.{txt,pdf}' into saturation_summary
 
-     when: REF_macs
-
      script:
      """
      saturation_results_processing.r $params.rlocation $macsconfig $countstat $saturation_results_collection
@@ -841,7 +871,7 @@ if (params.saturation) {
 
 
 /*
- * STEP 10 Post peak calling processing
+ * STEP 9 Post peak calling processing
  */
 
 process chippeakanno {
@@ -855,12 +885,10 @@ process chippeakanno {
     output:
     file '*.{txt,bed}' into chippeakanno_results
 
-    when: REF_macs
-
     script:
     filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
     """
-    post_peak_calling_processing.r $params.rlocation $REF_macs $filtering $gtf $macs_peaks_collection
+    post_peak_calling_processing.r $params.rlocation $filtering $gtf $macs_peaks_collection
     """
 }
 
@@ -883,7 +911,6 @@ process get_software_versions {
     bedtools --version > v_bedtools.txt
     echo "version" \$(java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates --version 2>&1) >v_picard.txt
     echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt
-    echo \$(ngs.plot.r 2>&1) > v_ngsplot.txt
     echo \$(macs2 --version 2>&1) > v_macs2.txt
     multiqc --version > v_multiqc.txt
     scrape_software_versions.py > software_versions_mqc.yaml
@@ -892,7 +919,7 @@ process get_software_versions {
 
 
 /*
- * STEP 11 MultiQC
+ * STEP 10 MultiQC
  */
 
 process multiqc {
@@ -907,7 +934,7 @@ process multiqc {
     file ('picard/*') from picard_reports.collect()
     file ('deeptools/*') from deepTools_multiqc.collect()
     file ('phantompeakqualtools/*') from spp_out_mqc.collect()
-    file ('phantompeakqualtools/*') from calculateNSCRSC_results.collect()
+    file ('phantompeakqualtools/*') from spp_csv_mqc.collect()
     file ('software_versions/*') from software_versions_yaml.collect()
 
     output:
@@ -926,7 +953,7 @@ process multiqc {
 }
 
 /*
- * STEP 12 - Output Description HTML
+ * STEP 11 - Output Description HTML
  */
 process output_documentation {
     tag "$prefix"

@@ -16,7 +16,7 @@ dependencies:
   - bedtools=2.27.1
   - samtools=1.9
   - picard=2.18.11
-  - deeptools=3.1.1
+  - deeptools=3.1.2
   - macs2=2.1.1.20160309
   - multiqc=1.6
   - conda-forge::r-catools=1.17.1.1
@@ -44,7 +44,3 @@ dependencies:
   - bioconda::bioconductor-bsgenome.mmusculus.ucsc.mm10=1.4.0
   - bioconda::bioconductor-org.mm.eg.db=3.5.0
   - bioconda::r-spp=1.15.2
-  - bioconda::r-ngsplot=2.63
-  - bioconda::r-ngsplotdb-hg19=3.00
-  - bioconda::r-ngsplotdb-hg38=3.00
-  - bioconda::r-ngsplotdb-mm10=3.00

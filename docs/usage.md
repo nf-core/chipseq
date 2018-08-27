@@ -7,6 +7,7 @@
     * [`--reads`](#--reads)
     * [`--singleEnd`](#--singleEnd)
     * [`--macsconfig`](#--macsconfig)
+    * [`--macsgsize`](#--macsgsize)
     * [`--broad`](#--broad)
     * [`--saturation`](#--saturation)
     * [`--blacklist_filtering`](#--blacklist_filtering)
@@ -18,6 +19,7 @@
     * [`--largeRef`](#--largeRef)
     * [`--fasta`](#--fasta)
     * [`--gtf`](#--gtf)
+    * [`--bed`](#--bed)
     * [`--saveReference`](#--saveReference)
 * [Adapter Trimming](#adapter-trimming)
     * [`--notrim`](#--notrim)
@@ -26,7 +28,6 @@
     * [Automatic resubmission](#automatic-resubmission)
     * [Maximum resource requests](#maximum-resource-requests)
 * [Other command line parameters](#other-command-line-parameters)
-
     * [`--allow_multi_align`](#--allow_multi_align)
     * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
     * [`--skipDupRemoval`](#--skipDupRemoval)
@@ -116,6 +117,9 @@ ChIPSampleID3,,AnalysisID3
 For single-sample peaking calling without a control sample, leave the second column blank
 (control sample name).
 
+### `--macsgsize`
+Effective genome size which is used for the option `--gsize` in MACS. Should be in the format "2.1e9". See [`conf/igenomes.config`](conf/igenomes.config) for the predefined values of all supported reference genomes. This value is the mappable genome size or effective genome size which is defined as the genome size which can be sequenced. Because of the repetitive features on the chromsomes, the actual mappable genome size will be smaller than the original size, about 90% or 70% of the genome size.
+
 ### `--broad`
 Run MACS with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff 0.1.
 
@@ -123,7 +127,11 @@ Run MACS with the `--broad` flag. With this flag on, MACS will try to composite 
 Run saturation analysis by sub-sampling the sequence reads of ChIP sample from 10% to 100% with 10% interval, then calling ChIP-seq peaks with MACS. For one test there will be 10 sets of ChIP-seq peaks. A summary file (.CSV) will be provided with the numbers of ChIP-seq peaks.
 
 ### `--blacklist_filtering`
-Specifying this flag instructs the pipeline to use bundled ENCODE blacklist regions to filter out known blacklisted regions in the called ChIP-seq peaks. Please note that this is only supported when --genome is set to `GRCh37` or `GRCm38`.
+Specifying this flag instructs the pipeline to use bundled ENCODE blacklist regions to filter out known blacklisted regions in the called ChIP-seq peaks. The following reference genome builds are supported:
+* Human: `GRCh37`, `GRCh38`
+* Mouse: `GRCm37`, `GRCm38`
+* C.elegans: `WBcel235`
+* D.melanogaster: `BDGP6`
 
 ### `--blacklist`
 If you prefer, you can specify the full path to the blacklist regions (should be in .BED format) which will be filtered out from the called ChIP-seq peaks. Please note that `--blacklist_filtering` is required for using this option.
@@ -140,16 +148,11 @@ Default: `100`
 ## Reference Genomes
 
 ### `--genome`
-The reference genome to use for the analysis, needs to be one of the genome specified in the config file. This is `False` by default and needs to be specified (unless index files are supplied, see below).
+Key of reference genome when using the precompiled reference file bundles specified in the iGenomes config. It's not required if the user supplies all required references directly on the command line.
+* Human: `--genome GRCh37`
+* Mouse: `--genome GRCm38`
 
-_Currently only the human and mouse genomes are fully supported by this pipeline. For other genomes `MACS` and `NGSplot` will not run!_
-
-* Human
-  * `--genome GRCh37`
-* Mouse
-  * `--genome GRCm38`
-
-See [`conf/uppmax.config`](conf/uppmax.config) for a list of the reference genomes and their keys.
+See [`conf/igenomes.config`](conf/igenomes.config) for a list of the reference genomes and their keys.
 
 If you're not running on UPPMAX (the default profile), you can create your own config file with paths to your reference genomes. See the [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html) for instructions on where to add this.
 
@@ -187,6 +190,12 @@ will be generated for you. Combine with `--saveReference` to save for future run
 The full path to GTF file can be specified for annotating peaks. Note that the GTF file should be in the Ensembl format.
 ```bash
 --gtf '[path to GTF file]'
+```
+
+### `--bed`
+The full path to BED file for computing read distribution matrix for deepTools. Note that the BED file should be in the Ensembl format.
+```bash
+--bed '[path to BED file]'
 ```
 
 ### `--saveReference`

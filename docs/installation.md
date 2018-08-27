@@ -153,7 +153,6 @@ process {
   $picard.module = ['picard/2.0.1', 'samtools/1.3', 'BEDTools']
   $phantompeakqualtools.module = ['R/3.2.3', 'phantompeakqualtools']
   $deepTools.module = ['deepTools']
-  $ngsplot.module = ['samtools/1.3', 'R/3.2.3', 'ngsplot']
   $macs.module = ['MACS', 'samtools/1.3']
   $multiqc.module = ['MultiQC']
 }
