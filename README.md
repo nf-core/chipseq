@@ -10,26 +10,26 @@
 
 
 ## Introduction
-**nf-core/chipseq** is a bioinformatics best-practice analysis pipeline used for chromatin immunoprecipitation (ChIP-seq) data analysis.
+**nf-core/chipseq** is a bioinformatics best-practice analysis pipeline used for chromatin immunoprecipitation (ChIP-seq) and assay for transposase accessible chromatin (ATAC-seq) data analysis.
 
 The pipeline uses [Nextflow](https://www.nextflow.io), a bioinformatics workflow tool. It pre-processes raw data from FastQ inputs, aligns the reads and performs extensive quality-control on the results.
 
 ### Pipeline Steps
 
 * Make BWA reference genome index (optional)
-* FastQC
-* TrimGalore!
-* Align with BWA
-* Samtools sort, index, stats & convert to BED
-* Samtools idxstats
-* Picard MarkDuplicates
+* Build BED reference based on GTF (optional)
+* Build genome size table for bedToBam conversion (optional)
+* FastQC for initial quality control of sequence reads
+* TrimGalore! for adapter trimming
+* BWA for alignment
+* Samtools for post-alignment processing with and alignment statistics
+* Picard MarkDuplicates for duplicate removal
 * Count read statistics
-* PhantomPeakQualTools
-* SPP: Calculate NSCRSC and cross correlation
-* DeepTools bamPEFragmentSize, plotFingerprint, bamCoverage, multiBamSummary, plotCorrelation, plotPCA, computeMatrix, plotProfile
-* MACS2 peak calling
-* Saturation analysis
-* ChIP peak annotation
+* Phantompeakqualtools for NSC, RSC and strand-shift cross correlation plot
+* DeepTools for paired-end fragment size distribution, fingerprint, reads distribution profile, sample pair-wise correlation, and PCA plot.
+* MACS2 for peak calling
+* MACS2 for saturation analysis (optional)
+* Bioconductor ChIPpeakAnno for peak annotation
 * MultiQC
 
 

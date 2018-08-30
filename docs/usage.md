@@ -8,6 +8,7 @@
     * [`--singleEnd`](#--singleEnd)
     * [`--macsconfig`](#--macsconfig)
     * [`--macsgsize`](#--macsgsize)
+    * [`--ATACseq`](#--ATACseq)
     * [`--broad`](#--broad)
     * [`--saturation`](#--saturation)
     * [`--blacklist_filtering`](#--blacklist_filtering)
@@ -43,11 +44,13 @@
     * [`--clusterOptions`](#--clusteroptions)
 
 ## Running the pipeline
-The typical command for running the pipeline is as follows:
+The typical command for running the pipeline for ChIP-seq analysis is as follows:
 
 ```bash
 nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --macsconfig 'macssetup.config'
 ```
+
+For ATAC-seq analysis, an additional option `--ATACseq` is required.
 
 Note that the pipeline will create files in your working directory:
 
@@ -119,6 +122,9 @@ For single-sample peaking calling without a control sample, leave the second col
 
 ### `--macsgsize`
 Effective genome size which is used for the option `--gsize` in MACS. Should be in the format "2.1e9". See [`conf/igenomes.config`](conf/igenomes.config) for the predefined values of all supported reference genomes. This value is the mappable genome size or effective genome size which is defined as the genome size which can be sequenced. Because of the repetitive features on the chromsomes, the actual mappable genome size will be smaller than the original size, about 90% or 70% of the genome size.
+
+### `--ATACseq`
+Specifying `--ATACseq` will turn on special setup for analyzing ATAC-seq dataset, including 1) shifting all reads aligning to the '+' and '-' strand by +4 bp and −5 bp, respectively; 2) `--broad` flag on when running MACS.
 
 ### `--broad`
 Run MACS with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff 0.1.

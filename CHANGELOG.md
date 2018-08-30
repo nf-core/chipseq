@@ -7,6 +7,7 @@ v1.0 release of nf-core/chipseq
 * Support reference genome GRCm37
 * Add pre-defined genome sizes for all reference genomes to support macs2 peak calling and downstream processing
 * Add blacklist files for ce10, dm3, hg38, and mm9
+* Add option for special analysis setup for ATAC-seq analysis
 * Documents revised accordingly.
 
 
