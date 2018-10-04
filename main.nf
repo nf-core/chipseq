@@ -476,7 +476,7 @@ process bwa {
  * STEP 3.2 - post-alignment processing
  */
 if(!params.ATACseq){
-    process samtools {
+    process samtools_chipseq {
         tag "${bam.baseName}"
         publishDir path: "${params.outdir}/bwa", mode: 'copy',
                    saveAs: { filename ->
@@ -502,7 +502,7 @@ if(!params.ATACseq){
         """
     }
 } else {
-    process samtools {
+    process samtools_atacseq {
         tag "${bam.baseName}"
         publishDir path: "${params.outdir}/bwa", mode: 'copy',
                    saveAs: { filename ->
@@ -579,7 +579,7 @@ if (params.skipDupRemoval) {
 
         script:
         prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
-        if( task.memory == null ){
+        if( ! task.memory ){
             log.warn "[Picard MarkDuplicates] Available memory not known - defaulting to 6GB ($prefix)"
             avail_mem = 6000
         } else {
