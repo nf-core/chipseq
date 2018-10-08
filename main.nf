@@ -524,20 +524,13 @@ if (params.skipDupRemoval) {
         script:
         prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
         if( !task.memory ){
-            log.warn "[Picard MarkDuplicates] Available memory not known - defaulting to 6GB ($prefix)"
-            avail_mem = 6000
+            log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
+            avail_mem = 3
         } else {
-            avail_mem = task.memory.toMega()
-            if( avail_mem <= 0){
-                avail_mem = 6000
-                log.warn "[Picard MarkDuplicates] Available memory 0 - defaulting to 6GB ($prefix)"
-            } else if( avail_mem < 250){
-                avail_mem = 250
-                log.warn "[Picard MarkDuplicates] Available memory under 250MB - defaulting to 250MB ($prefix)"
-            }
+            avail_mem = task.memory.toGiga()
         }
         """
-        picard MarkDuplicates \\
+        picard -Xmx${avail_mem}g MarkDuplicates \\
             INPUT=$bam \\
             OUTPUT=${prefix}.dedup.bam \\
             ASSUME_SORTED=true \\
