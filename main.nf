@@ -47,10 +47,9 @@ def helpMessage() {
       --seqCenter                   Text about sequencing center which will be added in the header of output bam files
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
 
-      --saturation                  Run saturation analysis by peak calling with subsets of reads
       --broad                       Run MACS with the --broad flag
       --macsgsize                   Effective genome size for the MACS --gsize option. Should be in the format "2.1e9"
-      --broad                       Run MACS with the --broad flag
+      --saturation                  Run saturation analysis by peak calling with subsets of reads
 
       --extendReadsLen [int]        Number of base pairs to extend the reads for the deepTools analysis. Default: 100
 
@@ -225,38 +224,31 @@ log.info """=======================================================
  nf-core/chipseq v${workflow.manifest.version}
 ======================================================="""
 def summary = [:]
-summary['Pipeline Name']       = 'nf-core/chipseq'
-summary['Pipeline Version']    = workflow.manifest.version
-summary['Run Name']            = custom_runName ?: workflow.runName
-summary['Reads']               = params.reads
-summary['Data Type']           = params.singleEnd ? 'Single-End' : 'Paired-End'
-summary['Genome']              = params.genome
+summary['Pipeline Name']        = 'nf-core/chipseq'
+summary['Pipeline Version']     = workflow.manifest.version
+summary['Run Name']             = custom_runName ?: workflow.runName
+summary['Reads']                = params.reads
+summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
+summary['Genome']               = params.genome
+else if(params.fasta) summary['Fasta File'] = params.fasta
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
-else if(params.fasta) summary['Fasta Ref'] = params.fasta
+if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
 if(params.gtf)  summary['GTF File'] = params.gtf
 if(params.bed)  summary['BED File'] = params.bed
-if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
-summary['Multiple alignments'] = params.allow_multi_align
-summary['Skip Duplication Removal'] = params.skipDupRemoval
-summary['MACS Config']         = params.macsconfig
-summary['MACS gsize']          = params.macsgsize
-summary['Saturation analysis'] = params.saturation
-summary['MACS broad peaks']    = params.broad
-summary['Blacklist filtering'] = params.blacklist_filtering
+summary['Blacklist Filtering']  = params.blacklist_filtering
 if(params.blacklist_filtering) summary['Blacklist BED'] = params.blacklist
-summary['Extend Reads']        = "$params.extendReadsLen bp"
-if(workflow.container) summary['Container']           = workflow.container
-if(workflow.revision) summary['Pipeline Release'] = workflow.revision
-summary['Current home']        = "$HOME"
-summary['Current user']        = "$USER"
-summary['Current path']        = "$PWD"
-summary['Working dir']         = workflow.workDir
-summary['Output dir']          = params.outdir
-summary['R libraries']         = params.rlocation
-summary['Script dir']          = workflow.projectDir
-summary['Save Reference']      = params.saveReference
-summary['Save Trimmed']        = params.saveTrimmed
-summary['Save Intermeds']      = params.saveAlignedIntermediates
+summary['Save Reference']       = params.saveReference
+
+summary['Multiple Alignments']  = params.allow_multi_align
+summary['Skip Duplication Removal'] = params.skipDupRemoval
+if(params.seqCenter) summary['Seq Center'] = params.seqCenter
+summary['Save Intermeds']       = params.saveAlignedIntermediates
+
+summary['MACS Config']          = params.macsconfig
+summary['MACS Broad Peaks']     = params.broad
+summary['MACS Genome Size']     = params.macsgsize
+summary['Saturation Analysis']  = params.saturation
+summary['Extend Reads']         = "$params.extendReadsLen bp"
 if( params.notrim ){
     summary['Trimming Step'] = 'Skipped'
 } else {
@@ -265,12 +257,32 @@ if( params.notrim ){
     summary["Trim 3' R1"] = params.three_prime_clip_r1
     summary["Trim 3' R2"] = params.three_prime_clip_r2
 }
-summary['Config Profile'] = workflow.profile
-if(params.seqCenter) summary['Seq Center'] = params.seqCenter
+summary['Save Trimmed']         = params.saveTrimmed
+summary['R libraries']          = params.rlocation
+summary['Max Memory']           = params.max_memory
+summary['Max CPUs']             = params.max_cpus
+summary['Max Time']             = params.max_time
+summary['Output Dir']           = params.outdir
+summary['Working Dir']          = workflow.workDir
+summary['Container Engine']     = workflow.containerEngine
+if(workflow.containerEngine) summary['Container'] = workflow.container
+summary['Current Home']         = "$HOME"
+summary['Current User']         = "$USER"
+summary['Current Path']         = "$PWD"
+summary['Working Dir']          = workflow.workDir
+summary['Output Dir']           = params.outdir
+summary['Script Dir']           = workflow.projectDir
+summary['Config Profile']       = workflow.profile
+if(params.config_profile_description) summary['Config Description'] = params.config_profile_description
+if(params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
+if(params.config_profile_url)         summary['Config URL']         = params.config_profile_url
+if(workflow.profile == 'awsbatch'){
+   summary['AWS Region']        = params.awsregion
+   summary['AWS Queue']         = params.awsqueue
+}
 if(params.email) summary['E-mail Address'] = params.email
-if(workflow.commitId) summary['Pipeline Commit']= workflow.commitId
 log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
-log.info "===================================="
+log.info "========================================="
 
 // AWSBatch sanity checking
 if(workflow.profile == 'awsbatch'){
