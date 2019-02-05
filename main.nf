@@ -139,8 +139,8 @@ if( params.gtf ){
 
 if( params.bed ){
     bed = Channel
-            .fromPath(params.gtf, checkIfExists: true)
-            .ifEmpty { exit 1, "BED file not found: ${params.bed}" }
+        .fromPath(params.gtf, checkIfExists: true)
+        .ifEmpty { exit 1, "BED file not found: ${params.bed}" }
 }
 
 if( params.blacklist_filtering ){
@@ -244,12 +244,10 @@ if(params.bed)  summary['BED File'] = params.bed
 summary['Blacklist Filtering']  = params.blacklist_filtering
 if(params.blacklist_filtering) summary['Blacklist BED'] = params.blacklist
 summary['Save Reference']       = params.saveReference
-
 summary['Multiple Alignments']  = params.allow_multi_align
 summary['Duplication Removal']  = params.skipDupRemoval
 if(params.seqCenter) summary['Seq Center'] = params.seqCenter
 summary['Save Intermeds']       = params.saveAlignedIntermediates
-
 summary['MACS Config']          = params.macsconfig
 summary['MACS Broad Peaks']     = params.broad
 summary['MACS Genome Size']     = params.macsgsize
@@ -326,6 +324,7 @@ if(!params.bwa_index && fasta){
     }
 }
 
+
 /*
  * PREPROCESSING - Build BED file
  */
@@ -347,6 +346,7 @@ if(!params.bed){
         """
     }
 }
+
 
 /*
  * STEP 1 - FastQC
@@ -492,6 +492,7 @@ process bwa_mapped {
     done > mapped_refgenome.txt
     """
 }
+
 
 /*
  * STEP 4 Picard
