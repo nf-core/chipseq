@@ -11,6 +11,7 @@
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
  Alex Peltzer <alexander.peltzer@qbic.uni-tuebingen.de>
+ Harshil Patel <harshil.patel@crick.ac.uk>
 ----------------------------------------------------------------------------------------
 */
 
@@ -114,18 +115,9 @@ phantompeakqualtools_mqc_header_ch = Channel.fromPath("$baseDir/assets/phantompe
 multiqc_config_ch = Channel.fromPath(params.multiqc_config, checkIfExists: true)
 output_docs_ch = Channel.fromPath("$baseDir/docs/output.md", checkIfExists: true)
 
-// Validate inputs
-if( params.macsconfig ){
-    Channel
-        .fromPath(params.macsconfig, checkIfExists: true)
-        .ifEmpty { exit 1, "MACS config not found: ${params.macsconfig}" }
-        .splitCsv(header:false, sep:',')
-        .into{ vali_para;
-               macs_para;
-               saturation_para }
-} else {
-    exit 1, "Missing MACS config. Specify path with --macsconfig"
-}
+// Check for file existence
+macsconfig = file(params.macsconfig)
+if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
 
 if( params.bwa_index ){
     bwa_index = Channel
@@ -185,6 +177,20 @@ if(params.readPaths){
         .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
 }
 
+/*
+ * Create a channel for macs config file
+ */
+Channel
+    .from(macsconfig.readLines())
+    .map { line ->
+        list = line.split(',')
+        chip_sample_id = list[0]
+        ctrl_sample_id = list[1]
+        analysis_id = list[2]
+        [ chip_sample_id, ctrl_sample_id, analysis_id ]
+    }
+    .into{ vali_para; macs_para; saturation_para }
+
 // Validate all samples in macs config file
 def config_samples = []
 for (line in vali_para){
@@ -230,8 +236,8 @@ summary['Run Name']             = custom_runName ?: workflow.runName
 summary['Reads']                = params.reads
 summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
 summary['Genome']               = params.genome
-else if(params.fasta) summary['Fasta File'] = params.fasta
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
+else if(params.fasta) summary['Fasta File'] = params.fasta
 if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
 if(params.gtf)  summary['GTF File'] = params.gtf
 if(params.bed)  summary['BED File'] = params.bed
