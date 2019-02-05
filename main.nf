@@ -246,7 +246,7 @@ if(params.blacklist_filtering) summary['Blacklist BED'] = params.blacklist
 summary['Save Reference']       = params.saveReference
 
 summary['Multiple Alignments']  = params.allow_multi_align
-summary['Skip Duplication Removal'] = params.skipDupRemoval
+summary['Duplication Removal']  = params.skipDupRemoval
 if(params.seqCenter) summary['Seq Center'] = params.seqCenter
 summary['Save Intermeds']       = params.saveAlignedIntermediates
 

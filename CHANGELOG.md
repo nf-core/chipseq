@@ -9,6 +9,7 @@ v1.0dev nf-core/chipseq
 * Add blacklist files for ce10, dm3, hg38, and mm9
 * Documents revised accordingly.
 
+05/02/2019 17:11:13
 * Major overhaul of docs and assets in-line with nf-core/tools v1.4
 * Added ability to use nf-core/configs along with associated docs
 * Updated manifest scope to deal with pipeline version
