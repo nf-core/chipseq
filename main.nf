@@ -164,7 +164,6 @@ if ( params.blacklist_filtering ){
     blacklist = file(params.blacklist)
     if( !blacklist.exists() ) exit 1, "Blacklist file not found: ${params.blacklist}"
 }
-if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
 // Has the run name been specified by the user?
 //  this has the bonus effect of catching both -name and --name
