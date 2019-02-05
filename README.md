@@ -14,19 +14,17 @@ The pipeline uses [Nextflow](https://www.nextflow.io), a bioinformatics workflow
 ### Pipeline Steps
 
 * Make BWA reference genome index (optional)
-* FastQC
-* TrimGalore!
-* Align with BWA
-* Samtools sort, index, stats & convert to BED
-* Samtools idxstats
-* Picard MarkDuplicates
-* Count read statistics
-* PhantomPeakQualTools
-* SPP: Calculate NSCRSC and cross correlation
-* DeepTools bamPEFragmentSize, plotFingerprint, bamCoverage, multiBamSummary, plotCorrelation, plotPCA, computeMatrix, plotProfile
+* FastQC raw sequencing reads quality control
+* TrimGalore! adapter trimming
+* BWA alignment against reference genome
+* Samtools post-alignment processing and format conversion
+* Picard duplicate read identification
+* Statistics about read counts
+* PhantomPeakQualTools normalized strand cross-correlation (NSC) and relative strand cross-correlation (RSC)
+* deepTools fingerprint, coverage bigwig, correlation plots of reads over genome-wide bins, and distribution of reads around gene bodies
 * MACS2 peak calling
-* Saturation analysis
-* ChIP peak annotation
+* Saturation analysis (optional)
+* Post peak calling processing: blacklist filtering and annotation
 * MultiQC
 
 ### Documentation
