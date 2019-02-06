@@ -406,6 +406,7 @@ process bwa {
     tag "$prefix"
     publishDir path: { params.saveAlignedIntermediates ? "${params.outdir}/bwa" : params.outdir }, mode: 'copy',
                saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
+    label 'process_big'
 
     input:
     file reads from trimmed_reads
@@ -435,6 +436,7 @@ process samtools {
                    if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
                    else params.saveAlignedIntermediates ? filename : null
                }
+    label 'process_medium'
 
     input:
     file bam from bwa_bam
@@ -461,12 +463,13 @@ process samtools {
 process bwa_mapped {
     tag "${bam.baseName}"
     publishDir "${params.outdir}/bwa/mapped", mode: 'copy'
+    label 'process_medium'
 
     input:
     set file(bam), file(bai) from bam_for_mapped
 
     output:
-    file 'mapped_refgenome.txt' into bwa_mapped
+    file "${bam.baseName}.mapped_refgenome.txt" into bwa_mapped
 
     script:
     """
@@ -492,6 +495,7 @@ if (params.skipDupRemoval) {
     process picard {
         tag "$prefix"
         publishDir "${params.outdir}/picard", mode: 'copy'
+        label 'process_medium'
 
         input:
         set file(bam), file(bai) from bam_picard
@@ -534,6 +538,7 @@ if (params.skipDupRemoval) {
 process countstat {
     tag "${bed[0].baseName}"
     publishDir "${params.outdir}/countstat", mode: 'copy'
+    label 'process_long'
 
     input:
     file bed from params.skipDupRemoval ? bed_total.collect() : bed_total.mix(bed_dedup).collect()
@@ -556,6 +561,7 @@ process phantompeakqualtools {
     tag "$prefix"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy',
                 saveAs: {filename -> filename.indexOf(".out") > 0 ? "logs/$filename" : "$filename"}
+    label 'process_long'
 
     input:
     set file(bam), file(bai) from bam_dedup_spp
@@ -609,11 +615,12 @@ bam_dedup_deepTools.into {
 }
 
 process deepTools_bamPEFragmentSize {
-    tag "${bam[0].baseName}"
+    tag "${bam[0].baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
 
     input:
-    set file(bam), file(bai) from bam_dedup_deepTools_bamPEFragmentSize.collect()
+    set file(bam), file(bai) from bam_dedup_deepTools_bamPEFragmentSize
 
     output:
     file '*.{txt,pdf}' into deepTools_bamPEFragmentSize_results
@@ -628,6 +635,7 @@ process deepTools_bamPEFragmentSize {
         --binSize 1000 \\
         --bamfiles $bam \\
         --o fragment_size_histogram.pdf \\
+        --numberOfProcessors ${task.cpus} \\
         --plotFileFormat pdf \\
         --plotTitle "Paired-end Fragment Size Distribution" \\
         --outRawFragmentLengths bamPEFragmentSize_rawdata.txt
@@ -638,11 +646,12 @@ process deepTools_bamPEFragmentSize {
  * STEP 7.2 deepTools plotFingerprint
  */
 process deepTools_plotFingerprint {
-    tag "${bam[0].baseName}"
+    tag "${bam[0].baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
 
     input:
-    set file(bam), file(bai) from bam_dedup_deepTools_plotFingerprint.collect()
+    set file(bam), file(bai) from bam_dedup_deepTools_plotFingerprint
 
     output:
     file '*.{txt,pdf}' into deepTools_plotFingerprint_results
@@ -659,6 +668,7 @@ process deepTools_plotFingerprint {
         --ignoreDuplicates \\
         --numberOfSamples ${params.fingerprintBins} \\
         --binSize 500 \\
+        --numberOfProcessors ${task.cpus} \\
         --plotFileFormat pdf \\
         --plotTitle "Fingerprints"
     """
@@ -668,15 +678,15 @@ process deepTools_plotFingerprint {
  * STEP 7.3 deepTools bamCoverage
  */
 process deepTools_bamCoverage {
-    tag "${bam[0].baseName}"
+    tag "${bam[0].baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
 
     input:
-    set file(bam), file(bai) from bam_dedup_deepTools_bamCoverage.collect()
+    set file(bam), file(bai) from bam_dedup_deepTools_bamCoverage
 
     output:
-    file '*.{bw}' into deepTools_bamCoverage_results
-    file '*.txt' into deepTools_bamCoverage_multiqc
+    file "${bam.baseName}.bw" into deepTools_bamCoverage_results
 
     script:
     """
@@ -684,6 +694,7 @@ process deepTools_bamCoverage {
        -b $bam \\
        --extendReads ${params.extendReadsLen} \\
        --normalizeUsing RPKM \\
+       --numberOfProcessors ${task.cpus} \\
        -o ${bam.baseName}.bw
     """
 }
@@ -692,27 +703,27 @@ process deepTools_bamCoverage {
  * STEP 7.4 deepTools computeMatrix
  */
 process deepTools_computeMatrix {
-    tag "${bam[0].baseName}"
+    tag "${bigwig[0].baseName}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
 
     input:
     file bigwig from deepTools_bamCoverage_results.collect()
     file bed from bed.collect()
 
     output:
-    file '*.{gz}' into deepTools_computeMatrix_results
-    file '*.txt' into deepTools_computeMatrix_multiqc
+    file 'computeMatrix.out.gz' into deepTools_computeMatrix_results
 
     script:
     """
-    computeMatrix \\
-        scale-regions \\
+    computeMatrix scale-regions \\
         --scoreFileName *.bw \\
         --regionsFileName $bed \\
         --beforeRegionStartLength 3000 \\
         --afterRegionStartLength 3000 \\
         --regionBodyLength 5000 \\
         --outFileName computeMatrix.out.gz \\
+        --numberOfProcessors ${task.cpus} \\
         --skipZeros \\
         --smartLabels
     """
@@ -723,7 +734,7 @@ process deepTools_computeMatrix {
  * STEP 7.5 deepTools computeMatrix
  */
 process deepTools_plotProfile {
-    tag "${bam[0].baseName}"
+    tag "${bam[0].baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -749,15 +760,15 @@ process deepTools_plotProfile {
  * STEP 7.6 deepTools multiBamSummary
  */
 process deepTools_multiBamSummary {
-    tag "${bam[0].baseName}"
+    tag "${bam[0].baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
 
     input:
-    set file(bam), file(bai) from bam_dedup_deepTools_multiBamSummary.collect()
+    file(bam) from bam_dedup_deepTools_multiBamSummary.filter( ~/.+\.bam$/ ).collect()
 
     output:
-    file '*.npz' into deepTools_multiBamSummary_results
-    file '*.txt' into deepTools_multiBamSummary_multiqc
+    file 'multiBamSummary.npz' into deepTools_multiBamSummary_results
 
     when:
     !(bam instanceof Path)
@@ -772,6 +783,7 @@ process deepTools_multiBamSummary {
         --extendReads ${params.extendReadsLen} \\
         --ignoreDuplicates \\
         --centerReads \\
+        --numberOfProcessors ${task.cpus} \\
         --smartLabels
     """
 }
@@ -781,7 +793,7 @@ process deepTools_multiBamSummary {
  * STEP 7.7 deepTools plotCorrelation
  */
 process deepTools_plotCorrelation {
-    tag "${bam[0].baseName}"
+    tag "${bam[0].baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -815,7 +827,7 @@ process deepTools_plotCorrelation {
  * STEP 7.8 deepTools plotCorrelation
  */
 process deepTools_plotPCA {
-    tag "${bam[0].baseName}"
+    tag "${bam[0].baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -848,9 +860,10 @@ process deepTools_plotPCA {
 process macs {
     tag "${analysis_id}"
     publishDir "${params.outdir}/macs", mode: 'copy'
+    label 'process_medium'
 
     input:
-    set file(bam), file(bai) from bam_dedup_macs.collect()
+    file(bam) from bam_dedup_macs.filter( ~/.+\.bam$/ ).collect()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
@@ -888,6 +901,7 @@ if (params.saturation) {
   process saturation {
      tag "${analysis_id}.${sampling}"
      publishDir "${params.outdir}/macs/saturation", mode: 'copy'
+     label 'process_medium'
 
      input:
      set file(bam), file(bai) from bam_dedup_saturation.collect()
@@ -1004,10 +1018,7 @@ process multiqc {
     file ('picard/*') from picard_reports.collect()
     file ('deeptools/bamPEFragmentSize/*') from deepTools_bamPEFragmentSize_multiqc.collect()
     file ('deeptools/plotFingerprint/*') from deepTools_plotFingerprint_multiqc.collect()
-    file ('deeptools/bamCoverage/*') from deepTools_bamCoverage_multiqc.collect()
-    file ('deeptools/computeMatrix/*') from deepTools_computeMatrix_multiqc.collect()
     file ('deeptools/plotProfile/*') from deepTools_plotProfile_multiqc.collect()
-    file ('deeptools/multiBamSummary/*') from deepTools_multiBamSummary_multiqc.collect()
     file ('deeptools/plotCorrelation/*') from deepTools_plotCorrelation_multiqc.collect()
     file ('deeptools/plotPCA/*') from deepTools_plotPCA_multiqc.collect()
     file ('phantompeakqualtools/*') from spp_out_mqc.collect()
