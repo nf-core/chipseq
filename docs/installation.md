@@ -1,184 +1,105 @@
-# nf-core/chipseq Installation
+# nf-core/chipseq: Installation
 
-To start using the nf-core/chipseq pipeline, there are three steps described below:
+To start using the nf-core/chipseq pipeline, follow the steps below:
 
 1. [Install Nextflow](#1-install-nextflow)
 2. [Install the pipeline](#2-install-the-pipeline)
-3. Configure the pipeline
-    * [Swedish UPPMAX System](#31-configuration-uppmax)
-    * [Other Clusters](#32-configuration-other-clusters)
-    * [Docker](#33-configuration-docker)
-    * [Amazon AWS](#34-configuration-amazon-ec2)
+    * [Automatic](#21-automatic)
+    * [Offline](#22-offline)
+    * [Development](#23-development)
+3. [Pipeline configuration](#3-pipeline-configuration)
+    * [Software deps: Docker and Singularity](#31-software-deps-docker-and-singularity)
+    * [Software deps: Bioconda](#32-software-deps-bioconda)
+    * [Configuration profiles](#33-configuration-profiles)
+4. [Reference genomes](#4-reference-genomes)
 
 ## 1) Install NextFlow
 Nextflow runs on most POSIX systems (Linux, Mac OSX etc). It can be installed by running the following commands:
 
 ```bash
-# Make sure that Java v7+ is installed:
+# Make sure that Java v8+ is installed:
 java -version
 
 # Install Nextflow
 curl -fsSL get.nextflow.io | bash
 
 # Add Nextflow binary to your PATH:
-mv nextflow ~/bin
+mv nextflow ~/bin/
 # OR system-wide installation:
 # sudo mv nextflow /usr/local/bin
 ```
 
-## 2) Install the Pipeline
+See [nextflow.io](https://www.nextflow.io/) for further instructions on how to install and configure Nextflow.
+
+## 2) Install the pipeline
+
+#### 2.1) Automatic
 This pipeline itself needs no installation - NextFlow will automatically fetch it from GitHub if `nf-core/chipseq` is specified as the pipeline name.
 
-### Offline use
-
-If you need to run the pipeline on a system with no internet connection, you will need to download the files yourself from GitHub and run them directly:
+#### 2.2) Offline
+The above method requires an internet connection so that Nextflow can download the pipeline files. If you're running on a system that has no internet connection, you'll need to download and transfer the pipeline files manually:
 
 ```bash
 wget https://github.com/nf-core/chipseq/archive/master.zip
-unzip master.zip -d /my-pipelines/
-cd /my_data/
-nextflow run /my-pipelines/nf-core/chipseq-master
+mkdir -p ~/my-pipelines/nf-core/
+unzip master.zip -d ~/my-pipelines/nf-core/
+cd ~/my_data/
+nextflow run ~/my-pipelines/nf-core/chipseq-master
 ```
 
-## 3.1) Configuration: UPPMAX
-The pipeline comes bundled with configurations to use the [Swedish UPPMAX](https://www.uppmax.uu.se/) clusters (tested on `milou`, `rackham`, `bianca` and `irma`). As such, you shouldn't need to add any custom configuration - everything _should_ work out of the box.
-
-To use the pipeline on UPPMAX, you **must** specificy `-profile uppmax` when running the pipeline (as of Nov 2017).
-
-Note that you will need to specify your UPPMAX project ID when running a pipeline. To do this, use the command line flag `--project <project_ID>`. The pipeline will exit with an error message if you try to run it pipeline with the UPPMAX config profile without a project.
-
-**Optional Extra:** To avoid having to specify your project every time you run Nextflow, you can add it to your personal Nextflow config file instead. Add this line to `~/.nextflow/config`:
-
-```nextflow
-params.project = 'project_ID' // eg. b2017123
-```
-
-## 3.2) Configuration: Other clusters
-It is entirely possible to run this pipeline on other clusters, though you will need to set up your own config file so that the script knows where to find your reference files and how your cluster works.
-
-> If you think that there are other people using the pipeline who would benefit from your configuration (eg. other common cluster setups), please let us know. We can add a new configuration and profile which can used by specifying `-profile <name>` when running the pipeline.
-
-If you are the only person to be running this pipeline, you can create your config file as `~/.nextflow/config` and it will be applied every time you run Nextflow. Alternatively, save the file anywhere and reference it when running the pipeline with `-c path/to/config`.
-
-A basic configuration comes with the pipeline, which runs by default (the `standard` config profile with [`conf/base.config`](../conf/base.config)). This means that you only need to configure the specifics for your system and overwrite any defaults that you want to change.
-
-### Cluster Environment
-By default, Nextflow uses the `local` executor - in other words, all jobs are run in the login session. If you're using a simple server, this may be fine. If you're using a compute cluster, this is bad as all jobs will run on the head node.
-
-To specify your cluster environment, add the following line to your config file:
-
-```nextflow
-process {
-  executor = 'YOUR_SYSTEM_TYPE'
-}
-```
-
-Many different cluster types are supported by Nextflow. For more information, please see the [Nextflow documentation](https://www.nextflow.io/docs/latest/executor.html).
-
-Note that you may need to specify cluster options, such as a project or queue. To do so, use the `clusterOptions` config option:
-
-```nextflow
-process {
-  executor = 'SLURM'
-  clusterOptions = '-A myproject'
-}
-```
-
-### Reference Genomes
-The nf-core/chipseq pipeline needs a reference genome for alignment and annotation. If not already available, start by downloading the relevant reference, for example from [illumina iGenomes](https://support.illumina.com/sequencing/sequencing_software/igenome.html).
-
-A reference genome path can be specified on the command line each time you run with `--bwa_index`. If no BWA index
-is available, one can be generated using a FASTA file supplied with `--fasta`.
-Alternatively, add the paths to the config under a relevant id and just specify this id with `--genome ID` when you run the pipeline _(this can also be set as a default in your config)_:
-
-```nextflow
-params {
-  genomes {
-    'YOUR-ID' {
-      bwa  = '<path to the bwa index folder>'
-      fasta = '<path to the fasta file>' // used if bwa index not given
-    }
-    'OTHER-GENOME' {
-      // [..]
-    }
-  }
-  // Optional - default genome. Ignored if --genome 'OTHER-GENOME' specified on command line
-  genome = 'YOUR-ID'
-}
-```
-
-
-### Software Requirements
-To run the pipeline, several software packages are required. How you satisfy these requirements is essentially up to you and depends on your system.
-
-#### Docker Image
-Docker is a software tool that allows you to run your analysis inside a "container" - basically a miniature self-contained software environment. We've already made a docker image for you, so if you can run docker and nextflow then you don't need to worry about any other software dependencies.
-
-The pipeline comes with a script to build a docker image. This runs automatically and creates a hosted docker image that you can find here: https://hub.docker.com/r/nf-core/chipseq/
-
-If you run the pipeline with `-profile docker` or `-with-docker 'nf-core/chipseq'` then nextflow will download this docker image automatically and run using this.
-
-Note that the docker images are tagged with version as well as the code, so this is a great way to ensure reproducibility. You can specify pipeline version when running with `-r`, for example `-r v1.4`. This uses pipeline code and docker image from this tagged version.
-
-#### Singularity image
-Many HPC environments are not able to run Docker due to problems with needing administrator privileges. [Singularity](http://singularity.lbl.gov/) is a tool designed to run on such HPC systems which is very similar to Docker. Even better, it can use create images directly from dockerhub. The UPPMAX configuration uses Singularity by default, meaning no problems with software dependencies and great reproducibility.
-
-To use the singularity image with a different config, use `-with-singularity 'docker://nf-core/chipseq'` when running the pipeline.
-
-If you intend to run the pipeline offline, nextflow will not be able to automatically download the singularity image for you. Instead, you'll have to do this yourself manually first, transfer the image file and then point to that.
-
-First, pull the image file where you have an internet connection:
+To stop nextflow from looking for updates online, you can tell it to run in offline mode by specifying the following environment variable in your ~/.bashrc file:
 
 ```bash
-singularity pull --name nfcore-chipseq.img docker://nf-core/chipseq
+export NXF_OFFLINE='TRUE'
 ```
 
-Then transfer this file and run the pipeline with this path:
+#### 2.3) Development
+
+If you would like to make changes to the pipeline, it's best to make a fork on GitHub and then clone the files. Once cloned you can run the pipeline directly as above.
+
+## 3) Pipeline configuration
+By default, the pipeline loads a basic server configuration [`conf/base.config`](../conf/base.config). This uses a number of sensible defaults for process requirements and is suitable for running on a simple (if powerful!) basic server.
+
+Be warned of two important points about this default configuration:
+
+1. The default profile uses the `local` executor
+    * All jobs are run in the login session. If you're using a simple server, this may be fine. If you're using a compute cluster, this is bad as all jobs will run on the head node.
+    * See the [nextflow docs](https://www.nextflow.io/docs/latest/executor.html) for information about running with other hardware backends. Most job scheduler systems are natively supported.
+2. Nextflow will expect all software to be installed and available on the `PATH`
+
+#### 3.1) Software deps: Docker
+First, install docker on your system: [Docker Installation Instructions](https://docs.docker.com/engine/installation/)
+
+Then, running the pipeline with the option `-profile docker` tells Nextflow to enable Docker for this run. An image containing all of the software requirements will be automatically fetched and used from dockerhub (https://hub.docker.com/r/nfcore/chipseq).
+
+#### 3.1) Software deps: Singularity
+If you're not able to use Docker then [Singularity](http://singularity.lbl.gov/) is a great alternative.
+The process is very similar: running the pipeline with the option `-profile singularity` tells Nextflow to enable singularity for this run. An image containing all of the software requirements will be automatically fetched and used from singularity hub.
+
+If running offline with Singularity, you'll need to download and transfer the Singularity image first:
 
 ```bash
-nextflow run /path/to/nf-core/chipseq -with-singularity /path/to/nfcore-chipseq.img
+singularity pull --name nf-core-chipseq.simg shub://nf-core/chipseq
 ```
 
-#### Environment Modules
-If your cluster uses environment modules, you can use the pipeline with these. There is a bundled config file to use these on UPPMAX (as was done in earlier versions of this pipeline). To use this, run the pipeline with `-profile uppmax_modules`.
+Once transferred, use `-with-singularity` and specify the path to the image file:
 
-If running on another system, add lines to your custom config file as follows _(customise module names and versions as appropriate)_:
-
-```nextflow
-process {
-  $fastqc.module = ['FastQC']
-  $trim_galore.module = ['FastQC', 'TrimGalore']
-  $bw.module = ['bwa', 'samtools/1.3']
-  $samtools.module = ['samtools/1.3', 'BEDTools']
-  $picard.module = ['picard/2.0.1', 'samtools/1.3', 'BEDTools']
-  $phantompeakqualtools.module = ['R/3.2.3', 'phantompeakqualtools']
-  $deepTools.module = ['deepTools']
-  $macs.module = ['MACS', 'samtools/1.3']
-  $multiqc.module = ['MultiQC']
-}
-```
-
-#### Manual Installation
-If the software is not already available, you will need to install it.
-
-If you are able to use [Docker](https://www.docker.com/), you can use the [sclifelab/nfcore-chipseq](https://hub.docker.com/r/nf-core/chipseq/) image which comes with all requirements. This is pulled by Nextflow automatically if you use `-profile docker` (see below for [further instructions](#33-configuration-docker)).
-
-We recommend using [Bioconda](https://bioconda.github.io/) to install the required software as the process is quite easy in our experience.
-
-## 3.3) Configuration: Docker
-Docker is a great way to run nf-core/chipseq, as it manages all software installations and allows the pipeline to be run in an identical software environment across a range of systems.
-
-Nextflow has [excellent integration](https://www.nextflow.io/docs/latest/docker.html) with Docker, and beyond installing the two tools, not much else is required.
-
-First, install docker on your system : [Docker Installation Instructions](https://docs.docker.com/engine/installation/)
-
-Then, simply run the analysis pipeline:
 ```bash
-nextflow run nf-core/chipseq -profile docker # rest of normal launch command
+nextflow run /path/to/nf-core-chipseq -with-singularity nf-core-chipseq.simg
 ```
 
-Nextflow will recognise `nf-core/chipseq` and download the pipeline from GitHub. The `-profile docker` configuration lists the [sclifelab/nfcore-chipseq](https://hub.docker.com/r/nf-core/chipseq/) image that we have created and is hosted at dockerhub, and this is downloaded.
+Remember to pull updated versions of the singularity image if you update the pipeline.
 
-A reference genome is still required by the pipeline. See the above [Reference Genomes](#reference-genomes) documentation for instructions on how to configure Nextflow with preset paths to make this easier.
+#### 3.2) Software deps: conda
+If you're not able to use Docker _or_ Singularity, you can instead use conda to manage the software requirements.
+This is slower and less reproducible than the above, but is still better than having to install all requirements yourself!
+The pipeline ships with a conda environment file and nextflow has built-in support for this.
+To use it first ensure that you have conda installed (we recommend [miniconda](https://conda.io/miniconda.html)), then follow the same pattern as above and use the flag `-profile conda`
 
-A test suite for docker comes with the pipeline, and can be run by moving to the [`tests` directory](https://github.com/ewels/nf-core/chipseq/tree/master/tests) and running `./docker_test.sh`. This will download a small lambda genome and some data, and attempt to run the pipeline through docker on that small dataset. This is automatically run using [Travis](https://travis-ci.org/nf-core/chipseq/) whenever changes are made to the pipeline.
+#### 3.3) Configuration profiles
+
+See [`docs/configuration/adding_your_own.md`](configuration/adding_your_own.md)
+
+## 4) Reference genomes
+
+See [`docs/configuration/reference_genomes.md`](configuration/reference_genomes.md)

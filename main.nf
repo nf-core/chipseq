@@ -11,25 +11,8 @@
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
  Alex Peltzer <alexander.peltzer@qbic.uni-tuebingen.de>
+ Harshil Patel <harshil.patel@crick.ac.uk>
 ----------------------------------------------------------------------------------------
-----------------------------------------------------------------------------------------
-Pipeline overview:
- - 1:   FastQC for raw sequencing reads quality control
- - 2:   Trim Galore! for adapter trimming
- - 3.1: BWA alignment against reference genome
- - 3.2: Post-alignment processing and format conversion
- - 3.3: Statistics about mapped reads
- - 4:   Picard for duplicate read identification
- - 5:   Statistics about read counts
- - 6.1: Phantompeakqualtools for normalized strand cross-correlation (NSC) and relative strand cross-correlation (RSC)
- - 6.2: Summarize NSC and RSC
- - 7:   deepTools for fingerprint, coverage bigwig, correlation plots of reads over genome-wide bins, and distribution of reads around gene bodies
- - 8.1: MACS for peak calling
- - 8.2: Saturation analysis using MACS when specified
- - 9:  Post peak calling processing: blacklist filtering and annotation
- - 10:  MultiQC
- - 11:  Output Description HTML
- ----------------------------------------------------------------------------------------
 */
 
 def helpMessage() {
@@ -41,58 +24,59 @@ def helpMessage() {
         | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
                                               `._,._,\'
 
-     nf-core/chipseq : ChIP-Seq Best Practice v${params.pipelineVersion}
+     nf-core/chipseq v${workflow.manifest.version}
     =======================================================
 
     Usage:
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile uppmax
+    nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile docker
 
     Mandatory arguments:
-      --reads                       Path to input data (must be surrounded with quotes).
-      --genome                      Name of iGenomes reference
+      --reads                       Path to input data (must be surrounded with quotes)
+      --fasta                       Path to Fasta reference. Not mandatory when using reference in iGenomes config via --genome
       --macsconfig                  Configuration file for peaking calling using MACS. Format: ChIPSampleID,CtrlSampleID,AnalysisID
-      -profile                      Hardware config to use. uppmax / uppmax_modules / docker / aws
+      -profile                      Configuration profile to use. Can use multiple (comma separated)
+                                    Available: conda, docker, singularity, awsbatch, test
 
     Options:
-      --singleEnd                   Specifies that the input is single end reads
-      --allow_multi_align           Secondary alignments and unmapped reads are also reported in addition to primary alignments
-      --saturation                  Run saturation analysis by peak calling with subsets of reads
-      --macsgsize                   Effective genome size for the MACS --gsize option. Should be in the format "2.1e9"
-      --broad                       Run MACS with the --broad flag
-      --blacklist_filtering         Filter ENCODE blacklisted regions from ChIP-seq peaks. It only works when --genome is set as GRCh37 or GRCm38
+      --singleEnd                   Specifies that the input is single-end reads
 
-    Presets:
+      --allow_multi_align           Secondary alignments and unmapped reads are also reported in addition to primary alignments
+      --skipDupRemoval              Skip duplication removal by picard
+      --seqCenter                   Text about sequencing center which will be added in the header of output bam files
+      --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
+
+      --broad                       Run MACS with the --broad flag
+      --macsgsize                   Effective genome size for the MACS --gsize option. Should be in the format "2.1e9"
+      --saturation                  Run saturation analysis by peak calling with subsets of reads
+
       --extendReadsLen [int]        Number of base pairs to extend the reads for the deepTools analysis. Default: 100
 
     References
-      --fasta                       Path to Fasta reference
+      --genome                      Name of iGenomes reference
       --bwa_index                   Path to BWA index
       --largeRef                    Build BWA Index for large reference genome (>2Gb)
       --gtf                         Path to GTF file (Ensembl format)
       --bed                         Path to BED file (Ensembl format)
-      --skipDupRemoval              Skip duplication removal by picard
       --blacklist                   Path to blacklist regions (.BED format), used for filtering out called peaks. Note that --blacklist_filtering is required
-      --saveReference               Save the generated reference files in the Results directory.
-      --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
+      --blacklist_filtering         Filter ENCODE blacklisted regions from ChIP-seq peaks. It only works when --genome is set as GRCh37 or GRCm38
+      --saveReference               Save the generated reference files in the Results directory
 
     Trimming options
-      --notrim                      Specifying --notrim will skip the adapter trimming step.
-      --saveTrimmed                 Save the trimmed Fastq files in the the Results directory.
       --clip_r1 [int]               Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads)
       --clip_r2 [int]               Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only)
       --three_prime_clip_r1 [int]   Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed
       --three_prime_clip_r2 [int]   Instructs Trim Galore to re move bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed
+      --notrim                      Specifying --notrim will skip the adapter trimming step
+      --saveTrimmed                 Save the trimmed Fastq files in the the Results directory
 
     Other options:
       --outdir                      The output directory where the results will be saved
       --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
       --rlocation                   Location to save R-libraries used in the pipeline. Default value is ~/R/nxtflow_libs/
-      --project                     Project ID when running pipeline with slurm on UPPMAX clusters
       --clusterOptions              Extra SLURM options, used in conjunction with Uppmax.config
-      --seqCenter                   Text about sequencing center which will be added in the header of output bam files
       -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
     """.stripIndent()
 }
@@ -101,70 +85,69 @@ def helpMessage() {
  * SET UP CONFIGURATION VARIABLES
  */
 
-// Show help emssage
-params.help = false
+// Show help message
 if (params.help){
     helpMessage()
     exit 0
 }
 
 // Configurable variables
-params.name = false
-params.project = false
-params.genome = false
-params.genomes = false
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
 params.bed = params.genome ? params.genomes[ params.genome ].bed ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
 params.macsgsize = params.genome ? params.genomes[ params.genome ].macsgsize ?: false : false
-phantompeakqualtools_mqc_header = file("$baseDir/assets/phantompeakqualtools_mqc_header")
+
+// Check if genome exists in the config file
+if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
+    exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
+}
 
 // R library locations
-params.rlocation = false
 if (params.rlocation){
     nxtflow_libs = file(params.rlocation)
     nxtflow_libs.mkdirs()
 }
 
-multiqc_config = file(params.multiqc_config)
-output_docs = file("$baseDir/docs/output.md")
+// Create channels for config files
+phantompeakqualtools_mqc_header_ch = Channel.fromPath("$baseDir/assets/phantompeakqualtools_mqc_header", checkIfExists: true)
+multiqc_config_ch = Channel.fromPath(params.multiqc_config, checkIfExists: true)
+output_docs_ch = Channel.fromPath("$baseDir/docs/output.md", checkIfExists: true)
 
-// Custom trimming options
-params.clip_r1 = 0
-params.clip_r2 = 0
-params.three_prime_clip_r1 = 0
-params.three_prime_clip_r2 = 0
-
-// Validate inputs
+// Check for file existence
 macsconfig = file(params.macsconfig)
 if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
+
 if( params.bwa_index ){
     bwa_index = Channel
-        .fromPath(params.bwa_index)
+        .fromPath(params.bwa_index, checkIfExists: true)
         .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index}" }
 } else if ( params.fasta ){
-    fasta = file(params.fasta)
-    if( !fasta.exists() ) exit 1, "Fasta file not found: ${params.fasta}"
+    fasta = Channel
+        .fromPath(params.fasta, checkIfExists: true)
+        .ifEmpty { exit 1, "Fasta file not found: ${params.fasta}" }
 } else {
     exit 1, "No reference genome specified!"
 }
-gtf = false
+
 if( params.gtf ){
-    gtf = file(params.gtf)
-    if( !gtf.exists() ) exit 1, "GTF file not found: ${params.gtf}."
+    gtf = Channel
+        .fromPath(params.gtf, checkIfExists: true)
+        .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
 }
-bed = false
+
 if( params.bed ){
-    bed = file(params.bed)
-    if( !bed.exists() ) exit 1, "BED file not found: ${params.bed}."
+    bed = Channel
+        .fromPath(params.bed, checkIfExists: true)
+        .ifEmpty { exit 1, "BED file not found: ${params.bed}" }
 }
-if ( params.blacklist_filtering ){
-    blacklist = file(params.blacklist)
-    if( !blacklist.exists() ) exit 1, "Blacklist file not found: ${params.blacklist}"
+
+if( params.blacklist_filtering ){
+    blacklist = Channel
+        .fromPath(params.blacklist, checkIfExists: true)
+        .ifEmpty { exit 1, "Blacklist annotation file not found: ${params.blacklist}" }
 }
-if( workflow.profile == 'standard' && !params.project ) exit 1, "No UPPMAX project ID found! Use --project"
 
 // Has the run name been specified by the user?
 //  this has the bonus effect of catching both -name and --name
@@ -193,7 +176,6 @@ if(params.readPaths){
         .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --singleEnd on the command line." }
         .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
 }
-
 
 /*
  * Create a channel for macs config file
@@ -245,39 +227,32 @@ log.info """=======================================================
     | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
                                           `._,._,\'
 
- nf-core/chipseq : ChIP-Seq Best Practice v${params.pipelineVersion}
+ nf-core/chipseq v${workflow.manifest.version}
 ======================================================="""
 def summary = [:]
-summary['Run Name']            = custom_runName ?: workflow.runName
-summary['Reads']               = params.reads
-summary['Data Type']           = params.singleEnd ? 'Single-End' : 'Paired-End'
-summary['Genome']              = params.genome
+summary['Pipeline Name']        = 'nf-core/chipseq'
+summary['Pipeline Version']     = workflow.manifest.version
+summary['Run Name']             = custom_runName ?: workflow.runName
+summary['Reads']                = params.reads
+summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
+summary['Genome']               = params.genome
 if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
-else if(params.fasta) summary['Fasta Ref'] = params.fasta
+else if(params.fasta) summary['Fasta File'] = params.fasta
+if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
 if(params.gtf)  summary['GTF File'] = params.gtf
 if(params.bed)  summary['BED File'] = params.bed
-if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
-summary['Multiple alignments'] = params.allow_multi_align
-summary['Skip Duplication Removal'] = params.skipDupRemoval
-summary['MACS Config']         = params.macsconfig
-summary['MACS gsize']          = params.macsgsize
-summary['Saturation analysis'] = params.saturation
-summary['MACS broad peaks']    = params.broad
-summary['Blacklist filtering'] = params.blacklist_filtering
+summary['Blacklist Filtering']  = params.blacklist_filtering
 if(params.blacklist_filtering) summary['Blacklist BED'] = params.blacklist
-summary['Extend Reads']        = "$params.extendReadsLen bp"
-if(workflow.container) summary['Container']           = workflow.container
-if(workflow.revision) summary['Pipeline Release'] = workflow.revision
-summary['Current home']        = "$HOME"
-summary['Current user']        = "$USER"
-summary['Current path']        = "$PWD"
-summary['Working dir']         = workflow.workDir
-summary['Output dir']          = params.outdir
-summary['R libraries']         = params.rlocation
-summary['Script dir']          = workflow.projectDir
-summary['Save Reference']      = params.saveReference
-summary['Save Trimmed']        = params.saveTrimmed
-summary['Save Intermeds']      = params.saveAlignedIntermediates
+summary['Save Reference']       = params.saveReference
+summary['Multiple Alignments']  = params.allow_multi_align
+summary['Duplication Removal']  = params.skipDupRemoval
+if(params.seqCenter) summary['Seq Center'] = params.seqCenter
+summary['Save Intermeds']       = params.saveAlignedIntermediates
+summary['MACS Config']          = params.macsconfig
+summary['MACS Broad Peaks']     = params.broad
+summary['MACS Genome Size']     = params.macsgsize
+summary['Saturation Analysis']  = params.saturation
+summary['Extend Reads']         = "$params.extendReadsLen bp"
 if( params.notrim ){
     summary['Trimming Step'] = 'Skipped'
 } else {
@@ -286,34 +261,51 @@ if( params.notrim ){
     summary["Trim 3' R1"] = params.three_prime_clip_r1
     summary["Trim 3' R2"] = params.three_prime_clip_r2
 }
-summary['Config Profile'] = workflow.profile
-if(params.seqCenter) summary['Seq Center'] = params.seqCenter
-if(params.project) summary['UPPMAX Project'] = params.project
+summary['Save Trimmed']         = params.saveTrimmed
+summary['R libraries']          = params.rlocation
+summary['Max Memory']           = params.max_memory
+summary['Max CPUs']             = params.max_cpus
+summary['Max Time']             = params.max_time
+summary['Output Dir']           = params.outdir
+summary['Working Dir']          = workflow.workDir
+summary['Container Engine']     = workflow.containerEngine
+if(workflow.containerEngine) summary['Container'] = workflow.container
+summary['Current Home']         = "$HOME"
+summary['Current User']         = "$USER"
+summary['Current Path']         = "$PWD"
+summary['Working Dir']          = workflow.workDir
+summary['Output Dir']           = params.outdir
+summary['Script Dir']           = workflow.projectDir
+summary['Config Profile']       = workflow.profile
+if(params.config_profile_description) summary['Config Description'] = params.config_profile_description
+if(params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
+if(params.config_profile_url)         summary['Config URL']         = params.config_profile_url
+if(workflow.profile == 'awsbatch'){
+   summary['AWS Region']        = params.awsregion
+   summary['AWS Queue']         = params.awsqueue
+}
 if(params.email) summary['E-mail Address'] = params.email
-if(workflow.commitId) summary['Pipeline Commit']= workflow.commitId
 log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
-log.info "===================================="
+log.info "========================================="
 
-// Show a big error message if we're running on the base config and an uppmax cluster
-if( workflow.profile == 'standard'){
-    if ( "hostname".execute().text.contains('.uppmax.uu.se') ) {
-        log.error "====================================================\n" +
-                  "  WARNING! You are running with the default 'standard'\n" +
-                  "  pipeline config profile, which runs on the head node\n" +
-                  "  and assumes all software is on the PATH.\n" +
-                  "  ALL JOBS ARE RUNNING LOCALLY and stuff will probably break.\n" +
-                  "  Please use `-profile uppmax` to run on UPPMAX clusters.\n" +
-                  "============================================================"
-    }
+// AWSBatch sanity checking
+if(workflow.profile == 'awsbatch'){
+    if (!params.awsqueue || !params.awsregion) exit 1, "Specify correct --awsqueue and --awsregion parameters on AWSBatch!"
+    if (!workflow.workDir.startsWith('s3') || !params.outdir.startsWith('s3')) exit 1, "Specify S3 URLs for workDir and outdir parameters on AWSBatch!"
 }
 
+// Check workDir/outdir paths to be S3 buckets if running on AWSBatch
+// related: https://github.com/nextflow-io/nextflow/issues/813
+if( workflow.profile == 'awsbatch') {
+    if(!workflow.workDir.startsWith('s3:') || !params.outdir.startsWith('s3:')) exit 1, "Workdir or Outdir not on S3 - specify S3 Buckets for each to run on AWSBatch!"
+}
 
 /*
  * PREPROCESSING - Build BWA index
  */
 if(!params.bwa_index && fasta){
     process makeBWAindex {
-        tag fasta
+        tag "$fasta"
         publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
 
@@ -331,6 +323,7 @@ if(!params.bwa_index && fasta){
         """
     }
 }
+
 
 /*
  * PREPROCESSING - Build BED file
@@ -353,6 +346,7 @@ if(!params.bed){
         """
     }
 }
+
 
 /*
  * STEP 1 - FastQC
@@ -499,6 +493,7 @@ process bwa_mapped {
     """
 }
 
+
 /*
  * STEP 4 Picard
  */
@@ -523,21 +518,15 @@ if (params.skipDupRemoval) {
 
         script:
         prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
-        if( task.memory == null ){
-            log.warn "[Picard MarkDuplicates] Available memory not known - defaulting to 6GB ($prefix)"
-            avail_mem = 6000
+        if( !task.memory ){
+            log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
+            avail_mem = 3
         } else {
-            avail_mem = task.memory.toMega()
-            if( avail_mem <= 0){
-                avail_mem = 6000
-                log.warn "[Picard MarkDuplicates] Available memory 0 - defaulting to 6GB ($prefix)"
-            } else if( avail_mem < 250){
-                avail_mem = 250
-                log.warn "[Picard MarkDuplicates] Available memory under 250MB - defaulting to 250MB ($prefix)"
-            }
+            avail_mem = task.memory.toGiga()
         }
         """
         picard MarkDuplicates \\
+            -Xmx${avail_mem}g \\
             INPUT=$bam \\
             OUTPUT=${prefix}.dedup.bam \\
             ASSUME_SORTED=true \\
@@ -576,7 +565,6 @@ process countstat {
 
 /*
  * STEP 6.1 Phantompeakqualtools
- * TODO: The "run_spp.R" script is still missing here!
  */
 
 process phantompeakqualtools {
@@ -587,7 +575,7 @@ process phantompeakqualtools {
     input:
     file bam from bam_dedup_spp
     file bai from bai_dedup_spp
-    file phantompeakqualtools_mqc_header
+    file phantompeakqualtools_mqc_header from phantompeakqualtools_mqc_header_ch.collect()
 
     output:
     file '*.pdf' into spp_plot
@@ -902,14 +890,14 @@ process get_software_versions {
 
     script:
     """
-    echo ${params.pipelineVersion} > v_ngi_chipseq.txt
+    echo $workflow.manifest.version > v_pipeline.txt
     echo $workflow.nextflow.version > v_nextflow.txt
     fastqc --version > v_fastqc.txt
     trim_galore --version > v_trim_galore.txt
     echo \$(bwa 2>&1) > v_bwa.txt
     samtools --version > v_samtools.txt
     bedtools --version > v_bedtools.txt
-    echo "version" \$(java -Xmx2g -jar \$PICARD_HOME/picard.jar MarkDuplicates --version 2>&1) >v_picard.txt
+    picard MarkDuplicates --version &> v_picard.txt  || true
     echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt
     echo \$(macs2 --version 2>&1) > v_macs2.txt
     multiqc --version > v_multiqc.txt
@@ -927,7 +915,7 @@ process multiqc {
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
-    file multiqc_config
+    file multiqc_config from multiqc_config_ch.collect()
     file (fastqc:'fastqc/*') from fastqc_results.collect()
     file ('trimgalore/*') from trimgalore_results.collect()
     file ('samtools/*') from samtools_stats.collect()
@@ -941,14 +929,14 @@ process multiqc {
     file '*multiqc_report.html' into multiqc_report
     file '*_data' into multiqc_data
     file '.command.err' into multiqc_stderr
-    val prefix into multiqc_prefix
 
     script:
     prefix = fastqc[0].toString() - '_fastqc.html' - 'fastqc/'
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     """
-    multiqc -f $rtitle $rfilename --config $multiqc_config . 2>&1
+    multiqc . -f $rtitle $rfilename --config $multiqc_config \\
+        -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m deeptools -m phantompeakqualtools
     """
 }
 
@@ -956,23 +944,19 @@ process multiqc {
  * STEP 11 - Output Description HTML
  */
 process output_documentation {
-    tag "$prefix"
     publishDir "${params.outdir}/Documentation", mode: 'copy'
 
     input:
-    val prefix from multiqc_prefix
-    file output from output_docs
+    file output_docs from output_docs_ch
 
     output:
     file "results_description.html"
 
     script:
-    def rlocation = params.rlocation ?: ''
     """
-    markdown_to_html.r $output results_description.html $rlocation
+    markdown_to_html.r $output_docs results_description.html
     """
 }
-
 
 /*
  * Completion e-mail notification
@@ -985,7 +969,7 @@ workflow.onComplete {
       subject = "[nf-core/chipseq] FAILED: $workflow.runName"
     }
     def email_fields = [:]
-    email_fields['version'] = params.pipelineVersion
+    email_fields['version'] = workflow.manifest.version
     email_fields['runName'] = custom_runName ?: workflow.runName
     email_fields['success'] = workflow.success
     email_fields['dateComplete'] = workflow.complete
@@ -998,15 +982,14 @@ workflow.onComplete {
     email_fields['summary'] = summary
     email_fields['summary']['Date Started'] = workflow.start
     email_fields['summary']['Date Completed'] = workflow.complete
-    email_fields['summary']['Nextflow Version'] = workflow.nextflow.version
-    email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
-    email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
     email_fields['summary']['Pipeline script file path'] = workflow.scriptFile
     email_fields['summary']['Pipeline script hash ID'] = workflow.scriptId
     if(workflow.repository) email_fields['summary']['Pipeline repository Git URL'] = workflow.repository
     if(workflow.commitId) email_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
     if(workflow.revision) email_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
-    if(workflow.container) email_fields['summary']['Docker image'] = workflow.container
+    email_fields['summary']['Nextflow Version'] = workflow.nextflow.version
+    email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
+    email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
 
     // Render the TXT template
     def engine = new groovy.text.GStringTemplateEngine()
@@ -1039,14 +1022,6 @@ workflow.onComplete {
         }
     }
 
-    // Switch the embedded MIME images with base64 encoded src
-    nfcorechipseqlogo = new File("$baseDir/assets/nf-core_chipseq_logo.png").bytes.encodeBase64().toString()
-    scilifelablogo = new File("$baseDir/assets/SciLifeLab_logo.png").bytes.encodeBase64().toString()
-    ngilogo = new File("$baseDir/assets/NGI_logo.png").bytes.encodeBase64().toString()
-    email_html = email_html.replaceAll(~/cid:nfcorechipseqlogo/, "data:image/png;base64,$nfcorechipseqlogo")
-    email_html = email_html.replaceAll(~/cid:scilifelablogo/, "data:image/png;base64,$scilifelablogo")
-    email_html = email_html.replaceAll(~/cid:ngilogo/, "data:image/png;base64,$ngilogo")
-
     // Write summary e-mail HTML to a file
     def output_d = new File( "${params.outdir}/Documentation/" )
     if( !output_d.exists() ) {
@@ -1059,17 +1034,4 @@ workflow.onComplete {
 
     log.info "[nf-core/chipseq] Pipeline Complete"
 
-    if(!workflow.success){
-        if( workflow.profile == 'standard'){
-            if ( "hostname".execute().text.contains('.uppmax.uu.se') ) {
-                log.error "====================================================\n" +
-                        "  WARNING! You are running with the default 'standard'\n" +
-                        "  pipeline config profile, which runs on the head node\n" +
-                        "  and assumes all software is on the PATH.\n" +
-                        "  This is probably why everything broke.\n" +
-                        "  Please use `-profile uppmax` to run on UPPMAX clusters.\n" +
-                        "============================================================"
-            }
-        }
-    }
 }

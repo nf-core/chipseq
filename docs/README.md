@@ -1,10 +1,12 @@
-# nf-core/chipseq
+# nf-core/chipseq: Documentation
 
-The nf-core/chipseq documentation is split into a few different files:
+The nf-core/chipseq documentation is split into the following files:
 
-* [`installation.md`](installation.md)
-  * Pipeline installation and configuration instructions
-* [`usage.md`](usage.md)
-  * Instructions on how to run the nf-core/chipseq pipeline
-* [`output.md`](output.md)
-  * Document describing all of the results produced by the pipeline, and how to interpret them.
+1. [Installation](installation.md)
+2. Pipeline configuration
+    * [Local installation](configuration/local.md)
+    * [Adding your own system](configuration/adding_your_own.md)
+    * [Reference genomes](configuration/reference_genomes.md)
+3. [Running the pipeline](usage.md)
+4. [Output and how to interpret the results](output.md)
+5. [Troubleshooting](troubleshooting.md)
