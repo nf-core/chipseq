@@ -16,22 +16,15 @@
 */
 
 def helpMessage() {
-    log.info """
-    =======================================================
-                                              ,--./,-.
-              ___     __   __   __   ___     /,-._.--~\'
-        |\\ | |__  __ /  ` /  \\ |__) |__         }  {
-        | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
-                                              `._,._,\'
 
-     nf-core/chipseq v${workflow.manifest.version}
-    =======================================================
+    log.info nfcoreHeader()
+    log.info """
 
     Usage:
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile docker
+      nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile docker
 
     Mandatory arguments:
       --reads                       Path to input data (must be surrounded with quotes)
@@ -48,6 +41,7 @@ def helpMessage() {
       --seqCenter                   Text about sequencing center which will be added in the header of output bam files
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
 
+      --fingerprintBins             Number of genomic bins to use when calculating fingerprint plot. Default: 50000
       --broad                       Run MACS with the --broad flag
       --macsgsize                   Effective genome size for the MACS --gsize option. Should be in the format "2.1e9"
       --saturation                  Run saturation analysis by peak calling with subsets of reads
@@ -220,15 +214,7 @@ if(!dropped_samples.isEmpty()){
 }
 
 
-log.info """=======================================================
-                                          ,--./,-.
-          ___     __   __   __   ___     /,-._.--~\'
-    |\\ | |__  __ /  ` /  \\ |__) |__         }  {
-    | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
-                                          `._,._,\'
-
- nf-core/chipseq v${workflow.manifest.version}
-======================================================="""
+log.info nfcoreHeader()
 def summary = [:]
 summary['Pipeline Name']        = 'nf-core/chipseq'
 summary['Pipeline Version']     = workflow.manifest.version
@@ -653,7 +639,7 @@ process deepTools {
             --extendReads ${params.extendReadsLen} \\
             --skipZeros \\
             --ignoreDuplicates \\
-            --numberOfSamples 50000 \\
+            --numberOfSamples ${params.fingerprintBins} \\
             --binSize 500 \\
             --plotFileFormat pdf \\
             --plotTitle "Fingerprints"
@@ -1034,4 +1020,28 @@ workflow.onComplete {
 
     log.info "[nf-core/chipseq] Pipeline Complete"
 
+}
+
+def nfcoreHeader(){
+    // Log colors ANSI codes
+    c_reset = params.monochrome_logs ? '' : "\033[0m";
+    c_dim = params.monochrome_logs ? '' : "\033[2m";
+    c_black = params.monochrome_logs ? '' : "\033[0;30m";
+    c_green = params.monochrome_logs ? '' : "\033[0;32m";
+    c_yellow = params.monochrome_logs ? '' : "\033[0;33m";
+    c_blue = params.monochrome_logs ? '' : "\033[0;34m";
+    c_purple = params.monochrome_logs ? '' : "\033[0;35m";
+    c_cyan = params.monochrome_logs ? '' : "\033[0;36m";
+    c_white = params.monochrome_logs ? '' : "\033[0;37m";
+
+    return """
+    ${c_dim}====================================================${c_reset}
+                                            ${c_green},--.${c_black}/${c_green},-.${c_reset}
+    ${c_blue}        ___     __   __   __   ___     ${c_green}/,-._.--~\'${c_reset}
+    ${c_blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${c_yellow}}  {${c_reset}
+    ${c_blue}  | \\| |       \\__, \\__/ |  \\ |___     ${c_green}\\`-._,-`-,${c_reset}
+                                            ${c_green}`._,._,\'${c_reset}
+    ${c_purple}  nf-core/chipseq v${workflow.manifest.version}${c_reset}
+    ${c_dim}====================================================${c_reset}
+    """.stripIndent()
 }

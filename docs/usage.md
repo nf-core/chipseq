@@ -21,6 +21,7 @@
     * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
     * [`--skipDupRemoval`](#--skipDupRemoval)
     * [`--seqCenter`](#--seqCenter)
+    * [`--fingerprintBins`](#--fingerprintBins)
     * [`--broad`](#--broad)
     * [`--macsgsize`](#--macsgsize)
     * [`--saturation`](#--saturation)
@@ -179,8 +180,14 @@ By default duplicate reads will be removed with picard. With this flag on this p
 ### `--seqCenter`
 Text about sequencing center which will be added in the header of output bam files.
 
+### `--fingerprintBins`
+Number of genomic bins to use when calculating the deepTools Fingerprint plot.
+Larger numbers will give a smoother profile, but take longer to run.
+
+Default: `50000`
+
 ### `--broad`
-Run MACS with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff 0.1.
+Run MACS with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff `0.1`.
 
 ### `--macsgsize`
 Effective genome size which is used for the option `--gsize` in MACS. Should be in the format "2.1e9". See [`conf/igenomes.config`](conf/igenomes.config) for the predefined values of all supported reference genomes. This value is the mappable genome size or effective genome size which is defined as the genome size which can be sequenced. Because of the repetitive features on the chromsomes, the actual mappable genome size will be smaller than the original size, about 90% or 70% of the genome size.
