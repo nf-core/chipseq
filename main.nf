@@ -69,7 +69,6 @@ def helpMessage() {
     Other options:
       --outdir                      The output directory where the results will be saved
       --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
-      --rlocation                   Location to save R-libraries used in the pipeline. Default value is ~/R/nxtflow_libs/
       --clusterOptions              Extra SLURM options, used in conjunction with Uppmax.config
       -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
     """.stripIndent()
@@ -96,12 +95,6 @@ params.macsgsize = params.genome ? params.genomes[ params.genome ].macsgsize ?: 
 // Check if genome exists in the config file
 if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
     exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
-}
-
-// R library locations
-if (params.rlocation){
-    nxtflow_libs = file(params.rlocation)
-    nxtflow_libs.mkdirs()
 }
 
 // Create channels for config files
@@ -248,7 +241,6 @@ if( params.notrim ){
     summary["Trim 3' R2"] = params.three_prime_clip_r2
 }
 summary['Save Trimmed']         = params.saveTrimmed
-summary['R libraries']          = params.rlocation
 summary['Max Memory']           = params.max_memory
 summary['Max CPUs']             = params.max_cpus
 summary['Max Time']             = params.max_time
@@ -948,7 +940,7 @@ if (params.saturation) {
 
      script:
      """
-     saturation_results_processing.r $params.rlocation $macsconfig $countstat $saturation_results_collection
+     saturation_results_processing.r $macsconfig $countstat $saturation_results_collection
      """
   }
 }
@@ -972,7 +964,7 @@ process chippeakanno {
     script:
     filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
     """
-    post_peak_calling_processing.r $params.rlocation $filtering $gtf $macs_peaks_collection
+    post_peak_calling_processing.r $filtering $gtf $macs_peaks_collection
     """
 }
 
