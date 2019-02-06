@@ -139,7 +139,7 @@ if( params.gtf ){
 
 if( params.bed ){
     bed = Channel
-        .fromPath(params.gtf, checkIfExists: true)
+        .fromPath(params.bed, checkIfExists: true)
         .ifEmpty { exit 1, "BED file not found: ${params.bed}" }
 }
 
@@ -305,7 +305,7 @@ if( workflow.profile == 'awsbatch') {
  */
 if(!params.bwa_index && fasta){
     process makeBWAindex {
-        tag fasta
+        tag "$fasta"
         publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
 
@@ -935,7 +935,8 @@ process multiqc {
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     """
-    multiqc -f $rtitle $rfilename --config $multiqc_config . 2>&1
+    multiqc . -f $rtitle $rfilename --config $multiqc_config \\
+        -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m deeptools -m phantompeakqualtools
     """
 }
 
