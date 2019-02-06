@@ -227,6 +227,7 @@ summary['Multiple Alignments']  = params.allow_multi_align
 summary['Duplication Removal']  = params.skipDupRemoval
 if(params.seqCenter) summary['Seq Center'] = params.seqCenter
 summary['Save Intermeds']       = params.saveAlignedIntermediates
+summary['Fingerprint Bins']     = params.fingerprintBins
 summary['MACS Config']          = params.macsconfig
 summary['MACS Broad Peaks']     = params.broad
 summary['MACS Genome Size']     = params.macsgsize
