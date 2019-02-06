@@ -734,7 +734,7 @@ process deepTools_computeMatrix {
  * STEP 7.5 deepTools computeMatrix
  */
 process deepTools_plotProfile {
-    tag "${bam[0].baseName - '.dedup.sorted'}"
+    tag "${bigwig.baseName}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
