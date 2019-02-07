@@ -499,7 +499,7 @@ if (params.skipDupRemoval) {
         file "${prefix}.picardDupMetrics.txt" into picard_reports
 
         script:
-        prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
+        prefix = bam.toString() - ~/(\.sorted)?(\.bam)?$/
         if( !task.memory ){
             log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
             avail_mem = 3
@@ -529,7 +529,6 @@ if (params.skipDupRemoval) {
  * STEP 5 Read_count_statistics
  */
 process countstat {
-    tag "${bed[0].baseName}"
     publishDir "${params.outdir}/countstat", mode: 'copy'
     label 'process_long'
 
@@ -566,7 +565,7 @@ process phantompeakqualtools {
     file '*_mqc.csv' into spp_csv_mqc
 
     script:
-    prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
+    prefix = bam.toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
     run_spp.r -c="$bam" -savp -savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
     processSppRdata.r ${prefix}.spp.Rdata ${prefix}.spp.csv
@@ -580,7 +579,6 @@ process phantompeakqualtools {
  */
 
 process calculateNSCRSC {
-    tag "${spp_out_list[0].baseName}"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -608,7 +606,7 @@ bam_dedup_deepTools.into {
 }
 
 process deepTools_bamPEFragmentSize {
-    tag "${bam[0].baseName - '.dedup.sorted'}"
+    tag "${bam.baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
     label 'process_big'
 
@@ -639,7 +637,7 @@ process deepTools_bamPEFragmentSize {
  * STEP 7.2 deepTools plotFingerprint
  */
 process deepTools_plotFingerprint {
-    tag "${bam[0].baseName - '.dedup.sorted'}"
+    tag "${bam.baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
     label 'process_big'
 
@@ -671,7 +669,7 @@ process deepTools_plotFingerprint {
  * STEP 7.3 deepTools bamCoverage
  */
 process deepTools_bamCoverage {
-    tag "${bam[0].baseName - '.dedup.sorted'}"
+    tag "${bam.baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
     label 'process_big'
 
@@ -696,7 +694,6 @@ process deepTools_bamCoverage {
  * STEP 7.4 deepTools computeMatrix
  */
 process deepTools_computeMatrix {
-    tag "${bigwig[0].baseName}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
     label 'process_big'
 
@@ -753,7 +750,6 @@ process deepTools_plotProfile {
  * STEP 7.6 deepTools multiBamSummary
  */
 process deepTools_multiBamSummary {
-    tag "${bam[0].baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
     label 'process_big'
 
@@ -786,7 +782,6 @@ process deepTools_multiBamSummary {
  * STEP 7.7 deepTools plotCorrelation
  */
 process deepTools_plotCorrelation {
-    tag "${bam[0].baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -820,7 +815,6 @@ process deepTools_plotCorrelation {
  * STEP 7.8 deepTools plotCorrelation
  */
 process deepTools_plotPCA {
-    tag "${bam[0].baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
