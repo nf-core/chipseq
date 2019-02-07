@@ -264,8 +264,9 @@ if(workflow.profile == 'awsbatch'){
    summary['AWS Queue']         = params.awsqueue
 }
 if(params.email) summary['E-mail Address'] = params.email
+log.info "\033[2m-----------------------------------------\033[0m"
 log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
-log.info "========================================="
+log.info "\033[2m-----------------------------------------\033[0m"
 
 // AWSBatch sanity checking
 if(workflow.profile == 'awsbatch'){
@@ -495,7 +496,7 @@ if (params.skipDupRemoval) {
 
         output:
         set file("${prefix}.dedup.sorted.bam"), file("${prefix}.dedup.sorted.bam.bai") into bam_dedup_spp, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
-        file "${prefix}.dedup.sorted.bam" into bed_dedup
+        file "${prefix}.dedup.sorted.bed" into bed_dedup
         file "${prefix}.picardDupMetrics.txt" into picard_reports
 
         script:
@@ -600,14 +601,16 @@ process calculateNSCRSC {
  */
 bam_dedup_deepTools.into {
     bam_dedup_deepTools_bamPEFragmentSize;
-    bam_dedup_deepTools_plotFingerprint;
+    bam_dedup_deepTools_plotFingerprint1;
+    bam_dedup_deepTools_plotFingerprint2;
     bam_dedup_deepTools_bamCoverage;
-    bam_dedup_deepTools_multiBamSummary
+    bam_dedup_deepTools_multiBamSummary1;
+    bam_dedup_deepTools_multiBamSummary2
 }
 
 process deepTools_bamPEFragmentSize {
-    tag "${bam.baseName - '.dedup.sorted'}"
-    publishDir "${params.outdir}/deepTools", mode: 'copy'
+    tag "$bam_base"
+    publishDir "${params.outdir}/deepTools/FragmentSize", mode: 'copy'
     label 'process_big'
 
     input:
@@ -621,15 +624,16 @@ process deepTools_bamPEFragmentSize {
     !params.singleEnd
 
     script:
+    bam_base = bam.baseName - '.dedup.sorted'
     """
     bamPEFragmentSize \\
         --binSize 1000 \\
         --bamfiles $bam \\
-        --o fragment_size_histogram.pdf \\
+        --o ${bam_base}.fragment_size_histogram.pdf \\
         --numberOfProcessors ${task.cpus} \\
         --plotFileFormat pdf \\
-        --plotTitle "Paired-end Fragment Size Distribution" \\
-        --outRawFragmentLengths bamPEFragmentSize_rawdata.txt
+        --plotTitle "${bam_base}: Paired-end Fragment Size Distribution" \\
+        --outRawFragmentLengths ${bam_base}.bamPEFragmentSize_rawdata.txt
     """
 }
 
@@ -637,12 +641,12 @@ process deepTools_bamPEFragmentSize {
  * STEP 7.2 deepTools plotFingerprint
  */
 process deepTools_plotFingerprint {
-    tag "${bam.baseName - '.dedup.sorted'}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
     label 'process_big'
 
     input:
-    set file(bam), file(bai) from bam_dedup_deepTools_plotFingerprint
+    file(bam) from bam_dedup_deepTools_plotFingerprint1.flatten().filter{ !it.toString().contains(".bam.bai") }.collect()
+    file(bai) from bam_dedup_deepTools_plotFingerprint2.flatten().filter{ it.toString().contains(".bam.bai") }.collect()
 
     output:
     file '*.{txt,pdf}' into deepTools_plotFingerprint_results
@@ -652,7 +656,7 @@ process deepTools_plotFingerprint {
     """
     plotFingerprint \\
         -b $bam \\
-        --plotFile fingerprints.pdf \\
+        --plotFile fingerprint.pdf \\
         --outRawCounts fingerprint.txt \\
         --extendReads ${params.extendReadsLen} \\
         --skipZeros \\
@@ -661,7 +665,7 @@ process deepTools_plotFingerprint {
         --binSize 500 \\
         --numberOfProcessors ${task.cpus} \\
         --plotFileFormat pdf \\
-        --plotTitle "Fingerprints"
+        --plotTitle "Fingerprint Plot"
     """
 }
 
@@ -670,7 +674,7 @@ process deepTools_plotFingerprint {
  */
 process deepTools_bamCoverage {
     tag "${bam.baseName - '.dedup.sorted'}"
-    publishDir "${params.outdir}/deepTools", mode: 'copy'
+    publishDir "${params.outdir}/deepTools/bigWig", mode: 'copy'
     label 'process_big'
 
     input:
@@ -724,7 +728,6 @@ process deepTools_computeMatrix {
  * STEP 7.5 deepTools computeMatrix
  */
 process deepTools_plotProfile {
-    tag "${bigwig.baseName}"
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
@@ -754,13 +757,14 @@ process deepTools_multiBamSummary {
     label 'process_big'
 
     input:
-    file(bam) from bam_dedup_deepTools_multiBamSummary.filter( ~/.+\.bam$/ ).collect()
+    file(bam) from bam_dedup_deepTools_multiBamSummary1.flatten().filter{ !it.toString().contains(".bam.bai") }.collect()
+    file(bai) from bam_dedup_deepTools_multiBamSummary2.flatten().filter{ it.toString().contains(".bam.bai") }.collect()
 
     output:
-    file 'multiBamSummary.npz' into deepTools_multiBamSummary_results
+    file 'multiBamSummary.npz' into deepTools_multiBamSummary_results_corr, deepTools_multiBamSummary_results_pca
 
     when:
-    !(bam instanceof Path)
+    bam.size() > 1
 
     script:
     """
@@ -785,7 +789,7 @@ process deepTools_plotCorrelation {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
-    file npz from deepTools_multiBamSummary_results.collect()
+    file npz from deepTools_multiBamSummary_results_corr
 
     output:
     file '*.{pdf,txt}' into deepTools_plotCorrelation_results
@@ -818,7 +822,7 @@ process deepTools_plotPCA {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
-    file npz from deepTools_multiBamSummary_results.collect()
+    file npz from deepTools_multiBamSummary_results_pca
 
     output:
     file '*.{pdf,txt}' into deepTools_plotPCA_results
@@ -975,15 +979,15 @@ process get_software_versions {
     """
     echo $workflow.manifest.version > v_pipeline.txt
     echo $workflow.nextflow.version > v_nextflow.txt
-    fastqc --version > v_fastqc.txt
-    trim_galore --version > v_trim_galore.txt
-    echo \$(bwa 2>&1) > v_bwa.txt
-    samtools --version > v_samtools.txt
-    bedtools --version > v_bedtools.txt
+    fastqc --version > v_fastqc.txt || true
+    trim_galore --version > v_trim_galore.txt || true
+    echo \$(bwa 2>&1) > v_bwa.txt || true
+    samtools --version > v_samtools.txt || true
+    bedtools --version > v_bedtools.txt || true
     picard MarkDuplicates --version &> v_picard.txt  || true
-    echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt
-    echo \$(macs2 --version 2>&1) > v_macs2.txt
-    multiqc --version > v_multiqc.txt
+    echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt || true
+    echo \$(macs2 --version 2>&1) > v_macs2.txt || true
+    multiqc --version > v_multiqc.txt || true
     scrape_software_versions.py > software_versions_mqc.yaml
     """
 }
@@ -994,31 +998,28 @@ process get_software_versions {
  */
 
 process multiqc {
-    tag "$prefix"
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
-    file multiqc_config from multiqc_config_ch.collect()
-    file (fastqc:'fastqc/*') from fastqc_results.collect()
-    file ('trimgalore/*') from trimgalore_results.collect()
-    file ('samtools/*') from samtools_stats.collect()
-    file ('picard/*') from picard_reports.collect()
-    file ('deeptools/bamPEFragmentSize/*') from deepTools_bamPEFragmentSize_multiqc.collect()
-    file ('deeptools/plotFingerprint/*') from deepTools_plotFingerprint_multiqc.collect()
-    file ('deeptools/plotProfile/*') from deepTools_plotProfile_multiqc.collect()
-    file ('deeptools/plotCorrelation/*') from deepTools_plotCorrelation_multiqc.collect()
-    file ('deeptools/plotPCA/*') from deepTools_plotPCA_multiqc.collect()
-    file ('phantompeakqualtools/*') from spp_out_mqc.collect()
-    file ('phantompeakqualtools/*') from spp_csv_mqc.collect()
-    file ('software_versions/*') from software_versions_yaml.collect()
+    file multiqc_config from multiqc_config_ch.collect().ifEmpty([])
+    file ('fastqc/*') from fastqc_results.collect().ifEmpty([])
+    file ('trimgalore/*') from trimgalore_results.collect().ifEmpty([])
+    file ('samtools/*') from samtools_stats.collect().ifEmpty([])
+    file ('picard/*') from picard_reports.collect().ifEmpty([])
+    file ('deeptools/bamPEFragmentSize/*') from deepTools_bamPEFragmentSize_multiqc.collect().ifEmpty([])
+    file ('deeptools/plotFingerprint/*') from deepTools_plotFingerprint_multiqc.collect().ifEmpty([])
+    file ('deeptools/plotProfile/*') from deepTools_plotProfile_multiqc.collect().ifEmpty([])
+    file ('deeptools/plotCorrelation/*') from deepTools_plotCorrelation_multiqc.collect().ifEmpty([])
+    file ('deeptools/plotPCA/*') from deepTools_plotPCA_multiqc.collect().ifEmpty([])
+    file ('phantompeakqualtools/*') from spp_out_mqc.collect().ifEmpty([])
+    file ('phantompeakqualtools/*') from spp_csv_mqc.collect().ifEmpty([])
+    file ('software_versions/*') from software_versions_yaml.collect().ifEmpty([])
 
     output:
     file '*multiqc_report.html' into multiqc_report
     file '*_data' into multiqc_data
-    file '.command.err' into multiqc_stderr
 
     script:
-    prefix = fastqc[0].toString() - '_fastqc.html' - 'fastqc/'
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     """
@@ -1136,13 +1137,11 @@ def nfcoreHeader(){
     c_white = params.monochrome_logs ? '' : "\033[0;37m";
 
     return """
-    ${c_dim}====================================================${c_reset}
                                             ${c_green},--.${c_black}/${c_green},-.${c_reset}
     ${c_blue}        ___     __   __   __   ___     ${c_green}/,-._.--~\'${c_reset}
     ${c_blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${c_yellow}}  {${c_reset}
     ${c_blue}  | \\| |       \\__, \\__/ |  \\ |___     ${c_green}\\`-._,-`-,${c_reset}
                                             ${c_green}`._,._,\'${c_reset}
     ${c_purple}  nf-core/chipseq v${workflow.manifest.version}${c_reset}
-    ${c_dim}====================================================${c_reset}
     """.stripIndent()
 }
