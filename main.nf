@@ -16,22 +16,15 @@
 */
 
 def helpMessage() {
-    log.info """
-    =======================================================
-                                              ,--./,-.
-              ___     __   __   __   ___     /,-._.--~\'
-        |\\ | |__  __ /  ` /  \\ |__) |__         }  {
-        | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
-                                              `._,._,\'
 
-     nf-core/chipseq v${workflow.manifest.version}
-    =======================================================
+    log.info nfcoreHeader()
+    log.info """
 
     Usage:
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile docker
+      nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile docker
 
     Mandatory arguments:
       --reads                       Path to input data (must be surrounded with quotes)
@@ -48,6 +41,7 @@ def helpMessage() {
       --seqCenter                   Text about sequencing center which will be added in the header of output bam files
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
 
+      --fingerprintBins             Number of genomic bins to use when calculating fingerprint plot. Default: 50000
       --broad                       Run MACS with the --broad flag
       --macsgsize                   Effective genome size for the MACS --gsize option. Should be in the format "2.1e9"
       --saturation                  Run saturation analysis by peak calling with subsets of reads
@@ -75,7 +69,6 @@ def helpMessage() {
     Other options:
       --outdir                      The output directory where the results will be saved
       --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
-      --rlocation                   Location to save R-libraries used in the pipeline. Default value is ~/R/nxtflow_libs/
       --clusterOptions              Extra SLURM options, used in conjunction with Uppmax.config
       -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
     """.stripIndent()
@@ -102,12 +95,6 @@ params.macsgsize = params.genome ? params.genomes[ params.genome ].macsgsize ?: 
 // Check if genome exists in the config file
 if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
     exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
-}
-
-// R library locations
-if (params.rlocation){
-    nxtflow_libs = file(params.rlocation)
-    nxtflow_libs.mkdirs()
 }
 
 // Create channels for config files
@@ -220,15 +207,7 @@ if(!dropped_samples.isEmpty()){
 }
 
 
-log.info """=======================================================
-                                          ,--./,-.
-          ___     __   __   __   ___     /,-._.--~\'
-    |\\ | |__  __ /  ` /  \\ |__) |__         }  {
-    | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
-                                          `._,._,\'
-
- nf-core/chipseq v${workflow.manifest.version}
-======================================================="""
+log.info nfcoreHeader()
 def summary = [:]
 summary['Pipeline Name']        = 'nf-core/chipseq'
 summary['Pipeline Version']     = workflow.manifest.version
@@ -248,6 +227,7 @@ summary['Multiple Alignments']  = params.allow_multi_align
 summary['Duplication Removal']  = params.skipDupRemoval
 if(params.seqCenter) summary['Seq Center'] = params.seqCenter
 summary['Save Intermeds']       = params.saveAlignedIntermediates
+summary['Fingerprint Bins']     = params.fingerprintBins
 summary['MACS Config']          = params.macsconfig
 summary['MACS Broad Peaks']     = params.broad
 summary['MACS Genome Size']     = params.macsgsize
@@ -262,7 +242,6 @@ if( params.notrim ){
     summary["Trim 3' R2"] = params.three_prime_clip_r2
 }
 summary['Save Trimmed']         = params.saveTrimmed
-summary['R libraries']          = params.rlocation
 summary['Max Memory']           = params.max_memory
 summary['Max CPUs']             = params.max_cpus
 summary['Max Time']             = params.max_time
@@ -286,7 +265,7 @@ if(workflow.profile == 'awsbatch'){
 }
 if(params.email) summary['E-mail Address'] = params.email
 log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
-log.info "========================================="
+log.info "\033[2m----------------------------------------------------\033[0m"
 
 // AWSBatch sanity checking
 if(workflow.profile == 'awsbatch'){
@@ -420,6 +399,7 @@ process bwa {
     tag "$prefix"
     publishDir path: { params.saveAlignedIntermediates ? "${params.outdir}/bwa" : params.outdir }, mode: 'copy',
                saveAs: {filename -> params.saveAlignedIntermediates ? filename : null }
+    label 'process_big'
 
     input:
     file reads from trimmed_reads
@@ -449,15 +429,15 @@ process samtools {
                    if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
                    else params.saveAlignedIntermediates ? filename : null
                }
+    label 'process_medium'
 
     input:
     file bam from bwa_bam
 
     output:
-    file '*.sorted.bam' into bam_picard, bam_for_mapped
-    file '*.sorted.bam.bai' into bai_picard, bai_for_mapped
-    file '*.sorted.bed' into bed_total
-    file '*.stats.txt' into samtools_stats
+    set file("${bam.baseName}.sorted.bam"), file("${bam.baseName}.sorted.bam.bai") into bam_picard, bam_for_mapped
+    file "${bam.baseName}.sorted.bed" into bed_total
+    file "${bam.baseName}.stats.txt" into samtools_stats
 
     script:
     """
@@ -474,22 +454,21 @@ process samtools {
  */
 
 process bwa_mapped {
-    tag "${input_files[0].baseName}"
+    tag "${bam.baseName}"
     publishDir "${params.outdir}/bwa/mapped", mode: 'copy'
+    label 'process_medium'
 
     input:
-    file input_files from bam_for_mapped.collect()
-    file bai from bai_for_mapped.collect()
+    set file(bam), file(bai) from bam_for_mapped
 
     output:
-    file 'mapped_refgenome.txt' into bwa_mapped
+    file "${bam.baseName}.mapped_refgenome.txt" into bwa_mapped
 
     script:
     """
-    for i in $input_files
-    do
-      samtools idxstats \${i} | awk -v filename="\${i}" '{mapped+=\$3; unmapped+=\$4} END {print filename,"\t",mapped,"\t",unmapped}'
-    done > mapped_refgenome.txt
+    samtools idxstats $bam \\
+        | awk -v filename="$bam" '{mapped+=\$3; unmapped+=\$4} END {print filename,"\t",mapped,"\t",unmapped}' \\
+        > ${bam.baseName}.mapped_refgenome.txt
     """
 }
 
@@ -498,26 +477,29 @@ process bwa_mapped {
  * STEP 4 Picard
  */
 if (params.skipDupRemoval) {
-    bam_picard.into {bam_dedup_spp; bam_dedup_deepTools; bam_dedup_macs; bam_dedup_saturation}
-    bai_picard.into {bai_dedup_spp; bai_dedup_deepTools; bai_dedup_macs; bai_dedup_saturation}
+    bam_picard.into {
+        bam_dedup_spp;
+        bam_dedup_deepTools;
+        bam_dedup_macs;
+        bam_dedup_saturation
+    }
     picard_reports = Channel.from(false)
 } else {
     process picard {
         tag "$prefix"
         publishDir "${params.outdir}/picard", mode: 'copy'
+        label 'process_medium'
 
         input:
-        file bam from bam_picard
-        file bai from bai_picard
+        set file(bam), file(bai) from bam_picard
 
         output:
-        file '*.dedup.sorted.bam' into bam_dedup_spp, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
-        file '*.dedup.sorted.bam.bai' into bai_dedup_spp, bai_dedup_deepTools, bai_dedup_macs, bai_dedup_saturation
-        file '*.dedup.sorted.bed' into bed_dedup
-        file '*.picardDupMetrics.txt' into picard_reports
+        set file("${prefix}.dedup.sorted.bam"), file("${prefix}.dedup.sorted.bam.bai") into bam_dedup_spp, bam_dedup_deepTools, bam_dedup_macs, bam_dedup_saturation
+        file "${prefix}.dedup.sorted.bed" into bed_dedup
+        file "${prefix}.picardDupMetrics.txt" into picard_reports
 
         script:
-        prefix = bam[0].toString() - ~/(\.sorted)?(\.bam)?$/
+        prefix = bam.toString() - ~/(\.sorted)?(\.bam)?$/
         if( !task.memory ){
             log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
             avail_mem = 3
@@ -547,8 +529,8 @@ if (params.skipDupRemoval) {
  * STEP 5 Read_count_statistics
  */
 process countstat {
-    tag "${bed[0].baseName}"
     publishDir "${params.outdir}/countstat", mode: 'copy'
+    label 'process_long'
 
     input:
     file bed from params.skipDupRemoval ? bed_total.collect() : bed_total.mix(bed_dedup).collect()
@@ -571,10 +553,10 @@ process phantompeakqualtools {
     tag "$prefix"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy',
                 saveAs: {filename -> filename.indexOf(".out") > 0 ? "logs/$filename" : "$filename"}
+    label 'process_long'
 
     input:
-    file bam from bam_dedup_spp
-    file bai from bai_dedup_spp
+    set file(bam), file(bai) from bam_dedup_spp
     file phantompeakqualtools_mqc_header from phantompeakqualtools_mqc_header_ch.collect()
 
     output:
@@ -583,7 +565,7 @@ process phantompeakqualtools {
     file '*_mqc.csv' into spp_csv_mqc
 
     script:
-    prefix = bam[0].toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
+    prefix = bam.toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
     """
     run_spp.r -c="$bam" -savp -savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
     processSppRdata.r ${prefix}.spp.Rdata ${prefix}.spp.csv
@@ -597,7 +579,6 @@ process phantompeakqualtools {
  */
 
 process calculateNSCRSC {
-    tag "${spp_out_list[0].baseName}"
     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
 
     input:
@@ -615,145 +596,246 @@ process calculateNSCRSC {
 
 
 /*
- * STEP 7 deepTools
+ * STEP 7.1 deepTools bamPEFragmentSize
  */
+bam_dedup_deepTools.into {
+    bam_dedup_deepTools_bamPEFragmentSize;
+    bam_dedup_deepTools_plotFingerprint;
+    bam_dedup_deepTools_bamCoverage;
+    bam_dedup_deepTools_multiBamSummary
+}
 
-process deepTools {
-    tag "${bam[0].baseName}"
+process deepTools_bamPEFragmentSize {
+    tag "$bam_base"
+    publishDir "${params.outdir}/deepTools/FragmentSize", mode: 'copy'
+    label 'process_big'
+
+    input:
+    set file(bam), file(bai) from bam_dedup_deepTools_bamPEFragmentSize
+
+    output:
+    file '*.{txt,pdf}' into deepTools_bamPEFragmentSize_results
+    file '*.txt' into deepTools_bamPEFragmentSize_multiqc
+
+    when:
+    !params.singleEnd
+
+    script:
+    bam_base = bam.baseName - '.dedup.sorted'
+    """
+    bamPEFragmentSize \\
+        --binSize 1000 \\
+        --bamfiles $bam \\
+        --o ${bam_base}.fragment_size_histogram.pdf \\
+        --numberOfProcessors ${task.cpus} \\
+        --plotFileFormat pdf \\
+        --plotTitle "${bam_base}: Paired-end Fragment Size Distribution" \\
+        --outRawFragmentLengths ${bam_base}.bamPEFragmentSize_rawdata.txt
+    """
+}
+
+/*
+ * STEP 7.2 deepTools plotFingerprint
+ */
+process deepTools_plotFingerprint {
+    publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
+
+    input:
+    file(bambai) from bam_dedup_deepTools_plotFingerprint.collect()
+
+    output:
+    file '*.{txt,pdf}' into deepTools_plotFingerprint_results
+    file '*.txt' into deepTools_plotFingerprint_multiqc
+
+    script:
+    """
+    plotFingerprint \\
+        -b *.bam \\
+        --plotFile fingerprint.pdf \\
+        --outRawCounts fingerprint.txt \\
+        --extendReads ${params.extendReadsLen} \\
+        --skipZeros \\
+        --ignoreDuplicates \\
+        --numberOfSamples ${params.fingerprintBins} \\
+        --binSize 500 \\
+        --numberOfProcessors ${task.cpus} \\
+        --plotFileFormat pdf \\
+        --plotTitle "Fingerprint Plot"
+    """
+}
+
+/*
+ * STEP 7.3 deepTools bamCoverage
+ */
+process deepTools_bamCoverage {
+    tag "${bam.baseName - '.dedup.sorted'}"
+    publishDir "${params.outdir}/deepTools/bigWig", mode: 'copy'
+    label 'process_big'
+
+    input:
+    set file(bam), file(bai) from bam_dedup_deepTools_bamCoverage
+
+    output:
+    file "${bam.baseName}.bw" into deepTools_bamCoverage_results
+
+    script:
+    """
+    bamCoverage \\
+       -b $bam \\
+       --extendReads ${params.extendReadsLen} \\
+       --normalizeUsing RPKM \\
+       --numberOfProcessors ${task.cpus} \\
+       -o ${bam.baseName}.bw
+    """
+}
+
+/*
+ * STEP 7.4 deepTools computeMatrix
+ */
+process deepTools_computeMatrix {
+    publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
+
+    input:
+    file bigwig from deepTools_bamCoverage_results.collect()
+    file bed from bed.collect()
+
+    output:
+    file 'computeMatrix.out.gz' into deepTools_computeMatrix_results
+
+    script:
+    """
+    computeMatrix scale-regions \\
+        --scoreFileName *.bw \\
+        --regionsFileName $bed \\
+        --beforeRegionStartLength 3000 \\
+        --afterRegionStartLength 3000 \\
+        --regionBodyLength 5000 \\
+        --outFileName computeMatrix.out.gz \\
+        --numberOfProcessors ${task.cpus} \\
+        --skipZeros \\
+        --smartLabels
+    """
+}
+
+
+/*
+ * STEP 7.5 deepTools computeMatrix
+ */
+process deepTools_plotProfile {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
 
     input:
-    file bam from bam_dedup_deepTools.collect()
-    file bai from bai_dedup_deepTools.collect()
-    file bed from bed
+    file bigwig from deepTools_computeMatrix_results
 
     output:
-    file '*.{txt,pdf,png,npz,bw}' into deepTools_results
-    file '*.txt' into deepTools_multiqc
+    file '*.{pdf,txt}' into deepTools_plotProfile_results
+    file '*.txt' into deepTools_plotProfile_multiqc
 
     script:
-    if (!params.singleEnd) {
-        """
-        bamPEFragmentSize \\
-            --binSize 1000 \\
-            --bamfiles $bam \\
-            --o fragment_size_histogram.pdf \\
-            --plotFileFormat pdf \\
-            --plotTitle "Paired-end Fragment Size Distribution" \\
-            --outRawFragmentLengths bamPEFragmentSize_rawdata.txt
-        """
-    }
-    if(bam instanceof Path){
-        log.warn("Only 1 BAM file - skipping multiBam deepTool steps")
-        """
-        plotFingerprint \\
-            -b $bam \\
-            --plotFile fingerprints.pdf \\
-            --outRawCounts fingerprint.txt \\
-            --extendReads ${params.extendReadsLen} \\
-            --skipZeros \\
-            --ignoreDuplicates \\
-            --numberOfSamples 50000 \\
-            --binSize 500 \\
-            --plotFileFormat pdf \\
-            --plotTitle "Fingerprints"
+    """
+    plotProfile \\
+        --matrixFile computeMatrix.out.gz \\
+        --outFileName read_distribution_profile.pdf \\
+        --plotFileFormat pdf \\
+        --outFileNameData read_distribution_profile.txt \\
+        --plotTitle "Reads Distribution Profile"
+    """
+}
 
-        bamCoverage \\
-           -b $bam \\
-           --extendReads ${params.extendReadsLen} \\
-           --normalizeUsing RPKM \\
-           -o ${bam}.bw
 
-        computeMatrix \\
-            scale-regions \\
-            --scoreFileName ${bam}.bw \\
-            --regionsFileName $bed \\
-            --beforeRegionStartLength 3000 \\
-            --afterRegionStartLength 3000 \\
-            --regionBodyLength 5000 \\
-            --outFileName computeMatrix.out.gz \\
-            --skipZeros \\
-            --smartLabels
+/*
+ * STEP 7.6 deepTools multiBamSummary
+ */
+process deepTools_multiBamSummary {
+    publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
 
-        plotProfile \\
-            --matrixFile computeMatrix.out.gz \\
-            --outFileName read_distribution_profile.pdf \\
-            --plotFileFormat pdf \\
-            --outFileNameData read_distribution_profile.txt \\
-            --plotTitle "Reads Distribution Profile"
-        """
-    } else {
-        """
-        plotFingerprint \\
-            -b $bam \\
-            --plotFile fingerprints.pdf \\
-            --outRawCounts fingerprint.txt \\
-            --extendReads ${params.extendReadsLen} \\
-            --skipZeros \\
-            --ignoreDuplicates \\
-            --numberOfSamples 50000 \\
-            --binSize 500 \\
-            --plotFileFormat pdf \\
-            --plotTitle "Fingerprints"
+    input:
+    file(bambai) from bam_dedup_deepTools_multiBamSummary.collect()
 
-        for bamfile in ${bam}
-        do
-            bamCoverage \\
-              -b \$bamfile \\
-              --extendReads ${params.extendReadsLen} \\
-              --normalizeUsing RPKM \\
-              -o \${bamfile}.bw
-        done
+    output:
+    file 'multiBamSummary.npz' into deepTools_multiBamSummary_results_corr, deepTools_multiBamSummary_results_pca
 
-        computeMatrix \\
-            scale-regions \\
-            --scoreFileName *.bw \\
-            --regionsFileName $bed \\
-            --beforeRegionStartLength 3000 \\
-            --afterRegionStartLength 3000 \\
-            --regionBodyLength 5000 \\
-            --outFileName computeMatrix.out.gz \\
-            --skipZeros \\
-            --smartLabels
+    when:
+    bambai.size() > 2
 
-        plotProfile \\
-            --matrixFile computeMatrix.out.gz \\
-            --outFileName reads_distribution_profile.pdf \\
-            --plotFileFormat pdf \\
-            --outFileNameData read_distribution_profile.txt \\
-            --plotTitle "Reads Distribution Profile"
+    script:
+    """
+    multiBamSummary \\
+        bins \\
+        --binSize 10000 \\
+        --bamfiles *.bam \\
+        -out multiBamSummary.npz \\
+        --extendReads ${params.extendReadsLen} \\
+        --ignoreDuplicates \\
+        --centerReads \\
+        --numberOfProcessors ${task.cpus} \\
+        --smartLabels
+    """
+}
 
-        multiBamSummary \\
-            bins \\
-            --binSize 10000 \\
-            --bamfiles $bam \\
-            -out multiBamSummary.npz \\
-            --extendReads ${params.extendReadsLen} \\
-            --ignoreDuplicates \\
-            --centerReads \\
-            --smartLabels
 
-        plotCorrelation \\
-            -in multiBamSummary.npz \\
-            -o heatmap_SpearmanCorr.pdf \\
-            --plotFileFormat pdf \\
-            --outFileCorMatrix heatmap_SpearmanCorr.txt \\
-            --corMethod spearman \\
-            --skipZeros \\
-            --plotTitle "Spearman Correlation of Read Counts" \\
-            --whatToPlot heatmap \\
-            --colorMap RdYlBu \\
-            --plotNumbers
+/*
+ * STEP 7.7 deepTools plotCorrelation
+ */
+process deepTools_plotCorrelation {
+    publishDir "${params.outdir}/deepTools", mode: 'copy'
 
-        plotPCA \\
-            -in multiBamSummary.npz \\
-            -o pcaplot.pdf \\
-            --plotFileFormat pdf \\
-            --plotTitle "Principal Component Analysis Plot" \\
-            --outFileNameData pcaplot.txt \\
-            --plotWidth 8
-        """
-    }
+    input:
+    file npz from deepTools_multiBamSummary_results_corr
+
+    output:
+    file '*.{pdf,txt}' into deepTools_plotCorrelation_results
+    file '*.txt' into deepTools_plotCorrelation_multiqc
+
+    when:
+    !(bam instanceof Path)
+
+    script:
+    """
+    plotCorrelation \\
+        -in $npz \\
+        -o heatmap_SpearmanCorr.pdf \\
+        --plotFileFormat pdf \\
+        --outFileCorMatrix heatmap_SpearmanCorr.txt \\
+        --corMethod spearman \\
+        --skipZeros \\
+        --plotTitle "Spearman Correlation of Read Counts" \\
+        --whatToPlot heatmap \\
+        --colorMap RdYlBu \\
+        --plotNumbers
+    """
+}
+
+
+/*
+ * STEP 7.8 deepTools plotCorrelation
+ */
+process deepTools_plotPCA {
+    publishDir "${params.outdir}/deepTools", mode: 'copy'
+
+    input:
+    file npz from deepTools_multiBamSummary_results_pca
+
+    output:
+    file '*.{pdf,txt}' into deepTools_plotPCA_results
+    file '*.txt' into deepTools_plotPCA_multiqc
+
+    when:
+    !(bam instanceof Path)
+
+    script:
+    """
+    plotPCA \\
+        -in $npz \\
+        -o pcaplot.pdf \\
+        --plotFileFormat pdf \\
+        --plotTitle "Principal Component Analysis Plot" \\
+        --outFileNameData pcaplot.txt \\
+        --plotWidth 8
+    """
 }
 
 
@@ -764,10 +846,10 @@ process deepTools {
 process macs {
     tag "${analysis_id}"
     publishDir "${params.outdir}/macs", mode: 'copy'
+    label 'process_medium'
 
     input:
-    file bam from bam_dedup_macs.collect()
-    file bai from bai_dedup_macs.collect()
+    file(bam) from bam_dedup_macs.filter( ~/.+\.bam$/ ).collect()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
@@ -805,10 +887,10 @@ if (params.saturation) {
   process saturation {
      tag "${analysis_id}.${sampling}"
      publishDir "${params.outdir}/macs/saturation", mode: 'copy'
+     label 'process_medium'
 
      input:
-     file bam from bam_dedup_saturation.collect()
-     file bai from bai_dedup_saturation.collect()
+     set file(bam), file(bai) from bam_dedup_saturation.collect()
      set chip_sample_id, ctrl_sample_id, analysis_id from saturation_para
      each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 
@@ -852,7 +934,7 @@ if (params.saturation) {
 
      script:
      """
-     saturation_results_processing.r $params.rlocation $macsconfig $countstat $saturation_results_collection
+     saturation_results_processing.r $macsconfig $countstat $saturation_results_collection
      """
   }
 }
@@ -876,7 +958,7 @@ process chippeakanno {
     script:
     filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
     """
-    post_peak_calling_processing.r $params.rlocation $filtering $gtf $macs_peaks_collection
+    post_peak_calling_processing.r $filtering $gtf $macs_peaks_collection
     """
 }
 
@@ -892,15 +974,15 @@ process get_software_versions {
     """
     echo $workflow.manifest.version > v_pipeline.txt
     echo $workflow.nextflow.version > v_nextflow.txt
-    fastqc --version > v_fastqc.txt
-    trim_galore --version > v_trim_galore.txt
-    echo \$(bwa 2>&1) > v_bwa.txt
-    samtools --version > v_samtools.txt
-    bedtools --version > v_bedtools.txt
+    fastqc --version > v_fastqc.txt || true
+    trim_galore --version > v_trim_galore.txt || true
+    echo \$(bwa 2>&1) > v_bwa.txt || true
+    samtools --version > v_samtools.txt || true
+    bedtools --version > v_bedtools.txt || true
     picard MarkDuplicates --version &> v_picard.txt  || true
-    echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt
-    echo \$(macs2 --version 2>&1) > v_macs2.txt
-    multiqc --version > v_multiqc.txt
+    echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt || true
+    echo \$(macs2 --version 2>&1) > v_macs2.txt || true
+    multiqc --version > v_multiqc.txt || true
     scrape_software_versions.py > software_versions_mqc.yaml
     """
 }
@@ -911,27 +993,28 @@ process get_software_versions {
  */
 
 process multiqc {
-    tag "$prefix"
     publishDir "${params.outdir}/MultiQC", mode: 'copy'
 
     input:
-    file multiqc_config from multiqc_config_ch.collect()
-    file (fastqc:'fastqc/*') from fastqc_results.collect()
-    file ('trimgalore/*') from trimgalore_results.collect()
-    file ('samtools/*') from samtools_stats.collect()
-    file ('picard/*') from picard_reports.collect()
-    file ('deeptools/*') from deepTools_multiqc.collect()
-    file ('phantompeakqualtools/*') from spp_out_mqc.collect()
-    file ('phantompeakqualtools/*') from spp_csv_mqc.collect()
-    file ('software_versions/*') from software_versions_yaml.collect()
+    file multiqc_config from multiqc_config_ch.collect().ifEmpty([])
+    file ('fastqc/*') from fastqc_results.collect().ifEmpty([])
+    file ('trimgalore/*') from trimgalore_results.collect().ifEmpty([])
+    file ('samtools/*') from samtools_stats.collect().ifEmpty([])
+    file ('picard/*') from picard_reports.collect().ifEmpty([])
+    file ('deeptools/bamPEFragmentSize/*') from deepTools_bamPEFragmentSize_multiqc.collect().ifEmpty([])
+    file ('deeptools/plotFingerprint/*') from deepTools_plotFingerprint_multiqc.collect().ifEmpty([])
+    file ('deeptools/plotProfile/*') from deepTools_plotProfile_multiqc.collect().ifEmpty([])
+    file ('deeptools/plotCorrelation/*') from deepTools_plotCorrelation_multiqc.collect().ifEmpty([])
+    file ('deeptools/plotPCA/*') from deepTools_plotPCA_multiqc.collect().ifEmpty([])
+    file ('phantompeakqualtools/*') from spp_out_mqc.collect().ifEmpty([])
+    file ('phantompeakqualtools/*') from spp_csv_mqc.collect().ifEmpty([])
+    file ('software_versions/*') from software_versions_yaml.collect().ifEmpty([])
 
     output:
     file '*multiqc_report.html' into multiqc_report
     file '*_data' into multiqc_data
-    file '.command.err' into multiqc_stderr
 
     script:
-    prefix = fastqc[0].toString() - '_fastqc.html' - 'fastqc/'
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     """
@@ -944,7 +1027,7 @@ process multiqc {
  * STEP 11 - Output Description HTML
  */
 process output_documentation {
-    publishDir "${params.outdir}/Documentation", mode: 'copy'
+    publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
     input:
     file output_docs from output_docs_ch
@@ -1034,4 +1117,27 @@ workflow.onComplete {
 
     log.info "[nf-core/chipseq] Pipeline Complete"
 
+}
+
+def nfcoreHeader(){
+    // Log colors ANSI codes
+    c_reset = params.monochrome_logs ? '' : "\033[0m";
+    c_dim = params.monochrome_logs ? '' : "\033[2m";
+    c_black = params.monochrome_logs ? '' : "\033[0;30m";
+    c_green = params.monochrome_logs ? '' : "\033[0;32m";
+    c_yellow = params.monochrome_logs ? '' : "\033[0;33m";
+    c_blue = params.monochrome_logs ? '' : "\033[0;34m";
+    c_purple = params.monochrome_logs ? '' : "\033[0;35m";
+    c_cyan = params.monochrome_logs ? '' : "\033[0;36m";
+    c_white = params.monochrome_logs ? '' : "\033[0;37m";
+
+    return """    ${c_dim}----------------------------------------------------${c_reset}
+                                            ${c_green},--.${c_black}/${c_green},-.${c_reset}
+    ${c_blue}        ___     __   __   __   ___     ${c_green}/,-._.--~\'${c_reset}
+    ${c_blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${c_yellow}}  {${c_reset}
+    ${c_blue}  | \\| |       \\__, \\__/ |  \\ |___     ${c_green}\\`-._,-`-,${c_reset}
+                                            ${c_green}`._,._,\'${c_reset}
+    ${c_purple}  nf-core/chipseq v${workflow.manifest.version}${c_reset}
+    ${c_dim}----------------------------------------------------${c_reset}
+    """.stripIndent()
 }

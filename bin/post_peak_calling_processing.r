@@ -6,13 +6,9 @@
 # Command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 
-R_lib <- as.character(args[1])
-Blacklist <- as.character(args[2])
-GTF <- as.character(args[3])
-input <- as.character(args[4:length(args)])
-
-# Load / install required packages
-.libPaths(c(R_lib, .libPaths()))
+Blacklist <- as.character(args[1])
+GTF <- as.character(args[2])
+input <- as.character(args[3:length(args)])
 
 if (!require("GenomicRanges")) {
     source("http://bioconductor.org/biocLite.R")
@@ -72,9 +68,9 @@ names(annoData) <- annoData$gene_id
 # Read in blacklist file and convert into range object
 if (Blacklist != "No-filtering") {
     blacklist <- read.table(Blacklist, header = FALSE)
-    blacklist_range <- with(blacklist, 
-                            GRanges(sub("chr", "", V1), 
-                                    IRanges(start = V2, end = V3), 
+    blacklist_range <- with(blacklist,
+                            GRanges(sub("chr", "", V1),
+                                    IRanges(start = V2, end = V3),
                                     strand = Rle(rep("+", nrow(blacklist)))
                                     )
                             )
