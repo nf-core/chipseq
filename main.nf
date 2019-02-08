@@ -264,9 +264,8 @@ if(workflow.profile == 'awsbatch'){
    summary['AWS Queue']         = params.awsqueue
 }
 if(params.email) summary['E-mail Address'] = params.email
-log.info "\033[2m-----------------------------------------\033[0m"
 log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
-log.info "\033[2m-----------------------------------------\033[0m"
+log.info "\033[2m----------------------------------------------------\033[0m"
 
 // AWSBatch sanity checking
 if(workflow.profile == 'awsbatch'){
@@ -601,11 +600,9 @@ process calculateNSCRSC {
  */
 bam_dedup_deepTools.into {
     bam_dedup_deepTools_bamPEFragmentSize;
-    bam_dedup_deepTools_plotFingerprint1;
-    bam_dedup_deepTools_plotFingerprint2;
+    bam_dedup_deepTools_plotFingerprint;
     bam_dedup_deepTools_bamCoverage;
-    bam_dedup_deepTools_multiBamSummary1;
-    bam_dedup_deepTools_multiBamSummary2
+    bam_dedup_deepTools_multiBamSummary
 }
 
 process deepTools_bamPEFragmentSize {
@@ -645,8 +642,7 @@ process deepTools_plotFingerprint {
     label 'process_big'
 
     input:
-    file(bam) from bam_dedup_deepTools_plotFingerprint1.flatten().filter{ !it.toString().contains(".bam.bai") }.collect()
-    file(bai) from bam_dedup_deepTools_plotFingerprint2.flatten().filter{ it.toString().contains(".bam.bai") }.collect()
+    file(bambai) from bam_dedup_deepTools_plotFingerprint.collect()
 
     output:
     file '*.{txt,pdf}' into deepTools_plotFingerprint_results
@@ -655,7 +651,7 @@ process deepTools_plotFingerprint {
     script:
     """
     plotFingerprint \\
-        -b $bam \\
+        -b *.bam \\
         --plotFile fingerprint.pdf \\
         --outRawCounts fingerprint.txt \\
         --extendReads ${params.extendReadsLen} \\
@@ -757,21 +753,20 @@ process deepTools_multiBamSummary {
     label 'process_big'
 
     input:
-    file(bam) from bam_dedup_deepTools_multiBamSummary1.flatten().filter{ !it.toString().contains(".bam.bai") }.collect()
-    file(bai) from bam_dedup_deepTools_multiBamSummary2.flatten().filter{ it.toString().contains(".bam.bai") }.collect()
+    file(bambai) from bam_dedup_deepTools_multiBamSummary.collect()
 
     output:
     file 'multiBamSummary.npz' into deepTools_multiBamSummary_results_corr, deepTools_multiBamSummary_results_pca
 
     when:
-    bam.size() > 1
+    bambai.size() > 2
 
     script:
     """
     multiBamSummary \\
         bins \\
         --binSize 10000 \\
-        --bamfiles $bam \\
+        --bamfiles *.bam \\
         -out multiBamSummary.npz \\
         --extendReads ${params.extendReadsLen} \\
         --ignoreDuplicates \\
@@ -1032,7 +1027,7 @@ process multiqc {
  * STEP 11 - Output Description HTML
  */
 process output_documentation {
-    publishDir "${params.outdir}/Documentation", mode: 'copy'
+    publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
     input:
     file output_docs from output_docs_ch
@@ -1136,12 +1131,13 @@ def nfcoreHeader(){
     c_cyan = params.monochrome_logs ? '' : "\033[0;36m";
     c_white = params.monochrome_logs ? '' : "\033[0;37m";
 
-    return """
+    return """    ${c_dim}----------------------------------------------------${c_reset}
                                             ${c_green},--.${c_black}/${c_green},-.${c_reset}
     ${c_blue}        ___     __   __   __   ___     ${c_green}/,-._.--~\'${c_reset}
     ${c_blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${c_yellow}}  {${c_reset}
     ${c_blue}  | \\| |       \\__, \\__/ |  \\ |___     ${c_green}\\`-._,-`-,${c_reset}
                                             ${c_green}`._,._,\'${c_reset}
     ${c_purple}  nf-core/chipseq v${workflow.manifest.version}${c_reset}
+    ${c_dim}----------------------------------------------------${c_reset}
     """.stripIndent()
 }
