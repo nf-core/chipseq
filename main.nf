@@ -769,10 +769,11 @@ process deepTools_computeMatrix {
 
 
 /*
- * STEP 7.5 deepTools computeMatrix
+ * STEP 7.5 deepTools plotProfile
  */
 process deepTools_plotProfile {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
 
     input:
     file bigwig from deepTools_computeMatrix_results
@@ -830,6 +831,7 @@ process deepTools_multiBamSummary {
  */
 process deepTools_plotCorrelation {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
 
     input:
     file npz from deepTools_multiBamSummary_results_corr
@@ -859,10 +861,11 @@ process deepTools_plotCorrelation {
 
 
 /*
- * STEP 7.8 deepTools plotCorrelation
+ * STEP 7.8 deepTools plotPCA
  */
 process deepTools_plotPCA {
     publishDir "${params.outdir}/deepTools", mode: 'copy'
+    label 'process_big'
 
     input:
     file npz from deepTools_multiBamSummary_results_pca
