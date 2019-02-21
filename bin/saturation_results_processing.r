@@ -6,13 +6,9 @@
 # Command line arguments
 args <- commandArgs(trailingOnly=TRUE)
 
-R_lib <- as.character(args[1])
-config <- as.character(args[2])
-countstat <- as.character(args[3])
-input <- as.character(args[4:length(args)])
-
-# Load / install required packages
-.libPaths( c( R_lib, .libPaths() ) )
+config <- as.character(args[1])
+countstat <- as.character(args[2])
+input <- as.character(args[3:length(args)])
 
 if (!require("ggplot2")){
     install.packages("ggplot2", dependencies=TRUE, repos='http://cloud.r-project.org/')
@@ -41,7 +37,7 @@ meta<-as.data.frame(meta)
 colnames(meta)<-c("InputFile","Peaks")
 
 for (i in 1:length(input)) {
-	
+
 	if(class(try(read.table(input[i],header=TRUE),silent=TRUE))=="try-error"){
 		# Result file with 0 peak identified
 		meta$Peaks[i] <- 0
