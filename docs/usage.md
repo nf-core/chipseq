@@ -247,9 +247,9 @@ will be generated for you. Combine with `--saveReference` to save for future run
 ```
 
 ### `--bwa_index`
-If you prefer, you can specify the full path to your reference genome when you run the pipeline:
+Full path to an existing BWA index for your reference genome including the base name for the index.
 ```bash
---bwa_index '[path to BWA index]'
+--bwa_index '[directory containing BWA index]/genome.fa'
 ```
 
 ### `--largeRef`
