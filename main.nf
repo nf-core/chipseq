@@ -50,7 +50,7 @@ def helpMessage() {
 
     References
       --genome                      Name of iGenomes reference
-      --bwa_index                   Path to BWA index
+      --bwa_index                   Full path to directory containing BWA index including base name i.e. /path/to/index/genome.fa
       --largeRef                    Build BWA Index for large reference genome (>2Gb)
       --gtf                         Path to GTF file (Ensembl format)
       --bed                         Path to BED file (Ensembl format)
@@ -107,10 +107,18 @@ macsconfig = file(params.macsconfig)
 if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
 
 if( params.bwa_index ){
-    bwa_index = Channel
-        .fromPath(params.bwa_index, checkIfExists: true)
-        .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index}" }
+    lastPath = params.bwa_index.lastIndexOf(File.separator)
+    bwa_dir =  params.bwa_index.substring(0,lastPath+1)
+    bwa_base = params.bwa_index.substring(lastPath+1)
+
+    Channel
+        .fromPath(bwa_dir, checkIfExists: true)
+        .ifEmpty { exit 1, "BWA index directory not found: ${bwa_dir}" }
+        .into { bwa_index }
 } else if ( params.fasta ){
+    lastPath = params.fasta.lastIndexOf(File.separator)
+    bwa_base = params.fasta.substring(lastPath+1)
+
     fasta = Channel
         .fromPath(params.fasta, checkIfExists: true)
         .ifEmpty { exit 1, "Fasta file not found: ${params.fasta}" }
@@ -413,7 +421,7 @@ process bwa {
     filtering = params.allow_multi_align ? '' : "| samtools view -b -q 1 -F 4 -F 256"
     seqCenter = params.seqCenter ? "-R '@RG\\tID:${prefix}\\tCN:${params.seqCenter}'" : ''
     """
-    bwa mem -M $seqCenter ${index}/genome.fa $reads | samtools view -bT $index - $filtering > ${prefix}.bam
+    bwa mem -M $seqCenter ${index}/${bwa_base} $reads | samtools view -bT $index - $filtering > ${prefix}.bam
     """
 }
 
