@@ -16,7 +16,7 @@
 */
 
 def helpMessage() {
-    
+
     log.info nfcoreHeader()
     log.info """
 
@@ -40,6 +40,7 @@ def helpMessage() {
       --skipDupRemoval              Skip duplication removal by picard
       --seqCenter                   Text about sequencing center which will be added in the header of output bam files
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
+      --ATACseq                     Apply special analysis setup for ATAC-seq dataset: strand shift will be performed, and --broad flag will be used when running MACS
 
       --fingerprintBins             Number of genomic bins to use when calculating fingerprint plot. Default: 50000
       --broad                       Run MACS with the --broad flag
@@ -213,6 +214,7 @@ log.info nfcoreHeader()
 def summary = [:]
 summary['Pipeline Name']        = 'nf-core/chipseq'
 summary['Pipeline Version']     = workflow.manifest.version
+summary['ATAC-seq']             = params.ATACseq
 summary['Run Name']             = custom_runName ?: workflow.runName
 summary['Reads']                = params.reads
 summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
@@ -455,15 +457,10 @@ if(!params.ATACseq){
                        if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
                        else params.saveAlignedIntermediates ? filename : null
                    }
+        label 'process_medium'
 
-process samtools {
-    tag "${bam.baseName}"
-    publishDir path: "${params.outdir}/bwa", mode: 'copy',
-               saveAs: { filename ->
-                   if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
-                   else params.saveAlignedIntermediates ? filename : null
-               }
-    label 'process_medium'
+        input:
+        file bam from bwa_bam
 
         output:
         file '*.sorted.bam' into bam_picard, bam_for_mapped
@@ -471,10 +468,23 @@ process samtools {
         file '*.sorted.bed' into bed_total
         file '*.stats.txt' into samtools_stats
 
-    output:
-    set file("${bam.baseName}.sorted.bam"), file("${bam.baseName}.sorted.bam.bai") into bam_picard, bam_for_mapped
-    file "${bam.baseName}.sorted.bed" into bed_total
-    file "${bam.baseName}.stats.txt" into samtools_stats
+        script:
+        """
+        samtools sort $bam -o ${bam.baseName}.sorted.bam
+        samtools index ${bam.baseName}.sorted.bam
+        bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
+        samtools stats ${bam.baseName}.sorted.bam > ${bam.baseName}.stats.txt
+        """
+    }
+} else {
+    process samtools_atacseq {
+        tag "${bam.baseName}"
+        publishDir path: "${params.outdir}/bwa", mode: 'copy',
+                   saveAs: { filename ->
+                       if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
+                       else params.saveAlignedIntermediates ? filename : null
+                   }
+        label 'process_medium'
 
         input:
         file bam from bwa_bam
