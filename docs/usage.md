@@ -187,9 +187,6 @@ Larger numbers will give a smoother profile, but take longer to run.
 
 Default: `50000`
 
-### `--ATACseq`
-Specifying `--ATACseq` will turn on special setup for analyzing ATAC-seq dataset, including 1) shifting all reads aligning to the '+' and '-' strand by +4 bp and −5 bp, respectively; 2) `--broad` flag on when running MACS.
-
 ### `--broad`
 Run MACS with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff `0.1`.
 
@@ -250,9 +247,9 @@ will be generated for you. Combine with `--saveReference` to save for future run
 ```
 
 ### `--bwa_index`
-If you prefer, you can specify the full path to your reference genome when you run the pipeline:
+Full path to an existing BWA index for your reference genome including the base name for the index.
 ```bash
---bwa_index '[path to BWA index]'
+--bwa_index '[directory containing BWA index]/genome.fa'
 ```
 
 ### `--largeRef`
