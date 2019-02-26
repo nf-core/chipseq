@@ -2,9 +2,9 @@
 
 /*
 ========================================================================================
-              C H I P - S E Q / A T A C - S E Q   B E S T   P R A C T I C E
+                  C H I P - S E Q   B E S T   P R A C T I C E
 ========================================================================================
- ChIP-seq/ATAC-seq Best Practice Analysis Pipeline. Started May 2016.
+ ChIP-seq Best Practice Analysis Pipeline. Started May 2016.
  #### Homepage / Documentation
  https://github.com/nf-core/chipseq
  @#### Authors
@@ -114,8 +114,7 @@ if( params.bwa_index ){
     Channel
         .fromPath(bwa_dir, checkIfExists: true)
         .ifEmpty { exit 1, "BWA index directory not found: ${bwa_dir}" }
-        .into { bwa_index;
-                bwa_index_genomesizetable }
+        .into { bwa_index }
 } else if ( params.fasta ){
     lastPath = params.fasta.lastIndexOf(File.separator)
     bwa_base = params.fasta.substring(lastPath+1)
@@ -185,7 +184,7 @@ Channel
         analysis_id = list[2]
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
-    .into { vali_para; macs_para; saturation_para }
+    .into{ vali_para; macs_para; saturation_para }
 
 // Validate all samples in macs config file
 def config_samples = []
@@ -301,8 +300,7 @@ if(!params.bwa_index && fasta){
         file fasta from fasta
 
         output:
-        file "BWAIndex" into bwa_index,
-                             bwa_index_genomesizetable
+        file "BWAIndex" into bwa_index
 
         script:
         BWAIndexOption = params.largeRef ? "bwtsw" : 'is'
@@ -336,30 +334,6 @@ if(!params.bed){
     }
 }
 
-
-/*
- * PREPROCESSING - Prepare genome size table for ATAC-seq
- */
- if(params.ATACseq){
-     process makeGenomeSizeTable {
-
-         publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
-                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
-
-         input:
-         file index from bwa_index_genomesizetable.collect()
-
-         output:
-         file "*.txt" into genomeSizeTable
-
-         script:
-         """
-         ln -s ${index}/${bwa_base} $bwa_base
-         samtools faidx $bwa_base > ${bwa_base}.fa.fai
-         cut -f1,2 ${bwa_base}.fa.fai > genomeSizeTable.txt
-         """
-     }
- }
 
 /*
  * STEP 1 - FastQC
@@ -455,14 +429,6 @@ process bwa {
 /*
  * STEP 3.2 - post-alignment processing
  */
-if(!params.ATACseq){
-    process samtools_chipseq {
-        tag "${bam.baseName}"
-        publishDir path: "${params.outdir}/bwa", mode: 'copy',
-                   saveAs: { filename ->
-                       if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
-                       else params.saveAlignedIntermediates ? filename : null
-                   }
 
 process samtools {
     tag "${bam.baseName}"
@@ -473,35 +439,21 @@ process samtools {
                }
     label 'process_medium'
 
-        output:
-        file '*.sorted.bam' into bam_picard, bam_for_mapped
-        file '*.sorted.bam.bai' into bai_picard, bai_for_mapped
-        file '*.sorted.bed' into bed_total
-        file '*.stats.txt' into samtools_stats
+    input:
+    file bam from bwa_bam
 
     output:
     set file("${bam.baseName}.sorted.bam"), file("${bam.baseName}.sorted.bam.bai") into bam_picard, bam_for_mapped
     file "${bam.baseName}.sorted.bed" into bed_total
     file "${bam.baseName}.stats.txt" into samtools_stats
 
-        input:
-        file bam from bwa_bam
-        file genomeSizeTable from genomeSizeTable
-
-        output:
-        file '*.sorted.bam' into bam_picard, bam_for_mapped
-        file '*.sorted.bam.bai' into bai_picard, bai_for_mapped
-        file '*.sorted.bed' into bed_total
-        file '*.stats.txt' into samtools_stats
-
-        script:
-        """
-        samtools sort $bam | bedtools bamtobed | awk -v OFS="\\t" '{if(\$6=="+"){\$2+=4;\$3+=4;print} else if(\$6=="-" && \$2>5){\$2-=5;\$3-=5;print} else if(\$6=="-" && \$2<=5){\$3=\$3-\$2+1;\$2=1;print}}' | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
-        bedToBam -i ${bam.baseName}.sorted.bed -g $genomeSizeTable | samtools sort > ${bam.baseName}.sorted.bam
-        samtools index ${bam.baseName}.sorted.bam
-        samtools stats ${bam.baseName}.sorted.bam > ${bam.baseName}.stats.txt
-        """
-    }
+    script:
+    """
+    samtools sort $bam -o ${bam.baseName}.sorted.bam
+    samtools index ${bam.baseName}.sorted.bam
+    bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
+    samtools stats ${bam.baseName}.sorted.bam > ${bam.baseName}.stats.txt
+    """
 }
 
 
@@ -921,7 +873,7 @@ process macs {
         chip = "-t ${chip_sample_id}.sorted.bam"
         ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
     }
-    broad = params.broad || params.ATACseq ? "--broad" : ''
+    broad = params.broad ? "--broad" : ''
     """
     macs2 callpeak \\
         $chip \\
@@ -962,7 +914,7 @@ if (params.saturation) {
          chip_sample = "${chip_sample_id}.sorted.bam"
          ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
      }
-     broad = params.broad || params.ATACseq ? "--broad" : ''
+     broad = params.broad ? "--broad" : ''
      """
      samtools view -b -s ${sampling} ${chip_sample} > ${chip_sample}.${sampling}.bam
      macs2 callpeak \\
