@@ -115,7 +115,7 @@ if( params.bwa_index ){
     Channel
         .fromPath(bwa_dir, checkIfExists: true)
         .ifEmpty { exit 1, "BWA index directory not found: ${bwa_dir}" }
-        .into { bwa_index }
+        .into { bwa_index; bwa_index_genomesizetable }
 } else if ( params.fasta ){
     lastPath = params.fasta.lastIndexOf(File.separator)
     bwa_base = params.fasta.substring(lastPath+1)
@@ -185,7 +185,7 @@ Channel
         analysis_id = list[2]
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
-    .into{ vali_para; macs_para; saturation_para }
+    .into { vali_para; macs_para; saturation_para }
 
 // Validate all samples in macs config file
 def config_samples = []
@@ -302,7 +302,7 @@ if(!params.bwa_index && fasta){
         file fasta from fasta
 
         output:
-        file "BWAIndex" into bwa_index
+        file "BWAIndex" into bwa_index_genomesizetable, bwa_index
 
         script:
         BWAIndexOption = params.largeRef ? "bwtsw" : 'is'
@@ -335,6 +335,31 @@ if(!params.bed){
         """
     }
 }
+
+
+/*
+ * PREPROCESSING - Prepare genome size table for ATAC-seq
+ */
+ if(params.ATACseq){
+     process makeGenomeSizeTable {
+
+         publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
+
+         input:
+         file index from bwa_index_genomesizetable.collect()
+
+         output:
+         file "*.txt" into genomeSizeTable
+
+         script:
+         """
+         ln -s ${index}/genome.fa genome.fa
+         samtools faidx genome.fa > genome.fa.fai
+         cut -f1,2 genome.fa.fai > genomeSizeTable.txt
+         """
+     }
+ }
 
 
 /*
@@ -444,8 +469,11 @@ if(!params.ATACseq){
         input:
         file bam from bwa_bam
 
-    input:
-    file bam from bwa_bam
+        output:
+        file '*.sorted.bam' into bam_picard, bam_for_mapped
+        file '*.sorted.bam.bai' into bai_picard, bai_for_mapped
+        file '*.sorted.bed' into bed_total
+        file '*.stats.txt' into samtools_stats
 
         script:
         """
@@ -465,13 +493,24 @@ if(!params.ATACseq){
                    }
         label 'process_medium'
 
-    script:
-    """
-    samtools sort $bam -o ${bam.baseName}.sorted.bam
-    samtools index ${bam.baseName}.sorted.bam
-    bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
-    samtools stats ${bam.baseName}.sorted.bam > ${bam.baseName}.stats.txt
-    """
+        input:
+        file bam from bwa_bam
+        file genomeSizeTable from genomeSizeTable
+
+        output:
+        file '*.sorted.bam' into bam_picard, bam_for_mapped
+        file '*.sorted.bam.bai' into bai_picard, bai_for_mapped
+        file '*.sorted.bed' into bed_total
+        file '*.stats.txt' into samtools_stats
+
+        script:
+        """
+        samtools sort $bam | bedtools bamtobed | awk -v OFS="\\t" '{if(\$6=="+"){\$2+=4;\$3+=4;print} else if(\$6=="-" && \$2>5){\$2-=5;\$3-=5;print} else if(\$6=="-" && \$2<=5){\$3=\$3-\$2+1;\$2=1;print}}' | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
+        bedToBam -i ${bam.baseName}.sorted.bed -g $genomeSizeTable | samtools sort > ${bam.baseName}.sorted.bam
+        samtools index ${bam.baseName}.sorted.bam
+        samtools stats ${bam.baseName}.sorted.bam > ${bam.baseName}.stats.txt
+        """
+    }
 }
 
 
@@ -621,9 +660,6 @@ process calculateNSCRSC {
 }
 
 
-/*
- * STEP 7.1 deepTools bamPEFragmentSize
- */
 bam_dedup_deepTools.into {
     bam_dedup_deepTools_bamPEFragmentSize;
     bam_dedup_deepTools_plotFingerprint;
@@ -631,6 +667,9 @@ bam_dedup_deepTools.into {
     bam_dedup_deepTools_multiBamSummary
 }
 
+/*
+ * STEP 7.1 deepTools bamPEFragmentSize
+ */
 process deepTools_bamPEFragmentSize {
     tag "$bam_base"
     publishDir "${params.outdir}/deepTools/FragmentSize", mode: 'copy'
@@ -894,7 +933,7 @@ process macs {
         chip = "-t ${chip_sample_id}.sorted.bam"
         ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
     }
-    broad = params.broad ? "--broad" : ''
+    broad = params.broad || params.ATACseq ? "--broad" : ''
     """
     macs2 callpeak \\
         $chip \\
@@ -935,7 +974,7 @@ if (params.saturation) {
          chip_sample = "${chip_sample_id}.sorted.bam"
          ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
      }
-     broad = params.broad ? "--broad" : ''
+     broad = params.broad || params.ATACseq ? "--broad" : ''
      """
      samtools view -b -s ${sampling} ${chip_sample} > ${chip_sample}.${sampling}.bam
      macs2 callpeak \\
