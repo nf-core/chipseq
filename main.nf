@@ -40,7 +40,6 @@ def helpMessage() {
       --skipDupRemoval              Skip duplication removal by picard
       --seqCenter                   Text about sequencing center which will be added in the header of output bam files
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
-      --ATACseq                     Apply special analysis setup for ATAC-seq dataset: strand shift will be performed, and --broad flag will be used when running MACS
 
       --fingerprintBins             Number of genomic bins to use when calculating fingerprint plot. Default: 50000
       --broad                       Run MACS with the --broad flag
@@ -185,7 +184,7 @@ Channel
         analysis_id = list[2]
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
-    .into{ vali_para; macs_para; saturation_para }
+    .into { vali_para; macs_para; saturation_para }
 
 // Validate all samples in macs config file
 def config_samples = []
@@ -220,7 +219,6 @@ log.info nfcoreHeader()
 def summary = [:]
 summary['Pipeline Name']        = 'nf-core/chipseq'
 summary['Pipeline Version']     = workflow.manifest.version
-summary['ATAC-seq']             = params.ATACseq
 summary['Run Name']             = custom_runName ?: workflow.runName
 summary['Reads']                = params.reads
 summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
@@ -375,6 +373,7 @@ if(params.notrim){
                 else if (filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
                 else params.saveTrimmed ? filename : null
             }
+        label 'process_medium'
 
         input:
         set val(name), file(reads) from raw_reads_trimgalore
@@ -431,39 +430,22 @@ process bwa {
 /*
  * STEP 3.2 - post-alignment processing
  */
-if(!params.ATACseq){
-    process samtools_chipseq {
-        tag "${bam.baseName}"
-        publishDir path: "${params.outdir}/bwa", mode: 'copy',
-                   saveAs: { filename ->
-                       if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
-                       else params.saveAlignedIntermediates ? filename : null
-                   }
-        label 'process_medium'
-
-        input:
-        file bam from bwa_bam
+process samtools {
+    tag "${bam.baseName}"
+    publishDir path: "${params.outdir}/bwa", mode: 'copy',
+                saveAs: { filename ->
+                    if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
+                    else params.saveAlignedIntermediates ? filename : null
+                }
+    label 'process_medium'
 
     input:
     file bam from bwa_bam
 
-        script:
-        """
-        samtools sort $bam -o ${bam.baseName}.sorted.bam
-        samtools index ${bam.baseName}.sorted.bam
-        bedtools bamtobed -i ${bam.baseName}.sorted.bam | sort -k 1,1 -k 2,2n -k 3,3n -k 6,6 > ${bam.baseName}.sorted.bed
-        samtools stats ${bam.baseName}.sorted.bam > ${bam.baseName}.stats.txt
-        """
-    }
-} else {
-    process samtools_atacseq {
-        tag "${bam.baseName}"
-        publishDir path: "${params.outdir}/bwa", mode: 'copy',
-                   saveAs: { filename ->
-                       if (filename.indexOf(".stats.txt") > 0) "stats/$filename"
-                       else params.saveAlignedIntermediates ? filename : null
-                   }
-        label 'process_medium'
+    output:
+    set file('*.sorted.bam'), file('*.sorted.bam.bai') into bam_picard, bam_for_mapped
+    file '*.sorted.bed' into bed_total
+    file '*.stats.txt' into samtools_stats
 
     script:
     """
@@ -621,9 +603,6 @@ process calculateNSCRSC {
 }
 
 
-/*
- * STEP 7.1 deepTools bamPEFragmentSize
- */
 bam_dedup_deepTools.into {
     bam_dedup_deepTools_bamPEFragmentSize;
     bam_dedup_deepTools_plotFingerprint;
@@ -631,6 +610,9 @@ bam_dedup_deepTools.into {
     bam_dedup_deepTools_multiBamSummary
 }
 
+/*
+ * STEP 7.1 deepTools bamPEFragmentSize
+ */
 process deepTools_bamPEFragmentSize {
     tag "$bam_base"
     publishDir "${params.outdir}/deepTools/FragmentSize", mode: 'copy'
@@ -878,7 +860,7 @@ process macs {
     label 'process_medium'
 
     input:
-    file(bam) from bam_dedup_macs.filter( ~/.+\.bam$/ ).collect()
+    file bam from bam_dedup_macs.collect()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
@@ -919,7 +901,7 @@ if (params.saturation) {
      label 'process_medium'
 
      input:
-     set file(bam), file(bai) from bam_dedup_saturation.collect()
+     file bam from bam_dedup_saturation.collect()
      set chip_sample_id, ctrl_sample_id, analysis_id from saturation_para
      each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 

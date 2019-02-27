@@ -6,7 +6,7 @@ v1.0dev nf-core/chipseq
 * Remove ngsplot and move the function of plotProfile in deepTools
 * Support reference genome GRCm37
 * Add pre-defined genome sizes for all reference genomes to support macs2 peak calling and downstream processing
-* Add blacklist files for ce10, dm3, hg38, and mm9
+* Add blacklist files for ce11, BDGP6, hg38, and mm9
 * Documents revised accordingly.
 
 05/02/2019 17:11:13
