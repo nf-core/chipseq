@@ -24,7 +24,6 @@
     * [`--fingerprintBins`](#--fingerprintBins)
     * [`--broad`](#--broad)
     * [`--macsgsize`](#--macsgsize)
-    * [`--ATACseq`](#--ATACseq)
     * [`--saturation`](#--saturation)
     * [`--extendReadsLen`](#--extendReadsLen)
 * [Reference genomes](#reference-genomes)
@@ -167,9 +166,6 @@ ChIPSampleID3,,AnalysisID3
 
 For single-sample peaking calling without a control sample, leave the second column blank
 (control sample name).
-
-### `--ATACseq`
-Specifying `--ATACseq` will turn on special setup for analyzing ATAC-seq dataset, including 1) shifting all reads aligning to the '+' and '-' strand by +4 bp and −5 bp, respectively; 2) `--broad` flag on when running MACS.
 
 ### `--allow_multi_align`
 Specifying `--allow_multi_align` will turn off the filtering of secondary alignments and unmapped reads from the BWA output file. Without this option, only primary alignments will be retained.

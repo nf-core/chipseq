@@ -15,7 +15,6 @@ The pipeline uses [Nextflow](https://www.nextflow.io), a bioinformatics workflow
 
 * Make BWA reference genome index (optional)
 * Build BED reference based on GTF (optional)
-* Build genome size table for bedToBam conversion (optional)
 * FastQC for initial quality control of sequence reads
 * TrimGalore! for adapter trimming
 * BWA for alignment
