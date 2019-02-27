@@ -860,7 +860,7 @@ process macs {
     label 'process_medium'
 
     input:
-    file(bam) from bam_dedup_macs.filter( ~/.+\.bam$/ ).collect()
+    file bam from bam_dedup_macs.collect()
     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
 
     output:
@@ -901,7 +901,7 @@ if (params.saturation) {
      label 'process_medium'
 
      input:
-     file(bam) from bam_dedup_saturation.filter( ~/.+\.bam$/ ).collect()
+     file bam from bam_dedup_saturation.collect()
      set chip_sample_id, ctrl_sample_id, analysis_id from saturation_para
      each sampling from 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
 
