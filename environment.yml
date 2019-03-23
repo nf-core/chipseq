@@ -8,16 +8,16 @@ dependencies:
   - conda-forge::openjdk=11.0.1      # Needed for FastQC - conda build hangs without this
   - conda-forge::gawk=4.2.1
   - conda-forge::r-markdown=0.9
-  - conda-forge::r-catools=1.17.1.1
+  - conda-forge::r-catools=1.17.1.2
   - conda-forge::r-snow=0.4_3
-  - conda-forge::r-r.utils=2.7.0
-  - conda-forge::r-stringr=1.3.1
-  - conda-forge::r-evaluate=0.12
+  - conda-forge::r-r.utils=2.8.0
+  - conda-forge::r-stringr=1.4.0
+  - conda-forge::r-evaluate=0.13
   - conda-forge::r-domc=1.3.5
   - conda-forge::r-ggplot2=3.1.0
   - conda-forge::r-knitr=1.21
   - conda-forge::r-rmysql=0.10.13
-  - conda-forge::r-doparallel=1.0.11
+  - conda-forge::r-doparallel=1.0.14
 
   ## bioconda packages
   - fastqc=0.11.8
@@ -25,11 +25,11 @@ dependencies:
   - bwa=0.7.17
   - bedtools=2.27.1
   - samtools=1.9
-  - picard=2.18.23
-  - deeptools=3.1.3
+  - picard=2.18.27
+  - deeptools=3.2.0
   - macs2=2.1.2
   - multiqc=1.7
-  
+
   - bioconda::r-spp=1.15.5
   - bioconda::bioconductor-rsamtools=1.34.0
   - bioconda::bioconductor-shortread=1.40.0
