@@ -114,7 +114,7 @@ if( params.bwa_index ){
     Channel
         .fromPath(bwa_dir, checkIfExists: true)
         .ifEmpty { exit 1, "BWA index directory not found: ${bwa_dir}" }
-        .into { bwa_index }
+        .set { bwa_index }
 } else if ( params.fasta ){
     lastPath = params.fasta.lastIndexOf(File.separator)
     bwa_base = params.fasta.substring(lastPath+1)
@@ -179,9 +179,9 @@ Channel
     .from(macsconfig.readLines())
     .map { line ->
         list = line.split(',')
-        chip_sample_id = list[0]
-        ctrl_sample_id = list[1]
-        analysis_id = list[2]
+        def chip_sample_id = list[0]
+        def ctrl_sample_id = list[1]
+        def analysis_id = list[2]
         [ chip_sample_id, ctrl_sample_id, analysis_id ]
     }
     .into { vali_para; macs_para; saturation_para }
