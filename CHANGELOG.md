@@ -22,4 +22,7 @@ v1.0dev nf-core/chipseq
 * Changed version number back to 1.0dev from 1.0
 * Updated conda packages
 
+07/04/2019 18:48:35
+* Major template changes in-line with nf-core/tools v1.5
+
 Repository moved from https://github.com/SciLifeLab/NGI-ChIPseq

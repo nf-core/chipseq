@@ -1,3 +1,5 @@
+# You can use this file to create a conda environment for this pipeline:
+#   conda env create -f environment.yml
 name: nf-core-chipseq-1.0dev
 channels:
   - conda-forge
@@ -5,19 +7,19 @@ channels:
   - defaults
 dependencies:
   ## conda-forge packages
-  - conda-forge::openjdk=11.0.1      # Needed for FastQC - conda build hangs without this
-  - conda-forge::gawk=4.2.1
-  - conda-forge::r-markdown=0.9
-  - conda-forge::r-catools=1.17.1.2
-  - conda-forge::r-snow=0.4_3
-  - conda-forge::r-r.utils=2.8.0
-  - conda-forge::r-stringr=1.4.0
-  - conda-forge::r-evaluate=0.13
-  - conda-forge::r-domc=1.3.5
-  - conda-forge::r-ggplot2=3.1.0
-  - conda-forge::r-knitr=1.21
-  - conda-forge::r-rmysql=0.10.13
-  - conda-forge::r-doparallel=1.0.14
+  - openjdk=11.0.1      # Needed for FastQC - conda build hangs without this
+  - gawk=4.2.1
+  - r-markdown=0.9
+  - r-catools=1.17.1.2
+  - r-snow=0.4_3
+  - r-r.utils=2.8.0
+  - r-stringr=1.4.0
+  - r-evaluate=0.13
+  - r-domc=1.3.5
+  - r-ggplot2=3.1.0
+  - r-knitr=1.21
+  - r-rmysql=0.10.13
+  - r-doparallel=1.0.14
 
   ## bioconda packages
   - fastqc=0.11.8
@@ -30,17 +32,17 @@ dependencies:
   - macs2=2.1.2
   - multiqc=1.7
 
-  - bioconda::r-spp=1.15.5
-  - bioconda::bioconductor-rsamtools=1.34.0
-  - bioconda::bioconductor-shortread=1.40.0
-  - bioconda::bioconductor-genomicranges=1.34.0
-  - bioconda::bioconductor-genomicfeatures=1.34.1
-  - bioconda::bioconductor-ensembldb=2.6.3
-  - bioconda::bioconductor-chippeakanno=3.16.0
-  - bioconda::bioconductor-biomart=2.38.0
-  - bioconda::bioconductor-rtracklayer=1.42.1
-  - bioconda::bioconductor-bsgenome=1.50.0
-  - bioconda::bioconductor-bsgenome.hsapiens.ucsc.hg19=1.4.0
-  - bioconda::bioconductor-bsgenome.mmusculus.ucsc.mm10=1.4.0
-  - bioconda::bioconductor-org.hs.eg.db=3.7.0
-  - bioconda::bioconductor-org.mm.eg.db=3.7.0
+  - r-spp=1.15.5
+  - bioconductor-rsamtools=1.34.0
+  - bioconductor-shortread=1.40.0
+  - bioconductor-genomicranges=1.34.0
+  - bioconductor-genomicfeatures=1.34.1
+  - bioconductor-ensembldb=2.6.3
+  - bioconductor-chippeakanno=3.16.0
+  - bioconductor-biomart=2.38.0
+  - bioconductor-rtracklayer=1.42.1
+  - bioconductor-bsgenome=1.50.0
+  - bioconductor-bsgenome.hsapiens.ucsc.hg19=1.4.0
+  - bioconductor-bsgenome.mmusculus.ucsc.mm10=1.4.0
+  - bioconductor-org.hs.eg.db=3.7.0
+  - bioconductor-org.mm.eg.db=3.7.0
