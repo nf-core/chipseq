@@ -12,3 +12,5 @@ report_comment: >
 report_section_order:
     nfcore-chipseq:
         order: -1000
+
+export_plots: true

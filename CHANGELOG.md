@@ -1,5 +1,6 @@
-## nf-core/chipseq v1.0dev
-v1.0dev nf-core/chipseq
+# nf-core/chipseq: Changelog
+
+## v1.0dev - [date]
 * Add option for building BWA index for larger ref
 * Update software versions in uppmax-modules
 * Add function to validate input files in MACS config file
@@ -8,8 +9,6 @@ v1.0dev nf-core/chipseq
 * Add pre-defined genome sizes for all reference genomes to support macs2 peak calling and downstream processing
 * Add blacklist files for ce11, BDGP6, hg38, and mm9
 * Documents revised accordingly.
-
-05/02/2019 17:11:13
 * Major overhaul of docs and assets in-line with nf-core/tools v1.4
 * Added ability to use nf-core/configs along with associated docs
 * Updated manifest scope to deal with pipeline version
@@ -21,5 +20,6 @@ v1.0dev nf-core/chipseq
 * Changed Picard memory specification
 * Changed version number back to 1.0dev from 1.0
 * Updated conda packages
+* Major template changes in-line with nf-core/tools v1.5
 
-Repository moved from https://github.com/SciLifeLab/NGI-ChIPseq
+Repository moved from <https://github.com/SciLifeLab/NGI-ChIPseq>

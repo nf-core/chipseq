@@ -2,7 +2,7 @@
 
 This document describes the output produced by the pipeline.
 
-## Pipeline overview:
+## Pipeline overview
 The pipeline is built using [Nextflow](https://www.nextflow.io/)
 and processes data using the following steps:
 
@@ -166,7 +166,7 @@ The upper panel shows the clustering of samples based on the top 2 principal com
 * `.bdg`
   * bedGraph format files which can be imported to UCSC genome browser or be converted into even smaller bigWig files.
 
-*Refer to https://github.com/taoliu/MACS for the specifications of the output fields.*
+*Refer to <https://github.com/taoliu/MACS> for the specifications of the output fields.*
 
 ## MultiQC
 [MultiQC](http://multiqc.info) is a visualisation tool that generates a single HTML report summarising all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available in within the report data directory.
@@ -178,4 +178,4 @@ The upper panel shows the clustering of samples based on the top 2 principal com
 * `multiqc_data/`
   * Directory containing parsed statistics from the different tools used in the pipeline
 
-For more information about how to use MultiQC reports, see http://multiqc.info
+For more information about how to use MultiQC reports, see <http://multiqc.info>

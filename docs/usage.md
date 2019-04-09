@@ -4,61 +4,61 @@
 
 * [Introduction](#general-nextflow-info)
 * [Running the pipeline](#running-the-pipeline)
-    * [Updating the pipeline](#updating-the-pipeline)
-    * [Reproducibility](#reproducibility)
+  * [Updating the pipeline](#updating-the-pipeline)
+  * [Reproducibility](#reproducibility)
 * [Main arguments](#main-arguments)
-    * [`-profile`](#-profile-single-dash)
-        * [`awsbatch`](#awsbatch)
-        * [`conda`](#conda)
-        * [`docker`](#docker)
-        * [`singularity`](#singularity)
-        * [`test`](#test)
-    * [`--reads`](#--reads)
+  * [`-profile`](#-profile-single-dash)
+    * [`awsbatch`](#awsbatch)
+    * [`conda`](#conda)
+    * [`docker`](#docker)
+    * [`singularity`](#singularity)
+    * [`test`](#test)
+  * [`--reads`](#--reads)
 * [Generic arguments](#generic-arguments)
-    * [`--singleEnd`](#--singleEnd)
-    * [`--macsconfig`](#--macsconfig)
-    * [`--allow_multi_align`](#--allow_multi_align)
-    * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
-    * [`--skipDupRemoval`](#--skipDupRemoval)
-    * [`--seqCenter`](#--seqCenter)
-    * [`--fingerprintBins`](#--fingerprintBins)
-    * [`--broad`](#--broad)
-    * [`--macsgsize`](#--macsgsize)
-    * [`--saturation`](#--saturation)
-    * [`--extendReadsLen`](#--extendReadsLen)
+  * [`--singleEnd`](#--singleEnd)
+  * [`--macsconfig`](#--macsconfig)
+  * [`--allow_multi_align`](#--allow_multi_align)
+  * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
+  * [`--skipDupRemoval`](#--skipDupRemoval)
+  * [`--seqCenter`](#--seqCenter)
+  * [`--fingerprintBins`](#--fingerprintBins)
+  * [`--broad`](#--broad)
+  * [`--macsgsize`](#--macsgsize)
+  * [`--saturation`](#--saturation)
+  * [`--extendReadsLen`](#--extendReadsLen)
 * [Reference genomes](#reference-genomes)
-    * [`--genome`](#--genome)
-    * [`--fasta`](#--fasta)
-    * [`--bwa_index`](#--bwa_index)
-    * [`--largeRef`](#--largeRef)
-    * [`--gtf`](#--gtf)
-    * [`--bed`](#--bed)
-    * [`--blacklist`](#--blacklist)
-    * [`--blacklist_filtering`](#--blacklist_filtering)
-    * [`--saveReference`](#--saveReference)
-    * [`--igenomesIgnore`](#--igenomesignore)
+  * [`--genome`](#--genome)
+  * [`--fasta`](#--fasta)
+  * [`--bwa_index`](#--bwa_index)
+  * [`--largeRef`](#--largeRef)
+  * [`--gtf`](#--gtf)
+  * [`--bed`](#--bed)
+  * [`--blacklist`](#--blacklist)
+  * [`--blacklist_filtering`](#--blacklist_filtering)
+  * [`--saveReference`](#--saveReference)
+  * [`--igenomesIgnore`](#--igenomesignore)
 * [Adapter trimming](#adapter-trimming)
-    * [`--notrim`](#--notrim)
-    * [`--saveTrimmed`](#--saveTrimmed)
+  * [`--notrim`](#--notrim)
+  * [`--saveTrimmed`](#--saveTrimmed)
 * [Job resources](#job-resources)
-    * [Automatic resubmission](#automatic-resubmission)
-    * [Custom resource requests](#custom-resource-requests)
+  * [Automatic resubmission](#automatic-resubmission)
+  * [Custom resource requests](#custom-resource-requests)
 * [AWS batch specific parameters](#aws-batch-specific-parameters)
-    * [`--awsqueue`](#--awsqueue)
-    * [`--awsregion`](#--awsregion)
+  * [`--awsqueue`](#--awsqueue)
+  * [`--awsregion`](#--awsregion)
 * [Other command line parameters](#other-command-line-parameters)
-    * [`--outdir`](#--outdir)
-    * [`--email`](#--email)
-    * [`-name`](#-name-single-dash)
-    * [`-resume`](#-resume-single-dash)
-    * [`-c`](#-c-single-dash)
-    * [`--custom_config_version`](#--custom_config_version)
-    * [`--max_memory`](#--max_memory)
-    * [`--max_time`](#--max_time)
-    * [`--max_cpus`](#--max_cpus)
-    * [`--plaintext_email`](#--plaintext_email)
-    * [`--monochrome_logs`](#--monochrome_logs)
-    * [`--multiqc_config`](#--multiqc_config)
+  * [`--outdir`](#--outdir)
+  * [`--email`](#--email)
+  * [`-name`](#-name-single-dash)
+  * [`-resume`](#-resume-single-dash)
+  * [`-c`](#-c-single-dash)
+  * [`--custom_config_version`](#--custom_config_version)
+  * [`--max_memory`](#--max_memory)
+  * [`--max_time`](#--max_time)
+  * [`--max_cpus`](#--max_cpus)
+  * [`--plaintext_email`](#--plaintext_email)
+  * [`--monochrome_logs`](#--monochrome_logs)
+  * [`--multiqc_config`](#--multiqc_config)
 
 ## General Nextflow info
 Nextflow handles job submissions on SLURM or other environments, and supervises running the jobs. Thus the Nextflow process must run until the pipeline is finished. We recommend that you put the process running in the background through `screen` / `tmux` or similar tool. Alternatively you can run nextflow within a cluster job submitted your job scheduler.
@@ -71,6 +71,7 @@ NXF_OPTS='-Xms1g -Xmx4g'
 
 ## Running the pipeline
 The typical command for running the pipeline is as follows:
+
 ```bash
 nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile docker
 ```
@@ -108,19 +109,19 @@ Use this parameter to choose a configuration profile. Profiles can give configur
 If `-profile` is not specified at all the pipeline will be run locally and expects all software to be installed and available on the `PATH`.
 
 * `awsbatch`
-    * A generic configuration profile to be used with AWS Batch.
+  * A generic configuration profile to be used with AWS Batch.
 * `conda`
-    * A generic configuration profile to be used with [conda](https://conda.io/docs/)
-    * Pulls most software from [Bioconda](https://bioconda.github.io/)
+  * A generic configuration profile to be used with [conda](https://conda.io/docs/)
+  * Pulls most software from [Bioconda](https://bioconda.github.io/)
 * `docker`
-    * A generic configuration profile to be used with [Docker](http://docker.com/)
-    * Pulls software from dockerhub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
+  * A generic configuration profile to be used with [Docker](http://docker.com/)
+  * Pulls software from dockerhub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
 * `singularity`
-    * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
-    * Pulls software from singularity-hub
+  * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
+  * Pulls software from singularity-hub
 * `test`
-    * A profile with a complete configuration for automated testing
-    * Includes links to test data so needs no other parameters
+  * A profile with a complete configuration for automated testing
+  * Includes links to test data so needs no other parameters
 
 ### `--reads`
 Location of the input FastQ files:
@@ -148,7 +149,8 @@ The setup file for peak calling using MACS.
 Default: `data/macsconfig`
 
 Format:
-```
+
+```bash
 ChIPSampleID1,CtrlSampleID1,AnalysisID1
 ChIPSampleID2,CtrlSampleID2,AnalysisID2
 ChIPSampleID3,,AnalysisID3
@@ -242,12 +244,14 @@ params {
 ### `--fasta`
 If you don't have a BWA index available, you can pass a FASTA file to the pipeline and a BWA index
 will be generated for you. Combine with `--saveReference` to save for future runs.
+
 ```bash
 --fasta '[path to FASTA file]'
 ```
 
 ### `--bwa_index`
 Full path to an existing BWA index for your reference genome including the base name for the index.
+
 ```bash
 --bwa_index '[directory containing BWA index]/genome.fa'
 ```
@@ -257,18 +261,21 @@ Build BWA Index with the `bwtsw` flag for reference genomes larger than 2Gb in s
 
 ### `--gtf`
 The full path to GTF file can be specified for annotating peaks. Note that the GTF file should be in the Ensembl format.
+
 ```bash
 --gtf '[path to GTF file]'
 ```
 
 ### `--bed`
 The full path to BED file for computing read distribution matrix for deepTools. Note that the BED file should be in the Ensembl format.
+
 ```bash
 --bed '[path to BED file]'
 ```
 
 ### `--blacklist`
 If you prefer, you can specify the full path to the blacklist regions (should be in .BED format) which will be filtered out from the called ChIP-seq peaks. Please note that `--blacklist_filtering` is required for using this option.
+
 ```bash
 --blacklist_filtering --blacklist '[path to blacklisted regions]'
 ```
