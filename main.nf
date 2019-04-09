@@ -160,8 +160,6 @@ if (params.fasta){
                 fasta_mlib_metrics;
                 fasta_mlib_macs_annotate;
                 fasta_mlib_macs_consensus_annotate;
-                fasta_mrep_macs_annotate;
-                fasta_mrep_macs_consensus_annotate;
                 fasta_igv }
 } else {
     exit 1, "Fasta file not specified!"
@@ -173,9 +171,7 @@ if (params.gtf){
         .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
         .into { gtf_gene_bed;
                 gtf_mlib_macs_annotate;
-                gtf_mlib_macs_consensus_annotate;
-                gtf_mrep_macs_annotate;
-                gtf_mrep_macs_consensus_annotate }
+                gtf_mlib_macs_consensus_annotate }
 } else {
     exit 1, "GTF annotation file not specified!"
 }
@@ -222,154 +218,43 @@ if( workflow.profile == 'awsbatch') {
   if (workflow.tracedir.startsWith('s3:')) exit 1, "Specify a local tracedir or run without trace! S3 cannot be used for tracefiles."
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/* --                                                                     -- */
+/* --                       HEADER LOG INFO                               -- */
+/* --                                                                     -- */
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-////////////////////////////////////////////////////
-/* --          CONFIG FILES                    -- */
-////////////////////////////////////////////////////
-
-// Check for file existence
-macsconfig = file(params.macsconfig)
-if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
-
-if( params.bwa_index ){
-    lastPath = params.bwa_index.lastIndexOf(File.separator)
-    bwa_dir =  params.bwa_index.substring(0,lastPath+1)
-    bwa_base = params.bwa_index.substring(lastPath+1)
-
-    Channel
-        .fromPath(bwa_dir, checkIfExists: true)
-        .ifEmpty { exit 1, "BWA index directory not found: ${bwa_dir}" }
-        .set { bwa_index }
-} else if ( params.fasta ){
-    lastPath = params.fasta.lastIndexOf(File.separator)
-    bwa_base = params.fasta.substring(lastPath+1)
-
-    fasta = Channel
-        .fromPath(params.fasta, checkIfExists: true)
-        .ifEmpty { exit 1, "Fasta file not found: ${params.fasta}" }
-} else {
-    exit 1, "No reference genome specified!"
-}
-
-if( params.gtf ){
-    gtf = Channel
-        .fromPath(params.gtf, checkIfExists: true)
-        .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
-}
-
-if( params.bed ){
-    bed = Channel
-        .fromPath(params.bed, checkIfExists: true)
-        .ifEmpty { exit 1, "BED file not found: ${params.bed}" }
-}
-
-if( params.blacklist_filtering ){
-    blacklist = Channel
-        .fromPath(params.blacklist, checkIfExists: true)
-        .ifEmpty { exit 1, "Blacklist annotation file not found: ${params.blacklist}" }
-}
-
-if(params.readPaths){
-    if(params.singleEnd){
-        Channel
-            .from(params.readPaths)
-            .map { row -> [ row[0], [file(row[1][0])]] }
-            .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
-            .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
-    } else {
-        Channel
-            .from(params.readPaths)
-            .map { row -> [ row[0], [file(row[1][0]), file(row[1][1])]] }
-            .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
-            .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
-    }
-} else {
-    Channel
-        .fromFilePairs( params.reads, size: params.singleEnd ? 1 : 2 )
-        .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --singleEnd on the command line." }
-        .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
-}
-
-/*
- * Create a channel for macs config file
- */
-Channel
-    .from(macsconfig.readLines())
-    .map { line ->
-        list = line.split(',')
-        def chip_sample_id = list[0]
-        def ctrl_sample_id = list[1]
-        def analysis_id = list[2]
-        [ chip_sample_id, ctrl_sample_id, analysis_id ]
-    }
-    .into { vali_para; macs_para; saturation_para }
-
-// Validate all samples in macs config file
-def config_samples = []
-for (line in vali_para){
-    if (line.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
-        config_samples.add(line[0])
-        config_samples.add(line[1])
-    }
-}
-config_samples.removeAll{ it == '' }
-config_samples.unique(false)
-
-def fastq_samples = []
-for (sample in raw_reads_configvali){
-    if (sample.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
-        fastq_samples.add(sample[0].toString() - ~/(.R)?(_R)?(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/)
-    }
-}
-
-def missing_samples = config_samples - config_samples.intersect(fastq_samples)
-if(!missing_samples.isEmpty()){
-    exit 1, "No FastQ file found for sample in MACS config: ${missing_samples}"
-}
-
-def dropped_samples = fastq_samples - fastq_samples.intersect(config_samples)
-if(!dropped_samples.isEmpty()){
-    exit 1, "Sample ${dropped_samples} not included in MACS config"
-}
-
-
+// Header log info
 log.info nfcoreHeader()
 def summary = [:]
 summary['Run Name']             = custom_runName ?: workflow.runName
-summary['Reads']                = params.reads
+summary['Genome']               = params.genome ?: 'Not supplied'
 summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
-summary['Genome']               = params.genome
-if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
-else if(params.fasta) summary['Fasta File'] = params.fasta
-if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
-if(params.gtf)  summary['GTF File'] = params.gtf
-if(params.bed)  summary['BED File'] = params.bed
-summary['Blacklist Filtering']  = params.blacklist_filtering
-if(params.blacklist_filtering) summary['Blacklist BED'] = params.blacklist
-summary['Save Reference']       = params.saveReference
-summary['Multiple Alignments']  = params.allow_multi_align
-summary['Duplication Removal']  = params.skipDupRemoval
-if(params.seqCenter) summary['Seq Center'] = params.seqCenter
-summary['Save Intermeds']       = params.saveAlignedIntermediates
-summary['Fingerprint Bins']     = params.fingerprintBins
-summary['MACS Config']          = params.macsconfig
-summary['MACS Broad Peaks']     = params.broad
-summary['MACS Genome Size']     = params.macsgsize
-summary['Saturation Analysis']  = params.saturation
-summary['Extend Reads']         = "$params.extendReadsLen bp"
-if( params.notrim ){
-    summary['Trimming Step'] = 'Skipped'
+summary['Design File']          = params.design
+if (params.bwa_index) summary['BWA Index'] = params.bwa_index ?: 'Not supplied'
+summary['Fasta Ref']            = params.fasta
+summary['GTF File']             = params.gtf
+summary['Gene BED File']        = params.gene_bed ?: 'Not supplied'
+summary['TSS BED File']         = params.tss_bed ?: 'Not supplied'
+if (params.blacklist) summary['Blacklist BED'] = params.blacklist
+summary['MACS Genome Size']     = params.macs_gsize ?: 'Not supplied'
+if (params.macs_gsize) summary['MACS Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
+if (params.skipTrimming){
+    summary['Trimming Step']    = 'Skipped'
 } else {
-    summary['Trim R1'] = params.clip_r1
-    summary['Trim R2'] = params.clip_r2
-    summary["Trim 3' R1"] = params.three_prime_clip_r1
-    summary["Trim 3' R2"] = params.three_prime_clip_r2
+    summary['Trim R1']          = "$params.clip_r1 bp"
+    summary['Trim R2']          = "$params.clip_r2 bp"
+    summary["Trim 3' R1"]       = "$params.three_prime_clip_r1 bp"
+    summary["Trim 3' R2"]       = "$params.three_prime_clip_r2 bp"
 }
-summary['Save Trimmed']         = params.saveTrimmed
+summary['Fragment Size']        = "$params.fragment_size bp"
+summary['Keep Duplicates']      = params.keepDups ? 'Yes' : 'No'
+summary['Keep Multi-mapped']    = params.keepMultiMap ? 'Yes' : 'No'
+summary['Save Genome Index']    = params.saveGenomeIndex ? 'Yes' : 'No'
+summary['Save Trimmed']         = params.saveTrimmed ? 'Yes' : 'No'
+summary['Save Intermeds']       = params.saveAlignedIntermediates ? 'Yes' : 'No'
 summary['Max Resources']        = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if(workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
 summary['Output Dir']           = params.outdir
@@ -395,15 +280,252 @@ log.info "\033[2m----------------------------------------------------\033[0m"
 // Check the hostnames against configured profiles
 checkHostname()
 
-if( workflow.profile == 'awsbatch') {
-  // AWSBatch sanity checking
-  if (!params.awsqueue || !params.awsregion) exit 1, "Specify correct --awsqueue and --awsregion parameters on AWSBatch!"
-  // Check outdir paths to be S3 buckets if running on AWSBatch
-  // related: https://github.com/nextflow-io/nextflow/issues/813
-  if (!params.outdir.startsWith('s3:')) exit 1, "Outdir not on S3 - specify S3 Bucket to run on AWSBatch!"
-  // Prevent trace files to be stored on S3 since S3 does not support rolling files.
-  if (workflow.tracedir.startsWith('s3:')) exit 1, "Specify a local tracedir or run without trace! S3 cannot be used for tracefiles."
+// Show a big warning message if we're not running MACS
+if (!params.macs_gsize){
+    def warnstring = params.genome ? "supported for '${params.genome}'" : 'supplied'
+    log.warn "=================================================================\n" +
+             "  WARNING! MACS genome size parameter not $warnstring.\n" +
+             "  Peak calling, annotation and differential analysis will be skipped.\n" +
+             "  Please specify value for '--macs_gsize' to run these steps.\n" +
+             "======================================================================="
 }
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/* --                                                                     -- */
+/* --                     PARSE DESIGN FILE                               -- */
+/* --                                                                     -- */
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * PREPROCESSING - REFORMAT DESIGN FILE AND CHECK VALIDITY
+ */
+process reformat_design {
+    tag "$design"
+
+    input:
+    file design from design_csv
+
+    output:
+    file "*.csv" into reformat_design
+
+    script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    """
+    reformat_design.py $design design_reformat.csv
+    """
+}
+
+// /*
+//  * Create channels for input fastq files
+//  */
+// if (params.singleEnd) {
+//     reformat_design.splitCsv(header:true, sep:',')
+//                    .map { row -> [ row.sample_id, [ file(row.fastq_1) ] ] }
+//                    .into { design_replicates_exist;
+//                            design_multiple_samples;
+//                            raw_reads_fastqc;
+//                            raw_reads_trimgalore }
+// } else {
+//     reformat_design.splitCsv(header:true, sep:',')
+//                    .map { row -> [ row.sample_id, [ file(row.fastq_1), file(row.fastq_2) ] ] }
+//                    .into { design_replicates_exist;
+//                            design_multiple_samples;
+//                            raw_reads_fastqc;
+//                            raw_reads_trimgalore }
+// }
+//
+// // Boolean value for replicates existing in design
+// replicates_exist = design_replicates_exist.map { it -> it[0].split('_')[-2].replaceAll('R','').toInteger() }
+//                                           .flatten()
+//                                           .max()
+//                                           .val > 1
+//
+// // Boolean value for multiple samples existing in design
+// multiple_samples = design_multiple_samples.map { it -> it[0].split('_')[0..-3].join('_') }
+//                                           .flatten()
+//                                           .unique()
+//                                           .count()
+//                                           .val > 1
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/* --                                                                     -- */
+/* --                     PREPARE ANNOTATION FILES                        -- */
+/* --                                                                     -- */
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+// ////////////////////////////////////////////////////
+// /* --          CONFIG FILES                    -- */
+// ////////////////////////////////////////////////////
+//
+// // Check for file existence
+// macsconfig = file(params.macsconfig)
+// if( !macsconfig.exists() ) exit 1, "Missing MACS config: '$macsconfig'. Specify path with --macsconfig"
+//
+// if( params.bwa_index ){
+//     lastPath = params.bwa_index.lastIndexOf(File.separator)
+//     bwa_dir =  params.bwa_index.substring(0,lastPath+1)
+//     bwa_base = params.bwa_index.substring(lastPath+1)
+//
+//     Channel
+//         .fromPath(bwa_dir, checkIfExists: true)
+//         .ifEmpty { exit 1, "BWA index directory not found: ${bwa_dir}" }
+//         .set { bwa_index }
+// } else if ( params.fasta ){
+//     lastPath = params.fasta.lastIndexOf(File.separator)
+//     bwa_base = params.fasta.substring(lastPath+1)
+//
+//     fasta = Channel
+//         .fromPath(params.fasta, checkIfExists: true)
+//         .ifEmpty { exit 1, "Fasta file not found: ${params.fasta}" }
+// } else {
+//     exit 1, "No reference genome specified!"
+// }
+//
+// if( params.gtf ){
+//     gtf = Channel
+//         .fromPath(params.gtf, checkIfExists: true)
+//         .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
+// }
+//
+// if( params.bed ){
+//     bed = Channel
+//         .fromPath(params.bed, checkIfExists: true)
+//         .ifEmpty { exit 1, "BED file not found: ${params.bed}" }
+// }
+//
+// if( params.blacklist_filtering ){
+//     blacklist = Channel
+//         .fromPath(params.blacklist, checkIfExists: true)
+//         .ifEmpty { exit 1, "Blacklist annotation file not found: ${params.blacklist}" }
+// }
+//
+// if(params.readPaths){
+//     if(params.singleEnd){
+//         Channel
+//             .from(params.readPaths)
+//             .map { row -> [ row[0], [file(row[1][0])]] }
+//             .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
+//             .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
+//     } else {
+//         Channel
+//             .from(params.readPaths)
+//             .map { row -> [ row[0], [file(row[1][0]), file(row[1][1])]] }
+//             .ifEmpty { exit 1, "params.readPaths was empty - no input files supplied" }
+//             .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
+//     }
+// } else {
+//     Channel
+//         .fromFilePairs( params.reads, size: params.singleEnd ? 1 : 2 )
+//         .ifEmpty { exit 1, "Cannot find any reads matching: ${params.reads}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --singleEnd on the command line." }
+//         .into { raw_reads_configvali; raw_reads_fastqc; raw_reads_trimgalore }
+// }
+//
+// /*
+//  * Create a channel for macs config file
+//  */
+// Channel
+//     .from(macsconfig.readLines())
+//     .map { line ->
+//         list = line.split(',')
+//         def chip_sample_id = list[0]
+//         def ctrl_sample_id = list[1]
+//         def analysis_id = list[2]
+//         [ chip_sample_id, ctrl_sample_id, analysis_id ]
+//     }
+//     .into { vali_para; macs_para; saturation_para }
+//
+// // Validate all samples in macs config file
+// def config_samples = []
+// for (line in vali_para){
+//     if (line.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
+//         config_samples.add(line[0])
+//         config_samples.add(line[1])
+//     }
+// }
+// config_samples.removeAll{ it == '' }
+// config_samples.unique(false)
+//
+// def fastq_samples = []
+// for (sample in raw_reads_configvali){
+//     if (sample.getClass().toString() != "class groovyx.gpars.dataflow.operator.PoisonPill") {
+//         fastq_samples.add(sample[0].toString() - ~/(.R)?(_R)?(.R1)?(_1)?(_R1)?(_trimmed)?(_val_1)?(\.fq)?(\.fastq)?(\.gz)?$/)
+//     }
+// }
+//
+// def missing_samples = config_samples - config_samples.intersect(fastq_samples)
+// if(!missing_samples.isEmpty()){
+//     exit 1, "No FastQ file found for sample in MACS config: ${missing_samples}"
+// }
+//
+// def dropped_samples = fastq_samples - fastq_samples.intersect(config_samples)
+// if(!dropped_samples.isEmpty()){
+//     exit 1, "Sample ${dropped_samples} not included in MACS config"
+// }
+//
+//
+// log.info nfcoreHeader()
+// def summary = [:]
+// summary['Run Name']             = custom_runName ?: workflow.runName
+// summary['Reads']                = params.reads
+// summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
+// summary['Genome']               = params.genome
+// if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
+// else if(params.fasta) summary['Fasta File'] = params.fasta
+// if(params.largeRef)  summary['Build BWA Index for Large Reference'] = params.largeRef
+// if(params.gtf)  summary['GTF File'] = params.gtf
+// if(params.bed)  summary['BED File'] = params.bed
+// summary['Blacklist Filtering']  = params.blacklist_filtering
+// if(params.blacklist_filtering) summary['Blacklist BED'] = params.blacklist
+// summary['Save Reference']       = params.saveReference
+// summary['Multiple Alignments']  = params.allow_multi_align
+// summary['Duplication Removal']  = params.skipDupRemoval
+// if(params.seqCenter) summary['Seq Center'] = params.seqCenter
+// summary['Save Intermeds']       = params.saveAlignedIntermediates
+// summary['Fingerprint Bins']     = params.fingerprintBins
+// summary['MACS Config']          = params.macsconfig
+// summary['MACS Broad Peaks']     = params.broad
+// summary['MACS Genome Size']     = params.macsgsize
+// summary['Saturation Analysis']  = params.saturation
+// summary['Extend Reads']         = "$params.extendReadsLen bp"
+// if( params.notrim ){
+//     summary['Trimming Step'] = 'Skipped'
+// } else {
+//     summary['Trim R1'] = params.clip_r1
+//     summary['Trim R2'] = params.clip_r2
+//     summary["Trim 3' R1"] = params.three_prime_clip_r1
+//     summary["Trim 3' R2"] = params.three_prime_clip_r2
+// }
+// summary['Save Trimmed']         = params.saveTrimmed
+// summary['Max Resources']        = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
+// if(workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
+// summary['Output Dir']           = params.outdir
+// summary['Launch Dir']           = workflow.launchDir
+// summary['Working Dir']          = workflow.workDir
+// summary['Script Dir']           = workflow.projectDir
+// summary['User']                 = workflow.userName
+// if (workflow.profile == 'awsbatch'){
+//    summary['AWS Region']        = params.awsregion
+//    summary['AWS Queue']         = params.awsqueue
+// }
+// summary['Config Profile']       = workflow.profile
+// if (params.config_profile_description) summary['Config Description'] = params.config_profile_description
+// if (params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
+// if (params.config_profile_url)         summary['Config URL']         = params.config_profile_url
+// if(params.email) {
+//   summary['E-mail Address']     = params.email
+//   summary['MultiQC Max Size']   = params.maxMultiqcEmailFileSize
+// }
+// log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
+// log.info "\033[2m----------------------------------------------------\033[0m"
+//
+// // Check the hostnames against configured profiles
+// checkHostname()
 
 
 /*
