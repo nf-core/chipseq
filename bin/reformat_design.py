@@ -36,7 +36,7 @@ args = argParser.parse_args()
 def reformat_design(DesignFileIn,DesignFileOut):
 
     ERROR_STR = 'ERROR: Please check design file'
-    HEADER = ['group', 'replicate', 'fastq_1', 'fastq_2']
+    HEADER = ['group', 'replicate', 'fastq_1', 'fastq_2', 'control']
 
     ## CHECK HEADER
     fin = open(DesignFileIn,'r')
@@ -47,20 +47,21 @@ def reformat_design(DesignFileIn,DesignFileOut):
 
     numColList = []
     groupRepDict = {}
+    groupControlDict = {}
     while True:
         line = fin.readline()
         if line:
-            lspl = [x.strip() for x in line.strip().split(',') if x]
+            lspl = [x.strip() for x in line.strip().split(',')]
 
             ## CHECK VALID NUMBER OF COLUMNS PER SAMPLE
             numCols = len(lspl)
-            if numCols not in [3,4]:
-                print "{}: Invalid number of columns (3 for single-end or 4 for paired-end)!\nLine: '{}'".format(ERROR_STR,line.strip())
+            if numCols not in [5]:
+                print "{}: Invalid number of columns (should be 5)!\nLine: '{}'".format(ERROR_STR,line.strip())
                 sys.exit(1)
             numColList.append(numCols)
 
             ## CHECK GROUP COLUMN HAS NO SPACES
-            group,replicate,fastQFiles = lspl[0],lspl[1],lspl[2:]
+            group,replicate,fastQFiles,control = lspl[0],lspl[1],[x for x in lspl[2:-1] if x],lspl[-1]
             if group.find(' ') != -1:
                 print "{}: Group id contains spaces!\nLine: '{}'".format(ERROR_STR,line.strip())
                 sys.exit(1)
@@ -94,6 +95,10 @@ def reformat_design(DesignFileIn,DesignFileOut):
                 groupRepDict[group][replicate] = []
             groupRepDict[group][replicate].append(fastQFiles)
 
+            ## CREATE GROUP CONTROL DICT = {GROUP_ID: CONTROL_ID}
+            if control:
+                groupControlDict[group] = control
+
         else:
             fin.close()
             break
@@ -111,7 +116,7 @@ def reformat_design(DesignFileIn,DesignFileOut):
     ## WRITE TO FILE
     numRepList = []
     fout = open(DesignFileOut,'w')
-    fout.write(','.join(['sample_id','fastq_1','fastq_2']) + '\n')
+    fout.write(','.join(['sample_id','fastq_1','fastq_2','control_id']) + '\n')
     for group in sorted(groupRepDict.keys()):
 
         ## CHECK THAT REPLICATE IDS ARE IN FORMAT 1..<NUM_REPLICATES>
@@ -121,14 +126,32 @@ def reformat_design(DesignFileIn,DesignFileOut):
             sys.exit(1)
         numRepList.append(max(uniq_rep_ids))
 
+        ## RECONSTRUCT LINE FOR SAMPLE IN DESIGN
         for replicate in sorted(groupRepDict[group].keys()):
+            oList = []
             for idx in range(len(groupRepDict[group][replicate])):
                 fastQFiles = groupRepDict[group][replicate][idx]
+
+                ## GET SAMPLE_ID,FASTQ_1,FASTQ_2 COLUMNS
                 sample_id = "{}_R{}_T{}".format(group,replicate,idx+1)
+                oList += [sample_id] + fastQFiles
                 if len(fastQFiles) == 1:
-                    fout.write(','.join([sample_id] + fastQFiles) + ',\n')
-                else:
-                    fout.write(','.join([sample_id] + fastQFiles) + '\n')
+                    oList += ['']
+
+                ## EXTRAPOLATE CONTROL COLUMN
+                control_col = ''
+                if groupControlDict.has_key(group):
+                    control = groupControlDict[group]
+                    if control in groupRepDict.keys():
+                        if groupRepDict[control].has_key(replicate):
+                            control_col += "{}_R{}".format(control,replicate)
+                        else:
+                            control_col += "{}_R1".format(control)
+                    else:
+                        print "{}: Control id not a valid group\nControl id: {}, Valid Groups: {}".format(ERROR_STR,groupControlDict[group],sorted(groupRepDict.keys()))
+                        sys.exit(1)
+                oList += [control_col]
+            fout.write(','.join(oList) + '\n')
     fout.close()
 
     ## CHECK IF REPLICATES IN DESIGN

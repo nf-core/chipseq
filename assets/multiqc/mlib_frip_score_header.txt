@@ -4,7 +4,7 @@
 #              into the MACS2 called peak regions. A read must overlap a peak by at least 20% to be counted.
 #              See <a href='https://www.encodeproject.org/data-standards/terms/' target='_blank'>FRiP score</a>."
 #plot_type: 'bargraph'
-#anchor: 'nfcore_atacseq-mlib_frip_score'
+#anchor: 'nfcore_chipseq-mlib_frip_score'
 #pconfig:
 #    title: 'FRiP score'
 #    ylab: 'FRiP score'
