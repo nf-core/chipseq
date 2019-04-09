@@ -128,13 +128,12 @@ def reformat_design(DesignFileIn,DesignFileOut):
 
         ## RECONSTRUCT LINE FOR SAMPLE IN DESIGN
         for replicate in sorted(groupRepDict[group].keys()):
-            oList = []
             for idx in range(len(groupRepDict[group][replicate])):
                 fastQFiles = groupRepDict[group][replicate][idx]
 
                 ## GET SAMPLE_ID,FASTQ_1,FASTQ_2 COLUMNS
                 sample_id = "{}_R{}_T{}".format(group,replicate,idx+1)
-                oList += [sample_id] + fastQFiles
+                oList = [sample_id] + fastQFiles
                 if len(fastQFiles) == 1:
                     oList += ['']
 
@@ -151,7 +150,7 @@ def reformat_design(DesignFileIn,DesignFileOut):
                         print "{}: Control id not a valid group\nControl id: {}, Valid Groups: {}".format(ERROR_STR,groupControlDict[group],sorted(groupRepDict.keys()))
                         sys.exit(1)
                 oList += [control_col]
-            fout.write(','.join(oList) + '\n')
+                fout.write(','.join(oList) + '\n')
     fout.close()
 
     ## CHECK IF REPLICATES IN DESIGN
