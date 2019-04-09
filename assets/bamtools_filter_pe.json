@@ -1,0 +1,22 @@
+{
+    "filters" : [
+        { "id" : "insert_min",
+          "insertSize" : ">=-2000"
+        },
+
+        { "id" : "insert_max",
+          "insertSize" : "<=2000"
+        },
+
+        { "id" : "mismatch",
+          "tag" : "NM:<=4"
+        },
+
+        { "id" : "cigar",
+          "cigar" : "*S*"
+        }
+    ],
+
+    "rule" : " insert_min & insert_max & mismatch & !cigar "
+
+}

@@ -1,0 +1,11 @@
+#id: 'mlib_deseq2_pca'
+#section_name: 'DESeq2: PCA plot (merged library)'
+#description: "PCA plot between samples in the experiment.
+#              These values are calculated using <a href='https://bioconductor.org/packages/release/bioc/html/DESeq2.html'>DESeq2</a>
+#              in the <a href='https://github.com/nf-core/atacseq/blob/master/bin/featurecounts_deseq2.r'><code>featurecounts_deseq2.r</code></a> script."
+#plot_type: 'scatter'
+#anchor: 'nfcore_atacseq-mlib_deseq2_pca'
+#pconfig:
+#    title: 'DESeq2: Principal component plot'
+#    xlab: PC1
+#    ylab: PC2
