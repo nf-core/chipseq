@@ -882,6 +882,7 @@ reformat_design_controls.join(mlib_rm_orphan_bam_macs_1)
                         .map { it ->  [ it[1], it[0], it[2], it[3] ] }
                         .join(mlib_rm_orphan_bam_macs_2)
                         .into { mlib_rm_orphan_bam_macs;
+                                mlib_rm_orphan_bam_plotfingerprint;
                                 design_replicates_exist;
                                 design_multiple_samples }
 
@@ -1010,7 +1011,79 @@ process merge_library_macs_qc {
 }
 
 /*
- * STEP 4.5.4 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
+ * STEP 4.6.1 deepTools plotFingerprint
+ */
+process merge_library_plotfingerprint {
+    tag "$ip"
+    label 'process_big'
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/deepTools", mode: 'copy'
+
+    input:
+    set val(control), val(ip), file(ipbam), file(ipflagstat), file(controlbam) from mlib_rm_orphan_bam_plotfingerprint
+
+    output:
+    file '*.{txt,pdf}' into mlib_plotfingerprint_results
+    file '*.raw.txt' into mlib_plotfingerprint_mqc
+
+    script:
+    extend = (params.singleEnd && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
+    """
+    plotFingerprint \\
+        --bamfiles ${ipbam[0]} ${controlbam[0]} \\
+        --plotFile ${ip}.plotFingerprint.pdf \\
+        $extend \\
+        --labels $ip $control \\
+        --outRawCounts ${ip}.plotFingerprint.raw.txt \\
+        --outQualityMetrics ${ip}.plotFingerprint.qcmetrics.txt \\
+        --skipZeros \\
+        --JSDsample ${controlbam[0]} \\
+        --numberOfProcessors ${task.cpus} \\
+    """
+}
+//--numberOfSamples ${params.fingerprintBins} \\
+//--binSize 500 \\
+
+// /*
+//  * STEP 6.1 Phantompeakqualtools
+//  */
+// process merge_library_phantompeakqualtools {
+//     tag "$prefix"
+//     label 'process_long'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/phantompeakqualtools", mode: 'copy',
+//                 saveAs: {filename -> filename.indexOf(".out") > 0 ? "logs/$filename" : "$filename"}
+//
+//     input:
+//     set file(bam), file(bai) from bam_dedup_spp
+//     file phantompeakqualtools_mqc_header from phantompeakqualtools_mqc_header_ch.collect()
+//
+//     output:
+//     file '*.pdf' into spp_plot
+//     file '*.spp.out' into spp_out, spp_out_mqc
+//     file '*_mqc.csv' into spp_csv_mqc
+//
+//     script:
+//     prefix = bam.toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
+//     """
+//     run_spp.r -c="$bam" -savp -savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
+//     processSppRdata.r ${prefix}.spp.Rdata ${prefix}.spp.csv
+//     cat $phantompeakqualtools_mqc_header ${prefix}.spp.csv > ${prefix}_mqc.csv
+//     """
+// }
+// runSPPCommand = 'Rscript run_spp.R -c=%s -savp=%s -out=%s' % (QCDir,MarkDupBLMapQSortedBAMFile,SPPPlotFile,SPPOutFile)
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/* --                                                                     -- */
+/* --                 CONSENSUS PEAKS ANALYSIS                            -- */
+/* --                                                                     -- */
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * STEP 5.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
 process merge_library_macs_consensus {
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus", mode: 'copy'
@@ -1053,7 +1126,7 @@ process merge_library_macs_consensus {
 }
 
 /*
- * STEP 4.5.5 Annotate consensus peaks with HOMER, and add annotation to boolean output file
+ * STEP 5.2 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process merge_library_macs_consensus_annotate {
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus", mode: 'copy'
@@ -1084,7 +1157,7 @@ process merge_library_macs_consensus_annotate {
 }
 
 /*
- * STEP 4.5.6 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
+ * STEP 5.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
 process merge_library_macs_consensus_deseq {
     label 'process_medium'
@@ -1138,7 +1211,7 @@ process merge_library_macs_consensus_deseq {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 5 - Create IGV session file
+ * STEP 6 - Create IGV session file
  */
 process igv {
     publishDir "${params.outdir}/igv", mode: 'copy'
@@ -1225,7 +1298,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
 }
 
 /*
- * STEP 6 - MultiQC
+ * STEP 7 - MultiQC
  */
 process multiqc {
     publishDir "${params.outdir}/multiqc", mode: 'copy'
@@ -1455,8 +1528,6 @@ def checkHostname(){
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-
-
 // /*
 //  * STEP 5 Read_count_statistics
 //  */
@@ -1475,37 +1546,6 @@ def checkHostname(){
 //     countstat.pl $bed
 //     """
 // }
-//
-//
-// /*
-//  * STEP 6.1 Phantompeakqualtools
-//  */
-//
-// process phantompeakqualtools {
-//     tag "$prefix"
-//     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy',
-//                 saveAs: {filename -> filename.indexOf(".out") > 0 ? "logs/$filename" : "$filename"}
-//     label 'process_long'
-//
-//     input:
-//     set file(bam), file(bai) from bam_dedup_spp
-//     file phantompeakqualtools_mqc_header from phantompeakqualtools_mqc_header_ch.collect()
-//
-//     output:
-//     file '*.pdf' into spp_plot
-//     file '*.spp.out' into spp_out, spp_out_mqc
-//     file '*_mqc.csv' into spp_csv_mqc
-//
-//     script:
-//     prefix = bam.toString() - ~/(\.dedup)?(\.sorted)?(\.bam)?$/
-//     """
-//     run_spp.r -c="$bam" -savp -savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out"
-//     processSppRdata.r ${prefix}.spp.Rdata ${prefix}.spp.csv
-//     cat $phantompeakqualtools_mqc_header ${prefix}.spp.csv > ${prefix}_mqc.csv
-//     """
-// }
-//
-//
 // /*
 //  * STEP 6.2 Combine and calculate NSC & RSC
 //  */
@@ -1523,77 +1563,6 @@ def checkHostname(){
 //     """
 //     cat $spp_out_list > cross_correlation.txt
 //     calculateNSCRSC.r cross_correlation.txt
-//     """
-// }
-//
-//
-// bam_dedup_deepTools.into {
-//     bam_dedup_deepTools_bamPEFragmentSize;
-//     bam_dedup_deepTools_plotFingerprint;
-//     bam_dedup_deepTools_bamCoverage;
-//     bam_dedup_deepTools_multiBamSummary
-// }
-//
-// /*
-//  * STEP 7.1 deepTools bamPEFragmentSize
-//  */
-// process deepTools_bamPEFragmentSize {
-//     tag "$bam_base"
-//     publishDir "${params.outdir}/deepTools/FragmentSize", mode: 'copy'
-//     label 'process_big'
-//
-//     input:
-//     set file(bam), file(bai) from bam_dedup_deepTools_bamPEFragmentSize
-//
-//     output:
-//     file '*.{txt,pdf}' into deepTools_bamPEFragmentSize_results
-//     file '*.txt' into deepTools_bamPEFragmentSize_multiqc
-//
-//     when:
-//     !params.singleEnd
-//
-//     script:
-//     bam_base = bam.baseName - '.dedup.sorted'
-//     """
-//     bamPEFragmentSize \\
-//         --binSize 1000 \\
-//         --bamfiles $bam \\
-//         --o ${bam_base}.fragment_size_histogram.pdf \\
-//         --numberOfProcessors ${task.cpus} \\
-//         --plotFileFormat pdf \\
-//         --plotTitle "${bam_base}: Paired-end Fragment Size Distribution" \\
-//         --outRawFragmentLengths ${bam_base}.bamPEFragmentSize_rawdata.txt
-//     """
-// }
-//
-// /*
-//  * STEP 7.2 deepTools plotFingerprint
-//  */
-// process deepTools_plotFingerprint {
-//     publishDir "${params.outdir}/deepTools", mode: 'copy'
-//     label 'process_big'
-//
-//     input:
-//     file(bambai) from bam_dedup_deepTools_plotFingerprint.collect()
-//
-//     output:
-//     file '*.{txt,pdf}' into deepTools_plotFingerprint_results
-//     file '*.txt' into deepTools_plotFingerprint_multiqc
-//
-//     script:
-//     """
-//     plotFingerprint \\
-//         -b *.bam \\
-//         --plotFile fingerprint.pdf \\
-//         --outRawCounts fingerprint.txt \\
-//         --extendReads ${params.extendReadsLen} \\
-//         --skipZeros \\
-//         --ignoreDuplicates \\
-//         --numberOfSamples ${params.fingerprintBins} \\
-//         --binSize 500 \\
-//         --numberOfProcessors ${task.cpus} \\
-//         --plotFileFormat pdf \\
-//         --plotTitle "Fingerprint Plot"
 //     """
 // }
 //
@@ -1650,7 +1619,6 @@ def checkHostname(){
 //         --smartLabels
 //     """
 // }
-//
 //
 // /*
 //  * STEP 7.5 deepTools plotProfile
@@ -1773,47 +1741,6 @@ def checkHostname(){
 //     """
 // }
 //
-//
-// /*
-//  * STEP 8.1 MACS
-//  */
-//
-// process macs {
-//     tag "${analysis_id}"
-//     publishDir "${params.outdir}/macs", mode: 'copy'
-//     label 'process_medium'
-//
-//     input:
-//     file bam from bam_dedup_macs.collect()
-//     set chip_sample_id, ctrl_sample_id, analysis_id from macs_para
-//
-//     output:
-//     file '*.{bed,r,narrowPeak}' into macs_results
-//     file '*.xls' into macs_peaks
-//
-//     script:
-//     if(!params.skipDupRemoval){
-//         chip = "-t ${chip_sample_id}.dedup.sorted.bam"
-//         ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.dedup.sorted.bam"
-//     }
-//     else {
-//         chip = "-t ${chip_sample_id}.sorted.bam"
-//         ctrl = ctrl_sample_id == '' ? '' : "-c ${ctrl_sample_id}.sorted.bam"
-//     }
-//     broad = params.broad ? "--broad" : ''
-//     """
-//     macs2 callpeak \\
-//         $chip \\
-//         $ctrl \\
-//         $broad \\
-//         -f BAM \\
-//         -g $params.macsgsize \\
-//         -n $analysis_id \\
-//         -q 0.01
-//     """
-// }
-//
-//
 // /*
 //  * STEP 8.2 Saturation analysis
 //  */
@@ -1872,29 +1799,6 @@ def checkHostname(){
 //      saturation_results_processing.r $macsconfig $countstat $saturation_results_collection
 //      """
 //   }
-// }
-//
-//
-// /*
-//  * STEP 9 Post peak calling processing
-//  */
-//
-// process chippeakanno {
-//     tag "${macs_peaks_collection[0].baseName}"
-//     publishDir "${params.outdir}/macs/chippeakanno", mode: 'copy'
-//
-//     input:
-//     file macs_peaks_collection from macs_peaks.collect()
-//     file gtf from gtf
-//
-//     output:
-//     file '*.{txt,bed}' into chippeakanno_results
-//
-//     script:
-//     filtering = params.blacklist_filtering ? "${params.blacklist}" : "No-filtering"
-//     """
-//     post_peak_calling_processing.r $filtering $gtf $macs_peaks_collection
-//     """
 // }
 //
 // /*
