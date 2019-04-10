@@ -1,58 +1,50 @@
-# nf-core/chipseq Usage
+# nf-core/chipseq: Usage
 
 ## Table of contents
 
-* [Introduction](#general-nextflow-info)
+* [Introduction](#introduction)
 * [Running the pipeline](#running-the-pipeline)
   * [Updating the pipeline](#updating-the-pipeline)
   * [Reproducibility](#reproducibility)
 * [Main arguments](#main-arguments)
-  * [`-profile`](#-profile-single-dash)
-    * [`awsbatch`](#awsbatch)
-    * [`conda`](#conda)
-    * [`docker`](#docker)
-    * [`singularity`](#singularity)
-    * [`test`](#test)
-  * [`--reads`](#--reads)
+  * [`-profile`](#-profile)
+  * [`--design`](#--design)
 * [Generic arguments](#generic-arguments)
-  * [`--singleEnd`](#--singleEnd)
-  * [`--macsconfig`](#--macsconfig)
-  * [`--allow_multi_align`](#--allow_multi_align)
-  * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
-  * [`--skipDupRemoval`](#--skipDupRemoval)
-  * [`--seqCenter`](#--seqCenter)
-  * [`--fingerprintBins`](#--fingerprintBins)
-  * [`--broad`](#--broad)
-  * [`--macsgsize`](#--macsgsize)
-  * [`--saturation`](#--saturation)
-  * [`--extendReadsLen`](#--extendReadsLen)
+  * [`--singleEnd`](#--singleend)
+  * [`--narrowPeak`](#--narrowpeak)
+  * [`--fragment_size`](#--fragment_size)
 * [Reference genomes](#reference-genomes)
-  * [`--genome`](#--genome)
+  * [`--genome` (using iGenomes)](#--genome-using-igenomes)
   * [`--fasta`](#--fasta)
-  * [`--bwa_index`](#--bwa_index)
-  * [`--largeRef`](#--largeRef)
   * [`--gtf`](#--gtf)
-  * [`--bed`](#--bed)
+  * [`--bwa_index`](#--bwa_index)
+  * [`--gene_bed`](#--gene_bed)
+  * [`--tss_bed`](#--tss_bed)
+  * [`--macs_gsize`](#--macs_gsize)
   * [`--blacklist`](#--blacklist)
-  * [`--blacklist_filtering`](#--blacklist_filtering)
-  * [`--saveReference`](#--saveReference)
+  * [`--saveGenomeIndex`](#--savegenomeindex)
   * [`--igenomesIgnore`](#--igenomesignore)
 * [Adapter trimming](#adapter-trimming)
-  * [`--notrim`](#--notrim)
-  * [`--saveTrimmed`](#--saveTrimmed)
+  * [`--skipTrimming`](#--skiptrimming)
+  * [`--saveTrimmed`](#--savetrimmed)
+* [Alignments](#alignments)
+  * [`--keepDups`](#--keepdups)
+  * [`--keepMultiMap`](#--keepmultimap)
+  * [`--saveAlignedIntermediates`](#--savealignedintermediates)
 * [Job resources](#job-resources)
   * [Automatic resubmission](#automatic-resubmission)
   * [Custom resource requests](#custom-resource-requests)
-* [AWS batch specific parameters](#aws-batch-specific-parameters)
+* [AWS Batch specific parameters](#aws-batch-specific-parameters)
   * [`--awsqueue`](#--awsqueue)
   * [`--awsregion`](#--awsregion)
 * [Other command line parameters](#other-command-line-parameters)
   * [`--outdir`](#--outdir)
   * [`--email`](#--email)
-  * [`-name`](#-name-single-dash)
-  * [`-resume`](#-resume-single-dash)
-  * [`-c`](#-c-single-dash)
+  * [`-name`](#-name)
+  * [`-resume`](#-resume)
+  * [`-c`](#-c)
   * [`--custom_config_version`](#--custom_config_version)
+  * [`--custom_config_base`](#--custom_config_base)
   * [`--max_memory`](#--max_memory)
   * [`--max_time`](#--max_time)
   * [`--max_cpus`](#--max_cpus)
@@ -60,7 +52,7 @@
   * [`--monochrome_logs`](#--monochrome_logs)
   * [`--multiqc_config`](#--multiqc_config)
 
-## General Nextflow info
+## Introduction
 Nextflow handles job submissions on SLURM or other environments, and supervises running the jobs. Thus the Nextflow process must run until the pipeline is finished. We recommend that you put the process running in the background through `screen` / `tmux` or similar tool. Alternatively you can run nextflow within a cluster job submitted your job scheduler.
 
 It is recommended to limit the Nextflow Java virtual machines memory. We recommend adding the following line to your environment (typically in `~/.bashrc` or `~./bash_profile`):
@@ -73,7 +65,7 @@ NXF_OPTS='-Xms1g -Xmx4g'
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run nf-core/chipseq --reads '*_R{1,2}.fastq.gz' --genome GRCh37 --macsconfig 'macssetup.config' -profile docker
+nextflow run nf-core/chipseq --design design.csv --genome GRCh37 -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -97,9 +89,9 @@ nextflow pull nf-core/chipseq
 ### Reproducibility
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-First, go to the [nf-core/chipseq releases page](https://github.com/nf-core/chipseq/releases) and find the latest version number - numeric only (eg. `1.0`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.0`.
+First, go to the [nf-core/chipseq releases page](https://github.com/nf-core/chipseq/releases) and find the latest version number - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`.
 
-This version number will be logged in reports when you run the pipeline, so that you'll know what you used when youook back in the future.
+This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future.
 
 ## Main arguments
 
@@ -109,7 +101,7 @@ Use this parameter to choose a configuration profile. Profiles can give configur
 If `-profile` is not specified at all the pipeline will be run locally and expects all software to be installed and available on the `PATH`.
 
 * `awsbatch`
-  * A generic configuration profile to be used with AWS Batch.
+  * A generic configuration profile to be used with AWS Batch
 * `conda`
   * A generic configuration profile to be used with [conda](https://conda.io/docs/)
   * Pulls most software from [Bioconda](https://bioconda.github.io/)
@@ -118,100 +110,85 @@ If `-profile` is not specified at all the pipeline will be run locally and expec
   * Pulls software from dockerhub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
 * `singularity`
   * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
-  * Pulls software from singularity-hub
+  * Pulls software from dockerhub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
 * `test`
   * A profile with a complete configuration for automated testing
   * Includes links to test data so needs no other parameters
 
-### `--reads`
-Location of the input FastQ files:
+### `--design`
+You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row as shown in the examples below.
 
 ```bash
- --reads 'path/to/data/sample_*_{1,2}.fastq'
+--design '[path to design file]'
 ```
 
-**NB: Must be enclosed in quotes!**
+#### Multiple replicates
 
-Note that the `{1,2}` parentheses are required to specify paired end data. The file path should be in quotation marks to prevent shell glob expansion.
+The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. Below is an example for a single experimental group in triplicate:
 
-If left unspecified, the pipeline will assume that the data is in a directory called `data` in the working directory (`data/*{1,2}.fastq.gz`).
+```bash
+group,replicate,fastq_1,fastq_2,control
+P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,
+P53_WT_IP,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,
+P53_WT_IP,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,
+```
+
+#### Multiple runs of the same library
+
+The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example for two samples sequenced across multiple lanes:
+
+```bash
+group,replicate,fastq_1,fastq_2,control
+P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,P53_WT_INPUT
+P53_WT_IP,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz,P53_WT_INPUT
+P53_WT_INPUT,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz,
+P53_WT_INPUT,1,AEG588A4_S4_L004_R1_001.fastq.gz,AEG588A4_S4_L004_R2_001.fastq.gz,
+```
+
+#### Full design
+
+A final design file may look something like the one below. This is for two experimental groups in triplicate, where the last replicate of the `treatment` group has been sequenced twice.
+
+```bash
+group,replicate,fastq_1,fastq_2,control
+P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,P53_WT_INPUT
+P53_WT_IP,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,P53_WT_INPUT
+P53_WT_IP,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,P53_WT_INPUT
+P53_WT_INPUT,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz,
+P53_WT_INPUT,2,AEG588A5_S5_L003_R1_001.fastq.gz,AEG588A5_S5_L003_R2_001.fastq.gz,
+P53_WT_INPUT,3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L003_R2_001.fastq.gz,
+P53_WT_INPUT,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz,
+```
+
+| Column      | Description                                                                                                 |
+|-------------|-------------------------------------------------------------------------------------------------------------|
+| `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
+| `replicate` | Integer representing replicate number. Must start from `1..<number of replicates>`.                         |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `control`   | Group identifier for control sample. The pipeline will automatically select the control sample with the same replicate identifier as the IP. |
+
+Example design files have been provided with the pipeline for [paired-end](../assets/design_pe.csv) and [single-end](../assets/design_se.csv) data.
 
 ## Generic arguments
 
 ### `--singleEnd`
-By default, the pipeline expects paired-end data. If you have single-end data, specify `--singleEnd` on the command line when you launch the pipeline. A normal glob pattern, enclosed in quotation marks, can then be used for `--reads`. For example: `--singleEnd --reads '*.fastq'`
+By default, the pipeline expects paired-end data. If you have single-end data, specify `--singleEnd` on the command line when you launch the pipeline.
 
 It is not possible to run a mixture of single-end and paired-end files in one run.
 
-### `--macsconfig`
-The setup file for peak calling using MACS.
+### `--narrowPeak`
+MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
 
-Default: `data/macsconfig`
+### `--fragment_size`
+Number of base pairs to extend single-end reads when creating bigWig files. Default: `0`
 
-Format:
-
-```bash
-ChIPSampleID1,CtrlSampleID1,AnalysisID1
-ChIPSampleID2,CtrlSampleID2,AnalysisID2
-ChIPSampleID3,,AnalysisID3
-```
-
-1. Column 1: ChIP sample name
-    * Typically the file **base name**, shared between both reads _(no file type extension)_
-    * _eg._ for `chip_sample_1_R1.fastq.gz` and `chip_sample_1_R2.fastq.gz`, enter `chip_sample_1`
-2. Column 2: Control sample name
-    * Typically the input file **base name**, shared between both reads _(no file type extension)_
-    * _eg._ for `chip_input_R1.fastq.gz` and `chip_input_R2.fastq.gz`, enter `chip_input`
-3. Column 3: Analysis ID
-    * The analysis ID. Used for the output directory name.
-    * Should be unique for each sample / line in the file.
-
-For single-sample peaking calling without a control sample, leave the second column blank
-(control sample name).
-
-### `--allow_multi_align`
-Specifying `--allow_multi_align` will turn off the filtering of secondary alignments and unmapped reads from the BWA output file. Without this option, only primary alignments will be retained.
-
-### `--saveAlignedIntermediates`
-By default, intermediate BAM files will not be saved. The final BAM files created
-after the Picard MarkDuplicates step are always saved. Set to true to also copy out BAM
-files from BWA and sorting steps.
-
-### `--skipDupRemoval`
-By default duplicate reads will be removed with picard. With this flag on this pipeline will skip duplicate removal and use raw BAM files for downstream analysis.
-
-### `--seqCenter`
-Text about sequencing center which will be added in the header of output bam files.
-
-### `--fingerprintBins`
-Number of genomic bins to use when calculating the deepTools Fingerprint plot.
-Larger numbers will give a smoother profile, but take longer to run.
-
-Default: `50000`
-
-### `--broad`
-Run MACS with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff `0.1`.
-
-### `--macsgsize`
-Effective genome size which is used for the option `--gsize` in MACS. Should be in the format "2.1e9". See [`conf/igenomes.config`](conf/igenomes.config) for the predefined values of all supported reference genomes. This value is the mappable genome size or effective genome size which is defined as the genome size which can be sequenced. Because of the repetitive features on the chromsomes, the actual mappable genome size will be smaller than the original size, about 90% or 70% of the genome size.
-
-### `--saturation`
-Run saturation analysis by sub-sampling the sequence reads of ChIP sample from 10% to 100% with 10% interval, then calling ChIP-seq peaks with MACS. For one test there will be 10 sets of ChIP-seq peaks. A summary file (.CSV) will be provided with the numbers of ChIP-seq peaks.
-
-### `--extendReadsLen`
-Number of base pairs to extend the reads for the deepTools analysis. This number should be
-based on the length of your reads and the expected fragment length.
-
-Default: `100`
-
-## Reference Genomes
+## Reference genomes
 
 The pipeline config files come bundled with paths to the illumina iGenomes reference index files. If running with docker or AWS, the configuration is set up to use the [AWS-iGenomes](https://ewels.github.io/AWS-iGenomes/) resource.
 
 ### `--genome` (using iGenomes)
 There are 31 different species supported in the iGenomes references. To run the pipeline, you must specify which to use with the `--genome` flag.
-
-_Currently only the human and mouse genomes are fully supported by this pipeline. For other genomes `MACS` and `NGSplot` will not run!_
 
 You can find the keys to specify the genomes in the [`iGenomes config file`](../conf/igenomes.config). Common genomes that are supported are:
 
@@ -222,7 +199,7 @@ You can find the keys to specify the genomes in the [`iGenomes config file`](../
 * _Drosophila_
   * `--genome BDGP6`
 * _S. cerevisiae_
-  * `--genome 'R64-1-1'`
+  * `--genome R64-1-1`
 
 > There are numerous others - check the config file for more.
 
@@ -242,11 +219,17 @@ params {
 ```
 
 ### `--fasta`
-If you don't have a BWA index available, you can pass a FASTA file to the pipeline and a BWA index
-will be generated for you. Combine with `--saveReference` to save for future runs.
+Full path to fasta file containing reference genome (*mandatory* if `--genome` is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveGenomeIndex` to save BWA index for future runs.
 
 ```bash
---fasta '[path to FASTA file]'
+--fasta '[path to FASTA reference]'
+```
+
+### `--gtf`
+The full path to GTF file for annotating peaks (*mandatory* if `--genome` is not specified). Note that the GTF file should resemble the Ensembl format.
+
+```bash
+--gtf '[path to GTF file]'
 ```
 
 ### `--bwa_index`
@@ -256,50 +239,46 @@ Full path to an existing BWA index for your reference genome including the base 
 --bwa_index '[directory containing BWA index]/genome.fa'
 ```
 
-### `--largeRef`
-Build BWA Index with the `bwtsw` flag for reference genomes larger than 2Gb in size (such as human). By default the `is` option will be used.
-
-### `--gtf`
-The full path to GTF file can be specified for annotating peaks. Note that the GTF file should be in the Ensembl format.
+### `--gene_bed`
+The full path to BED file for genome-wide gene intervals. This will be created from the GTF file if it isnt specified.
 
 ```bash
---gtf '[path to GTF file]'
+--gene_bed '[path to gene BED file]'
 ```
 
-### `--bed`
-The full path to BED file for computing read distribution matrix for deepTools. Note that the BED file should be in the Ensembl format.
+### `--tss_bed`
+The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if it isnt specified.
 
 ```bash
---bed '[path to BED file]'
+--tss_bed '[path to tss BED file]'
+```
+
+### `--macs_gsize`
+[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter isnt specified then the MACS2 peak-calling and differential analysis will be skipped.
+
+```bash
+--macs_gsize 2.7e9
 ```
 
 ### `--blacklist`
-If you prefer, you can specify the full path to the blacklist regions (should be in .BED format) which will be filtered out from the called ChIP-seq peaks. Please note that `--blacklist_filtering` is required for using this option.
+If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.
 
 ```bash
---blacklist_filtering --blacklist '[path to blacklisted regions]'
+--blacklist '[path to blacklisted regions]'
 ```
 
-### `--blacklist_filtering`
-Specifying this flag instructs the pipeline to use bundled ENCODE blacklist regions to filter out known blacklisted regions in the called ChIP-seq peaks. The following reference genome builds are supported:
-* Human: `GRCh37`, `GRCh38`
-* Mouse: `GRCm37`, `GRCm38`
-* C.elegans: `WBcel235`
-* D.melanogaster: `BDGP6`
-
-### `--saveReference`
-Supply this parameter to save any generated reference genome files to your results folder. These can then be used for future pipeline runs, reducing processing times.
+### `--saveGenomeIndex`
+If the BWA index is generated by the pipeline use this parameter to save it to your results folder. These can then be used for future pipeline runs, reducing processing times.
 
 ### `--igenomesIgnore`
 Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`.
 
-## Adapter Trimming
-
+## Adapter trimming
 The pipeline accepts a number of parameters to change how the trimming is done, according to your data type.
 You can specify custom trimming parameters as follows:
 
 * `--clip_r1 <NUMBER>`
-  * Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads).
+  * Instructs Trim Galore to remove bp from the 5' end of read 1 (for single-end reads).
 * `--clip_r2 <NUMBER>`
   * Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only).
 * `--three_prime_clip_r1 <NUMBER>`
@@ -307,11 +286,22 @@ You can specify custom trimming parameters as follows:
 * `--three_prime_clip_r2 <NUMBER>`
   * Instructs Trim Galore to re move bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
 
-### `--notrim`
-Specifying `--notrim` will skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.
+### `--skipTrimming`
+Skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.
 
 ### `--saveTrimmed`
 By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.
+
+## Alignments
+
+### `--keepDups`
+Duplicate reads are not filtered from alignments.
+
+### `--keepMultiMap`
+Reads mapping to multiple locations in the genome are not filtered from alignments.
+
+### `--saveAlignedIntermediates`
+By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also save other intermediate BAM files.
 
 ## Job resources
 ### Automatic resubmission
@@ -322,7 +312,7 @@ Wherever process-specific requirements are set in the pipeline, the default valu
 
 If you are likely to be running `nf-core` pipelines regularly it may be a good idea to request that your custom config file is uploaded to the `nf-core/configs` git repository. Before you do this please can you test that the config file works with your pipeline of choice using the `-c` parameter (see definition below). You can then create a pull request to the `nf-core/configs` repository with the addition of your config file, associated documentation file (see examples in [`nf-core/configs/docs`](https://github.com/nf-core/configs/tree/master/docs)), and amending [`nfcore_custom.config`](https://github.com/nf-core/configs/blob/master/nfcore_custom.config) to include your custom profile.
 
-If you have any questions or issues please send us a message on [`Slack`](https://nf-core-invite.herokuapp.com/).
+If you have any questions or issues please send us a message on [Slack](https://nf-core-invite.herokuapp.com/).
 
 ## AWS Batch specific parameters
 Running the pipeline on AWS Batch requires a couple of specific parameters to be set according to your AWS Batch configuration. Please use the `-awsbatch` profile and then specify all of the following parameters.
@@ -359,8 +349,7 @@ You can also supply a run name to resume a specific run: `-resume [run-name]`. U
 Specify the path to a specific config file (this is a core NextFlow command).
 
 **NB:** Single hyphen (core Nextflow option)
-
-Note - you can use this to override pipeline defaults.
+**NB:** You can use this config to override pipeline defaults.
 
 ### `--custom_config_version`
 Provide git commit id for custom Institutional configs hosted at `nf-core/configs`. This was implemented for reproducibility purposes. Default is set to `master`.
@@ -369,6 +358,26 @@ Provide git commit id for custom Institutional configs hosted at `nf-core/config
 ## Download and use config file with following git commid id
 --custom_config_version d52db660777c4bf36546ddb188ec530c3ada1b96
 ```
+
+### `--custom_config_base`
+If you're running offline, nextflow will not be able to fetch the institutional config files
+from the internet. If you don't need them, then this is not a problem. If you do need them,
+you should download the files from the repo and tell nextflow where to find them with the
+`custom_config_base` option. For example:
+
+```bash
+## Download and unzip the config files
+cd /path/to/my/configs
+wget https://github.com/nf-core/configs/archive/master.zip
+unzip master.zip
+
+## Run the pipeline
+cd /path/to/my/data
+nextflow run /path/to/chipseq_pipeline/ --custom_config_base /path/to/my/configs/configs-master/
+```
+
+> Note that the nf-core/tools helper package has a `download` command to download all required pipeline
+> files + singularity containers + institutional configs in one go for you, to make this process easier.
 
 ### `--max_memory`
 Use to set a top-limit for the default memory requirement for each process.

@@ -16,6 +16,7 @@ fn_clean_exts:
     - 'mkD'
     - 'clN'
     - 'mLb'
+    - '_peaks'
 
 module_order:
     - fastqc:
