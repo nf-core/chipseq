@@ -10,13 +10,9 @@
 
         { "id" : "mismatch",
           "tag" : "NM:<=4"
-        },
-
-        { "id" : "cigar",
-          "cigar" : "*S*"
         }
     ],
 
-    "rule" : " insert_min & insert_max & mismatch & !cigar "
+    "rule" : " insert_min & insert_max & mismatch "
 
 }
