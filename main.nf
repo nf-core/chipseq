@@ -9,8 +9,8 @@
  #### Authors
  Chuan Wang <chuan.wang@scilifelab.se>
  Phil Ewels <phil.ewels@scilifelab.se>
- Alex Peltzer <alexander.peltzer@qbic.uni-tuebingen.de>
  Harshil Patel <harshil.patel@crick.ac.uk>
+ Alex Peltzer <alexander.peltzer@qbic.uni-tuebingen.de>
 ----------------------------------------------------------------------------------------
 */
 
@@ -835,9 +835,7 @@ process bigWig {
     """
 }
 
-/*
- * Create a channel with [sample_id, control id]
- */
+// Create a channel with [sample_id, control id]
 ch_design_csv.splitCsv(header:true, sep:',')
              .map { row -> [ row.sample_id.split('_')[0..-2].join('_'), row.control_id ] }
              .filter{ it[1] != '' }
@@ -1073,7 +1071,7 @@ def design_flags(ch) {
 /*
  * STEP 5.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
-process makeConsensusPeakSet {
+process createConsensusPeakSet {
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus", mode: 'copy'
 
     input:
