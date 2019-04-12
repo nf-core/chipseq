@@ -163,6 +163,8 @@ def reformat_design(DesignFileIn,DesignFileOut):
     if len(set(numRepList)) == 1 and multiGroups and repsExist:
         balancedDesign = True
 
+    print repsExist, multiGroups, balancedDesign
+
 ############################################
 ############################################
 ## RUN FUNCTION
