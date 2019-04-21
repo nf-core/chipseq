@@ -502,7 +502,7 @@ process bwaMEM {
 
     input:
     set val(name), file(reads) from ch_trimmed_reads
-    file index from ch_bwa_index.first()
+    file index from ch_bwa_index.collect()
 
     output:
     set val(name), file("*.bam") into ch_bwa_bam
