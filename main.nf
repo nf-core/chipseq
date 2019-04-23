@@ -35,6 +35,7 @@ def helpMessage() {
       --singleEnd                   Specifies that the input is single-end reads
       --narrowPeak                  Run MACS in narrowPeak mode. Default: broadPeak
       --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
+      --skipDiffAnalysis            Skip differential analysis step
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
       --bwa_index                   Full path to directory containing BWA index including base name i.e. /path/to/index/genome.fa
@@ -704,12 +705,13 @@ if (params.singleEnd){
                          ch_rm_orphan_bam_bigwig;
                          ch_rm_orphan_bam_macs_1;
                          ch_rm_orphan_bam_macs_2;
+                         ch_rm_orphan_bam_multibamsummary;
                          ch_rm_orphan_bam_phantompeakqualtools;
                          ch_name_bam_mlib_counts }
-    ch_filter_flagstat.into { ch_rm_orphan_flagstat_bigwig;
-                              ch_rm_orphan_flagstat_macs;
-                              ch_rm_orphan_flagstat_mqc }
-    ch_filter_stats_mqc.set { ch_rm_orphan_stats_mqc }
+    ch_filter_bam_flagstat.into { ch_rm_orphan_flagstat_bigwig;
+                                  ch_rm_orphan_flagstat_macs;
+                                  ch_rm_orphan_flagstat_mqc }
+    ch_filter_bam_stats_mqc.set { ch_rm_orphan_stats_mqc }
 } else {
     process rmOrphanReads {
         tag "$name"
@@ -732,6 +734,7 @@ if (params.singleEnd){
                                                            ch_rm_orphan_bam_bigwig,
                                                            ch_rm_orphan_bam_macs_1,
                                                            ch_rm_orphan_bam_macs_2,
+                                                           ch_rm_orphan_bam_multibamsummary,
                                                            ch_rm_orphan_bam_phantompeakqualtools
         set val(name), file("${prefix}.bam") into ch_name_bam_mlib_counts
         set val(name), file("*.flagstat") into ch_rm_orphan_flagstat_bigwig,
@@ -961,6 +964,14 @@ process peakQC {
    """
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/* --                                                                     -- */
+/* --                           CHIPSEQ QC                                -- */
+/* --                                                                     -- */
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 /*
  * STEP 4.6.1 deepTools plotFingerprint
  */
@@ -1028,31 +1039,127 @@ process plotProfile {
     """
 }
 
-// // // /*
-// // //  * STEP 6.1 Phantompeakqualtools
-// // //  */
-// // // process phantomPeakQualTools {
-// // //     tag "$name"
-// // //     label 'process_long'
-// // //     publishDir "${params.outdir}/bwa/mergedLibrary/phantompeakqualtools", mode: 'copy'
-// // //
-// // //     input:
-// // //     set val(name), file(bam) from ch_rm_orphan_bam_phantompeakqualtools
-// // //     file phantompeakqualtools_header from ch_phantompeakqualtools_header
-// // //
-// // //     output:
-// // //     file '*.pdf' into ch_spp_plot
-// // //     file '*.spp.out' into ch_spp_out,
-// // //                           ch_spp_out_mqc
-// // //     file '*_mqc.csv' into ch_spp_csv_mqc
-// // //
-// // //     script:
-// // //     """
-// // //     Rscript --default-packages=caTools run_spp.R -c="${bam[0]}" -savp="${name}.spp.pdf" -savd="${name}.spp.Rdata" -out="${name}.spp.out" -p=$task.cpus
-// // //     process_spp_rdata.r ${name}.spp.Rdata ${name}.spp.csv
-// // //     cat $phantompeakqualtools_header ${name}.spp.csv > ${name}_mqc.csv
-// // //     """
-// // // }
+// /*
+//  * STEP 7.6 deepTools multiBamSummary
+//  */
+// ///// NEED TO PROVIDE CONSENSUS PEAKS ACROSS ALL IPS AND INPUTS TO THIS....
+// process multiBamSummary {
+//     label 'process_big'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/multiBamSummary", mode: 'copy'
+//
+//     input:
+//     set val(name), file(bam) from ch_rm_orphan_bam_multibamsummary.collect()
+//     // provide consensus reads here too
+//
+//     output:
+//     file '*.npz' into ch_multibamsummary_cor,
+//                       ch_multibamsummary_pca
+//
+//     //when: bambai.size() > 2
+//
+//     script:
+//     extend = (params.singleEnd && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
+//     """
+//     multiBamSummary BED-file \\
+//         --BED $peaks \\
+//         --bamfiles *.bam \\
+//         -out multiBamSummary.npz \\
+//         --labels \\                       ## get this parameter too from bam file names
+//         $extend \\
+//         --centerReads \\
+//         --numberOfProcessors ${task.cpus}
+//     """
+// }
+//
+// /*
+//  * STEP 7.7 deepTools plotCorrelation
+//  */
+// process plotCorrelation {
+//     label 'process_big'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotCorrelation", mode: 'copy'
+//
+//     input:
+//     file npz from ch_multibamsummary_cor
+//
+//     output:
+//     file '*.{pdf,txt}' into ch_plotcorrelation_results
+//     file '*.txt' into ch_plotcorrelation_mqc
+//
+//     when: !(bam instanceof Path)
+//
+//     script:
+//     """
+//     plotCorrelation \\
+//         -in $npz \\
+//         -o heatmap_SpearmanCorr.pdf \\
+//         --plotFileFormat pdf \\
+//         --outFileCorMatrix heatmap_SpearmanCorr.txt \\
+//         --corMethod spearman \\
+//         --skipZeros \\
+//         --plotTitle "Spearman Correlation of Read Counts" \\
+//         --whatToPlot heatmap \\
+//         --colorMap RdYlBu \\
+//         --plotNumbers
+//     """
+// }
+//
+// /*
+//  * STEP 7.8 deepTools plotPCA
+//  */
+// process plotPCA {
+//     label 'process_big'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotPCA", mode: 'copy'
+//
+//     input:
+//     file npz from ch_multibamsummary_pca
+//
+//     output:
+//     file '*.{pdf,txt}' into ch_plotpca_results
+//     file '*.txt' into ch_plotpca_mqc
+//
+//     when: !(bam instanceof Path)
+//
+//     script:
+//     """
+//     plotPCA \\
+//         -in $npz \\
+//         -o pcaplot.pdf \\
+//         --plotFileFormat pdf \\
+//         --plotTitle "Principal Component Analysis Plot" \\
+//         --outFileNameData pcaplot.txt \\
+//         --plotWidth 8
+//     """
+// }
+
+/*
+ * STEP 6.1 Phantompeakqualtools
+ */
+process phantomPeakQualTools {
+    tag "$name"
+    label 'process_long'
+    publishDir "${params.outdir}/bwa/mergedLibrary/phantompeakqualtools", mode: 'copy'
+
+    input:
+    set val(name), file(bam) from ch_rm_orphan_bam_phantompeakqualtools
+    file phantompeakqualtools_header from ch_phantompeakqualtools_header
+
+    output:
+    file '*.pdf' into ch_spp_plot
+    file '*.spp.out' into ch_spp_out,
+                          ch_spp_out_mqc
+    file '*_mqc.csv' into ch_spp_csv_mqc
+
+    script:
+    """
+    RUN_SPP=`which run_spp.R`
+    Rscript -e "library(caTools); source(\\"\$RUN_SPP\\")" -c="${bam[0]}" -savp="${name}.spp.pdf" -savd="${name}.spp.Rdata" -out="${name}.spp.out" -p=$task.cpus
+    #Rscript -e "load(${name}.spp.Rdata);
+    #            data <- crosscorr\$cross.correlation;
+    #            write.table(data, file=${name}.spp.csv, sep=",", quote=FALSE, row.names=FALSE, col.names=FALSE)"
+    process_spp_rdata.r ${name}.spp.Rdata ${name}.spp.csv
+    cat $phantompeakqualtools_header ${name}.spp.csv > ${name}_mqc.csv
+    """
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -1167,7 +1274,7 @@ process deseqConsensusPeakSet {
     file "*vs*/*.bed" into ch_macs_consensus_deseq_comp_bed_igv
     file "*.tsv" into ch_macs_consensus_deseq_mqc
 
-    when: params.macs_gsize && multipleGroups && replicatesExist
+    when: params.macs_gsize && multipleGroups && replicatesExist && !params.skipDiffAnalysis
 
     script:
     prefix="consensus_peaks"
@@ -1557,99 +1664,6 @@ def checkHostname(){
 //     """
 //     cat $spp_out_list > cross_correlation.txt
 //     calculateNSCRSC.r cross_correlation.txt
-//     """
-// }
-// /*
-//  * STEP 7.6 deepTools multiBamSummary
-//  */
-// process deepTools_multiBamSummary {
-//     publishDir "${params.outdir}/deepTools", mode: 'copy'
-//     label 'process_big'
-//
-//     input:
-//     file(bambai) from bam_dedup_deepTools_multiBamSummary.collect()
-//
-//     output:
-//     file 'multiBamSummary.npz' into deepTools_multiBamSummary_results_corr, deepTools_multiBamSummary_results_pca
-//
-//     when:
-//     bambai.size() > 2
-//
-//     script:
-//     """
-//     multiBamSummary \\
-//         bins \\
-//         --binSize 10000 \\
-//         --bamfiles *.bam \\
-//         -out multiBamSummary.npz \\
-//         --extendReads ${params.extendReadsLen} \\
-//         --ignoreDuplicates \\
-//         --centerReads \\
-//         --numberOfProcessors ${task.cpus} \\
-//         --smartLabels
-//     """
-// }
-//
-// /*
-//  * STEP 7.7 deepTools plotCorrelation
-//  */
-// process deepTools_plotCorrelation {
-//     publishDir "${params.outdir}/deepTools", mode: 'copy'
-//     label 'process_big'
-//
-//     input:
-//     file npz from deepTools_multiBamSummary_results_corr
-//
-//     output:
-//     file '*.{pdf,txt}' into deepTools_plotCorrelation_results
-//     file '*.txt' into deepTools_plotCorrelation_multiqc
-//
-//     when:
-//     !(bam instanceof Path)
-//
-//     script:
-//     """
-//     plotCorrelation \\
-//         -in $npz \\
-//         -o heatmap_SpearmanCorr.pdf \\
-//         --plotFileFormat pdf \\
-//         --outFileCorMatrix heatmap_SpearmanCorr.txt \\
-//         --corMethod spearman \\
-//         --skipZeros \\
-//         --plotTitle "Spearman Correlation of Read Counts" \\
-//         --whatToPlot heatmap \\
-//         --colorMap RdYlBu \\
-//         --plotNumbers
-//     """
-// }
-//
-//
-// /*
-//  * STEP 7.8 deepTools plotPCA
-//  */
-// process deepTools_plotPCA {
-//     publishDir "${params.outdir}/deepTools", mode: 'copy'
-//     label 'process_big'
-//
-//     input:
-//     file npz from deepTools_multiBamSummary_results_pca
-//
-//     output:
-//     file '*.{pdf,txt}' into deepTools_plotPCA_results
-//     file '*.txt' into deepTools_plotPCA_multiqc
-//
-//     when:
-//     !(bam instanceof Path)
-//
-//     script:
-//     """
-//     plotPCA \\
-//         -in $npz \\
-//         -o pcaplot.pdf \\
-//         --plotFileFormat pdf \\
-//         --plotTitle "Principal Component Analysis Plot" \\
-//         --outFileNameData pcaplot.txt \\
-//         --plotWidth 8
 //     """
 // }
 //
