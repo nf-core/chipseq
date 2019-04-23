@@ -133,7 +133,9 @@ ch_frip_score_header = file("$baseDir/assets/multiqc/frip_score_header.txt", che
 ch_peak_annotation_header = file("$baseDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
 ch_deseq2_pca_header = file("$baseDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
 ch_deseq2_clustering_header = file("$baseDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
-ch_phantompeakqualtools_header = file("$baseDir/assets/multiqc/phantompeakqualtools_header.txt", checkIfExists: true)
+ch_spp_correlation_header = file("$baseDir/assets/multiqc/spp_correlation_header.txt", checkIfExists: true)
+ch_spp_nsc_header = file("$baseDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
+ch_spp_rsc_header = file("$baseDir/assets/multiqc/spp_rsc_header.txt", checkIfExists: true)
 
 ////////////////////////////////////////////////////
 /* --          VALIDATE INPUTS                 -- */
@@ -907,6 +909,7 @@ process macsCallPeak {
  */
 process annotatePeaks {
     tag "$name"
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy'
 
     input:
@@ -1136,24 +1139,30 @@ process plotProfile {
  */
 process phantomPeakQualTools {
     tag "$name"
-    label 'process_long'
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/phantompeakqualtools", mode: 'copy'
 
     input:
     set val(name), file(bam) from ch_rm_orphan_bam_phantompeakqualtools
-    file phantompeakqualtools_header from ch_phantompeakqualtools_header
+    file spp_correlation_header from ch_spp_correlation_header
+    file spp_nsc_header from ch_spp_nsc_header
+    file spp_rsc_header from ch_spp_rsc_header
 
     output:
     file '*.pdf' into ch_spp_plot
     file '*.spp.out' into ch_spp_out,
                           ch_spp_out_mqc
-    file '*_mqc.csv' into ch_spp_csv_mqc
+    file '*_mqc.tsv' into ch_spp_csv_mqc
 
     script:
     """
     RUN_SPP=`which run_spp.R`
     Rscript -e "library(caTools); source(\\"\$RUN_SPP\\")" -c="${bam[0]}" -savp="${name}.spp.pdf" -savd="${name}.spp.Rdata" -out="${name}.spp.out" -p=$task.cpus
-    cp $phantompeakqualtools_header ${name}_mqc.csv; Rscript -e "load('${name}.spp.Rdata'); write.table(crosscorr\\\$cross.correlation, file=\\"${name}_mqc.csv\\", sep=",", quote=FALSE, row.names=FALSE, col.names=FALSE,append=TRUE)"
+    cp $spp_correlation_header ${name}_spp_correlation_mqc.tsv
+    Rscript -e "load('${name}.spp.Rdata'); write.table(crosscorr\\\$cross.correlation, file=\\"${name}_spp_correlation_mqc.tsv\\", sep=",", quote=FALSE, row.names=FALSE, col.names=FALSE,append=TRUE)"
+
+    awk -v OFS='\t' '{print "${name}", \$9}' ${name}.spp.out | cat $spp_nsc_header - > ${name}_spp_nsc_mqc.tsv
+    awk -v OFS='\t' '{print "${name}", \$10}' ${name}.spp.out | cat $spp_rsc_header - > ${name}_spp_rsc_mqc.tsv
     """
 }
 
@@ -1219,6 +1228,7 @@ process createConsensusPeakSet {
  * STEP 5.2 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process annotateConsensusPeakSet {
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus", mode: 'copy'
 
     input:
@@ -1413,12 +1423,12 @@ process multiqc {
     file ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
     file ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
-    file ('deeptools/plotFingerprint/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
-    file ('deeptools/plotProfile/*') from ch_plotprofile_mqc.collect().ifEmpty([])
-    //file ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
-    //file ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
-    //file ('deeptools/plotCorrelation/*') from deepTools_plotCorrelation_multiqc.collect().ifEmpty([])
-    //file ('deeptools/plotPCA/*') from deepTools_plotPCA_multiqc.collect().ifEmpty([])
+    file ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
+    file ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
+    file ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
+    file ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
+    //file ('deeptools/*') from deepTools_plotCorrelation_multiqc.collect().ifEmpty([])
+    //file ('deeptools/*') from deepTools_plotPCA_multiqc.collect().ifEmpty([])
     file ('software_versions/*') from ch_software_versions_mqc.collect()
     file ('workflow_summary/*') from create_workflow_summary(summary)
 
@@ -1643,26 +1653,6 @@ def checkHostname(){
 //     countstat.pl $bed
 //     """
 // }
-// /*
-//  * STEP 6.2 Combine and calculate NSC & RSC
-//  */
-//
-// process calculateNSCRSC {
-//     publishDir "${params.outdir}/phantompeakqualtools", mode: 'copy'
-//
-//     input:
-//     file spp_out_list from spp_out.collect()
-//
-//     output:
-//     file 'cross_correlation_processed.txt' into calculateNSCRSC_results
-//
-//     script:
-//     """
-//     cat $spp_out_list > cross_correlation.txt
-//     calculateNSCRSC.r cross_correlation.txt
-//     """
-// }
-//
 // /*
 //  * STEP 8.2 Saturation analysis
 //  */

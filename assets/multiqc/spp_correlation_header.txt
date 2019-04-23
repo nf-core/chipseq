@@ -1,0 +1,12 @@
+#id: 'strand_shift_correlation'
+#section_name: 'spp: Strand-shift correlation plot'
+#description: "generated using run_spp.R script from
+#              <a href='https://github.com/kundajelab/phantompeakqualtools' target='_blank'>phantompeakqualtools</a>."
+#plot_type: 'linegraph'
+#anchor: 'nfcore_chipseq-strand_shift_correlation'
+#pconfig:
+#    title: 'Strand-shift correlation plot'
+#    ylab: 'Cross-correlation'
+#    xlab: 'Strand-shift (bp)'
+#    xDecimals: False
+#    tt_label: 'Strand-shift (bp) {point.x}: {point.y:.2f} Cross-correlation'
