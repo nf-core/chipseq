@@ -1153,11 +1153,7 @@ process phantomPeakQualTools {
     """
     RUN_SPP=`which run_spp.R`
     Rscript -e "library(caTools); source(\\"\$RUN_SPP\\")" -c="${bam[0]}" -savp="${name}.spp.pdf" -savd="${name}.spp.Rdata" -out="${name}.spp.out" -p=$task.cpus
-    #Rscript -e "load(${name}.spp.Rdata);
-    #            data <- crosscorr\$cross.correlation;
-    #            write.table(data, file=${name}.spp.csv, sep=",", quote=FALSE, row.names=FALSE, col.names=FALSE)"
-    process_spp_rdata.r ${name}.spp.Rdata ${name}.spp.csv
-    cat $phantompeakqualtools_header ${name}.spp.csv > ${name}_mqc.csv
+    cp $phantompeakqualtools_header ${name}_mqc.csv; Rscript -e "load('${name}.spp.Rdata'); write.table(crosscorr\\\$cross.correlation, file=\\"${name}_mqc.csv\\", sep=",", quote=FALSE, row.names=FALSE, col.names=FALSE,append=TRUE)"
     """
 }
 
