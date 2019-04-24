@@ -269,12 +269,12 @@ process checkDesign {
     file design from ch_design
 
     output:
-    stdout into ch_design_bool
-    file "*.csv" into ch_design_csv
+    file "reads.csv" into ch_design_reads_csv
+    file "controls.csv" into ch_design_controls_csv
 
     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     """
-    check_design.py $design ${design.baseName}.reformat.csv
+    check_design.py $design reads.csv controls.csv
     """
 }
 
@@ -282,16 +282,23 @@ process checkDesign {
  * Create channels for input fastq files
  */
 if (params.singleEnd) {
-    ch_design_csv.splitCsv(header:true, sep:',')
-                 .map { row -> [ row.sample_id, [ file(row.fastq_1) ] ] }
-                 .into { ch_raw_reads_fastqc;
-                         ch_raw_reads_trimgalore }
+    ch_design_reads_csv.splitCsv(header:true, sep:',')
+                       .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true) ] ] }
+                       .into { ch_raw_reads_fastqc;
+                               ch_raw_reads_trimgalore }
 } else {
-    ch_design_csv.splitCsv(header:true, sep:',')
-                 .map { row -> [ row.sample_id, [ file(row.fastq_1), file(row.fastq_2) ] ] }
-                 .into { ch_raw_reads_fastqc;
-                         ch_raw_reads_trimgalore }
+    ch_design_reads_csv.splitCsv(header:true, sep:',')
+                       .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] ] }
+                       .into { ch_raw_reads_fastqc;
+                               ch_raw_reads_trimgalore }
 }
+
+/*
+ * Create a channel with [sample_id, control id]
+ */
+ ch_design_controls_csv.splitCsv(header:true, sep:',')
+                       .map { row -> [ row.sample_id, row.control_id, row.antibody, row.replicatesExist.toBoolean(), row.multipleGroups.toBoolean() ] }
+                       .set { ch_design_controls_csv }
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -840,26 +847,19 @@ process bigWig {
     """
 }
 
-// Create a channel with [sample_id, control id]
-ch_design_csv.splitCsv(header:true, sep:',')
-             .map { row -> [ row.sample_id.split('_')[0..-2].join('_'), row.control_id ] }
-             .filter{ it[1] != '' }
-             .unique()
-             .set { ch_design_controls }
-
 // Create channel linking IP bams with control bams
-ch_design_controls.join(ch_rm_orphan_bam_macs_1)
-                  .join(ch_rm_orphan_flagstat_macs)
-                  .map { it ->  [ it[1], it[0], it[2], it[3] ] }
-                  .join(ch_rm_orphan_bam_macs_2)
-                  .into { ch_rm_orphan_bam_macs;
-                          ch_rm_orphan_bam_plotfingerprint }
+ch_design_controls_csv.join(ch_rm_orphan_bam_macs_1)
+                      .join(ch_rm_orphan_flagstat_macs)
+                      .map { it ->  [ it[1], it[0], it[2], it[3], it[4], it[5], it[6] ] }
+                      .join(ch_rm_orphan_bam_macs_2)
+                      .into { ch_rm_orphan_bam_macs;
+                              ch_rm_orphan_bam_plotfingerprint }
 
 /*
  * STEP 4.5.1 Call peaks with MACS2 and calculate FRiP score
  */
 process macsCallPeak {
-    tag "$ip"
+    tag "${ip} vs ${control}"
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy',
         saveAs: {filename ->
@@ -868,17 +868,17 @@ process macsCallPeak {
                 }
 
     input:
-    set val(control), val(ip), file(ipbam), file(ipflagstat), file(controlbam) from ch_rm_orphan_bam_macs
+    set val(control), val(ip), val(antibody), val(repsExist), val(multiGroups), file(ipbam), file(ipflagstat), file(controlbam) from ch_rm_orphan_bam_macs
     file peak_count_header from ch_peak_count_header
     file frip_score_header from ch_frip_score_header
 
     output:
     set val(ip), file("*.{bed,xls,gappedPeak}") into ch_macs_output
-    set val(ip), file("*$peakext") into ch_macs_homer,
-                                        ch_macs_qc,
-                                        ch_macs_consensus,
-                                        ch_macs_igv
     file "*_mqc.tsv" into ch_macs_mqc
+    set val(control), val(ip), val(antibody), val(repsExist), val(multiGroups), file("*$peakext") into ch_macs_homer,
+                                                                                                       ch_macs_qc,
+                                                                                                       ch_macs_consensus,
+                                                                                                       ch_macs_igv
 
     when: params.macs_gsize
 
@@ -908,12 +908,12 @@ process macsCallPeak {
  * STEP 4.5.2 Annotate peaks with HOMER
  */
 process annotatePeaks {
-    tag "$name"
+    tag "${ip} vs ${control}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy'
 
     input:
-    set val(name), file(peak) from ch_macs_homer
+    set val(control), val(ip), val(antibody), val(repsExist), val(multiGroups), file(peak) from ch_macs_homer
     file fasta from ch_fasta
     file gtf from ch_gtf
 
@@ -928,7 +928,7 @@ process annotatePeaks {
         $fasta \\
         -gid \\
         -gtf $gtf \\
-        > ${name}_peaks.annotatePeaks.txt
+        > ${ip}_peaks.annotatePeaks.txt
     """
 }
 
@@ -940,7 +940,7 @@ process peakQC {
    publishDir "${params.outdir}/bwa/mergedLibrary/macs/qc", mode: 'copy'
 
    input:
-   file peaks from ch_macs_qc.collect{ it[1] }
+   file peaks from ch_macs_qc.collect{ it[-1] }
    file annos from ch_macs_annotate.collect()
    file peak_annotation_header from ch_peak_annotation_header
 
@@ -979,12 +979,12 @@ process peakQC {
  * STEP 4.6.1 deepTools plotFingerprint
  */
 process plotFingerprint {
-    tag "$ip"
+    tag "${ip} vs ${control}"
     label 'process_big'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
 
     input:
-    set val(control), val(ip), file(ipbam), file(ipflagstat), file(controlbam) from ch_rm_orphan_bam_plotfingerprint
+    set val(control), val(ip), val(antibody), val(repsExist), val(multiGroups), file(ipbam), file(ipflagstat), file(controlbam) from ch_rm_orphan_bam_plotfingerprint
 
     output:
     file '*.{txt,pdf}' into ch_plotfingerprint_results
@@ -1042,98 +1042,6 @@ process plotProfile {
     """
 }
 
-// /*
-//  * STEP 7.6 deepTools multiBamSummary
-//  */
-// ///// NEED TO PROVIDE CONSENSUS PEAKS ACROSS ALL IPS AND INPUTS TO THIS....
-// process multiBamSummary {
-//     label 'process_big'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/multiBamSummary", mode: 'copy'
-//
-//     input:
-//     set val(name), file(bam) from ch_rm_orphan_bam_multibamsummary.collect()
-//     // provide consensus reads here too
-//
-//     output:
-//     file '*.npz' into ch_multibamsummary_cor,
-//                       ch_multibamsummary_pca
-//
-//     //when: bambai.size() > 2
-//
-//     script:
-//     extend = (params.singleEnd && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
-//     """
-//     multiBamSummary BED-file \\
-//         --BED $peaks \\
-//         --bamfiles *.bam \\
-//         -out multiBamSummary.npz \\
-//         --labels \\                       ## get this parameter too from bam file names
-//         $extend \\
-//         --centerReads \\
-//         --numberOfProcessors ${task.cpus}
-//     """
-// }
-//
-// /*
-//  * STEP 7.7 deepTools plotCorrelation
-//  */
-// process plotCorrelation {
-//     label 'process_big'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotCorrelation", mode: 'copy'
-//
-//     input:
-//     file npz from ch_multibamsummary_cor
-//
-//     output:
-//     file '*.{pdf,txt}' into ch_plotcorrelation_results
-//     file '*.txt' into ch_plotcorrelation_mqc
-//
-//     when: !(bam instanceof Path)
-//
-//     script:
-//     """
-//     plotCorrelation \\
-//         -in $npz \\
-//         -o heatmap_SpearmanCorr.pdf \\
-//         --plotFileFormat pdf \\
-//         --outFileCorMatrix heatmap_SpearmanCorr.txt \\
-//         --corMethod spearman \\
-//         --skipZeros \\
-//         --plotTitle "Spearman Correlation of Read Counts" \\
-//         --whatToPlot heatmap \\
-//         --colorMap RdYlBu \\
-//         --plotNumbers
-//     """
-// }
-//
-// /*
-//  * STEP 7.8 deepTools plotPCA
-//  */
-// process plotPCA {
-//     label 'process_big'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotPCA", mode: 'copy'
-//
-//     input:
-//     file npz from ch_multibamsummary_pca
-//
-//     output:
-//     file '*.{pdf,txt}' into ch_plotpca_results
-//     file '*.txt' into ch_plotpca_mqc
-//
-//     when: !(bam instanceof Path)
-//
-//     script:
-//     """
-//     plotPCA \\
-//         -in $npz \\
-//         -o pcaplot.pdf \\
-//         --plotFileFormat pdf \\
-//         --plotTitle "Principal Component Analysis Plot" \\
-//         --outFileNameData pcaplot.txt \\
-//         --plotWidth 8
-//     """
-// }
-
 /*
  * STEP 6.1 Phantompeakqualtools
  */
@@ -1174,277 +1082,275 @@ process phantomPeakQualTools {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-// Get boolean values for replicatesExist, multipleGroups, and balancedDesign from checkDesign process
-def design_flags(ch) {
-    ch.map { it.trim().toLowerCase().tokenize() }
-      .map { it -> [ it[0].asBoolean(), it[1].asBoolean(), it[2].asBoolean() ] }
-}
 
-/*
- * STEP 5.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
- */
-process createConsensusPeakSet {
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus", mode: 'copy'
+// group by ip from this point and carry forward boolean variables
 
-    input:
-    file peaks from ch_macs_consensus.collect{ it[1] }
-    set val(replicatesExist), val(multipleGroups), val(balancedDesign) from design_flags(ch_design_bool)
-
-    output:
-    file "*.bed" into ch_macs_consensus_bed,
-                      ch_macs_consensus_bed_igv
-    file "*.boolean.txt" into ch_macs_consensus_bool
-    file "*.saf" into ch_macs_consensus_saf
-    file "*.intersect.{txt,plot.pdf}" into ch_macs_consensus_intersect
-
-    when: params.macs_gsize && (multipleGroups || replicatesExist)
-
-    script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
-    prefix="consensus_peaks"
-    peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
-    mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
-    collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
-    expandparam = params.narrowPeak ? "--is_narrow_peak" : ""
-    """
-    sort -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
-        | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
-
-    macs2_merged_expand.py ${prefix}.txt \\
-        ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks${peakext}","")} \\
-        ${prefix}.boolean.txt \\
-        --min_samples 1 \\
-        $expandparam
-
-    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
-
-    echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
-    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
-
-    plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
-    """
-}
-
-/*
- * STEP 5.2 Annotate consensus peaks with HOMER, and add annotation to boolean output file
- */
-process annotateConsensusPeakSet {
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus", mode: 'copy'
-
-    input:
-    file fasta from ch_fasta
-    file gtf from ch_gtf
-    file bed from ch_macs_consensus_bed
-    file bool from ch_macs_consensus_bool
-    set val(replicatesExist), val(multipleGroups), val(balancedDesign) from design_flags(ch_design_bool)
-
-    output:
-    file "*.annotatePeaks.txt" into ch_macs_consensus_annotate
-
-    when: params.macs_gsize && (multipleGroups || replicatesExist)
-
-    script:
-    prefix="consensus_peaks"
-    """
-    annotatePeaks.pl $bed \\
-        $fasta \\
-        -gid \\
-        -gtf $gtf \\
-        > ${prefix}.annotatePeaks.txt
-
-    cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-    paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
-    """
-}
-
-/*
- * STEP 5.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
- */
-process deseqConsensusPeakSet {
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus/deseq2", mode: 'copy'
-
-    input:
-    file bams from ch_name_bam_mlib_counts.collect{ it[1] }
-    file saf from ch_macs_consensus_saf.collect()
-    file deseq2_pca_header from ch_deseq2_pca_header
-    file deseq2_clustering_header from ch_deseq2_clustering_header
-    set val(replicatesExist), val(multipleGroups), val(balancedDesign) from design_flags(ch_design_bool)
-
-    output:
-    file "*featureCounts.txt" into ch_macs_consensus_counts
-    file "*featureCounts.txt.summary" into ch_macs_consensus_counts_mqc
-    file "*.{RData,results.txt,pdf,log}" into ch_macs_consensus_deseq_results
-    file "sizeFactors" into ch_macs_consensus_deseq_factors
-    file "*vs*/*.{pdf,txt}" into ch_macs_consensus_deseq_comp_results
-    file "*vs*/*.bed" into ch_macs_consensus_deseq_comp_bed_igv
-    file "*.tsv" into ch_macs_consensus_deseq_mqc
-
-    when: params.macs_gsize && multipleGroups && replicatesExist && !params.skipDiffAnalysis
-
-    script:
-    prefix="consensus_peaks"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    bam_ext = params.singleEnd ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
-    pe_params = params.singleEnd ? '' : "-p --donotsort"
-    """
-    featureCounts -F SAF \\
-        -O \\
-        --fracOverlap 0.2 \\
-        -T $task.cpus \\
-        $pe_params \\
-        -a $saf \\
-        -o ${prefix}.featureCounts.txt \\
-        ${bam_files.join(' ')}
-
-    featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mLb
-
-    cat $deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
-    cat $deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
-    """
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                             IGV                                     -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 6 - Create IGV session file
- */
-process igv {
-    publishDir "${params.outdir}/igv", mode: 'copy'
-
-    input:
-    file fasta from ch_fasta
-    file ('bwa/mergedLibrary/bigwig/*') from ch_bigwig_igv.collect{it[1]}.ifEmpty([])
-    file ('bwa/mergedLibrary/macs/*') from ch_macs_igv.collect{it[1]}.ifEmpty([])
-    file ('bwa/mergedLibrary/macs/consensus/*') from ch_macs_consensus_bed_igv.collect().ifEmpty([])
-    file ('bwa/mergedLibrary/macs/consensus/deseq2/*') from ch_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
-
-    output:
-    file "*.{txt,xml}" into ch_igv_session
-
-    script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
-    outdir_abspath = new File(params.outdir).getCanonicalPath().toString()
-    """
-    igv_get_files.sh ./ mLb $outdir_abspath > igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt ${outdir_abspath}/reference_genome/${fasta.getName()}
-    """
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                          MULTIQC                                    -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * Parse software version numbers
- */
-process get_software_versions {
-    publishDir "${params.outdir}/pipeline_info", mode: 'copy',
-        saveAs: {filename ->
-            if (filename.indexOf(".csv") > 0) filename
-            else null
-        }
-
-    output:
-    file 'software_versions_mqc.yaml' into ch_software_versions_mqc
-    file "software_versions.csv"
-
-    script:
-    """
-    echo $workflow.manifest.version > v_pipeline.txt
-    echo $workflow.nextflow.version > v_nextflow.txt
-    fastqc --version > v_fastqc.txt
-    trim_galore --version > v_trim_galore.txt
-    echo \$(bwa 2>&1) > v_bwa.txt
-    samtools --version > v_samtools.txt
-    bedtools --version > v_bedtools.txt
-    echo \$(bamtools --version 2>&1) > v_bamtools.txt
-    echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt || true
-    picard MarkDuplicates --version &> v_picard.txt  || true
-    echo \$(R --version 2>&1) > v_R.txt
-    python -c "import pysam; print(pysam.__version__)" > v_pysam.txt
-    echo \$(macs2 --version 2>&1) > v_macs2.txt
-    touch v_homer.txt
-    echo \$(featureCounts -v 2>&1) > v_featurecounts.txt
-    multiqc --version > v_multiqc.txt
-    scrape_software_versions.py &> software_versions_mqc.yaml
-    """
-}
-
-def create_workflow_summary(summary) {
-
-    def yaml_file = workDir.resolve('workflow_summary_mqc.yaml')
-    yaml_file.text  = """
-    id: 'nf-core-chipseq-summary'
-    description: " - this information is collected when the pipeline is started."
-    section_name: 'nf-core/chipseq Workflow Summary'
-    section_href: 'https://github.com/nf-core/chipseq'
-    plot_type: 'html'
-    data: |
-        <dl class=\"dl-horizontal\">
-${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }.join("\n")}
-        </dl>
-    """.stripIndent()
-
-   return yaml_file
-}
-
-/*
- * STEP 7 - MultiQC
- */
-process multiqc {
-    publishDir "${params.outdir}/multiqc", mode: 'copy'
-
-    input:
-    file multiqc_config from ch_multiqc_config
-
-    file ('fastqc/*') from ch_fastqc_reports_mqc.collect()
-    file ('trimgalore/*') from ch_trimgalore_results_mqc.collect()
-    file ('trimgalore/fastqc/*') from ch_trimgalore_fastqc_reports_mqc.collect()
-
-    file ('alignment/library/*') from ch_sort_bam_flagstat_mqc.collect()
-    file ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
-    file ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}
-    file ('alignment/mergedLibrary/*') from ch_rm_orphan_stats_mqc.collect()
-    file ('alignment/mergedLibrary/picard_metrics/*') from ch_merge_bam_metrics_mqc.collect()
-    file ('alignment/mergedLibrary/picard_metrics/*') from ch_collectmetrics_mqc.collect()
-
-    file ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
-    file ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
-    file ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
-    file ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
-
-    file ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
-    file ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
-    file ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
-    file ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
-    //file ('deeptools/*') from deepTools_plotCorrelation_multiqc.collect().ifEmpty([])
-    //file ('deeptools/*') from deepTools_plotPCA_multiqc.collect().ifEmpty([])
-    file ('software_versions/*') from ch_software_versions_mqc.collect()
-    file ('workflow_summary/*') from create_workflow_summary(summary)
-
-    output:
-    file "*multiqc_report.html" into ch_multiqc_report
-    file "*_data"
-    file "multiqc_plots"
-
-    script:
-    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-    rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-    """
-    multiqc . -f $rtitle $rfilename --config $multiqc_config \\
-        -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m featureCounts -m deeptools -m phantompeakqualtools
-    """
-}
+// /*
+//  * STEP 5.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
+//  */
+// process createConsensusPeakSet {
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus", mode: 'copy'
+//
+//     input:
+//     set val(control), val(ip), val(antibody), val(repsExist), val(multiGroups), file(peak) from ch_macs_consensus
+//     //file peaks from ch_macs_consensus.collect{ it[1] }
+//     //set val(repsExist), val(multipleGroups), val(balancedDesign) from design_flags(ch_design_bool)
+//
+//     output:
+//     file "*.bed" into ch_macs_consensus_bed,
+//                       ch_macs_consensus_bed_igv
+//     file "*.boolean.txt" into ch_macs_consensus_bool
+//     file "*.saf" into ch_macs_consensus_saf
+//     file "*.intersect.{txt,plot.pdf}" into ch_macs_consensus_intersect
+//
+//     when: params.macs_gsize && (multiGroups || repsExist)
+//
+//     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
+//     prefix="consensus_peaks"
+//     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
+//     mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
+//     collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
+//     expandparam = params.narrowPeak ? "--is_narrow_peak" : ""
+//     """
+//     sort -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
+//         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
+//
+//     macs2_merged_expand.py ${prefix}.txt \\
+//         ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks${peakext}","")} \\
+//         ${prefix}.boolean.txt \\
+//         --min_samples 1 \\
+//         $expandparam
+//
+//     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
+//
+//     echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
+//     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
+//
+//     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
+//     """
+// }
+//
+// /*
+//  * STEP 5.2 Annotate consensus peaks with HOMER, and add annotation to boolean output file
+//  */
+// process annotateConsensusPeakSet {
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus", mode: 'copy'
+//
+//     input:
+//     file fasta from ch_fasta
+//     file gtf from ch_gtf
+//     file bed from ch_macs_consensus_bed
+//     file bool from ch_macs_consensus_bool
+//     set val(repsExist), val(multiGroups), val(balancedDesign) from design_flags(ch_design_bool)
+//
+//     output:
+//     file "*.annotatePeaks.txt" into ch_macs_consensus_annotate
+//
+//     when: params.macs_gsize && (multiGroups || repsExist)
+//
+//     script:
+//     prefix="consensus_peaks"
+//     """
+//     annotatePeaks.pl $bed \\
+//         $fasta \\
+//         -gid \\
+//         -gtf $gtf \\
+//         > ${prefix}.annotatePeaks.txt
+//
+//     cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+//     paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+//     """
+// }
+//
+// /*
+//  * STEP 5.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
+//  */
+// process deseqConsensusPeakSet {
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus/deseq2", mode: 'copy'
+//
+//     input:
+//     file bams from ch_name_bam_mlib_counts.collect{ it[1] }
+//     file saf from ch_macs_consensus_saf.collect()
+//     file deseq2_pca_header from ch_deseq2_pca_header
+//     file deseq2_clustering_header from ch_deseq2_clustering_header
+//     set val(repsExist), val(multiGroups), val(balancedDesign) from design_flags(ch_design_bool)
+//
+//     output:
+//     file "*featureCounts.txt" into ch_macs_consensus_counts
+//     file "*featureCounts.txt.summary" into ch_macs_consensus_counts_mqc
+//     file "*.{RData,results.txt,pdf,log}" into ch_macs_consensus_deseq_results
+//     file "sizeFactors" into ch_macs_consensus_deseq_factors
+//     file "*vs*/*.{pdf,txt}" into ch_macs_consensus_deseq_comp_results
+//     file "*vs*/*.bed" into ch_macs_consensus_deseq_comp_bed_igv
+//     file "*.tsv" into ch_macs_consensus_deseq_mqc
+//
+//     when: params.macs_gsize && multiGroups && repsExist && !params.skipDiffAnalysis
+//
+//     script:
+//     prefix="consensus_peaks"
+//     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+//     bam_ext = params.singleEnd ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
+//     pe_params = params.singleEnd ? '' : "-p --donotsort"
+//     """
+//     featureCounts -F SAF \\
+//         -O \\
+//         --fracOverlap 0.2 \\
+//         -T $task.cpus \\
+//         $pe_params \\
+//         -a $saf \\
+//         -o ${prefix}.featureCounts.txt \\
+//         ${bam_files.join(' ')}
+//
+//     featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mLb
+//
+//     cat $deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+//     cat $deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
+//     """
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                             IGV                                     -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 6 - Create IGV session file
+//  */
+// process igv {
+//     publishDir "${params.outdir}/igv", mode: 'copy'
+//
+//     input:
+//     file fasta from ch_fasta
+//     file ('bwa/mergedLibrary/bigwig/*') from ch_bigwig_igv.collect{it[1]}.ifEmpty([])
+//     file ('bwa/mergedLibrary/macs/*') from ch_macs_igv.collect{it[-1]}.ifEmpty([])
+//     file ('bwa/mergedLibrary/macs/consensus/*') from ch_macs_consensus_bed_igv.collect().ifEmpty([])
+//     file ('bwa/mergedLibrary/macs/consensus/deseq2/*') from ch_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
+//
+//     output:
+//     file "*.{txt,xml}" into ch_igv_session
+//
+//     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
+//     outdir_abspath = new File(params.outdir).getCanonicalPath().toString()
+//     """
+//     igv_get_files.sh ./ mLb $outdir_abspath > igv_files.txt
+//     igv_files_to_session.py igv_session.xml igv_files.txt ${outdir_abspath}/reference_genome/${fasta.getName()}
+//     """
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                          MULTIQC                                    -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * Parse software version numbers
+//  */
+// process get_software_versions {
+//     publishDir "${params.outdir}/pipeline_info", mode: 'copy',
+//         saveAs: {filename ->
+//             if (filename.indexOf(".csv") > 0) filename
+//             else null
+//         }
+//
+//     output:
+//     file 'software_versions_mqc.yaml' into ch_software_versions_mqc
+//     file "software_versions.csv"
+//
+//     script:
+//     """
+//     echo $workflow.manifest.version > v_pipeline.txt
+//     echo $workflow.nextflow.version > v_nextflow.txt
+//     fastqc --version > v_fastqc.txt
+//     trim_galore --version > v_trim_galore.txt
+//     echo \$(bwa 2>&1) > v_bwa.txt
+//     samtools --version > v_samtools.txt
+//     bedtools --version > v_bedtools.txt
+//     echo \$(bamtools --version 2>&1) > v_bamtools.txt
+//     echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt || true
+//     picard MarkDuplicates --version &> v_picard.txt  || true
+//     echo \$(R --version 2>&1) > v_R.txt
+//     python -c "import pysam; print(pysam.__version__)" > v_pysam.txt
+//     echo \$(macs2 --version 2>&1) > v_macs2.txt
+//     touch v_homer.txt
+//     echo \$(featureCounts -v 2>&1) > v_featurecounts.txt
+//     multiqc --version > v_multiqc.txt
+//     scrape_software_versions.py &> software_versions_mqc.yaml
+//     """
+// }
+//
+// def create_workflow_summary(summary) {
+//
+//     def yaml_file = workDir.resolve('workflow_summary_mqc.yaml')
+//     yaml_file.text  = """
+//     id: 'nf-core-chipseq-summary'
+//     description: " - this information is collected when the pipeline is started."
+//     section_name: 'nf-core/chipseq Workflow Summary'
+//     section_href: 'https://github.com/nf-core/chipseq'
+//     plot_type: 'html'
+//     data: |
+//         <dl class=\"dl-horizontal\">
+// ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }.join("\n")}
+//         </dl>
+//     """.stripIndent()
+//
+//    return yaml_file
+// }
+//
+// /*
+//  * STEP 7 - MultiQC
+//  */
+// process multiqc {
+//     publishDir "${params.outdir}/multiqc", mode: 'copy'
+//
+//     input:
+//     file multiqc_config from ch_multiqc_config
+//
+//     file ('fastqc/*') from ch_fastqc_reports_mqc.collect()
+//     file ('trimgalore/*') from ch_trimgalore_results_mqc.collect()
+//     file ('trimgalore/fastqc/*') from ch_trimgalore_fastqc_reports_mqc.collect()
+//
+//     file ('alignment/library/*') from ch_sort_bam_flagstat_mqc.collect()
+//     file ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
+//     file ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}
+//     file ('alignment/mergedLibrary/*') from ch_rm_orphan_stats_mqc.collect()
+//     file ('alignment/mergedLibrary/picard_metrics/*') from ch_merge_bam_metrics_mqc.collect()
+//     file ('alignment/mergedLibrary/picard_metrics/*') from ch_collectmetrics_mqc.collect()
+//
+//     file ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
+//     file ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
+//     file ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
+//     file ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
+//
+//     file ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
+//     file ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
+//     file ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
+//     file ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
+//     //file ('deeptools/*') from deepTools_plotCorrelation_multiqc.collect().ifEmpty([])
+//     //file ('deeptools/*') from deepTools_plotPCA_multiqc.collect().ifEmpty([])
+//     file ('software_versions/*') from ch_software_versions_mqc.collect()
+//     file ('workflow_summary/*') from create_workflow_summary(summary)
+//
+//     output:
+//     file "*multiqc_report.html" into ch_multiqc_report
+//     file "*_data"
+//     file "multiqc_plots"
+//
+//     script:
+//     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
+//     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
+//     """
+//     multiqc . -f $rtitle $rfilename --config $multiqc_config \\
+//         -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m featureCounts -m deeptools -m phantompeakqualtools
+//     """
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

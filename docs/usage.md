@@ -127,10 +127,10 @@ You will need to create a design file with information about the samples in your
 The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. Below is an example for a single experimental group in triplicate:
 
 ```bash
-group,replicate,fastq_1,fastq_2,control
-P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,
-P53_WT_IP,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,
-P53_WT_IP,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,
+group,replicate,fastq_1,fastq_2,antibody,control
+P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,,
+P53_WT_IP,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,,
+P53_WT_IP,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,,
 ```
 
 #### Multiple runs of the same library
@@ -138,11 +138,11 @@ P53_WT_IP,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,
 The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example for two samples sequenced across multiple lanes:
 
 ```bash
-group,replicate,fastq_1,fastq_2,control
-P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,P53_WT_INPUT
-P53_WT_IP,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz,P53_WT_INPUT
-P53_WT_INPUT,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz,
-P53_WT_INPUT,1,AEG588A4_S4_L004_R1_001.fastq.gz,AEG588A4_S4_L004_R2_001.fastq.gz,
+group,replicate,fastq_1,fastq_2,antibody,control
+P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,P53,P53_WT_INPUT
+P53_WT_IP,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz,P53,P53_WT_INPUT
+P53_WT_INPUT,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz,,
+P53_WT_INPUT,1,AEG588A4_S4_L004_R1_001.fastq.gz,AEG588A4_S4_L004_R2_001.fastq.gz,,
 ```
 
 #### Full design
@@ -150,22 +150,23 @@ P53_WT_INPUT,1,AEG588A4_S4_L004_R1_001.fastq.gz,AEG588A4_S4_L004_R2_001.fastq.gz
 A final design file may look something like the one below. This is for two experimental groups in triplicate, where the last replicate of the `treatment` group has been sequenced twice.
 
 ```bash
-group,replicate,fastq_1,fastq_2,control
-P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,P53_WT_INPUT
-P53_WT_IP,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,P53_WT_INPUT
-P53_WT_IP,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,P53_WT_INPUT
-P53_WT_INPUT,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz,
-P53_WT_INPUT,2,AEG588A5_S5_L003_R1_001.fastq.gz,AEG588A5_S5_L003_R2_001.fastq.gz,
-P53_WT_INPUT,3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L003_R2_001.fastq.gz,
-P53_WT_INPUT,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz,
+group,replicate,fastq_1,fastq_2,antibody,control
+P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,P53,P53_WT_INPUT
+P53_WT_IP,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,P53,P53_WT_INPUT
+P53_WT_IP,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,P53,P53_WT_INPUT
+P53_WT_INPUT,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz,,
+P53_WT_INPUT,2,AEG588A5_S5_L003_R1_001.fastq.gz,AEG588A5_S5_L003_R2_001.fastq.gz,,
+P53_WT_INPUT,3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L003_R2_001.fastq.gz,,
+P53_WT_INPUT,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz,,
 ```
 
-| Column      | Description                                                                                                 |
-|-------------|-------------------------------------------------------------------------------------------------------------|
-| `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
-| `replicate` | Integer representing replicate number. Must start from `1..<number of replicates>`.                         |
-| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
-| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| Column      | Description                                                                                                                       |
+|-------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group.                       |
+| `replicate` | Integer representing replicate number. Must start from `1..<number of replicates>`.                                               |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".                         |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".                         |
+| `antibody`  | Antibody name. This is required to segregate downstream analysis for different antibodies. Required when `control` is specified.  |
 | `control`   | Group identifier for control sample. The pipeline will automatically select the control sample with the same replicate identifier as the IP. |
 
 Example design files have been provided with the pipeline for [paired-end](../assets/design_pe.csv) and [single-end](../assets/design_se.csv) data.
