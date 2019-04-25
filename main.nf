@@ -35,7 +35,7 @@ def helpMessage() {
       --singleEnd                   Specifies that the input is single-end reads
       --narrowPeak                  Run MACS in narrowPeak mode. Default: broadPeak
       --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
-      --skipDiffAnalysis            Skip differential analysis step
+      --skipDiffAnalysis            Skip differential binding analysis
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
       --bwa_index                   Full path to directory containing BWA index including base name i.e. /path/to/index/genome.fa
@@ -775,7 +775,7 @@ if (params.singleEnd){
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 4.4.1 Picard CollectMultipleMetrics after merging libraries
+ * STEP 5.1 Picard CollectMultipleMetrics after merging libraries
  */
 process collectMultipleMetrics {
     tag "$name"
@@ -814,7 +814,7 @@ process collectMultipleMetrics {
 }
 
 /*
- * STEP 4.4.2 Read depth normalised bigWig
+ * STEP 5.2 Read depth normalised bigWig
  */
 process bigWig {
     tag "$name"
@@ -849,7 +849,7 @@ process bigWig {
 }
 
 /*
- * STEP 5.6 generate gene body coverage plot with deepTools
+ * STEP 5.3 generate gene body coverage plot with deepTools
  */
 process plotProfile {
     tag "$name"
@@ -885,7 +885,7 @@ process plotProfile {
 }
 
 /*
- * STEP 6.1 Phantompeakqualtools
+ * STEP 5.4 Phantompeakqualtools
  */
 process phantomPeakQualTools {
     tag "$name"
@@ -925,16 +925,18 @@ process phantomPeakQualTools {
 ///////////////////////////////////////////////////////////////////////////////
 
 // Create channel linking IP bams with control bams
-ch_design_controls_csv.join(ch_rm_orphan_bam_macs_1)
+ch_rm_orphan_bam_macs_1.combine(ch_rm_orphan_bam_macs_2)
+                       .set { ch_rm_orphan_bam_macs_1 }
+ch_design_controls_csv.combine(ch_rm_orphan_bam_macs_1)
+                      .filter { it[0] == it[5] && it[1] == it[7] }
                       .join(ch_rm_orphan_flagstat_macs)
-                      .map { it ->  [ it[1], it[0], it[2], it[3], it[4], it[5], it[6] ] }
-                      .join(ch_rm_orphan_bam_macs_2)
+                      .map { it ->  it[2..-1] }
                       .into { ch_group_bam_macs;
                               ch_group_bam_plotfingerprint;
                               ch_group_bam_deseq }
 
 /*
- * STEP 4.5.1 Call peaks with MACS2 and calculate FRiP score
+ * STEP 6.1 Call peaks with MACS2 and calculate FRiP score
  */
 process macsCallPeak {
     tag "${ip} vs ${control}"
@@ -946,14 +948,14 @@ process macsCallPeak {
                 }
 
     input:
-    set val(control), val(ip), val(antibody), val(repsExist), val(multiGroups), file(ipbam), file(ipflagstat), file(controlbam) from ch_group_bam_macs
+    set val(antibody), val(repsExist), val(multiGroups), val(ip), file(ipbam), val(control), file(controlbam), file(ipflagstat) from ch_group_bam_macs
     file peak_count_header from ch_peak_count_header
     file frip_score_header from ch_frip_score_header
 
     output:
     set val(ip), file("*.{bed,xls,gappedPeak}") into ch_macs_output
     file "*_mqc.tsv" into ch_macs_mqc
-    set val(control), val(ip), val(antibody), val(repsExist), val(multiGroups), file("*$peakext") into ch_macs_homer, ch_macs_qc, ch_macs_consensus, ch_macs_igv
+    set val(antibody), val(repsExist), val(multiGroups), val(ip), val(control), file("*$peakext") into ch_macs_homer, ch_macs_qc, ch_macs_consensus, ch_macs_igv
 
     when: params.macs_gsize
 
@@ -980,7 +982,7 @@ process macsCallPeak {
 }
 
 /*
- * STEP 4.5.2 Annotate peaks with HOMER
+ * STEP 6.2 Annotate peaks with HOMER
  */
 process annotatePeaks {
     tag "${ip} vs ${control}"
@@ -988,7 +990,7 @@ process annotatePeaks {
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy'
 
     input:
-    set val(control), val(ip), val(antibody), val(repsExist), val(multiGroups), file(peak) from ch_macs_homer
+    set val(antibody), val(repsExist), val(multiGroups), val(ip), val(control), file(peak) from ch_macs_homer
     file fasta from ch_fasta
     file gtf from ch_gtf
 
@@ -1008,7 +1010,7 @@ process annotatePeaks {
 }
 
 /*
- * STEP 4.5.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
+ * STEP 6.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
 process peakQC {
    label "process_medium"
@@ -1043,7 +1045,7 @@ process peakQC {
 }
 
 /*
- * STEP 4.6.1 deepTools plotFingerprint
+ * STEP 6.4 deepTools plotFingerprint
  */
 process plotFingerprint {
     tag "${ip} vs ${control}"
@@ -1051,7 +1053,7 @@ process plotFingerprint {
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
 
     input:
-    set val(control), val(ip), val(antibody), val(repsExist), val(multiGroups), file(ipbam), file(ipflagstat), file(controlbam) from ch_group_bam_plotfingerprint
+    set val(antibody), val(repsExist), val(multiGroups), val(ip), file(ipbam), val(control), file(controlbam), file(ipflagstat) from ch_group_bam_plotfingerprint
 
     output:
     file '*.{txt,pdf}' into ch_plotfingerprint_results
@@ -1082,13 +1084,13 @@ process plotFingerprint {
 ///////////////////////////////////////////////////////////////////////////////
 
 // group by ip from this point and carry forward boolean variables
-ch_macs_consensus.map { it ->  [ it[2], it[3], it[4], it[5] ] }
+ch_macs_consensus.map { it ->  [ it[0], it[1], it[2], it[-1] ] }
                  .groupTuple()
                  .map { it ->  [ it[0], it[1][0], it[2][0], it[3].sort() ] }
                  .set { ch_macs_consensus }
 
 /*
- * STEP 5.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
+ * STEP 7.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
 process createConsensusPeakSet {
     tag "${antibody}"
@@ -1104,7 +1106,7 @@ process createConsensusPeakSet {
     file "*.boolean.txt" into ch_macs_consensus_bool
     file "*.intersect.{txt,plot.pdf}" into ch_macs_consensus_intersect
 
-    when: params.macs_gsize && (multiGroups || repsExist)
+    when: params.macs_gsize && (repsExist || multiGroups)
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
     prefix="${antibody}.consensus_peaks"
@@ -1132,7 +1134,7 @@ process createConsensusPeakSet {
 }
 
 /*
- * STEP 5.2 Annotate consensus peaks with HOMER, and add annotation to boolean output file
+ * STEP 7.2 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process annotateConsensusPeakSet {
     tag "${antibody}"
@@ -1148,7 +1150,7 @@ process annotateConsensusPeakSet {
     output:
     file "*.annotatePeaks.txt" into ch_macs_consensus_annotate
 
-    when: params.macs_gsize && (multiGroups || repsExist)
+    when: params.macs_gsize && (repsExist || multiGroups)
 
     script:
     prefix="${antibody}.consensus_peaks"
@@ -1165,16 +1167,16 @@ process annotateConsensusPeakSet {
 }
 
 // get bam and saf files for each ip
-ch_group_bam_deseq.map { it -> [ it[1], [ it[2], it[3], it[4] ] ] }
+ch_group_bam_deseq.map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
                   .join(ch_rm_orphan_name_bam_counts)
                   .map { it -> [ it[1][0], it[1][1], it[1][2], it[2] ] }
                   .groupTuple()
-                  .map { it -> [ it[0], it[1][0], it[2][0], it[3] ] }
+                  .map { it -> [ it[0], it[1][0], it[2][0], it[3].sort() ] }
                   .join(ch_macs_consensus_saf)
                   .set { ch_group_bam_deseq }
 
 /*
- * STEP 5.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
+ * STEP 7.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
 process deseqConsensusPeakSet {
     tag "${antibody}"
@@ -1195,7 +1197,7 @@ process deseqConsensusPeakSet {
     file "*vs*/*.bed" into ch_macs_consensus_deseq_comp_bed_igv
     file "*.tsv" into ch_macs_consensus_deseq_mqc
 
-    when: params.macs_gsize && !params.skipDiffAnalysis && multiGroups && repsExist
+    when: params.macs_gsize && !params.skipDiffAnalysis && repsExist && multiGroups
 
     script:
     prefix="${antibody}.consensus_peaks"
@@ -1214,8 +1216,8 @@ process deseqConsensusPeakSet {
 
     featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mLb
 
-    #cat $deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
-    #cat $deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
+    cat $deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+    cat $deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
     """
 }
 
@@ -1228,7 +1230,7 @@ process deseqConsensusPeakSet {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 6 - Create IGV session file
+ * STEP 8 - Create IGV session file
  */
 process igv {
     publishDir "${params.outdir}/igv", mode: 'copy'
@@ -1237,8 +1239,8 @@ process igv {
     file fasta from ch_fasta
     file ('bwa/mergedLibrary/bigwig/*') from ch_bigwig_igv.collect{it[1]}.ifEmpty([])
     file ('bwa/mergedLibrary/macs/*') from ch_macs_igv.collect{it[-1]}.ifEmpty([])
-    file ('bwa/mergedLibrary/macs/consensus/*') from ch_macs_consensus_bed_igv.collect().ifEmpty([])
-    file ('bwa/mergedLibrary/macs/consensus/deseq2/*') from ch_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
+    //file ('bwa/mergedLibrary/macs/consensus/*') from ch_macs_consensus_bed_igv.collect().ifEmpty([])
+    //file ('bwa/mergedLibrary/macs/consensus/deseq2/*') from ch_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
 
     output:
     file "*.{txt,xml}" into ch_igv_session
@@ -1314,7 +1316,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
 }
 
 /*
- * STEP 7 - MultiQC
+ * STEP 9 - MultiQC
  */
 process multiqc {
     publishDir "${params.outdir}/multiqc", mode: 'copy'
@@ -1370,7 +1372,7 @@ process multiqc {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 8 - Output description HTML
+ * STEP 10 - Output description HTML
  */
 process output_documentation {
     publishDir "${params.outdir}/Documentation", mode: 'copy'
