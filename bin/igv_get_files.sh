@@ -6,7 +6,7 @@ FILE_GROUP=$2 	## File group identified
 FILE_PATH=$3    ## Path to results/ directory containing files
 
 ## CONSENSUS PEAKS
-find -L $INPUT_DIR -type f -iname "consensus*" | cut -c 2- | awk -v DIR="$FILE_PATH" -v OFS='\t' '{ print DIR$1, "0,0,0" }'
+find -L $INPUT_DIR -type f -iname "*consensus*" | cut -c 2- | awk -v DIR="$FILE_PATH" -v OFS='\t' '{ print DIR$1, "0,0,0" }'
 
 ## DIFFERENTIAL INTERVALS FOR FDR <= 0.01
 for fpath in $(find -L $INPUT_DIR -type f -iname "*FDR*" | grep -Ev "FDR0.05" | sort | cut -c 2-)
