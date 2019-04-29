@@ -986,7 +986,7 @@ process macsCallPeak {
  */
 process annotatePeaks {
     tag "${ip} vs ${control}"
-    label 'process_medium'
+    label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy'
 
     input:
@@ -1094,6 +1094,7 @@ ch_macs_consensus.map { it ->  [ it[0], it[1], it[2], it[-1] ] }
  */
 process createConsensusPeakSet {
     tag "${antibody}"
+    label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus/${antibody}", mode: 'copy'
 
     input:
@@ -1138,7 +1139,7 @@ process createConsensusPeakSet {
  */
 process annotateConsensusPeakSet {
     tag "${antibody}"
-    label 'process_medium'
+    label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus/${antibody}", mode: 'copy'
 
     input:
