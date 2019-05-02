@@ -16,6 +16,7 @@ dependencies:
   - r-pheatmap=1.0.10
   - r-lattice=0.20_35
   - r-upsetr=1.3.3
+  - r-xfun=0.6
 
   ## bioconda packages
   - fastqc=0.11.8
