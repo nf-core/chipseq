@@ -125,6 +125,11 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
         print "{}: Mixture of paired-end and single-end reads!".format(ERROR_STR)
         sys.exit(1)
 
+    ## CHECK IF ANTIBODY AND CONTROL COLUMNS HAVE BEEN SPECIFIED AT LEAST ONCE
+    if len(antibodyDict) == 0:
+        print "{}: Antibody and Control must be specified at least once!".format(ERROR_STR)
+        sys.exit(1)
+
     ## WRITE READ MAPPING FILE
     antibodyGroupDict = {}
     fout = open(ReadMappingFile,'w')

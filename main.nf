@@ -6,11 +6,6 @@
  nf-core/chipseq Analysis Pipeline.
  #### Homepage / Documentation
  https://github.com/nf-core/chipseq
- #### Authors
- Harshil Patel <harshil.patel@crick.ac.uk>
- Chuan Wang <chuan.wang@scilifelab.se>
- Phil Ewels <phil.ewels@scilifelab.se>
- Alex Peltzer <alexander.peltzer@qbic.uni-tuebingen.de>
 ----------------------------------------------------------------------------------------
 */
 
@@ -33,9 +28,8 @@ def helpMessage() {
     Generic
       --genome                      Name of iGenomes reference
       --singleEnd                   Specifies that the input is single-end reads
-      --narrowPeak                  Run MACS in narrowPeak mode. Default: broadPeak
+      --seqCenter                   Sequencing center information to be added to read group of BAM files
       --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
-      --skipDiffAnalysis            Skip differential binding analysis
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
       --bwa_index                   Full path to directory containing BWA index including base name i.e. /path/to/index/genome.fa
@@ -57,6 +51,11 @@ def helpMessage() {
       --keepDups                    Duplicate reads are not filtered from alignments
       --keepMultiMap                Reads mapping to multiple locations are not filtered from alignments
       --saveAlignedIntermediates    Save the intermediate BAM files from the alignment step - not done by default
+
+    Peaks
+      --narrowPeak                  Run MACS2 in narrowPeak mode. Default: broadPeak
+      --saveMACSPileup              Instruct MACS2 to create bedGraph files normalised to signal per million reads
+      --skipDiffAnalysis            Skip differential binding analysis
 
     Other
       --outdir                      The output directory where the results will be saved
@@ -193,6 +192,7 @@ def summary = [:]
 summary['Run Name']             = custom_runName ?: workflow.runName
 summary['Genome']               = params.genome ?: 'Not supplied'
 summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
+if (params.seqCenter) summary['Sequencing Center'] = params.seqCenter
 summary['Design File']          = params.design
 if (params.bwa_index) summary['BWA Index'] = params.bwa_index ?: 'Not supplied'
 summary['Fasta Ref']            = params.fasta
@@ -216,6 +216,7 @@ summary['Keep Multi-mapped']    = params.keepMultiMap ? 'Yes' : 'No'
 summary['Save Genome Index']    = params.saveGenomeIndex ? 'Yes' : 'No'
 summary['Save Trimmed']         = params.saveTrimmed ? 'Yes' : 'No'
 summary['Save Intermeds']       = params.saveAlignedIntermediates ? 'Yes' : 'No'
+summary['Save MACS2 Pileup']    = params.saveMACSPileup ? 'Yes' : 'No'
 summary['Skip Diff Analysis']   = params.skipDiffAnalysis ? 'Yes' : 'No'
 summary['Max Resources']        = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if(workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
@@ -236,7 +237,7 @@ if(params.email) {
   summary['E-mail Address']     = params.email
   summary['MultiQC Max Size']   = params.maxMultiqcEmailFileSize
 }
-log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
+log.info summary.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
 log.info "\033[2m----------------------------------------------------\033[0m"
 
 // Check the hostnames against configured profiles
@@ -261,7 +262,7 @@ if (!params.macs_gsize){
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * PREPROCESSING - REFORMAT DESIGN FILE AND CHECK VALIDITY
+ * PREPROCESSING - REFORMAT DESIGN FILE, CHECK VALIDITY & CREATE IP vs CONTROL MAPPINGS
  */
 process checkDesign {
     tag "$design"
@@ -520,7 +521,11 @@ process bwaMEM {
 
     script:
     prefix="${name}.Lb"
-    rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
+    if (!params.seqCenter) {
+        rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
+    } else {
+        rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seqCenter}\'"
+    }
     """
     bwa mem \\
         -t $task.cpus\\
@@ -947,22 +952,24 @@ process macsCallPeak {
                     else filename
                 }
 
+    when:
+    params.macs_gsize
+
     input:
-    set val(antibody), val(repsExist), val(multiGroups), val(ip), file(ipbam), val(control), file(controlbam), file(ipflagstat) from ch_group_bam_macs
+    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), file(ipbam), val(control), file(controlbam), file(ipflagstat) from ch_group_bam_macs
     file peak_count_header from ch_peak_count_header
     file frip_score_header from ch_frip_score_header
 
     output:
-    set val(ip), file("*.{bed,xls,gappedPeak}") into ch_macs_output
+    set val(ip), file("*.{bed,xls,gappedPeak,bdg}") into ch_macs_output
     file "*_mqc.tsv" into ch_macs_mqc
-    set val(antibody), val(repsExist), val(multiGroups), val(ip), val(control), file("*$peakext") into ch_macs_homer, ch_macs_qc, ch_macs_consensus, ch_macs_igv
-
-    when: params.macs_gsize
+    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), file("*$peakext") into ch_macs_homer, ch_macs_qc, ch_macs_consensus, ch_macs_igv
 
     script:
     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
     broad = params.narrowPeak ? '' : "--broad"
     format = params.singleEnd ? "BAM" : "BAMPE"
+    pileup = params.saveMACSPileup ? "-B --SPMR" : ""
     """
     macs2 callpeak \\
         -t ${ipbam[0]} \\
@@ -971,6 +978,7 @@ process macsCallPeak {
         -f $format \\
         -g ${params.macs_gsize} \\
         -n $ip \\
+        $pileup \\
         --keep-dup all \\
         --nomodel
 
@@ -989,15 +997,16 @@ process annotatePeaks {
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy'
 
+    when:
+    params.macs_gsize
+
     input:
-    set val(antibody), val(repsExist), val(multiGroups), val(ip), val(control), file(peak) from ch_macs_homer
+    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), file(peak) from ch_macs_homer
     file fasta from ch_fasta
     file gtf from ch_gtf
 
     output:
     file "*.txt" into ch_macs_annotate
-
-    when: params.macs_gsize
 
     script:
     """
@@ -1016,6 +1025,9 @@ process peakQC {
    label "process_medium"
    publishDir "${params.outdir}/bwa/mergedLibrary/macs/qc", mode: 'copy'
 
+   when:
+   params.macs_gsize
+
    input:
    file peaks from ch_macs_qc.collect{ it[-1] }
    file annos from ch_macs_annotate.collect()
@@ -1024,8 +1036,6 @@ process peakQC {
    output:
    file "*.{txt,pdf}" into ch_macs_qc_output
    file "*.tsv" into ch_macs_qc_mqc
-
-   when: params.macs_gsize
 
    script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
    peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
@@ -1053,7 +1063,7 @@ process plotFingerprint {
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
 
     input:
-    set val(antibody), val(repsExist), val(multiGroups), val(ip), file(ipbam), val(control), file(controlbam), file(ipflagstat) from ch_group_bam_plotfingerprint
+    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), file(ipbam), val(control), file(controlbam), file(ipflagstat) from ch_group_bam_plotfingerprint
 
     output:
     file '*.{txt,pdf}' into ch_plotfingerprint_results
@@ -1097,17 +1107,18 @@ process createConsensusPeakSet {
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus/${antibody}", mode: 'copy'
 
+    when:
+    params.macs_gsize && (replicatesExist || multipleGroups)
+
     input:
-    set val(antibody), val(repsExist), val(multiGroups), file(peaks) from ch_macs_consensus
+    set val(antibody), val(replicatesExist), val(multipleGroups), file(peaks) from ch_macs_consensus
 
     output:
-    set val(antibody), val(repsExist), val(multiGroups), file("*.bed") into ch_macs_consensus_bed,
+    set val(antibody), val(replicatesExist), val(multipleGroups), file("*.bed") into ch_macs_consensus_bed,
                                                                             ch_macs_consensus_bed_igv
     set val(antibody), file("*.saf") into ch_macs_consensus_saf
     file "*.boolean.txt" into ch_macs_consensus_bool
     file "*.intersect.{txt,plot.pdf}" into ch_macs_consensus_intersect
-
-    when: params.macs_gsize && (repsExist || multiGroups)
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
     prefix="${antibody}.consensus_peaks"
@@ -1142,16 +1153,17 @@ process annotateConsensusPeakSet {
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus/${antibody}", mode: 'copy'
 
+    when:
+    params.macs_gsize && (replicatesExist || multipleGroups)
+
     input:
-    set val(antibody), val(repsExist), val(multiGroups), file(bed) from ch_macs_consensus_bed
+    set val(antibody), val(replicatesExist), val(multipleGroups), file(bed) from ch_macs_consensus_bed
     file bool from ch_macs_consensus_bool
     file fasta from ch_fasta
     file gtf from ch_gtf
 
     output:
     file "*.annotatePeaks.txt" into ch_macs_consensus_annotate
-
-    when: params.macs_gsize && (repsExist || multiGroups)
 
     script:
     prefix="${antibody}.consensus_peaks"
@@ -1172,7 +1184,7 @@ ch_group_bam_deseq.map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
                   .join(ch_rm_orphan_name_bam_counts)
                   .map { it -> [ it[1][0], it[1][1], it[1][2], it[2] ] }
                   .groupTuple()
-                  .map { it -> [ it[0], it[1][0], it[2][0], it[3].sort() ] }
+                  .map { it -> [ it[0], it[1][0], it[2][0], it[3].flatten().sort() ] }
                   .join(ch_macs_consensus_saf)
                   .set { ch_group_bam_deseq }
 
@@ -1184,8 +1196,11 @@ process deseqConsensusPeakSet {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus/${antibody}/deseq2", mode: 'copy'
 
+    when:
+    params.macs_gsize && !params.skipDiffAnalysis && replicatesExist && multipleGroups
+
     input:
-    set val(antibody), val(repsExist), val(multiGroups), file(bams) ,file(saf) from ch_group_bam_deseq
+    set val(antibody), val(replicatesExist), val(multipleGroups), file(bams) ,file(saf) from ch_group_bam_deseq
     file deseq2_pca_header from ch_deseq2_pca_header
     file deseq2_clustering_header from ch_deseq2_clustering_header
 
@@ -1197,8 +1212,6 @@ process deseqConsensusPeakSet {
     file "*vs*/*.{pdf,txt}" into ch_macs_consensus_deseq_comp_results
     file "*vs*/*.bed" into ch_macs_consensus_deseq_comp_bed_igv
     file "*.tsv" into ch_macs_consensus_deseq_mqc
-
-    when: params.macs_gsize && !params.skipDiffAnalysis && repsExist && multiGroups
 
     script:
     prefix="${antibody}.consensus_peaks"
@@ -1345,8 +1358,6 @@ process multiqc {
     file ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
     file ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
     file ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
-    //file ('deeptools/*') from deepTools_plotCorrelation_multiqc.collect().ifEmpty([])
-    //file ('deeptools/*') from deepTools_plotPCA_multiqc.collect().ifEmpty([])
     file ('software_versions/*') from ch_software_versions_mqc.collect()
     file ('workflow_summary/*') from create_workflow_summary(summary)
 
