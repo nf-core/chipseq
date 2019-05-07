@@ -30,6 +30,7 @@ def helpMessage() {
       --singleEnd                   Specifies that the input is single-end reads
       --seqCenter                   Sequencing center information to be added to read group of BAM files
       --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
+      --fingerprintBins             Number of genomic bins to use when calculating fingerprint plot. Default: 500000
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
       --bwa_index                   Full path to directory containing BWA index including base name i.e. /path/to/index/genome.fa
@@ -211,6 +212,7 @@ if (params.skipTrimming){
     summary["Trim 3' R2"]       = "$params.three_prime_clip_r2 bp"
 }
 summary['Fragment Size']        = "$params.fragment_size bp"
+summary['Fingerprint Bins']     = params.fingerprintBins
 summary['Keep Duplicates']      = params.keepDups ? 'Yes' : 'No'
 summary['Keep Multi-mapped']    = params.keepMultiMap ? 'Yes' : 'No'
 summary['Save Genome Index']    = params.saveGenomeIndex ? 'Yes' : 'No'
@@ -1079,7 +1081,8 @@ process plotFingerprint {
         --outQualityMetrics ${ip}.plotFingerprint.qcmetrics.txt \\
         --skipZeros \\
         --JSDsample ${controlbam[0]} \\
-        --numberOfProcessors ${task.cpus}
+        --numberOfProcessors ${task.cpus} \\
+        --numberOfSamples ${params.fingerprintBins}
     """
 }
 
