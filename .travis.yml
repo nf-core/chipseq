@@ -15,7 +15,7 @@ before_install:
   # Fake the tag locally so that the pipeline runs properly
   # Looks weird when this is :dev to :dev, but makes sense when testing code for a release (:dev to :1.0.1)
   - docker tag nfcore/chipseq:dev nfcore/chipseq:dev
-
+  
 install:
   # Install Nextflow
   - mkdir /tmp/nextflow && cd /tmp/nextflow
