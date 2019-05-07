@@ -7,6 +7,7 @@ channels:
   - defaults
 dependencies:
   ## conda-forge packages
+  - gawk=4.2.1
   - r-base=3.4.1
   - r-optparse=1.6.0
   - r-rcolorbrewer=1.1_2
