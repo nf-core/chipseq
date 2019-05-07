@@ -12,12 +12,10 @@ before_install:
   - '[ $TRAVIS_PULL_REQUEST = "false" ] || [ $TRAVIS_BRANCH != "master" ] || ([ $TRAVIS_PULL_REQUEST_SLUG = $TRAVIS_REPO_SLUG ] && [ $TRAVIS_PULL_REQUEST_BRANCH = "dev" ])'
   # Pull the docker image first so the test doesn't wait for this
   - docker pull nfcore/chipseq:dev
-  #- docker pull drpatelh/chipseq:dev
   # Fake the tag locally so that the pipeline runs properly
   # Looks weird when this is :dev to :dev, but makes sense when testing code for a release (:dev to :1.0.1)
   - docker tag nfcore/chipseq:dev nfcore/chipseq:dev
-  #- docker tag drpatelh/chipseq:dev drpatelh/chipseq:dev
-
+  
 install:
   # Install Nextflow
   - mkdir /tmp/nextflow && cd /tmp/nextflow

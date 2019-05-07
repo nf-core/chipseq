@@ -720,7 +720,6 @@ if (params.singleEnd){
                          ch_rm_orphan_bam_bigwig;
                          ch_rm_orphan_bam_macs_1;
                          ch_rm_orphan_bam_macs_2;
-                         ch_rm_orphan_bam_multibamsummary;
                          ch_rm_orphan_bam_phantompeakqualtools;
                          ch_rm_orphan_name_bam_counts }
     ch_filter_bam_flagstat.into { ch_rm_orphan_flagstat_bigwig;
@@ -749,7 +748,6 @@ if (params.singleEnd){
                                                            ch_rm_orphan_bam_bigwig,
                                                            ch_rm_orphan_bam_macs_1,
                                                            ch_rm_orphan_bam_macs_2,
-                                                           ch_rm_orphan_bam_multibamsummary,
                                                            ch_rm_orphan_bam_phantompeakqualtools
         set val(name), file("${prefix}.bam") into ch_rm_orphan_name_bam_counts
         set val(name), file("*.flagstat") into ch_rm_orphan_flagstat_bigwig,

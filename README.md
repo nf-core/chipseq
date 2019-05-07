@@ -54,4 +54,4 @@ The nf-core/chipseq pipeline comes with documentation about the pipeline, found 
 ## Credits
 These scripts were written for use at the [National Genomics Infrastructure](https://portal.scilifelab.se/genomics/)
 at [SciLifeLab](http://www.scilifelab.se/) in Stockholm, Sweden.
-Originally written by Chuan Wang ([@chuan-wang](https://github.com/chuan-wang)) and Phil Ewels ([@ewels](https://github.com/ewels)), and with contributions from Harshil Patel ([@drpatelh](https://github.com/drpatelh)).
+Originally written by Chuan Wang ([@chuan-wang](https://github.com/chuan-wang)) and Phil Ewels ([@ewels](https://github.com/ewels)), and re-implemented by Harshil Patel ([@drpatelh](https://github.com/drpatelh)).
