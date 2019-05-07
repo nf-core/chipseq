@@ -1113,7 +1113,7 @@ process createConsensusPeakSet {
 
     output:
     set val(antibody), val(replicatesExist), val(multipleGroups), file("*.bed") into ch_macs_consensus_bed,
-                                                                            ch_macs_consensus_bed_igv
+                                                                                     ch_macs_consensus_bed_igv
     set val(antibody), file("*.saf") into ch_macs_consensus_saf
     file "*.boolean.txt" into ch_macs_consensus_bool
     file "*.intersect.{txt,plot.pdf}" into ch_macs_consensus_intersect
