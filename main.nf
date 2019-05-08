@@ -19,7 +19,7 @@ def helpMessage() {
       nextflow run nf-core/chipseq --design design.csv --genome GRCh37 -profile docker
 
     Mandatory arguments:
-      --design                      Comma-separted file containing information about the samples in the experiment (see docs/usage.md)
+      --design                      Comma-separated file containing information about the samples in the experiment (see docs/usage.md)
       --fasta                       Path to Fasta reference. Not mandatory when using reference in iGenomes config via --genome
       --gtf                         Path to GTF file in Ensembl format. Not mandatory when using reference in iGenomes config via --genome
       -profile                      Configuration profile to use. Can use multiple (comma separated)
@@ -46,7 +46,7 @@ def helpMessage() {
       --three_prime_clip_r1 [int]   Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed
       --three_prime_clip_r2 [int]   Instructs Trim Galore to re move bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed
       --skipTrimming                Skip the adapter trimming step
-      --saveTrimmed                 Save the trimmed FastQ files in the the Results directory
+      --saveTrimmed                 Save the trimmed FastQ files in the the results directory
 
     Alignments
       --keepDups                    Duplicate reads are not filtered from alignments
@@ -55,6 +55,7 @@ def helpMessage() {
 
     Peaks
       --narrowPeak                  Run MACS2 in narrowPeak mode. Default: broadPeak
+      --broad_cutoff [float]        Specifies broad cutoff value for MACS2. Only used when --narrowPeak isnt specified. Default: 0.1
       --saveMACSPileup              Instruct MACS2 to create bedGraph files normalised to signal per million reads
       --skipDiffAnalysis            Skip differential binding analysis
 
@@ -201,8 +202,9 @@ summary['GTF File']             = params.gtf
 summary['Gene BED File']        = params.gene_bed ?: 'Not supplied'
 summary['TSS BED File']         = params.tss_bed ?: 'Not supplied'
 if (params.blacklist) summary['Blacklist BED'] = params.blacklist
-summary['MACS Genome Size']     = params.macs_gsize ?: 'Not supplied'
-if (params.macs_gsize) summary['MACS Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
+summary['MACS2 Genome Size']     = params.macs_gsize ?: 'Not supplied'
+if (params.macs_gsize) summary['MACS2 Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
+summary['MACS2 Broad Cutoff']     = params.broad_cutoff
 if (params.skipTrimming){
     summary['Trimming Step']    = 'Skipped'
 } else {
@@ -342,6 +344,7 @@ if (!params.bwa_index){
 if (!params.gene_bed){
     process makeGeneBED {
         tag "$gtf"
+        label 'process_low'
         publishDir "${params.outdir}/reference_genome", mode: 'copy'
 
         input:
@@ -967,7 +970,7 @@ process macsCallPeak {
 
     script:
     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
-    broad = params.narrowPeak ? '' : "--broad"
+    broad = params.narrowPeak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
     format = params.singleEnd ? "BAM" : "BAMPE"
     pileup = params.saveMACSPileup ? "-B --SPMR" : ""
     """
