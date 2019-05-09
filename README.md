@@ -11,22 +11,36 @@
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It comes with docker containers making installation trivial and results highly reproducible.
 
-### Pipeline Steps
+### Pipeline summary
 
-* Make BWA reference genome index (optional)
-* Build BED reference based on GTF (optional)
-* FastQC for initial quality control of sequence reads
-* TrimGalore! for adapter trimming
-* BWA for alignment
-* Samtools for post-alignment processing with and alignment statistics
-* Picard MarkDuplicates for duplicate removal
-* Count read statistics
-* Phantompeakqualtools for NSC, RSC and strand-shift cross correlation plot
-* DeepTools for paired-end fragment size distribution, fingerprint, reads distribution profile, sample pair-wise correlation, and PCA plot
-* MACS2 for peak calling
-* MACS2 for Saturation analysis (optional)
-* Bioconductor ChIPpeakAnno for peak annotation and blacklisted regions filtering which is optional
-* MultiQC
+1. Raw read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
+2. Adapter trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
+3. Alignment ([`BWA`](https://sourceforge.net/projects/bio-bwa/files/))
+4. Mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
+5. Merge alignments from multiple libraries of the same sample ([`picard`](https://broadinstitute.github.io/picard/))
+    1. Re-mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
+    2. Filtering to remove:
+        * reads mapping to blacklisted regions ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/), [`BEDTools`](https://github.com/arq5x/bedtools2/))
+        * reads that are marked as duplicates ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+        * reads that arent marked as primary alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+        * reads that are unmapped ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+        * reads that map to multiple locations ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+        * reads containing > 4 mismatches ([`BAMTools`](https://github.com/pezmaster31/bamtools))
+        * reads that have an insert size > 2kb ([`BAMTools`](https://github.com/pezmaster31/bamtools); *paired-end only*)
+        * reads that map to different chromosomes ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); *paired-end only*)
+        * reads that arent in FR orientation ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); *paired-end only*)
+        * reads where only one read of the pair fails the above criteria ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); *paired-end only*)
+    3. Create normalised bigWig files scaled to 1 million mapped reads ([`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+    4. Generate gene-body meta-profile from bigWig files ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html))
+    5. Calculate genome-wide IP enrichment relative to control ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html))
+    6. Calculate strand cross-correlation peak and ChIP-seq quality measures including NSC and RSC ([`phantompeakqualtools`](https://github.com/kundajelab/phantompeakqualtools))
+    7. Call broad/narrow peaks ([`MACS2`](https://github.com/taoliu/MACS))
+    8. Annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
+    9. Create consensus peakset across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
+    10. Count reads in consensus peaks ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/))
+    11. Differential binding analysis, PCA and clustering ([`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
+6. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
+7. Present QC for raw read, alignment, peak-calling and differential binding results ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
 
 ### Documentation
 The nf-core/chipseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
@@ -43,4 +57,4 @@ The nf-core/chipseq pipeline comes with documentation about the pipeline, found 
 ## Credits
 These scripts were written for use at the [National Genomics Infrastructure](https://portal.scilifelab.se/genomics/)
 at [SciLifeLab](http://www.scilifelab.se/) in Stockholm, Sweden.
-Written by Chuan Wang ([@chuan-wang](https://github.com/chuan-wang)) and Phil Ewels ([@ewels](https://github.com/ewels)).
+Originally written by Chuan Wang ([@chuan-wang](https://github.com/chuan-wang)) and Phil Ewels ([@ewels](https://github.com/ewels)), and re-implemented by Harshil Patel ([@drpatelh](https://github.com/drpatelh)) from the [The Bioinformatics & Biostatistics Group](https://www.crick.ac.uk/research/science-technology-platforms/bioinformatics-and-biostatistics/) at [The Francis Crick Institute](https://www.crick.ac.uk/), London.
