@@ -14,8 +14,9 @@
   * [`--design`](#--design)
 * [Generic arguments](#generic-arguments)
   * [`--singleEnd`](#--singleend)
-  * [`--narrowPeak`](#--narrowpeak)
+  * [`--seqCenter`](#--seqcenter)
   * [`--fragment_size`](#--fragment_size)
+  * [`--fingerprintBins`](#--fingerprintbins)
 * [Reference genomes](#reference-genomes)
   * [`--genome` (using iGenomes)](#--genome-using-igenomes)
   * [`--fasta`](#--fasta)
@@ -34,6 +35,11 @@
   * [`--keepDups`](#--keepdups)
   * [`--keepMultiMap`](#--keepmultimap)
   * [`--saveAlignedIntermediates`](#--savealignedintermediates)
+* [Peaks](#peaks)
+  * [`--narrowPeak`](#--narrowpeak)
+  * [`--broad_cutoff`](#--broad_cutoff)
+  * [`--saveMACSPileup`](#--savemacspileup)
+  * [`--skipDiffAnalysis`](#--skipdiffanalysis)
 * [Job resources](#job-resources)
   * [Automatic resubmission](#automatic-resubmission)
   * [Custom resource requests](#custom-resource-requests)
@@ -184,11 +190,16 @@ By default, the pipeline expects paired-end data. If you have single-end data, s
 
 It is not possible to run a mixture of single-end and paired-end files in one run.
 
-### `--narrowPeak`
-MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
+### `--seqCenter`
+Sequencing center information that will be added to read groups in BAM files.
 
 ### `--fragment_size`
 Number of base pairs to extend single-end reads when creating bigWig files. Default: `0`
+
+### `--fingerprintBins`
+Number of genomic bins to use when generating the deepTools fingerprint plot. Larger numbers will give a smoother profile, but take longer to run.
+
+Default: `500000`
 
 ## Reference genomes
 
@@ -309,6 +320,20 @@ Reads mapping to multiple locations in the genome are not filtered from alignmen
 
 ### `--saveAlignedIntermediates`
 By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also save other intermediate BAM files.
+
+## Peaks
+
+### `--narrowPeak`
+MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
+
+### `--broad_cutoff`
+Specifies broad cutoff value for MACS2. Only used when --narrowPeak isnt specified. Default: 0.1
+
+### `--saveMACSPileup`
+Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
+
+### `--skipDiffAnalysis`
+Skip read counting and differential analysis step.
 
 ## Job resources
 ### Automatic resubmission
