@@ -16,11 +16,14 @@ ${errorReport}
 """
 } %>
 
+
 The workflow was completed at $dateComplete (duration: $duration)
 
 The command used to launch the workflow was as follows:
 
   $commandLine
+
+
 
 Pipeline Configuration:
 -----------------------

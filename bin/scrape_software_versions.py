@@ -48,7 +48,7 @@ for k, v in regexes.items():
         if match:
             results[k] = "v{}".format(match.group(1))
 
-# Strip HOMER
+# Remove software set to false in results
 for k in results:
     if not results[k]:
         del(results[k])

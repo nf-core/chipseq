@@ -2,6 +2,9 @@
 
 ## Table of contents
 
+<!-- Install Atom plugin markdown-toc-auto for this ToC to auto-update on save -->
+<!-- TOC START min:2 max:3 link:true asterisk:true update:true -->
+* [Table of contents](#table-of-contents)
 * [Introduction](#introduction)
 * [Running the pipeline](#running-the-pipeline)
   * [Updating the pipeline](#updating-the-pipeline)
@@ -51,6 +54,8 @@
   * [`--plaintext_email`](#--plaintext_email)
   * [`--monochrome_logs`](#--monochrome_logs)
   * [`--multiqc_config`](#--multiqc_config)
+<!-- TOC END -->
+
 
 ## Introduction
 Nextflow handles job submissions on SLURM or other environments, and supervises running the jobs. Thus the Nextflow process must run until the pipeline is finished. We recommend that you put the process running in the background through `screen` / `tmux` or similar tool. Alternatively you can run nextflow within a cluster job submitted your job scheduler.
@@ -93,6 +98,7 @@ First, go to the [nf-core/chipseq releases page](https://github.com/nf-core/chip
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future.
 
+
 ## Main arguments
 
 ### `-profile`
@@ -101,7 +107,7 @@ Use this parameter to choose a configuration profile. Profiles can give configur
 If `-profile` is not specified at all the pipeline will be run locally and expects all software to be installed and available on the `PATH`.
 
 * `awsbatch`
-  * A generic configuration profile to be used with AWS Batch
+  * A generic configuration profile to be used with AWS Batch.
 * `conda`
   * A generic configuration profile to be used with [conda](https://conda.io/docs/)
   * Pulls most software from [Bioconda](https://bioconda.github.io/)
@@ -110,7 +116,7 @@ If `-profile` is not specified at all the pipeline will be run locally and expec
   * Pulls software from dockerhub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
 * `singularity`
   * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
-  * Pulls software from dockerhub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
+  * Pulls software from DockerHub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
 * `test`
   * A profile with a complete configuration for automated testing
   * Includes links to test data so needs no other parameters
@@ -191,7 +197,7 @@ The pipeline config files come bundled with paths to the illumina iGenomes refer
 ### `--genome` (using iGenomes)
 There are 31 different species supported in the iGenomes references. To run the pipeline, you must specify which to use with the `--genome` flag.
 
-You can find the keys to specify the genomes in the [`iGenomes config file`](../conf/igenomes.config). Common genomes that are supported are:
+You can find the keys to specify the genomes in the [iGenomes config file](../conf/igenomes.config). Common genomes that are supported are:
 
 * Human
   * `--genome GRCh37`
@@ -200,7 +206,7 @@ You can find the keys to specify the genomes in the [`iGenomes config file`](../
 * _Drosophila_
   * `--genome BDGP6`
 * _S. cerevisiae_
-  * `--genome R64-1-1`
+  * `--genome 'R64-1-1'`
 
 > There are numerous others - check the config file for more.
 
@@ -350,7 +356,8 @@ You can also supply a run name to resume a specific run: `-resume [run-name]`. U
 Specify the path to a specific config file (this is a core NextFlow command).
 
 **NB:** Single hyphen (core Nextflow option)
-**NB:** You can use this config to override pipeline defaults.
+
+Note - you can use this to override pipeline defaults.
 
 ### `--custom_config_version`
 Provide git commit id for custom Institutional configs hosted at `nf-core/configs`. This was implemented for reproducibility purposes. Default is set to `master`.
@@ -374,7 +381,7 @@ unzip master.zip
 
 ## Run the pipeline
 cd /path/to/my/data
-nextflow run /path/to/chipseq_pipeline/ --custom_config_base /path/to/my/configs/configs-master/
+nextflow run /path/to/pipeline/ --custom_config_base /path/to/my/configs/configs-master/
 ```
 
 > Note that the nf-core/tools helper package has a `download` command to download all required pipeline
