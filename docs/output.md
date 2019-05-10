@@ -140,10 +140,10 @@ The library-level alignments associated with the same sample are merged and subs
     [MultiQC - MACS2 peaks FRiP score plot](images/mqc_frip_score_plot.png)  
     [MultiQC - HOMER annotatePeaks peak-to-gene feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
 
-4. *ChIP-seq QC metrics*
+4. **ChIP-seq QC metrics**
 
     *Software*:  
-    [`phantompeakqualtools`](https://github.com/kundajelab/phantompeakqualtools), [`deepTools`](https://deeptools.readthedocs.io/en/develop/)
+    [phantompeakqualtools](https://github.com/kundajelab/phantompeakqualtools), [deepTools](https://deeptools.readthedocs.io/en/develop/)
 
     *Description*:  
     Phantompeakqualtools plots the strand cross-correlation of aligned reads for each sample. In a strand cross-correlation plot, reads are shifted in the direction of the strand they map to by an increasing number of base pairs and the Pearson correlation between the per-position read count for each strand is calculated. Two cross-correlation peaks are usually observed in a ChIP experiment, one corresponding to the read length ("phantom" peak) and one to the average fragment length of the library. The absolute and relative height of the two peaks are useful determinants of the success of a ChIP-seq experiment. A high-quality IP is characterized by a ChIP peak that is much higher than the "phantom" peak, while often very small or no such peak is seen in failed experiments.
