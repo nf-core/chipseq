@@ -320,7 +320,7 @@ if (params.singleEnd) {
 if (!params.bwa_index){
     process makeBWAindex {
         tag "$fasta"
-        label 'process_big'
+        label 'process_high'
         publishDir path: { params.saveGenomeIndex ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveGenomeIndex ? it : null }, mode: 'copy'
 
@@ -515,7 +515,7 @@ if (params.skipTrimming){
  */
 process bwaMEM {
     tag "$name"
-    label 'process_big'
+    label 'process_high'
 
     input:
     set val(name), file(reads) from ch_trimmed_reads
@@ -861,7 +861,7 @@ process bigWig {
  */
 process plotProfile {
     tag "$name"
-    label 'process_big'
+    label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: 'copy'
 
     input:
@@ -1062,7 +1062,7 @@ process peakQC {
  */
 process plotFingerprint {
     tag "${ip} vs ${control}"
-    label 'process_big'
+    label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
 
     input:
