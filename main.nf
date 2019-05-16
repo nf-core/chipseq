@@ -26,13 +26,13 @@ def helpMessage() {
                                     Available: conda, docker, singularity, awsbatch, test
 
     Generic
-      --genome                      Name of iGenomes reference
       --singleEnd                   Specifies that the input is single-end reads
       --seqCenter                   Sequencing center information to be added to read group of BAM files
       --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
       --fingerprintBins             Number of genomic bins to use when calculating fingerprint plot. Default: 500000
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
+      --genome                      Name of iGenomes reference
       --bwa_index                   Full path to directory containing BWA index including base name i.e. /path/to/index/genome.fa
       --gene_bed                    Path to BED file containing gene intervals
       --tss_bed                     Path to BED file containing transcription start sites
@@ -320,7 +320,7 @@ if (params.singleEnd) {
 if (!params.bwa_index){
     process makeBWAindex {
         tag "$fasta"
-        label 'process_big'
+        label 'process_high'
         publishDir path: { params.saveGenomeIndex ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveGenomeIndex ? it : null }, mode: 'copy'
 
@@ -515,7 +515,7 @@ if (params.skipTrimming){
  */
 process bwaMEM {
     tag "$name"
-    label 'process_big'
+    label 'process_high'
 
     input:
     set val(name), file(reads) from ch_trimmed_reads
@@ -861,7 +861,7 @@ process bigWig {
  */
 process plotProfile {
     tag "$name"
-    label 'process_big'
+    label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: 'copy'
 
     input:
@@ -1062,7 +1062,7 @@ process peakQC {
  */
 process plotFingerprint {
     tag "${ip} vs ${control}"
-    label 'process_big'
+    label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
 
     input:
