@@ -79,16 +79,6 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
                     print "{}: FastQ file has incorrect extension (has to be '.fastq.gz' or 'fq.gz') - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
                     sys.exit(1)
 
-                ## CHECK FASTQ FILES EXIST PER SAMPLE
-                if fastq[:4] not in ['http']:
-                    if not os.path.exists(fastq):
-                        print "{}: FastQ file does not exist - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
-                        sys.exit(1)
-                else:
-                    if requests.head(fastq).status_code >= 400:
-                        print "{}: FastQ file does not exist - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
-                        sys.exit(1)
-
             ## CREATE GROUP MAPPING DICT = {GROUP_ID: {REPLICATE_ID:[[FASTQ_FILES]]}
             if not sampleMappingDict.has_key(group):
                 sampleMappingDict[group] = {}
