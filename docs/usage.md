@@ -136,9 +136,13 @@ You will need to create a design file with information about the samples in your
 
 #### Multiple replicates
 
-The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. In the design below you have triplicate samples from the *WT_BCATENIN_IP* group along with triplicate samples for their corresponding *WT_INPUT* samples. The `antibody` column is required to separate the downstream consensus peak merging and differential analysis for different antibodies. Its not advisable to generate a consensus peak set across different antibodies especially if their binding patterns are inherently different e.g. narrow transcription factors and broad histone marks. The `control` column is just the `group` identifier for the controls for any given IP - the pipeline will automatically pair the inputs based on replicate identifier (i.e. where you have an equal number of replicates for your IP's and controls), alternatively, the first control sample in that group will be selected.
+The `group` identifier should be identical when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1.
 
-Below is an example for a single experimental group in triplicate:
+The `antibody` column is required to separate the downstream consensus peak merging and differential analysis for different antibodies. Its not advisable to generate a consensus peak set across different antibodies especially if their binding patterns are inherently different e.g. narrow transcription factors and broad histone marks.
+
+The `control` column should be the `group` identifier for the controls for any given IP. The pipeline will automatically pair the inputs based on replicate identifier (i.e. where you have an equal number of replicates for your IP's and controls), alternatively, the first control sample in that group will be selected.
+
+In the single-end design below there are triplicate samples for the *WT_BCATENIN_IP* group along with triplicate samples for their corresponding *WT_INPUT* samples.
 
 ```bash
 group,replicate,fastq_1,fastq_2,antibody,control
@@ -152,7 +156,7 @@ WT_INPUT,3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
 
 #### Multiple runs of the same library
 
-The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example where the second replicate of `WT_BCATENIN_IP` and `WT_INPUT` has been re-sequenced multiple times:
+Both the `group` and `replicate` identifiers should be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example where the second replicate of the `WT_BCATENIN_IP` and `WT_INPUT` groups has been re-sequenced multiple times:
 
 ```bash
 group,replicate,fastq_1,fastq_2,antibody,control
@@ -169,7 +173,7 @@ WT_INPUT,3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
 
 #### Full design
 
-A final design file may look something like the one below. This is for two antibodies and associate controls in triplicate, where the second replicate of the `WT_BCATENIN_IP` and `NAIVE_BCATENIN_IP` group has been sequenced twice:
+A final design file may look something like the one below. This is for two antibodies and associated controls in triplicate, where the second replicate of the `WT_BCATENIN_IP` and `NAIVE_BCATENIN_IP` group has been sequenced twice:
 
 ```bash
 group,replicate,fastq_1,fastq_2,antibody,control
@@ -195,14 +199,14 @@ NAIVE_INPUT,2,BLA203A48_S39_L001_R1_001.fastq.gz,,,
 NAIVE_INPUT,3,BLA203A49_S1_L006_R1_001.fastq.gz,,,
 ```
 
-| Column      | Description                                                                                                                       |
-|-------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group.                       |
-| `replicate` | Integer representing replicate number. Must start from `1..<number of replicates>`.                                               |
-| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".                         |
-| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".                         |
-| `antibody`  | Antibody name. This is required to segregate downstream analysis for different antibodies. Required when `control` is specified.  |
-| `control`   | Group identifier for control sample. The pipeline will automatically select the control sample with the same replicate identifier as the IP. |
+| Column      | Description                                                                                                                                      |
+|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `group`     | Group/condition identifier for sample. This will be identical for re-sequenced libraries and replicate samples from the same experimental group. |
+| `replicate` | Integer representing replicate number. This will be identical for re-sequenced libraries. Must start from `1..<number of replicates>`.           |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".                                        |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".                                        |
+| `antibody`  | Antibody name. This is required to segregate downstream analysis for different antibodies. Required when `control` is specified.                 |
+| `control`   | Group identifier for control sample. The pipeline will automatically select the control sample with the same replicate identifier as the IP.     |
 
 Example design files have been provided with the pipeline for [paired-end](../assets/design_pe.csv) and [single-end](../assets/design_se.csv) data.
 
@@ -217,7 +221,9 @@ It is not possible to run a mixture of single-end and paired-end files in one ru
 Sequencing center information that will be added to read groups in BAM files.
 
 ### `--fragment_size`
-Number of base pairs to extend single-end reads when creating bigWig files. Default: `200`
+Number of base pairs to extend single-end reads when creating bigWig files.
+
+Default: `200`
 
 ### `--fingerprint_bins`
 Number of genomic bins to use when generating the deepTools fingerprint plot. Larger numbers will give a smoother profile, but take longer to run.
@@ -350,7 +356,7 @@ By default, intermediate BAM files will not be saved. The final BAM files create
 MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
 
 ### `--broad_cutoff`
-Specifies broad cutoff value for MACS2. Only used when --narrowPeak isnt specified. Default: 0.1
+Specifies broad cutoff value for MACS2. Only used when `--narrowPeak` isnt specified. Default: 0.1
 
 ### `--saveMACSPileup`
 Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
