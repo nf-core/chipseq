@@ -171,11 +171,11 @@ The library-level alignments associated with the same sample are merged and subs
       * Output files: `*.computeMatrix.mat.gz`, `*.computeMatrix.vals.mat.gz`, `*.plotProfile.pdf`, `*.plotProfile.tab`.
 
     *Plots*:  
-    [MultiQC - spp strand-correlation plot](images/mqc_macs2_peak_count_plot.png)  
-    [MultiQC - spp NSC plot](images/mqc_macs2_peak_count_plot.png)  
-    [MultiQC - spp RSC plot](images/mqc_macs2_peak_count_plot.png)  
-    [MultiQC - deepTools plotProfile plot](images/mqc_macs2_peak_count_plot.png)  
-    [MultiQC - deepTools plotFingerprint plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
+    [MultiQC - spp strand-correlation plot](images/mqc_spp_strand_correlation_plot.png)  
+    [MultiQC - spp NSC plot](images/mqc_spp_nsc_plot.png)  
+    [MultiQC - spp RSC plot](images/mqc_spp_rsc_plot.png)  
+    [MultiQC - deepTools plotProfile plot](images/mqc_deeptools_plotProfile_plot.png)  
+    [MultiQC - deepTools plotFingerprint plot](images/mqc_deeptools_plotFingerprint_plot.png)  
 
 5. **Create consensus set of peaks**
 

@@ -194,7 +194,7 @@ It is not possible to run a mixture of single-end and paired-end files in one ru
 Sequencing center information that will be added to read groups in BAM files.
 
 ### `--fragment_size`
-Number of base pairs to extend single-end reads when creating bigWig files. Default: `0`
+Number of base pairs to extend single-end reads when creating bigWig files. Default: `200`
 
 ### `--fingerprintBins`
 Number of genomic bins to use when generating the deepTools fingerprint plot. Larger numbers will give a smoother profile, but take longer to run.

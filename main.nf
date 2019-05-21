@@ -28,7 +28,7 @@ def helpMessage() {
     Generic
       --singleEnd                   Specifies that the input is single-end reads
       --seqCenter                   Sequencing center information to be added to read group of BAM files
-      --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
+      --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 200
       --fingerprintBins             Number of genomic bins to use when calculating fingerprint plot. Default: 500000
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
