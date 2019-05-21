@@ -14,9 +14,9 @@
   * [`--design`](#--design)
 * [Generic arguments](#generic-arguments)
   * [`--singleEnd`](#--singleend)
-  * [`--seqCenter`](#--seqcenter)
+  * [`--seq_center`](#--seq_center)
   * [`--fragment_size`](#--fragment_size)
-  * [`--fingerprintBins`](#--fingerprintbins)
+  * [`--fingerprint_bins`](#--fingerprint_bins)
 * [Reference genomes](#reference-genomes)
   * [`--genome` (using iGenomes)](#--genome-using-igenomes)
   * [`--fasta`](#--fasta)
@@ -190,13 +190,13 @@ By default, the pipeline expects paired-end data. If you have single-end data, s
 
 It is not possible to run a mixture of single-end and paired-end files in one run.
 
-### `--seqCenter`
+### `--seq_center`
 Sequencing center information that will be added to read groups in BAM files.
 
 ### `--fragment_size`
 Number of base pairs to extend single-end reads when creating bigWig files. Default: `200`
 
-### `--fingerprintBins`
+### `--fingerprint_bins`
 Number of genomic bins to use when generating the deepTools fingerprint plot. Larger numbers will give a smoother profile, but take longer to run.
 
 Default: `500000`

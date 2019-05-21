@@ -27,9 +27,9 @@ def helpMessage() {
 
     Generic
       --singleEnd                   Specifies that the input is single-end reads
-      --seqCenter                   Sequencing center information to be added to read group of BAM files
+      --seq_center                  Sequencing center information to be added to read group of BAM files
       --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 200
-      --fingerprintBins             Number of genomic bins to use when calculating fingerprint plot. Default: 500000
+      --fingerprint_bins [int]      Number of genomic bins to use when calculating fingerprint plot. Default: 500000
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
       --genome                      Name of iGenomes reference
@@ -194,7 +194,7 @@ def summary = [:]
 summary['Run Name']             = custom_runName ?: workflow.runName
 summary['Genome']               = params.genome ?: 'Not supplied'
 summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
-if (params.seqCenter) summary['Sequencing Center'] = params.seqCenter
+if (params.seq_center) summary['Sequencing Center'] = params.seq_center
 summary['Design File']          = params.design
 if (params.bwa_index) summary['BWA Index'] = params.bwa_index ?: 'Not supplied'
 summary['Fasta Ref']            = params.fasta
@@ -214,7 +214,7 @@ if (params.skipTrimming){
     summary["Trim 3' R2"]       = "$params.three_prime_clip_r2 bp"
 }
 summary['Fragment Size']        = "$params.fragment_size bp"
-summary['Fingerprint Bins']     = params.fingerprintBins
+summary['Fingerprint Bins']     = params.fingerprint_bins
 summary['Keep Duplicates']      = params.keepDups ? 'Yes' : 'No'
 summary['Keep Multi-mapped']    = params.keepMultiMap ? 'Yes' : 'No'
 summary['Save Genome Index']    = params.saveGenomeIndex ? 'Yes' : 'No'
@@ -526,10 +526,10 @@ process bwaMEM {
 
     script:
     prefix="${name}.Lb"
-    if (!params.seqCenter) {
+    if (!params.seq_center) {
         rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
     } else {
-        rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seqCenter}\'"
+        rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
     }
     """
     bwa mem \\
@@ -1085,7 +1085,7 @@ process plotFingerprint {
         --skipZeros \\
         --JSDsample ${controlbam[0]} \\
         --numberOfProcessors ${task.cpus} \\
-        --numberOfSamples ${params.fingerprintBins}
+        --numberOfSamples ${params.fingerprint_bins}
     """
 }
 
