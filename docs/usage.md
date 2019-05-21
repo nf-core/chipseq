@@ -128,7 +128,7 @@ If `-profile` is not specified at all the pipeline will be run locally and expec
   * Includes links to test data so needs no other parameters
 
 ### `--design`
-You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row as shown in the examples below.
+You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 6 columns, and a header row as shown in the examples below.
 
 ```bash
 --design '[path to design file]'
@@ -136,40 +136,63 @@ You will need to create a design file with information about the samples in your
 
 #### Multiple replicates
 
-The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. Below is an example for a single experimental group in triplicate:
+The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. In the design below you have triplicate samples from the *WT_BCATENIN_IP* group along with triplicate samples for their corresponding *WT_INPUT* samples. The `antibody` column is required to separate the downstream consensus peak merging and differential analysis for different antibodies. Its not advisable to generate a consensus peak set across different antibodies especially if their binding patterns are inherently different e.g. narrow transcription factors and broad histone marks. The `control` column is just the `group` identifier for the controls for any given IP - the pipeline will automatically pair the inputs based on replicate identifier (i.e. where you have an equal number of replicates for your IP's and controls), alternatively, the first control sample in that group will be selected.
+
+Below is an example for a single experimental group in triplicate:
 
 ```bash
 group,replicate,fastq_1,fastq_2,antibody,control
-P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,,
-P53_WT_IP,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,,
-P53_WT_IP,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,,
+WT_BCATENIN_IP,1,BLA203A1_S27_L006_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP,2,BLA203A25_S16_L002_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP,3,BLA203A49_S40_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_INPUT,1,BLA203A6_S32_L006_R1_001.fastq.gz,,,
+WT_INPUT,2,BLA203A30_S21_L002_R1_001.fastq.gz,,,
+WT_INPUT,3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
 ```
 
 #### Multiple runs of the same library
 
-The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example for two samples sequenced across multiple lanes:
+The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example where the second replicate of `WT_BCATENIN_IP` and `WT_INPUT` has been re-sequenced multiple times:
 
 ```bash
 group,replicate,fastq_1,fastq_2,antibody,control
-P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,P53,P53_WT_INPUT
-P53_WT_IP,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz,P53,P53_WT_INPUT
-P53_WT_INPUT,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz,,
-P53_WT_INPUT,1,AEG588A4_S4_L004_R1_001.fastq.gz,AEG588A4_S4_L004_R2_001.fastq.gz,,
+WT_BCATENIN_IP,1,BLA203A1_S27_L006_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP,2,BLA203A25_S16_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP,2,BLA203A25_S16_L002_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP,2,BLA203A25_S16_L003_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP,3,BLA203A49_S40_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_INPUT,1,BLA203A6_S32_L006_R1_001.fastq.gz,,,
+WT_INPUT,2,BLA203A30_S21_L001_R1_001.fastq.gz,,,
+WT_INPUT,2,BLA203A30_S21_L002_R1_001.fastq.gz,,,
+WT_INPUT,3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
 ```
 
 #### Full design
 
-A final design file may look something like the one below. This is for two experimental groups in triplicate, where the last replicate of the `treatment` group has been sequenced twice.
+A final design file may look something like the one below. This is for two antibodies and associate controls in triplicate, where the second replicate of the `WT_BCATENIN_IP` and `NAIVE_BCATENIN_IP` group has been sequenced twice:
 
 ```bash
 group,replicate,fastq_1,fastq_2,antibody,control
-P53_WT_IP,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,P53,P53_WT_INPUT
-P53_WT_IP,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,P53,P53_WT_INPUT
-P53_WT_IP,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,P53,P53_WT_INPUT
-P53_WT_INPUT,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz,,
-P53_WT_INPUT,2,AEG588A5_S5_L003_R1_001.fastq.gz,AEG588A5_S5_L003_R2_001.fastq.gz,,
-P53_WT_INPUT,3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L003_R2_001.fastq.gz,,
-P53_WT_INPUT,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz,,
+WT_BCATENIN_IP,1,BLA203A1_S27_L006_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP,2,BLA203A25_S16_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP,2,BLA203A25_S16_L002_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP,3,BLA203A49_S40_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+NAIVE_BCATENIN_IP,1,BLA203A7_S60_L001_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
+NAIVE_BCATENIN_IP,2,BLA203A43_S34_L001_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
+NAIVE_BCATENIN_IP,2,BLA203A43_S34_L002_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
+NAIVE_BCATENIN_IP,3,BLA203A64_S55_L001_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
+WT_TCF4_IP,1,BLA203A3_S29_L006_R1_001.fastq.gz,,TCF4,WT_INPUT
+WT_TCF4_IP,2,BLA203A27_S18_L001_R1_001.fastq.gz,,TCF4,WT_INPUT
+WT_TCF4_IP,3,BLA203A51_S42_L001_R1_001.fastq.gz,,TCF4,WT_INPUT
+NAIVE_TCF4_IP,1,BLA203A9_S62_L001_R1_001.fastq.gz,,TCF4,NAIVE_INPUT
+NAIVE_TCF4_IP,2,BLA203A45_S36_L001_R1_001.fastq.gz,,TCF4,NAIVE_INPUT
+NAIVE_TCF4_IP,3,BLA203A66_S57_L001_R1_001.fastq.gz,,TCF4,NAIVE_INPUT
+WT_INPUT,1,BLA203A6_S32_L006_R1_001.fastq.gz,,,
+WT_INPUT,2,BLA203A30_S21_L001_R1_001.fastq.gz,,,
+WT_INPUT,3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
+NAIVE_INPUT,1,BLA203A12_S3_L001_R1_001.fastq.gz,,,
+NAIVE_INPUT,2,BLA203A48_S39_L001_R1_001.fastq.gz,,,
+NAIVE_INPUT,3,BLA203A49_S1_L006_R1_001.fastq.gz,,,
 ```
 
 | Column      | Description                                                                                                                       |
