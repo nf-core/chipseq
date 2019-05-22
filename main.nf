@@ -270,17 +270,18 @@ if (!params.macs_gsize){
  */
 process checkDesign {
     tag "$design"
+    publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
     input:
     file design from ch_design
 
     output:
-    file "reads.csv" into ch_design_reads_csv
-    file "controls.csv" into ch_design_controls_csv
+    file "design_reads.csv" into ch_design_reads_csv
+    file "desgin_controls.csv" into ch_design_controls_csv
 
     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     """
-    check_design.py $design reads.csv controls.csv
+    check_design.py $design design_reads.csv design_controls.csv
     """
 }
 
@@ -997,7 +998,7 @@ process macsCallPeak {
  */
 process annotatePeaks {
     tag "${ip} vs ${control}"
-    label 'process_long'
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy'
 
     when:
@@ -1154,7 +1155,7 @@ process createConsensusPeakSet {
  */
 process annotateConsensusPeakSet {
     tag "${antibody}"
-    label 'process_long'
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus/${antibody}", mode: 'copy'
 
     when:
