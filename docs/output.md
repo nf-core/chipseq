@@ -15,11 +15,11 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 1. **Raw read QC**
 
-    *Software*:  
-    [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)  
+    *Documentation*:  
+    [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/)  
 
     *Description*:  
-    FastQC gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%A/C/G/T). You get information about adapter contamination and other overrepresented sequences. For further reading and documentation see the [FastQC help](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
+    FastQC gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%A/C/G/T). You get information about adapter contamination and other overrepresented sequences.  
 
     *Output directories*:  
     * `fastqc/`  
@@ -29,7 +29,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 2. **Adapter trimming**
 
-    *Software*:  
+    *Documentation*:  
     [Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
 
     *Description*:  
@@ -49,8 +49,8 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 3. **Alignment**
 
-    *Software*:  
-    [BWA](https://sourceforge.net/projects/bio-bwa/files/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/)
+    *Documentation*:  
+    [BWA](http://bio-bwa.sourceforge.net/bwa.shtml), [SAMtools](http://samtools.sourceforge.net/)
 
     *Description*:  
     Adapter-trimmed reads are mapped to the reference assembly using BWA. A genome index is required to run BWA so if this isnt provided explicitly using the `--bwa_index` parameter then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--saveGenomeIndex` parameter to save the indices for future pipeline runs, reducing processing times.
@@ -71,8 +71,8 @@ The library-level alignments associated with the same sample are merged and subs
 
 1. **Alignment merging, duplicate marking and filtering**
 
-    *Software*:  
-    [picard](https://broadinstitute.github.io/picard/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/), [BEDTools](https://github.com/arq5x/bedtools2/), [BAMTools](https://github.com/pezmaster31/bamtools), [Pysam](http://pysam.readthedocs.io/en/latest/installation.html)
+    *Documentation*:  
+    [picard](https://broadinstitute.github.io/picard/command-line-overview.html), [SAMtools](http://samtools.sourceforge.net/), [BEDTools](https://bedtools.readthedocs.io/en/latest/), [BAMTools](https://github.com/pezmaster31/bamtools/wiki/Tutorial_Toolkit_BamTools-1.0.pdf), [Pysam](https://pysam.readthedocs.io/en/latest/api.html)
 
     *Description*:  
     Picard MergeSamFiles and MarkDuplicates are used in combination to merge the alignments, and for the marking of duplicates, respectively. If you only have one library for any given replicate then the merging step isnt carried out because the library-level and merged library-level BAM files will be exactly the same.
@@ -99,8 +99,8 @@ The library-level alignments associated with the same sample are merged and subs
 
 2. **Normalised bigWig files**
 
-    *Software*:  
-    [BEDTools](https://github.com/arq5x/bedtools2/), [wigToBigWig](http://hgdownload.soe.ucsc.edu/admin/exe/)  
+    *Documentation*:  
+    [BEDTools](https://bedtools.readthedocs.io/en/latest/), [bedGraphToBigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html#Ex3)  
 
     *Description*:  
     The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in an indexed binary format useful for displaying dense, continuous data in Genome Browsers such as the [UCSC](https://genome.ucsc.edu/cgi-bin/hgTracks) and [IGV](http://software.broadinstitute.org/software/igv/). This mitigates the need to load the much larger BAM files for data visualisation purposes which will be slower and result in memory issues. The coverage values represented in the bigWig file can also be normalised in order to be able to compare the coverage across multiple samples - this is not possible with BAM files. The bigWig format is also supported by various bioinformatics software for downstream processing such as meta-profile plotting.
@@ -111,8 +111,8 @@ The library-level alignments associated with the same sample are merged and subs
 
 3. **Call peaks**
 
-    *Software*:  
-    [MACS2](https://github.com/taoliu/MACS), [HOMER](http://homer.ucsd.edu/homer/download.html), [R](https://www.r-project.org/)
+    *Documentation*:  
+    [MACS2](https://github.com/taoliu/MACS), [HOMER](http://homer.ucsd.edu/homer/ngs/annotation.html)
 
     *Description*:  
     MACS2 is one of the most popular peak-calling algorithms for ChIP-seq data. By default, the peaks are called with the MACS2 `--broad` parameter. If, however, you would like to call narrow peaks then please provide the `--narrowPeak` parameter when running the pipeline.
@@ -141,8 +141,8 @@ The library-level alignments associated with the same sample are merged and subs
 
 4. **ChIP-seq QC metrics**
 
-    *Software*:  
-    [phantompeakqualtools](https://github.com/kundajelab/phantompeakqualtools), [deepTools](https://deeptools.readthedocs.io/en/develop/)
+    *Documentation*:  
+    [phantompeakqualtools](https://github.com/kundajelab/phantompeakqualtools), [deepTools](https://deeptools.readthedocs.io/en/develop/content/list_of_tools.html)
 
     *Description*:  
     Phantompeakqualtools plots the strand cross-correlation of aligned reads for each sample. In a strand cross-correlation plot, reads are shifted in the direction of the strand they map to by an increasing number of base pairs and the Pearson correlation between the per-position read count for each strand is calculated. Two cross-correlation peaks are usually observed in a ChIP experiment, one corresponding to the read length ("phantom" peak) and one to the average fragment length of the library. The absolute and relative height of the two peaks are useful determinants of the success of a ChIP-seq experiment. A high-quality IP is characterized by a ChIP peak that is much higher than the "phantom" peak, while often very small or no such peak is seen in failed experiments.
@@ -176,8 +176,8 @@ The library-level alignments associated with the same sample are merged and subs
 
 5. **Create consensus set of peaks**
 
-    *Software*:  
-    [BEDTools](https://github.com/arq5x/bedtools2/)
+    *Documentation*:  
+    [BEDTools](https://bedtools.readthedocs.io/en/latest/)
 
     *Description*:  
     In order to perform the differential binding analysis we need to be able to carry out the read quantification for the same intervals across **all** of the samples in the experiment. To this end, the individual peak-sets called per sample have to be merged together in order to create a consensus set of peaks.  
@@ -199,8 +199,8 @@ The library-level alignments associated with the same sample are merged and subs
 
 6. **Read counting and differential binding analysis**
 
-    *Software*:  
-    [featureCounts](http://bioinf.wehi.edu.au/featureCounts/), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html), [R](https://www.r-project.org/)
+    *Documentation*:  
+    [featureCounts](http://bioinf.wehi.edu.au/featureCounts/), [DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html), [R](https://www.r-project.org/)
 
     *Description*:  
     The featureCounts tool is used to count the number of reads relative to the consensus peak-set across all of the samples. This essentially generates a file containing a matrix where the rows represent the consensus intervals, the columns represent all of the samples in the experiment, and the values represent the raw read counts.
@@ -243,8 +243,8 @@ The library-level alignments associated with the same sample are merged and subs
 
 1. **Present QC for the raw read, alignment, peak and differential binding results**
 
-    *Software*:  
-    [MultiQC](http://multiqc.info/)
+    *Documentation*:  
+    [MultiQC](https://multiqc.info/docs/)
 
     *Description*:  
     MultiQC is a visualisation tool that generates a single HTML report summarising all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available within the report data directory.  
@@ -263,8 +263,8 @@ The library-level alignments associated with the same sample are merged and subs
 
 2. **Create IGV session file**
 
-    *Software*:  
-    [IGV](https://software.broadinstitute.org/software/igv/)
+    *Documentation*:  
+    [IGV](https://software.broadinstitute.org/software/igv/UserGuide)
 
     *Description*:  
     An IGV session file will be created at the end of the pipeline containing the normalised bigWig tracks, peaks and differential sites. This avoids having to load all of the data individually into IGV for visualisation.
@@ -288,8 +288,8 @@ The library-level alignments associated with the same sample are merged and subs
 
 1. **Reference genome files**
 
-    *Software*:  
-    [BWA](https://sourceforge.net/projects/bio-bwa/files/), [BEDTools](https://github.com/arq5x/bedtools2/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/)
+    *Documentation*:  
+    [BWA](https://sourceforge.net/projects/bio-bwa/files/), [BEDTools](https://bedtools.readthedocs.io/en/latest/), [SAMtools](http://samtools.sourceforge.net/)
 
     *Description*:
     Reference genome-specific files can be useful to keep for the downstream processing of the results.
@@ -302,13 +302,11 @@ The library-level alignments associated with the same sample are merged and subs
 
 2. **Pipeline information**
 
-    *Software*:  
-    [Nextflow!](https://www.nextflow.io/)
+    *Documentation*:  
+    [Nextflow!](https://www.nextflow.io/docs/latest/tracing.html)
 
     *Description*:  
     Nextflow provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to trouble-shoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage.
-
-    See [Nextflow Tracing & visualisation](https://www.nextflow.io/docs/latest/tracing.html).  
 
     *Output directories*:
     * `pipeline_info/`  
