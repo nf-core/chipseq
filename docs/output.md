@@ -36,7 +36,6 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
     Trim Galore! is a wrapper tool around Cutadapt and FastQC to consistently apply quality and adapter trimming to FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence. See [`usage.md`](usage.md) for more details about the trimming options.
 
     ![MultiQC - Cutadapt trimmed sequence plot](images/mqc_cutadapt_plot.png)
-    <img src="images/mqc_cutadapt_plot.png" align="center" width="1200" height="800">
 
     *Output directories*:
     * `trim_galore/`  
