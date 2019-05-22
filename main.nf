@@ -277,7 +277,7 @@ process checkDesign {
 
     output:
     file "design_reads.csv" into ch_design_reads_csv
-    file "desgin_controls.csv" into ch_design_controls_csv
+    file "design_controls.csv" into ch_design_controls_csv
 
     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     """
