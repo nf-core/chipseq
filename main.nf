@@ -202,9 +202,9 @@ summary['GTF File']             = params.gtf
 summary['Gene BED File']        = params.gene_bed ?: 'Not supplied'
 summary['TSS BED File']         = params.tss_bed ?: 'Not supplied'
 if (params.blacklist) summary['Blacklist BED'] = params.blacklist
-summary['MACS2 Genome Size']     = params.macs_gsize ?: 'Not supplied'
+summary['MACS2 Genome Size']    = params.macs_gsize ?: 'Not supplied'
 if (params.macs_gsize) summary['MACS2 Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
-summary['MACS2 Broad Cutoff']     = params.broad_cutoff
+summary['MACS2 Broad Cutoff']   = params.broad_cutoff
 if (params.skipTrimming){
     summary['Trimming Step']    = 'Skipped'
 } else {
@@ -1405,8 +1405,6 @@ process output_documentation {
     """
 }
 
-
-
 /*
  * Completion e-mail notification
  */
@@ -1501,7 +1499,7 @@ workflow.onComplete {
     c_green = params.monochrome_logs ? '' : "\033[0;32m";
     c_red = params.monochrome_logs ? '' : "\033[0;31m";
 
-    if (workflow.stats.ignoredCountFmt > 0 && workflow.success) {
+    if (workflow.stats.ignoredCountFmt != "0" && workflow.success) {
       log.info "${c_purple}Warning, pipeline completed, but with errored process(es) ${c_reset}"
       log.info "${c_red}Number of ignored errored process(es) : ${workflow.stats.ignoredCountFmt} ${c_reset}"
       log.info "${c_green}Number of successfully ran process(es) : ${workflow.stats.succeedCountFmt} ${c_reset}"

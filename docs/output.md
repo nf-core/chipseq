@@ -45,8 +45,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
     * `trim_galore/fastqc/zips/`  
       FastQC `*.zip` files for read 1 (*and read2 if paired-end*) **after** adapter trimming.
 
-    *Plots*:  
-    [MultiQC - Cutadapt trimmed sequence plot](images/mqc_cutadapt_plot.png)
+    ![MultiQC - Cutadapt trimmed sequence plot](images/mqc_cutadapt_plot.png)
 
 3. **Alignment**
 
@@ -64,8 +63,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
     * `bwa/library/samtools_stats/`  
       SAMtools `*.flagstat`, `*.idxstats` and `*.stats` files generated from the alignment files.
 
-    *Plots*:  
-    [MultiQC - SAMtools idxstats plot](images/mqc_samtools_idxstats_plot.png)
+    ![MultiQC - SAMtools idxstats plot](images/mqc_samtools_idxstats_plot.png)
 
 ## Merged library-level analysis
 
@@ -95,9 +93,8 @@ The library-level alignments associated with the same sample are merged and subs
     * `bwa/mergedLibrary/picard_metrics/pdf/`  
       Alignment QC plot files in `*.pdf` format from picard CollectMultipleMetrics.
 
-    *Plots*:  
-    [MultiQC - Picard insert size plot](images/mqc_picard_insert_size_plot.png)  
-    [MultiQC - Picard deduplication stats plot](images/mqc_picard_deduplication_plot.png)
+    ![MultiQC - Picard insert size plot](images/mqc_picard_insert_size_plot.png)  
+    ![MultiQC - Picard deduplication stats plot](images/mqc_picard_deduplication_plot.png)
 
 2. **Normalised bigWig files**
 
@@ -135,10 +132,9 @@ The library-level alignments associated with the same sample are merged and subs
       * QC plots for peak-to-gene feature annotation: `macs_annotatePeaks.plots.pdf`
       * MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios: `*.FRiP_mqc.tsv`, `*.count_mqc.tsv` and `macs_annotatePeaks.summary_mqc.tsv` respectively.
 
-    *Plots*:  
-    [MultiQC - MACS2 total peak count plot](images/mqc_macs2_peak_count_plot.png)  
-    [MultiQC - MACS2 peaks FRiP score plot](images/mqc_frip_score_plot.png)  
-    [MultiQC - HOMER annotatePeaks peak-to-gene feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
+    ![MultiQC - MACS2 total peak count plot](images/mqc_macs2_peak_count_plot.png)  
+    ![MultiQC - MACS2 peaks FRiP score plot](images/mqc_frip_score_plot.png)  
+    ![MultiQC - HOMER annotatePeaks peak-to-gene feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
 
 4. **ChIP-seq QC metrics**
 
@@ -165,12 +161,11 @@ The library-level alignments associated with the same sample are merged and subs
     * `bwa/mergedLibrary/deepTools/plotProfile/`  
       * Output files: `*.computeMatrix.mat.gz`, `*.computeMatrix.vals.mat.gz`, `*.plotProfile.pdf`, `*.plotProfile.tab`.
 
-    *Plots*:  
-    [MultiQC - spp strand-correlation plot](images/mqc_spp_strand_correlation_plot.png)  
-    [MultiQC - spp NSC plot](images/mqc_spp_nsc_plot.png)  
-    [MultiQC - spp RSC plot](images/mqc_spp_rsc_plot.png)  
-    [MultiQC - deepTools plotProfile plot](images/mqc_deeptools_plotProfile_plot.png)  
-    [MultiQC - deepTools plotFingerprint plot](images/mqc_deeptools_plotFingerprint_plot.png)  
+    ![MultiQC - spp strand-correlation plot](images/mqc_spp_strand_correlation_plot.png)  
+    ![MultiQC - spp NSC plot](images/mqc_spp_nsc_plot.png)  
+    ![MultiQC - spp RSC plot](images/mqc_spp_rsc_plot.png)  
+    ![MultiQC - deepTools plotProfile plot](images/mqc_deeptools_plotProfile_plot.png)  
+    ![MultiQC - deepTools plotFingerprint plot](images/mqc_deeptools_plotFingerprint_plot.png)  
 
 5. **Create consensus set of peaks**
 
@@ -193,8 +188,7 @@ The library-level alignments associated with the same sample are merged and subs
         Same as file above but without annotation columns.  
       * [UpSetR](https://cran.r-project.org/web/packages/UpSetR/README.html) files to illustrate peak intersection: `*.boolean.intersect.plot.pdf` and `*.boolean.intersect.txt`.  
 
-    *Plots*:  
-    [R - UpSetR peak intersection plot](images/r_upsetr_intersect_plot.png)
+    ![R - UpSetR peak intersection plot](images/r_upsetr_intersect_plot.png)
 
 6. **Read counting and differential binding analysis**
 
@@ -228,12 +222,11 @@ The library-level alignments associated with the same sample are merged and subs
     * `bwa/mergedLibrary/macs2/consensus/<ANTIBODY>/sizeFactors/`  
       Files containing DESeq2 sizeFactors per sample: `*.txt` and `*.RData`.
 
-    *Plots*:  
-    [MultiQC - featureCounts consensus peak read assignment plot](images/mqc_featureCounts_assignment_plot.png)  
-    [MultiQC - DESeq2 PCA plot](images/mqc_deseq2_pca_plot.png)  
-    [MultiQC - DESeq2 sample similarity plot](images/mqc_deseq2_sample_similarity_plot.png)  
-    [R - DESeq2 MA plot](images/r_deseq2_ma_plot.png)  
-    [R - DESeq2 Volcano plot](images/r_deseq2_volcano_plot.png)  
+    ![MultiQC - featureCounts consensus peak read assignment plot](images/mqc_featureCounts_assignment_plot.png)  
+    ![MultiQC - DESeq2 PCA plot](images/mqc_deseq2_pca_plot.png)  
+    ![MultiQC - DESeq2 sample similarity plot](images/mqc_deseq2_sample_similarity_plot.png)  
+    ![R - DESeq2 MA plot](images/r_deseq2_ma_plot.png)  
+    ![R - DESeq2 Volcano plot](images/r_deseq2_volcano_plot.png)  
 
 ## Aggregate analysis
 
@@ -278,8 +271,7 @@ The library-level alignments associated with the same sample are merged and subs
       * `igv_session.xml` file.  
       * `igv_files.txt` file containing a listing of the files used to create the IGV session, and their associated colours.
 
-    *Plots*:  
-    [IGV screenshot](images/igv_screenshot.png)  
+    ![IGV screenshot](images/igv_screenshot.png)  
 
 ## Other results
 
