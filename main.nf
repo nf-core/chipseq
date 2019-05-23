@@ -27,9 +27,9 @@ def helpMessage() {
 
     Generic
       --singleEnd                   Specifies that the input is single-end reads
-      --seqCenter                   Sequencing center information to be added to read group of BAM files
-      --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
-      --fingerprintBins             Number of genomic bins to use when calculating fingerprint plot. Default: 500000
+      --seq_center                  Sequencing center information to be added to read group of BAM files
+      --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 200
+      --fingerprint_bins [int]      Number of genomic bins to use when calculating fingerprint plot. Default: 500000
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
       --genome                      Name of iGenomes reference
@@ -194,7 +194,7 @@ def summary = [:]
 summary['Run Name']             = custom_runName ?: workflow.runName
 summary['Genome']               = params.genome ?: 'Not supplied'
 summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
-if (params.seqCenter) summary['Sequencing Center'] = params.seqCenter
+if (params.seq_center) summary['Sequencing Center'] = params.seq_center
 summary['Design File']          = params.design
 if (params.bwa_index) summary['BWA Index'] = params.bwa_index ?: 'Not supplied'
 summary['Fasta Ref']            = params.fasta
@@ -202,9 +202,9 @@ summary['GTF File']             = params.gtf
 summary['Gene BED File']        = params.gene_bed ?: 'Not supplied'
 summary['TSS BED File']         = params.tss_bed ?: 'Not supplied'
 if (params.blacklist) summary['Blacklist BED'] = params.blacklist
-summary['MACS2 Genome Size']     = params.macs_gsize ?: 'Not supplied'
+summary['MACS2 Genome Size']    = params.macs_gsize ?: 'Not supplied'
 if (params.macs_gsize) summary['MACS2 Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
-summary['MACS2 Broad Cutoff']     = params.broad_cutoff
+summary['MACS2 Broad Cutoff']   = params.broad_cutoff
 if (params.skipTrimming){
     summary['Trimming Step']    = 'Skipped'
 } else {
@@ -214,7 +214,7 @@ if (params.skipTrimming){
     summary["Trim 3' R2"]       = "$params.three_prime_clip_r2 bp"
 }
 summary['Fragment Size']        = "$params.fragment_size bp"
-summary['Fingerprint Bins']     = params.fingerprintBins
+summary['Fingerprint Bins']     = params.fingerprint_bins
 summary['Keep Duplicates']      = params.keepDups ? 'Yes' : 'No'
 summary['Keep Multi-mapped']    = params.keepMultiMap ? 'Yes' : 'No'
 summary['Save Genome Index']    = params.saveGenomeIndex ? 'Yes' : 'No'
@@ -270,17 +270,18 @@ if (!params.macs_gsize){
  */
 process checkDesign {
     tag "$design"
+    publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
     input:
     file design from ch_design
 
     output:
-    file "reads.csv" into ch_design_reads_csv
-    file "controls.csv" into ch_design_controls_csv
+    file "design_reads.csv" into ch_design_reads_csv
+    file "design_controls.csv" into ch_design_controls_csv
 
     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     """
-    check_design.py $design reads.csv controls.csv
+    check_design.py $design design_reads.csv design_controls.csv
     """
 }
 
@@ -526,10 +527,10 @@ process bwaMEM {
 
     script:
     prefix="${name}.Lb"
-    if (!params.seqCenter) {
+    if (!params.seq_center) {
         rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
     } else {
-        rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seqCenter}\'"
+        rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
     }
     """
     bwa mem \\
@@ -997,7 +998,7 @@ process macsCallPeak {
  */
 process annotatePeaks {
     tag "${ip} vs ${control}"
-    label 'process_long'
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy'
 
     when:
@@ -1085,7 +1086,7 @@ process plotFingerprint {
         --skipZeros \\
         --JSDsample ${controlbam[0]} \\
         --numberOfProcessors ${task.cpus} \\
-        --numberOfSamples ${params.fingerprintBins}
+        --numberOfSamples ${params.fingerprint_bins}
     """
 }
 
@@ -1154,7 +1155,7 @@ process createConsensusPeakSet {
  */
 process annotateConsensusPeakSet {
     tag "${antibody}"
-    label 'process_long'
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus/${antibody}", mode: 'copy'
 
     when:
@@ -1405,8 +1406,6 @@ process output_documentation {
     """
 }
 
-
-
 /*
  * Completion e-mail notification
  */
@@ -1501,10 +1500,10 @@ workflow.onComplete {
     c_green = params.monochrome_logs ? '' : "\033[0;32m";
     c_red = params.monochrome_logs ? '' : "\033[0;31m";
 
-    if (workflow.stats.ignoredCountFmt > 0 && workflow.success) {
+    if (workflow.stats.ignoredCount > 0 && workflow.success) {
       log.info "${c_purple}Warning, pipeline completed, but with errored process(es) ${c_reset}"
-      log.info "${c_red}Number of ignored errored process(es) : ${workflow.stats.ignoredCountFmt} ${c_reset}"
-      log.info "${c_green}Number of successfully ran process(es) : ${workflow.stats.succeedCountFmt} ${c_reset}"
+      log.info "${c_red}Number of ignored errored process(es) : ${workflow.stats.ignoredCount} ${c_reset}"
+      log.info "${c_green}Number of successfully ran process(es) : ${workflow.stats.succeedCount} ${c_reset}"
     }
 
     if(workflow.success){
