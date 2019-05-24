@@ -1,185 +1,310 @@
-# nf-core/chipseq Output
+# nf-core/chipseq: Output
 
-**nf-core/chipseq** is a bioinformatics best-practice analysis pipeline used for ChIP-seq (chromatin immunoprecipitation sequencing) data analysis at the [National Genomics Infastructure](https://ngisweden.scilifelab.se/) at [SciLifeLab Stockholm](https://www.scilifelab.se/platforms/ngi/), Sweden.
+This document describes the output produced by the pipeline. Most of the plots are taken from the MultiQC report, which summarises results at the end of the pipeline.
 
-This document describes the output produced by the pipeline.
+## Pipeline overview
+The pipeline is built using [Nextflow](https://www.nextflow.io/). See [`main README.md`](../README.md) for a condensed overview of the steps in the pipeline, and the bioinformatics tools used at each step.
 
-## Pipeline overview:
-The pipeline is built using [Nextflow](https://www.nextflow.io/)
-and processes data using the following steps:
+See [Illumina website](https://emea.illumina.com/techniques/sequencing/dna-sequencing/chip-seq.html) for more information regarding the ChIP-seq protocol, and for an extensive list of publications.
 
-* [FastQC](#fastqc) - read quality control
-* [TrimGalore](#trimgalore) - adapter trimming
-* [BWA](#bwa) - alignment
-* [SAMtools](#samtools) - alignment result processing
-* [Bedtools](#bedtools) - bam to bed file conversion
-* [Picard](#picard) - duplicate reads removal
-* [Phantompeakqualtools](#phantompeakqualtools) - normalized strand cross-correlation (NSC) and relative strand cross-correlation (RSC)
-* [deepTools](#deeptools) - fingerprint and correlation plots of reads over genome-wide bins
-* [NGSplot](#ngsplot) - distribution of reads around transcription start sites (TSS) and gene bodies
-* [MACS](#macs) - peak calling
-* [MultiQC](#multiqc) - aggregate report, describing results of the whole pipeline
+The directories listed below will be created in the output directory after the pipeline has finished. All paths are relative to the top-level results directory.
 
-## FastQC
-[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%T/A/G/C). You get information about adapter contamination and other overrepresented sequences.
+## Library-level analysis
 
-For further reading and documentation see the [FastQC help](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
+The initial QC and alignments are performed at the library-level e.g. if the same library has been sequenced more than once to increase sequencing depth. This has the advantage of being able to assess each library individually, and the ability to process multiple libraries from the same sample in parallel.
 
-> **NB:** The FastQC plots displayed in the MultiQC report shows _untrimmed_ reads. They may contain adapter sequence and potentially regions with low quality. To see how your reads look after trimming, look at the FastQC reports in the `trim_galore` directory.
+1. **Raw read QC**
 
-**Output directory: `results/fastqc`**
+    *Documentation*:  
+    [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/)  
 
-* `sample_fastqc.html`
-  * FastQC report, containing quality metrics for your untrimmed raw fastq files
-* `sample_fastqc.zip`
-  * zip file containing the FastQC report, tab-delimited data file and plot images
+    *Description*:  
+    FastQC gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%A/C/G/T). You get information about adapter contamination and other overrepresented sequences.  
 
-## TrimGalore
-[TrimGalore](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) is used for removal of adapter contamination and trimming of low quality regions. TrimGalore uses [Cutadapt](https://github.com/marcelm/cutadapt) for adapter trimming and runs FastQC after it finishes.
+    *Output directories*:  
+    * `fastqc/`  
+    FastQC `*.html` files for read 1 (*and read2 if paired-end*) **before** adapter trimming.  
+    * `fastqc/zips/`  
+    FastQC `*.zip` files for read 1 (*and read2 if paired-end*) **before** adapter trimming.  
 
-MultiQC reports the percentage of bases removed by TrimGalore in the _General Statistics_ table, along with a line plot showing where reads were trimmed.
+2. **Adapter trimming**
 
-**Output directory: `results/trimgalore`**
+    *Documentation*:  
+    [Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
 
-Contains FastQ files with quality and adapter trimmed reads for each sample, along with a log file describing the trimming.
+    *Description*:  
+    Trim Galore! is a wrapper tool around Cutadapt and FastQC to consistently apply quality and adapter trimming to FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence. See [`usage.md`](usage.md) for more details about the trimming options.
 
-* `sample_val_1.fq.gz`, `sample_val_2.fq.gz`
-  * Trimmed FastQ data, reads 1 and 2.
-* `sample_val_1.fastq.gz_trimming_report.txt`
-  * Trimming report (describes which parameters that were used)
-* `sample_val_1_fastqc.html`
-* `sample_val_1_fastqc.zip`
-  * FastQC report for trimmed reads
+    ![MultiQC - Cutadapt trimmed sequence plot](images/mqc_cutadapt_plot.png)
 
-Single-end data will have slightly different file names and only one FastQ file per sample:
-* `sample_trimmed.fq.gz`
-  * Trimmed FastQ data
-* `sample.fastq.gz_trimming_report.txt`
-  * Trimming report (describes which parameters that were used)
-* `sample_trimmed_fastqc.html`
-* `sample_trimmed_fastqc.zip`
-  * FastQC report for trimmed reads
+    *Output directories*:
+    * `trim_galore/`  
+      If `--saveTrimmed` is specified FastQ files **after** adapter trimming will be placed in this directory.
+    * `trim_galore/logs/`  
+      `*.log` files generated by Trim Galore!.
+    * `trim_galore/fastqc/`  
+      FastQC `*.html` files for read 1 (*and read2 if paired-end*) **after** adapter trimming.
+    * `trim_galore/fastqc/zips/`  
+      FastQC `*.zip` files for read 1 (*and read2 if paired-end*) **after** adapter trimming.
 
-## BWA
-[BWA](http://bio-bwa.sourceforge.net/), or Burrows-Wheeler Aligner, is designed for mapping low-divergent sequence reads against reference genomes. The result alignment files are further processed with [SAMtools](http://samtools.sourceforge.net/) and [Bedtools](http://bedtools.readthedocs.io/en/latest/).
+3. **Alignment**
 
-**Output directory: `results/bwa`**
+    *Documentation*:  
+    [BWA](http://bio-bwa.sourceforge.net/bwa.shtml), [SAMtools](http://samtools.sourceforge.net/)
 
-* `sample.sorted.bam`
-  * The sorted aligned BAM file
-* `sample.sorted.bam.bai`
-  * The index file for aligned BAM file
-* `sample.sorted.bed`
-  * The sorted aligned BED file
+    *Description*:  
+    Adapter-trimmed reads are mapped to the reference assembly using BWA. A genome index is required to run BWA so if this isnt provided explicitly using the `--bwa_index` parameter then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--saveGenomeIndex` parameter to save the indices for future pipeline runs, reducing processing times.
 
-## Picard
-The [MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates) module in the [Picard](https://broadinstitute.github.io/picard/) toolkit differentiates the primary and duplicate reads using an algorithm that ranks reads by the sums of their base-quality scores, which helps to identify duplicates that arise during sample preparation e.g. library construction using PCR.
+    File names in the resulting directory (i.e. `bwa/library/`) will have the '`.Lb.`' (**L**i**b**rary) suffix.
 
-The Picard section of the MultiQC report shows a bar plot with the numbers and proportions of primary reads, duplicate reads and unmapped reads.
+    ![MultiQC - SAMtools stats plot](images/mqc_samtools_stats_plot.png)
 
-![Picard](images/picard_plot.png)
+    *Output directories*:
+    * `bwa/library/`  
+      The files resulting from the alignment of individual libraries are not saved by default so this directory will not be present in your results. You can override this behaviour with the use of the `--saveAlignedIntermediates` flag in which case it will contain the coordinate sorted alignment files in [`*.bam`](https://samtools.github.io/hts-specs/SAMv1.pdf) format.
+    * `bwa/library/samtools_stats/`  
+      SAMtools `*.flagstat`, `*.idxstats` and `*.stats` files generated from the alignment files.
 
-**Output directory: `results/picard`**
+## Merged library-level analysis
 
-* `sample.dedup.sorted.bam`
-  * The sorted aligned BAM file after duplicate removal
-* `sample.dedup.sorted.bam.bai`
-  * The index file for aligned BAM file after duplicate removal
-* `sample.dedup.sorted.bed`
-  * The sorted aligned BED file after duplicate removal
-* `sample.picardDupMetrics.txt`
-  * The log report for duplicate removal
+The library-level alignments associated with the same sample are merged and subsequently used for the downstream analyses.
 
-## Phantompeakqualtools
-[Phantompeakqualtools](https://code.google.com/archive/p/phantompeakqualtools/) plots the strand cross-correlation of aligned reads for each sample. In a strand cross-correlation plot, reads are shifted in the direction of the strand they map to by an increasing number of base pairs and the Pearson correlation between the per-position read count vectors for each strand is calculated. Two cross-correlation peaks are usually observed in a ChIP experiment, one corresponding to the read length ("phantom" peak) and one to the average fragment length of the library. The absolute and relative height of the two peaks are useful determinants of the success of a ChIP-seq experiment. A high-quality IP is characterized by a ChIP peak that is much higher than the "phantom" peak, while often very small or no such peak is seen in failed experiments.
+1. **Alignment merging, duplicate marking and filtering**
 
-![Phantompeakqualtools](images/phantompeakqualtools.png)
-*Source: Landt SG et al, Genome Research (2012)*
+    *Documentation*:  
+    [picard](https://broadinstitute.github.io/picard/command-line-overview.html), [SAMtools](http://samtools.sourceforge.net/), [BEDTools](https://bedtools.readthedocs.io/en/latest/), [BAMTools](https://github.com/pezmaster31/bamtools/wiki/Tutorial_Toolkit_BamTools-1.0.pdf), [Pysam](https://pysam.readthedocs.io/en/latest/api.html)
 
-Normalized strand coefficient (NSC) is the normalized ratio between the fragment-length cross-correlation peak and the background cross-correlation. NSC values range from a minimum of 1 to larger positive numbers. 1.1 is the critical threshold. Datasets with NSC values much less than 1.1 (< 1.05) tend to have low signal to noise or few peaks (this could be biological eg. a factor that truly binds only a few sites in a particular tissue type OR it could be due to poor quality). ENCODE cutoff: NSC > 1.05.
+    *Description*:  
+    Picard MergeSamFiles and MarkDuplicates are used in combination to merge the alignments, and for the marking of duplicates, respectively. If you only have one library for any given replicate then the merging step isnt carried out because the library-level and merged library-level BAM files will be exactly the same.
 
-Relative strand correlation (RSC) is the ratio between the fragment-length peak and the read-length peak. RSC values range from 0 to larger positive values. 1 is the critical threshold. RSC values significantly lower than 1 (< 0.8) tend to have low signal to noise. The low scores can be due to failed and poor quality ChIP, low read sequence quality and hence lots of mismappings, shallow sequencing depth (significantly below saturation) or a combination of these. Like the NSC, datasets with few binding sites (< 200), which is biologically justifiable, also show low RSC scores. ENCODE cutoff: RSC > 0.8.
+    Read duplicate marking is carried out using the Picard MarkDuplicates command. Duplicate reads are generally removed from the aligned reads to mitigate for fragments in the library that may have been sequenced more than once due to PCR biases. There is an option to keep duplicate reads with the `--keepDups` parameter but its generally recommended to remove them to avoid the wrong interpretation of the results. A similar option has been provided to keep reads that are multi-mapped - `--keepMultiMap`.
 
-**Output directory: `results/phantompeakqualtools`**
+    Other steps have been incorporated into the pipeline to filter the resulting alignments - see [`main README.md`](../README.md) for a more comprehensive listing, and the tools used at each step.
 
-* `sample.dedup.sorted.pdf`
-  * The strand cross-correlation plot of aligned reads after duplicate removal
-* `sample.spp.out`
-  * Normalized strand cross-correlation (NSC) and relative strand cross-correlation (RSC) results
+    File names in the resulting directory (i.e. `bwa/mergedLibrary/`) will have the '`.mLb.`' suffix to denote **m**erged **L**i**b**raries.
 
-## deepTools
-[deepTools](https://deeptools.github.io/) visualizes the fingerprint of sequence reads distribution, and the pair-wise correlation of samples based on genome-wide reads counts.
+    ![MultiQC - Picard deduplication stats plot](images/mqc_picard_deduplication_plot.png)
 
-In a fingerprint plot, a completely random distribution of reads along the genome (i.e. without enrichments in open chromatin etc.) should generate a straight diagonal line. A very specific and strong regional enrichment will be indicated by a prominent and steep rise of the cumulative sum towards the highest rank. This means that a big chunk of reads from the  sample is located in few bins which corresponds to high, narrow enrichments which are typically seen for transcription factors.
+    ![MultiQC - Picard insert size plot](images/mqc_picard_insert_size_plot.png)  
 
-![deepTools](images/fingerprints.png)
+    *Output directories*:
+    * `bwa/mergedLibrary/`  
+      Merged library-level, coordinate sorted `*.bam` files after the marking of duplicates, and filtering based on various criteria. The file suffix for the final filtered files will be `*.mLb.clN.*`. If you specify the `--saveAlignedIntermediates` parameter then two additional sets of files will be present. These represent the unfiltered alignments with duplicates marked (`*.mLb.mkD.*`), and in the case of paired-end datasets the filtered alignments before the removal of orphan read pairs (`*.mLb.flT.*`).
+    * `bwa/mergedLibrary/samtools_stats/`  
+      SAMtools `*.flagstat`, `*.idxstats` and `*.stats` files generated from the alignment files.
+    * `bwa/mergedLibrary/picard_metrics/`  
+      Alignment QC files from picard CollectMultipleMetrics and the metrics file from MarkDuplicates: `*_metrics` and `*.metrics.txt`, respectively.
+    * `bwa/mergedLibrary/picard_metrics/pdf/`  
+      Alignment QC plot files in `*.pdf` format from picard CollectMultipleMetrics.
 
-Spearman correlation coefficient in each square is calculated with the read counts in genomic bins between the sample pair at the top and the right. A higher correlation coefficient value indicates higher similarity between the sample pair.
+2. **Normalised bigWig files**
 
-![deepTools](images/heatmap_SpearmanCorr.png)
+    *Documentation*:  
+    [BEDTools](https://bedtools.readthedocs.io/en/latest/), [bedGraphToBigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html#Ex3)  
 
-**Output directory: `results/deepTools`**
+    *Description*:  
+    The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in an indexed binary format useful for displaying dense, continuous data in Genome Browsers such as the [UCSC](https://genome.ucsc.edu/cgi-bin/hgTracks) and [IGV](http://software.broadinstitute.org/software/igv/). This mitigates the need to load the much larger BAM files for data visualisation purposes which will be slower and result in memory issues. The coverage values represented in the bigWig file can also be normalised in order to be able to compare the coverage across multiple samples - this is not possible with BAM files. The bigWig format is also supported by various bioinformatics software for downstream processing such as meta-profile plotting.
 
-* `fingerprint.pdf`
-  * Fingerprint plot for sequencing reads distribution
-* `heatmap_SpearmanCorr.png`
-  * Spearman pairwise correlation of samples based on read counts
-* `heatmap_PearsonCorr.png`
-  * Scatter plot of read counts between sample pairs
+    *Output directories*:
+    * `bwa/mergedLibrary/bigwig/`  
+      Normalised `*.bigWig` files scaled to 1 million mapped reads.
 
-## NGSplot
-[NGSplot](https://github.com/shenlab-sinai/ngsplot) visualizes the distribution of sequence reads around the transcription start site (TSS), as well as along the gene body plus upstream and downstream flanking regions of the closest annotated genes.
+3. **Call peaks**
 
-![NGSplot](images/ngsplot.png)
+    *Documentation*:  
+    [MACS2](https://github.com/taoliu/MACS), [HOMER](http://homer.ucsd.edu/homer/ngs/annotation.html)
 
-**Output directory: `results/ngsplot`**
+    *Description*:  
+    MACS2 is one of the most popular peak-calling algorithms for ChIP-seq data. By default, the peaks are called with the MACS2 `--broad` parameter. If, however, you would like to call narrow peaks then please provide the `--narrowPeak` parameter when running the pipeline. See [MACS2 outputs](https://github.com/taoliu/MACS#output-files) for a description of the output files generated by MACS2.  
 
-* `TSS.avgprof.pdf`
-  * Density plot of sequencing reads distribution around TSS
-* `TSS.heatmap.pdf`
-  * Heatmap of sequencing reads distribution around TSS
-* `Genebody.avgprof.pdf`
-  * Density plot of sequencing reads distribution along gene bodies
-* `Genebody.heatmap.pdf`
-  * Heatmap of sequencing reads distribution along gene body
+    ![MultiQC - MACS2 total peak count plot](images/mqc_macs2_peak_count_plot.png)  
 
-## MACS
-[MACS](https://github.com/taoliu/MACS), or Model-based Analysis of ChIP-Seq, is used for capturing the enriched regions of sequence reads. It takes the influence of genome complexity into consideration, and improves the spatial resolution of binding sites through combining the information of both sequencing tag position and orientation.
+    [HOMER annotatePeaks.pl](http://homer.ucsd.edu/homer/ngs/annotation.html) is used to annotate the peaks relative to known genomic features. HOMER is able to use the `--gtf` annotation file which is provided to the pipeline. Please note that some of the output columns will be blank because the annotation isnt provided using HOMER's in-built database format. However, the more important fields required for downstream analysis will be populated i.e. *Annotation*, *Distance to TSS* and *Nearest Promoter ID*.  
 
-**Output directory: `results/macs`**
+    ![MultiQC - HOMER annotatePeaks peak-to-gene feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
 
-* `assay_peaks.xls`
-  * Tabular file which contains information about called peaks. Information include:
-    * chromosome name
-    * start position of peak
-    * end position of peak
-    * length of peak region
-    * absolute peak summit position
-    * pileup height at peak summit, -log10(pvalue) for the peak summit (e.g. pvalue =1e-10, then this value should be 10)
-    * fold enrichment for this peak summit against random Poisson distribution with local lambda, -log10(qvalue) at peak summit
-* `assay_peaks.narrowPeak`
-  * BED6+4 format file which contains the peak locations together with peak summit, pvalue and qvalue.
-* `assay_summits.bed`
-  * BED format file which contains the peak summits locations for every peaks.
-* `assay_peaks.broadPeak`
-  * BED6+3 format file which is similar to narrowPeak file, except for missing the column for annotating peak summits.
-* `assay_peaks.gappedPeak`
-  * BED12+3 format file which contains both the broad region and narrow peaks.
-* `assay_model.r`
-  * R script with which a PDF image about the model based on your data can be produced.
-* `.bdg`
-  * bedGraph format files which can be imported to UCSC genome browser or be converted into even smaller bigWig files.
+    Various QC plots per sample including number of peaks, fold-change distribution, [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak-to-gene feature annotation are also generated by the pipeline. Where possible these have been integrated into the MultiQC report.  
 
-*Refer to https://github.com/taoliu/MACS for the specifications of the output fields.*
+    ![MultiQC - MACS2 peaks FRiP score plot](images/mqc_frip_score_plot.png)  
 
-## MultiQC
-[MultiQC](http://multiqc.info) is a visualisation tool that generates a single HTML report summarising all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available in within the report data directory.
+    *Output directories*:
+    * `bwa/mergedLibrary/macs2/`  
+      * MACS2 output files: `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak` and `*summits.bed`.  
+        The files generated will depend on whether MACS2 has been run in *narrowPeak* or *broadPeak* mode.  
+      * HOMER peak-to-gene annotation file: `*.annotatePeaks.txt`.
+    * `bwa/mergedLibrary/macs2/qc/`  
+      * QC plots for MACS2 peaks: `macs_peak.plots.pdf`
+      * QC plots for peak-to-gene feature annotation: `macs_annotatePeaks.plots.pdf`
+      * MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios: `*.FRiP_mqc.tsv`, `*.count_mqc.tsv` and `macs_annotatePeaks.summary_mqc.tsv` respectively.
 
-**Output directory: `results/MultiQC`**
+4. **ChIP-seq QC metrics**
 
-* `multiqc_report.html`
-  * MultiQC report - a standalone HTML file that can be viewed in your web browser
-* `multiqc_data/`
-  * Directory containing parsed statistics from the different tools used in the pipeline
+    *Documentation*:  
+    [phantompeakqualtools](https://github.com/kundajelab/phantompeakqualtools), [deepTools](https://deeptools.readthedocs.io/en/develop/content/list_of_tools.html)
 
-For more information about how to use MultiQC reports, see http://multiqc.info
+    *Description*:  
+    Phantompeakqualtools plots the strand cross-correlation of aligned reads for each sample. In a strand cross-correlation plot, reads are shifted in the direction of the strand they map to by an increasing number of base pairs and the Pearson correlation between the per-position read count for each strand is calculated. Two cross-correlation peaks are usually observed in a ChIP experiment, one corresponding to the read length ("phantom" peak) and one to the average fragment length of the library. The absolute and relative height of the two peaks are useful determinants of the success of a ChIP-seq experiment. A high-quality IP is characterized by a ChIP peak that is much higher than the "phantom" peak, while often very small or no such peak is seen in failed experiments.
+
+    ![MultiQC - spp strand-correlation plot](images/mqc_spp_strand_correlation_plot.png)  
+
+    Normalized strand coefficient (NSC) is the normalized ratio between the fragment-length cross-correlation peak and the background cross-correlation. NSC values range from a minimum of 1 to larger positive numbers. 1.1 is the critical threshold. Datasets with NSC values much less than 1.1 (< 1.05) tend to have low signal to noise or few peaks (this could be biological eg. a factor that truly binds only a few sites in a particular tissue type OR it could be due to poor quality). ENCODE cutoff: **NSC > 1.05**.
+
+    ![MultiQC - spp NSC plot](images/mqc_spp_nsc_plot.png)  
+
+    Relative strand correlation (RSC) is the ratio between the fragment-length peak and the read-length peak. RSC values range from 0 to larger positive values. 1 is the critical threshold. RSC values significantly lower than 1 (< 0.8) tend to have low signal to noise. The low scores can be due to failed and poor quality ChIP, low read sequence quality and hence lots of mismappings, shallow sequencing depth (significantly below saturation) or a combination of these. Like the NSC, datasets with few binding sites (< 200), which is biologically justifiable, also show low RSC scores. ENCODE cutoff: **RSC > 0.8**.
+
+    ![MultiQC - spp RSC plot](images/mqc_spp_rsc_plot.png)  
+
+    deepTools plotFingerprint is a useful QC for ChIP-seq data in order to see the relative enrichment of the IP samples with respect to the controls on a genome-wide basis. The results, however, are expected to look different for example when comparing narrow marks such as transcription factors and broader marks such as histone modifications (see [plotFingerprint docs](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html)).
+
+    ![MultiQC - deepTools plotFingerprint plot](images/mqc_deeptools_plotFingerprint_plot.png)  
+
+    The results from deepTools plotProfile gives you a quick visualisation for the genome-wide enrichment of your samples at the TSS, and across the gene body. During the downstream analysis, you may want to refine the features/genes used to generate these plots in order to see a more specific condition-related effect.
+
+    ![MultiQC - deepTools plotProfile plot](images/mqc_deeptools_plotProfile_plot.png)  
+
+    *Output directories*:
+    * `bwa/mergedLibrary/phantompeakqualtools/`  
+      * Output files: `*.spp.out`, `*.spp.pdf`.  
+      * MultiQC custom content files: `*_spp_correlation_mqc.tsv`, `*_spp_nsc_mqc.tsv`, `*_spp_rsc_mqc.tsv`.
+    * `bwa/mergedLibrary/deepTools/plotFingerprint/`  
+      * Output files: `*.plotFingerprint.pdf`, `*.plotFingerprint.qcmetrics.txt`, `*.plotFingerprint.raw.txt`
+    * `bwa/mergedLibrary/deepTools/plotProfile/`  
+      * Output files: `*.computeMatrix.mat.gz`, `*.computeMatrix.vals.mat.gz`, `*.plotProfile.pdf`, `*.plotProfile.tab`.
+
+5. **Create consensus set of peaks**
+
+    *Documentation*:  
+    [BEDTools](https://bedtools.readthedocs.io/en/latest/)
+
+    *Description*:  
+    In order to perform the differential binding analysis we need to be able to carry out the read quantification for the same intervals across **all** of the samples in the experiment. To this end, the individual peak-sets called per sample have to be merged together in order to create a consensus set of peaks.  
+
+    Using the consensus peaks it is also possible to assess the degree of overlap between the peaks from a set of samples e.g. *Which consensus peaks contain peaks that are common to a given set of samples?*. This may be useful for downstream filtering of peaks based on whether they are called in multiple replicates/conditions. Please note that it is possible for a consensus peak to contain multiple peaks from the same sample. Unfortunately, this is sample-dependent but the files generated by the pipeline do have columns that report such instances and allow you to factor them into any further analysis.  
+
+    ![R - UpSetR peak intersection plot](images/r_upsetr_intersect_plot.png)
+
+    *Output directories*:
+    * `bwa/mergedLibrary/macs2/consensus/`  
+      * Consensus peak-set across all samples in `*.bed` format.
+      * Consensus peak-set across all samples in `*.saf` format. Required by featureCounts for read quantification.  
+      * HOMER `*.annotatePeaks.txt` peak-to-gene annotation file for consensus peaks.  
+      * Spreadsheet representation of consensus peak-set across samples **with** gene annotation columns: `*.boolean.annotatePeaks.txt`.  
+        The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.  
+      * Spreadsheet representation of consensus peak-set across samples **without** gene annotation columns: `*.boolean.txt`.  
+        Same as file above but without annotation columns.  
+      * [UpSetR](https://cran.r-project.org/web/packages/UpSetR/README.html) files to illustrate peak intersection: `*.boolean.intersect.plot.pdf` and `*.boolean.intersect.txt`.  
+
+6. **Read counting and differential binding analysis**
+
+    *Documentation*:  
+    [featureCounts](http://bioinf.wehi.edu.au/featureCounts/), [DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html), [R](https://www.r-project.org/)
+
+    *Description*:  
+    The featureCounts tool is used to count the number of reads relative to the consensus peak-set across all of the samples. This essentially generates a file containing a matrix where the rows represent the consensus intervals, the columns represent all of the samples in the experiment, and the values represent the raw read counts.
+
+    ![MultiQC - featureCounts consensus peak read assignment plot](images/mqc_featureCounts_assignment_plot.png)  
+
+    DESeq2 is more commonly used to perform differential expression analysis for RNA-seq datasets. However, it can also be used for ChIP-seq differential binding analysis, in which case you can imagine that instead of counts per gene for RNA-seq data we now have counts per bound region.  
+
+    This pipeline uses a standardised DESeq2 analysis script to get an idea of the reproducibility within the experiment, and to assess the overall differential binding. Please note that this will not suit every experimental design, and if there are other problems with the experiment then it may not work as well as expected. By default, the peak sets are not filtered, therefore, the consensus peaks will be generated across the union set of peaks from all samples. However, it is possible to filter the consensus peaks and the corresponding read counts based on user-defined criteria (outlined in the section above), and then to use the same scripts to re-generate the results for a more refined analysis. In future iterations of the pipeline more formal analyses such as [IDR](https://projecteuclid.org/euclid.aoas/1318514284) may be implemented to obtain reproducible and high confidence peak sets with which to perform this sort of analysis.
+
+    ![MultiQC - DESeq2 PCA plot](images/mqc_deseq2_pca_plot.png)  
+
+    ![MultiQC - DESeq2 sample similarity plot](images/mqc_deseq2_sample_similarity_plot.png)  
+
+    By default, all possible pairwise comparisons across the groups from a particular antibody (as defined in [`design.csv`](usage.md#--design)) are performed. The DESeq2 results are generated by the pipeline in various ways. You can load up the results across all of the comparisons in a single spreadsheet, or individual folders will also be created that contain the results specific to a particular comparison. For the latter, additional files will also be generated where the intervals have been pre-filtered based on a couple of standard FDR thresholds. Please see [DESeq2 output](http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#differential-expression-analysis) for a description of the columns generated by DESeq2.
+
+    ![R - DESeq2 MA plot](images/r_deseq2_ma_plot.png)  
+
+    ![R - DESeq2 Volcano plot](images/r_deseq2_volcano_plot.png)  
+
+    *Output directories*:
+    * `bwa/mergedLibrary/macs2/consensus/<ANTIBODY>/deseq2/`
+        * `.featureCounts.txt` file for read counts across all samples relative to consensus peak set.
+        * Differential binding `*.results.txt` spreadsheet containing results across all consensus peaks and all comparisons.  
+        * `*.plots.pdf` file for PCA and hierarchical clustering.  
+        * `*.log` file with information for number of differentially bound intervals at different FDR and fold-change thresholds for each comparison.  
+        * `*.dds.rld.RData` file containing R `dds` and `rld` objects generated by DESeq2.  
+        * `R_sessionInfo.log` file containing information about R, the OS and attached or loaded packages.
+    * `bwa/mergedLibrary/macs2/consensus/<ANTIBODY>/<COMPARISON>/`  
+        * `*.results.txt` spreadsheet containing comparison-specific DESeq2 output for differential binding results across all peaks.  
+        * Subset of above file for peaks that pass FDR <= 0.01 (`*FDR0.01.results.txt`) and FDR <= 0.05 (`*FDR0.05.results.txt`).  
+        * BED files for peaks that pass FDR <= 0.01 (`*FDR0.01.results.bed`) and FDR <= 0.05 (`*FDR0.05.results.bed`).
+        * MA, Volcano, clustering and scatterplots at FDR <= 0.01 and FDR <= 0.05: `*deseq2.plots.pdf`.  
+    * `bwa/mergedLibrary/macs2/consensus/<ANTIBODY>/sizeFactors/`  
+      Files containing DESeq2 sizeFactors per sample: `*.txt` and `*.RData`.
+
+## Aggregate analysis
+
+1. **Present QC for the raw read, alignment, peak and differential binding results**
+
+    *Documentation*:  
+    [MultiQC](https://multiqc.info/docs/)
+
+    *Description*:  
+    MultiQC is a visualisation tool that generates a single HTML report summarising all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available within the report data directory.  
+
+    Results generated by MultiQC collate pipeline QC from FastQC, TrimGalore, samtools flagstat, samtools idxstats, samtools stats, picard CollectMultipleMetrics, picard MarkDuplicates, deepTools plotProfile, deepTools plotFingerprint, phantompeakqualtools and featureCounts. The default [`multiqc config file`](../assets/multiqc/multiqc_config.yaml) also contains the provision for loading custom-content to report peak counts, FRiP scores, peak-to-gene annnotation proportions, spp NSC coefficient, spp RSC coefficient, sample-similarity heatmaps and PCA plots.  
+
+    The pipeline has special steps which also allow the software versions to be reported in the MultiQC output for future traceability. For more information about how to use MultiQC reports, see <http://multiqc.info>.
+
+    *Output directories*:
+    * `multiqc/`  
+      * `multiqc_report.html` - a standalone HTML file that can be viewed in your web browser.
+      * `multiqc_data/` - directory containing parsed statistics from the different tools used in the pipeline.
+      * `multiqc_plots/` - directory containing static images from the report in various formats.
+
+2. **Create IGV session file**
+
+    *Documentation*:  
+    [IGV](https://software.broadinstitute.org/software/igv/UserGuide)
+
+    *Description*:  
+    An IGV session file will be created at the end of the pipeline containing the normalised bigWig tracks, peaks and differential sites. This avoids having to load all of the data individually into IGV for visualisation.
+
+    The genome fasta file required for the IGV session will be the same as the one that was provided to the pipeline. This will be copied into `reference_genome/` to overcome any loading issues. If you prefer to use another path or an in-built genome provided by IGV just change the `genome` entry in the second-line of the session file.
+
+    The file paths in the IGV session file will only work if the results are kept in the same place on your storage. If the results are moved or for example, if you prefer to load the data over the web then just replace the file paths with others that are more appropriate.
+
+    Once installed, open IGV, go to `File > Open Session` and select the `igv_session.xml` file for loading.
+
+    >NB: If you arent using an in-built genome provided by IGV you will need to load the annotation yourself e.g. in .gtf and/or .bed format.
+
+    ![IGV screenshot](images/igv_screenshot.png)  
+
+    *Output directories*:
+    * `igv/`  
+      * `igv_session.xml` file.  
+      * `igv_files.txt` file containing a listing of the files used to create the IGV session, and their associated colours.
+
+## Other results
+
+1. **Reference genome files**
+
+    *Documentation*:  
+    [BWA](https://sourceforge.net/projects/bio-bwa/files/), [BEDTools](https://bedtools.readthedocs.io/en/latest/), [SAMtools](http://samtools.sourceforge.net/)
+
+    *Description*:
+    Reference genome-specific files can be useful to keep for the downstream processing of the results.
+
+    *Output directories*:
+    * `reference_genome/`  
+      A number of genome-specific files are generated by the pipeline in order to aid in the filtering of the data, and because they are required by standard tools such as BEDTools. These can be found in this directory along with the genome fasta file which is required by IGV.
+    * `reference_genome/BWAIndex/`  
+      If they dont exist already and if the `--saveGenomeIndex` parameter is provided then the alignment indices generated by the pipeline will be saved in this directory. This can be quite a time-consuming process so it permits their reuse for future runs of the pipeline or for other purposes.  
+
+2. **Pipeline information**
+
+    *Documentation*:  
+    [Nextflow!](https://www.nextflow.io/docs/latest/tracing.html)
+
+    *Description*:  
+    Nextflow provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to trouble-shoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage.
+
+    *Output directories*:
+    * `pipeline_info/`  
+      * Reports generated by the pipeline - `pipeline_report.html`, `pipeline_report.txt` and `software_versions.csv`.
+      * Reports generated by Nextflow - `execution_report.html`, `execution_timeline.html`, `execution_trace.txt` and `pipeline_dag.svg`.
+    * `Documentation/`  
+      Documentation for interpretation of results in HTML format - `results_description.html`.

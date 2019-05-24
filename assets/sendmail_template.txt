@@ -1,20 +1,20 @@
 To: $email
 Subject: $subject
 Mime-Version: 1.0
-Content-Type: multipart/related;boundary="ngimimeboundary"
+Content-Type: multipart/related;boundary="nfcoremimeboundary"
 
---ngimimeboundary
+--nfcoremimeboundary
 Content-Type: text/html; charset=utf-8
 
 $email_html
 
---ngimimeboundary
-Content-Type: image/png;name="nf-core/chipseq_logo.png"
+--nfcoremimeboundary
+Content-Type: image/png;name="nfcore-chipseq_logo.png"
 Content-Transfer-Encoding: base64
 Content-ID: <nfcorechipseqlogo>
-Content-Disposition: inline; filename="nf-core/chipseq_logo.png"
+Content-Disposition: inline; filename="nfcore-chipseq_logo.png"
 
-<% out << new File("$baseDir/assets/nf-core/chipseq_logo.png").
+<% out << new File("$baseDir/assets/nfcore-chipseq_logo.png").
   bytes.
   encodeBase64().
   toString().
@@ -25,13 +25,18 @@ Content-Disposition: inline; filename="nf-core/chipseq_logo.png"
   flatten().
   join( '\n' ) %>
 
---ngimimeboundary
-Content-Type: image/png;name="SciLifeLab_logo.png"
+<%
+if (mqcFile){
+def mqcFileObj = new File("$mqcFile")
+if (mqcFileObj.length() < mqcMaxSize){
+out << """
+--nfcoremimeboundary
+Content-Type: text/html; name=\"multiqc_report\"
 Content-Transfer-Encoding: base64
-Content-ID: <scilifelablogo>
-Content-Disposition: inline; filename="SciLifeLab_logo.png"
+Content-ID: <mqcreport>
+Content-Disposition: attachment; filename=\"${mqcFileObj.getName()}\"
 
-<% out << new File("$baseDir/assets/SciLifeLab_logo.png").
+${mqcFileObj.
   bytes.
   encodeBase64().
   toString().
@@ -40,23 +45,9 @@ Content-Disposition: inline; filename="SciLifeLab_logo.png"
   collate( 76 )*.
   collect { it.join() }.
   flatten().
-  join( '\n' ) %>
+  join( '\n' )}
+"""
+}}
+%>
 
---ngimimeboundary
-Content-Type: image/png;name="NGI_logo.png"
-Content-Transfer-Encoding: base64
-Content-ID: <ngilogo>
-Content-Disposition: inline; filename="NGI_logo.png"
-
-<% out << new File("$baseDir/assets/NGI_logo.png").
-  bytes.
-  encodeBase64().
-  toString().
-  tokenize( '\n' )*.
-  toList()*.
-  collate( 76 )*.
-  collect { it.join() }.
-  flatten().
-  join( '\n' ) %>
-
---ngimimeboundary--
+--nfcoremimeboundary--
