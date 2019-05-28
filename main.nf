@@ -229,8 +229,8 @@ summary['Fingerprint Bins']     = params.fingerprint_bins
 if (params.keepDups)            summary['Keep Duplicates'] = 'Yes'
 if (params.keepMultiMap)        summary['Keep Multi-mapped'] = 'Yes'
 summary['Save Genome Index']    = params.saveGenomeIndex ? 'Yes' : 'No'
-summary['Save Trimmed']         = params.saveTrimmed ? 'Yes' : 'No'
-summary['Save Intermeds']       = params.saveAlignedIntermediates ? 'Yes' : 'No'
+if (params.saveTrimmed)         summary['Save Trimmed'] = 'Yes'
+if (params.saveAlignedIntermediates) summary['Save Intermeds'] =  'Yes'
 if (params.saveMACSPileup)      summary['Save MACS2 Pileup'] = 'Yes'
 if (params.skipDiffAnalysis)    summary['Skip Diff Analysis'] = 'Yes'
 if (params.skipFastQC)          summary['Skip FastQC'] = 'Yes'
@@ -891,9 +891,9 @@ process bigWig {
     file sizes from ch_genome_sizes_bigwig.collect()
 
     output:
-    set val(name), file("*.bigWig") into ch_bigwig_plotprofile,
-                                         ch_bigwig_igv
-    file "*.txt" into ch_bigwig_scale
+    set val(name), file("*.bigWig") into ch_bigwig_plotprofile
+    file "*scale_factor.txt" into ch_bigwig_scale
+    file "*igv.txt" into ch_bigwig_igv
 
     script:
     prefix="${name}.mLb.clN"
@@ -905,6 +905,8 @@ process bigWig {
     genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -k1,1 -k2,2n >  ${prefix}.bedGraph
 
     bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
+
+    find * -type f -name "*.bigWig" -exec echo -e "bwa/mergedLibrary/bigwig/"{}"\\t0,0,178" \\; > ${prefix}.bigWig.igv.txt
     """
 }
 
@@ -1023,8 +1025,9 @@ process macsCallPeak {
 
     output:
     set val(ip), file("*.{bed,xls,gappedPeak,bdg}") into ch_macs_output
+    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), file("*$peakext") into ch_macs_homer, ch_macs_qc, ch_macs_consensus
+    file "*igv.txt" into ch_macs_igv
     file "*_mqc.tsv" into ch_macs_mqc
-    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), file("*$peakext") into ch_macs_homer, ch_macs_qc, ch_macs_consensus, ch_macs_igv
 
     script:
     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
@@ -1047,6 +1050,8 @@ process macsCallPeak {
 
     READS_IN_PEAKS=\$(intersectBed -a ${ipbam[0]} -b ${ip}_peaks${peakext} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
     grep 'mapped (' $ipflagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${ip}", a/\$1}' | cat $frip_score_header - > ${ip}_peaks.FRiP_mqc.tsv
+
+    find * -type f -name "*${peakext}" -exec echo -e "bwa/mergedLibrary/macs/"{}"\\t0,0,178" \\; > ${ip}_peaks${peakext}.igv.txt
     """
 }
 
@@ -1179,11 +1184,11 @@ process createConsensusPeakSet {
     set val(antibody), val(replicatesExist), val(multipleGroups), file(peaks) from ch_macs_consensus
 
     output:
-    set val(antibody), val(replicatesExist), val(multipleGroups), file("*.bed") into ch_macs_consensus_bed,
-                                                                                     ch_macs_consensus_bed_igv
+    set val(antibody), val(replicatesExist), val(multipleGroups), file("*.bed") into ch_macs_consensus_bed
     set val(antibody), file("*.saf") into ch_macs_consensus_saf
     file "*.boolean.txt" into ch_macs_consensus_bool
     file "*.intersect.{txt,plot.pdf}" into ch_macs_consensus_intersect
+    file "*igv.txt" into ch_macs_consensus_bed_igv
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
     prefix="${antibody}.consensus_peaks"
@@ -1207,6 +1212,8 @@ process createConsensusPeakSet {
     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
 
     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
+
+    find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedLibrary/macs/consensus/${antibody}/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
     """
 }
 
@@ -1275,8 +1282,8 @@ process deseqConsensusPeakSet {
     file "*.{RData,results.txt,pdf,log}" into ch_macs_consensus_deseq_results
     file "sizeFactors" into ch_macs_consensus_deseq_factors
     file "*vs*/*.{pdf,txt}" into ch_macs_consensus_deseq_comp_results
-    file "*vs*/*.bed" into ch_macs_consensus_deseq_comp_bed_igv
     file "*.tsv" into ch_macs_consensus_deseq_mqc
+    file "*igv.txt" into ch_macs_consensus_deseq_comp_bed_igv
 
     script:
     prefix="${antibody}.consensus_peaks"
@@ -1297,6 +1304,8 @@ process deseqConsensusPeakSet {
 
     cat $deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
+
+    find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/consensus/${antibody}/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
     """
 }
 
@@ -1323,19 +1332,18 @@ process igv {
 
     input:
     file fasta from ch_fasta
-    file ('bwa/mergedLibrary/bigwig/*') from ch_bigwig_igv.collect{it[1]}.ifEmpty([])
-    file ('bwa/mergedLibrary/macs/*') from ch_macs_igv.collect{it[-1]}.ifEmpty([])
-    //file ('bwa/mergedLibrary/macs/consensus/*') from ch_macs_consensus_bed_igv.collect().ifEmpty([])
-    //file ('bwa/mergedLibrary/macs/consensus/deseq2/*') from ch_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
+    file bigwigs from ch_bigwig_igv.collect().ifEmpty([])
+    file peaks from ch_macs_igv.collect().ifEmpty([])
+    file consensus_peaks from ch_macs_consensus_bed_igv.collect().ifEmpty([])
+    file differential_peaks from ch_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
 
     output:
     file "*.{txt,xml}" into ch_igv_session
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
-    outdir_abspath = new File(params.outdir).getCanonicalPath().toString()
     """
-    igv_get_files.sh ./ mLb $outdir_abspath > igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt ${outdir_abspath}/reference_genome/${fasta.getName()}
+    cat *.txt > igv_files.txt
+    igv_files_to_session.py igv_session.xml igv_files.txt ../reference_genome/${fasta.getName()} --path_prefix '../'
     """
 }
 

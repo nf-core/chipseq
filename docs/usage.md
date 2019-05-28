@@ -381,7 +381,7 @@ The following options make this easy:
 | `--skipIGV`             | Skip IGV                           |
 | `--skipMultiQC`         | Skip MultiQC                       |
 
-`--skipMultiQCStats` allows you to exclude the [general statistics table](https://multiqc.info/docs/#general-statistics-table) from MultiQC report.
+`--skipMultiQCStats` allows you to exclude the [general statistics table](https://multiqc.info/docs/#general-statistics-table) from the MultiQC report.
 
 ## Job resources
 ### Automatic resubmission

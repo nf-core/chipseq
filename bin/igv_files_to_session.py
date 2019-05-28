@@ -24,6 +24,9 @@ argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 argParser.add_argument('XML_OUT', help="XML output file.")
 argParser.add_argument('LIST_FILE', help="Tab-delimited file containing two columns i.e. file_name\tcolour. Header isnt required.")
 argParser.add_argument('GENOME', help="Full path to genome fasta file or shorthand for genome available in IGV e.g. hg19.")
+
+## OPTIONAL PARAMETERS
+argParser.add_argument('-pp', '--path_prefix', type=str, dest="PATH_PREFIX", default='', help="Path prefix to be added at beginning of all files in input list file.")
 args = argParser.parse_args()
 
 ############################################
@@ -47,7 +50,7 @@ def makedir(path):
 ############################################
 ############################################
 
-def igv_files_to_session(XMLOut,ListFile,Genome):
+def igv_files_to_session(XMLOut,ListFile,Genome,PathPrefix=''):
 
     makedir(os.path.dirname(XMLOut))
 
@@ -57,7 +60,9 @@ def igv_files_to_session(XMLOut,ListFile,Genome):
         line = fin.readline()
         if line:
             ifile,colour = line.strip().split('\t')
-            fileList.append((ifile,colour))
+            if len(colour.strip()) == 0:
+                colour = '0,0,178'
+            fileList.append((PathPrefix.strip()+ifile,colour))
         else:
             break
             fout.close()
@@ -74,7 +79,7 @@ def igv_files_to_session(XMLOut,ListFile,Genome):
     XMLStr += '\t<Panel height="1160" name="DataPanel" width="1897">\n'
     for ifile,colour in fileList:
         extension = os.path.splitext(ifile)[1].lower()
-        if extension in ['.bed']:
+        if extension in ['.bed','.broadpeak','.narrowpeak']:
             XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
             XMLStr += 'displayMode="SQUISHED" featureVisibilityWindow="-1" fontSize="10" height="20" '
             XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
@@ -108,7 +113,7 @@ def igv_files_to_session(XMLOut,ListFile,Genome):
 ############################################
 ############################################
 
-igv_files_to_session(XMLOut=args.XML_OUT,ListFile=args.LIST_FILE,Genome=args.GENOME)
+igv_files_to_session(XMLOut=args.XML_OUT,ListFile=args.LIST_FILE,Genome=args.GENOME,PathPrefix=args.PATH_PREFIX)
 
 ############################################
 ############################################
