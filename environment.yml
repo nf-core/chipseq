@@ -34,6 +34,7 @@ dependencies:
   - homer=4.9.1
   - subread=1.6.4
   - phantompeakqualtools=1.2
+  - preseq=2.0.3
   - multiqc=1.7
   - bioconductor-deseq2=1.20.0
   - bioconductor-vsn=3.46.0
