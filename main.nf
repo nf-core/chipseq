@@ -1302,16 +1302,17 @@ process deseqConsensusPeakSet {
 
     featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mLb
 
-    cat $deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
-    cat $deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
+    sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
+    sed -i -e 's/DESeq2:/${antibody} DESeq2:/g' tmp.txt
+    cat tmp.txt ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+
+    sed 's/deseq2_clustering/deseq2_clustering_${task.index}/g' <$deseq2_clustering_header >tmp.txt
+    sed -i -e 's/DESeq2:/${antibody} DESeq2:/g' tmp.txt
+    cat tmp.txt ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
 
     find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/consensus/${antibody}/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
     """
 }
-
-//sed 's/MIN_INSERT_SIZE/${params.min_insert}/g' <$bamtools_filter_config >bamtools_filter.json
-//sed -i -e 's/MAX_INSERT_SIZE/${params.max_insert}/g' bamtools_filter.json
-//sed -i -e 's/MAX_MISMATCH/${params.max_mismatch}/g' bamtools_filter.json
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
