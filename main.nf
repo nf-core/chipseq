@@ -1188,7 +1188,7 @@ process createConsensusPeakSet {
     set val(antibody), file("*.saf") into ch_macs_consensus_saf
     file "*.boolean.txt" into ch_macs_consensus_bool
     file "*.intersect.{txt,plot.pdf}" into ch_macs_consensus_intersect
-    file "*igv.txt" into ch_macs_consensus_bed_igv
+    file "*igv.txt" into ch_macs_consensus_igv
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
     prefix="${antibody}.consensus_peaks"
@@ -1282,8 +1282,9 @@ process deseqConsensusPeakSet {
     file "*.{RData,results.txt,pdf,log}" into ch_macs_consensus_deseq_results
     file "sizeFactors" into ch_macs_consensus_deseq_factors
     file "*vs*/*.{pdf,txt}" into ch_macs_consensus_deseq_comp_results
+    file "*vs*/*.bed" into ch_macs_consensus_deseq_comp_bed
+    file "*igv.txt" into ch_macs_consensus_deseq_comp_igv
     file "*.tsv" into ch_macs_consensus_deseq_mqc
-    file "*igv.txt" into ch_macs_consensus_deseq_comp_bed_igv
 
     script:
     prefix="${antibody}.consensus_peaks"
@@ -1335,8 +1336,8 @@ process igv {
     file fasta from ch_fasta
     file bigwigs from ch_bigwig_igv.collect().ifEmpty([])
     file peaks from ch_macs_igv.collect().ifEmpty([])
-    file consensus_peaks from ch_macs_consensus_bed_igv.collect().ifEmpty([])
-    file differential_peaks from ch_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
+    file consensus_peaks from ch_macs_consensus_igv.collect().ifEmpty([])
+    file differential_peaks from ch_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
 
     output:
     file "*.{txt,xml}" into ch_igv_session
