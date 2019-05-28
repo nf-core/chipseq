@@ -69,23 +69,30 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 The library-level alignments associated with the same sample are merged and subsequently used for the downstream analyses.
 
-1. **Alignment merging, duplicate marking and filtering**
+1. **Alignment merging, duplicate marking, filtering and QC**
 
     *Documentation*:  
-    [picard](https://broadinstitute.github.io/picard/command-line-overview.html), [SAMtools](http://samtools.sourceforge.net/), [BEDTools](https://bedtools.readthedocs.io/en/latest/), [BAMTools](https://github.com/pezmaster31/bamtools/wiki/Tutorial_Toolkit_BamTools-1.0.pdf), [Pysam](https://pysam.readthedocs.io/en/latest/api.html)
+    [picard](https://broadinstitute.github.io/picard/command-line-overview.html), [SAMtools](http://samtools.sourceforge.net/), [BEDTools](https://bedtools.readthedocs.io/en/latest/), [BAMTools](https://github.com/pezmaster31/bamtools/wiki/Tutorial_Toolkit_BamTools-1.0.pdf), [Pysam](https://pysam.readthedocs.io/en/latest/api.html), [Preseq](http://smithlabresearch.org/software/preseq/)
 
     *Description*:  
     Picard MergeSamFiles and MarkDuplicates are used in combination to merge the alignments, and for the marking of duplicates, respectively. If you only have one library for any given replicate then the merging step isnt carried out because the library-level and merged library-level BAM files will be exactly the same.
 
-    Read duplicate marking is carried out using the Picard MarkDuplicates command. Duplicate reads are generally removed from the aligned reads to mitigate for fragments in the library that may have been sequenced more than once due to PCR biases. There is an option to keep duplicate reads with the `--keepDups` parameter but its generally recommended to remove them to avoid the wrong interpretation of the results. A similar option has been provided to keep reads that are multi-mapped - `--keepMultiMap`.
+    Read duplicate marking is carried out using the Picard MarkDuplicates command. Duplicate reads are generally removed from the aligned reads to mitigate for fragments in the library that may have been sequenced more than once due to PCR biases. There is an option to keep duplicate reads with the `--keepDups` parameter but its generally recommended to remove them to avoid the wrong interpretation of the results. A similar option has been provided to keep reads that are multi-mapped - `--keepMultiMap`. Other steps have been incorporated into the pipeline to filter the resulting alignments - see [`main README.md`](../README.md) for a more comprehensive listing, and the tools used at each step.
 
-    Other steps have been incorporated into the pipeline to filter the resulting alignments - see [`main README.md`](../README.md) for a more comprehensive listing, and the tools used at each step.
 
-    File names in the resulting directory (i.e. `bwa/mergedLibrary/`) will have the '`.mLb.`' suffix to denote **m**erged **L**i**b**raries.
+    ADD IN COLLECTMULTIPLEMETRICS QC HERE TOO.
 
     ![MultiQC - Picard deduplication stats plot](images/mqc_picard_deduplication_plot.png)
 
     ![MultiQC - Picard insert size plot](images/mqc_picard_insert_size_plot.png)  
+
+    Preseq estimates the complexity of a library, showing how many additional unique reads are sequenced for increasing the total read count. A shallow curve indicates that the library has reached complexity saturation and further sequencing would likely not add further unique reads. The dashed line shows a perfectly complex library where total reads = unique reads.
+
+    ![MultiQC - Preseq library complexity plot](images/mqc_preseq_plot.png)  
+
+    Note that these are predictive numbers only, not absolute. The MultiQC plot can sometimes give extreme sequencing depth on the X axis - click and drag from the left side of the plot to zoom in on more realistic numbers.
+
+    File names in the resulting directory (i.e. `bwa/mergedLibrary/`) will have the '`.mLb.`' suffix to denote **m**erged **L**i**b**raries.
 
     *Output directories*:
     * `bwa/mergedLibrary/`  

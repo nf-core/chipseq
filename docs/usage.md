@@ -40,6 +40,7 @@
   * [`--broad_cutoff`](#--broad_cutoff)
   * [`--saveMACSPileup`](#--savemacspileup)
   * [`--skipDiffAnalysis`](#--skipdiffanalysis)
+* [Skipping QC steps](#skipping-qc-steps)
 * [Job resources](#job-resources)
   * [Automatic resubmission](#automatic-resubmission)
   * [Custom resource requests](#custom-resource-requests)
@@ -363,6 +364,24 @@ Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
 
 ### `--skipDiffAnalysis`
 Skip read counting and differential analysis step.
+
+## Skipping QC steps
+
+The pipeline contains a large number of quality control steps. Sometimes, it may not be desirable to run all of them if time and compute resources are limited.
+The following options make this easy:
+
+| Step                    | Description                        |
+|-------------------------|------------------------------------|
+| `--skipFastQC`          | Skip FastQC                        |
+| `--skipPicardMetrics`   | Skip Picard CollectMultipleMetrics |
+| `--skipPreseq`          | Skip Preseq                        |
+| `--skipPlotProfile`     | Skip deepTools plotProfile         |
+| `--skipPlotFingerprint` | Skip deepTools plotFingerprint     |
+| `--skipSpp`             | Skip Phantompeakqualtools          |
+| `--skipIGV`             | Skip IGV                           |
+| `--skipMultiQC`         | Skip MultiQC                       |
+
+`--skipMultiQCStats` allows you to exclude the [general statistics table](https://multiqc.info/docs/#general-statistics-table) from MultiQC report.
 
 ## Job resources
 ### Automatic resubmission

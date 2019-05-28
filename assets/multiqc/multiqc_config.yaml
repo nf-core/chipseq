@@ -47,6 +47,11 @@ module_order:
         info: 'This section of the report shows SAMTools results after merging libraries and before filtering.'
         path_filters:
             - '*mLb.mkD.sorted.bam*'
+    - preseq:
+        name: 'Preseq (merged library; unfiltered)'
+        info: 'This section of the report shows Preseq results after merging libraries and before filtering.'
+        path_filters:
+            - '*mLb*'
     - samtools:
         name: 'SAMTools (merged library; filtered)'
         info: 'This section of the report shows SAMTools results after merging libraries and after filtering.'
