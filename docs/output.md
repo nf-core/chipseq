@@ -53,7 +53,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
     [BWA](http://bio-bwa.sourceforge.net/bwa.shtml), [SAMtools](http://samtools.sourceforge.net/)
 
     *Description*:  
-    Adapter-trimmed reads are mapped to the reference assembly using BWA. A genome index is required to run BWA so if this isnt provided explicitly using the `--bwa_index` parameter then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--saveGenomeIndex` parameter to save the indices for future pipeline runs, reducing processing times.
+    Adapter-trimmed reads are mapped to the reference assembly using BWA. A genome index is required to run BWA so if this is not provided explicitly using the `--bwa_index` parameter then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--saveGenomeIndex` parameter to save the indices for future pipeline runs, reducing processing times.
 
     ![MultiQC - SAMtools stats plot](images/mqc_samtools_stats_plot.png)
 
@@ -128,11 +128,11 @@ The library-level alignments associated with the same sample are merged and subs
 
     ![MultiQC - spp strand-correlation plot](images/mqc_spp_strand_correlation_plot.png)  
 
-    Normalized strand coefficient (NSC) is the normalized ratio between the fragment-length cross-correlation peak and the background cross-correlation. NSC values range from a minimum of 1 to larger positive numbers. 1.1 is the critical threshold. Datasets with NSC values much less than 1.1 (< 1.05) tend to have low signal to noise or few peaks (this could be biological eg. a factor that truly binds only a few sites in a particular tissue type OR it could be due to poor quality). ENCODE cutoff: **NSC > 1.05**.
+    Normalized strand coefficient (NSC) is the normalized ratio between the fragment-length cross-correlation peak and the background cross-correlation. NSC values range from a minimum of 1 to larger positive numbers. 1.1 is the critical threshold. Datasets with NSC values much less than 1.1 (< 1.05) tend to have low signal to noise or few peaks (this could be biological e.g. a factor that truly binds only a few sites in a particular tissue type OR it could be due to poor quality). ENCODE cut-off: **NSC > 1.05**.
 
     ![MultiQC - spp NSC plot](images/mqc_spp_nsc_plot.png)  
 
-    Relative strand correlation (RSC) is the ratio between the fragment-length peak and the read-length peak. RSC values range from 0 to larger positive values. 1 is the critical threshold. RSC values significantly lower than 1 (< 0.8) tend to have low signal to noise. The low scores can be due to failed and poor quality ChIP, low read sequence quality and hence lots of mismappings, shallow sequencing depth (significantly below saturation) or a combination of these. Like the NSC, datasets with few binding sites (< 200), which is biologically justifiable, also show low RSC scores. ENCODE cutoff: **RSC > 0.8**.
+    Relative strand correlation (RSC) is the ratio between the fragment-length peak and the read-length peak. RSC values range from 0 to larger positive values. 1 is the critical threshold. RSC values significantly lower than 1 (< 0.8) tend to have low signal to noise. The low scores can be due to failed and poor quality ChIP, low read sequence quality and hence lots of mis-mappings, shallow sequencing depth (significantly below saturation) or a combination of these. Like the NSC, datasets with few binding sites (< 200), which is biologically justifiable, also show low RSC scores. ENCODE cut-off: **RSC > 0.8**.
 
     ![MultiQC - spp RSC plot](images/mqc_spp_rsc_plot.png)  
 
@@ -163,7 +163,7 @@ The library-level alignments associated with the same sample are merged and subs
 
     ![MultiQC - MACS2 total peak count plot](images/mqc_macs2_peak_count_plot.png)  
 
-    [HOMER annotatePeaks.pl](http://homer.ucsd.edu/homer/ngs/annotation.html) is used to annotate the peaks relative to known genomic features. HOMER is able to use the `--gtf` annotation file which is provided to the pipeline. Please note that some of the output columns will be blank because the annotation isnt provided using HOMER's in-built database format. However, the more important fields required for downstream analysis will be populated i.e. *Annotation*, *Distance to TSS* and *Nearest Promoter ID*.  
+    [HOMER annotatePeaks.pl](http://homer.ucsd.edu/homer/ngs/annotation.html) is used to annotate the peaks relative to known genomic features. HOMER is able to use the `--gtf` annotation file which is provided to the pipeline. Please note that some of the output columns will be blank because the annotation is not provided using HOMER's in-built database format. However, the more important fields required for downstream analysis will be populated i.e. *Annotation*, *Distance to TSS* and *Nearest Promoter ID*.  
 
     ![MultiQC - HOMER annotatePeaks peak-to-gene feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
 
@@ -171,7 +171,7 @@ The library-level alignments associated with the same sample are merged and subs
 
     ![MultiQC - MACS2 peaks FRiP score plot](images/mqc_frip_score_plot.png)  
 
-    `<PEAK_TYPE>` in the directory structure below corresponds to the type of peak that you have specified to call with MACS2 i.e. `broadPeak` or `narrowPeak`. If you so wish, you can call both narrow and broad peaks without redoing the preceding steps in the pipeline such as the alignment and filtering. For example, if you already have broad peaks then just add `--narrowPeak -resume` to the command you used to run the pipeline, and these will be called too! However, resuming the pipeline will only be possible if you havent deleted the `work/` directory generated by the pipeline. Also, the IGV session file and MultiQC reports in the results directory will be overwritten with the latest output so you may want to rename/move these beforehand.
+    `<PEAK_TYPE>` in the directory structure below corresponds to the type of peak that you have specified to call with MACS2 i.e. `broadPeak` or `narrowPeak`. If you so wish, you can call both narrow and broad peaks without redoing the preceding steps in the pipeline such as the alignment and filtering. For example, if you already have broad peaks then just add `--narrowPeak -resume` to the command you used to run the pipeline, and these will be called too! However, resuming the pipeline will only be possible if you have not deleted the `work/` directory generated by the pipeline. Also, the IGV session file and MultiQC reports in the results directory will be overwritten with the latest output so you may want to rename/move these beforehand.
 
     *Output directories*:
     * `bwa/mergedLibrary/macs2/<PEAK_TYPE>/`  
@@ -191,7 +191,9 @@ The library-level alignments associated with the same sample are merged and subs
     *Description*:  
     In order to perform the differential binding analysis we need to be able to carry out the read quantification for the same intervals across **all** of the samples in the experiment. To this end, the individual peak-sets called per sample have to be merged together in order to create a consensus set of peaks.  
 
-    Using the consensus peaks it is also possible to assess the degree of overlap between the peaks from a set of samples e.g. *Which consensus peaks contain peaks that are common to a given set of samples?*. This may be useful for downstream filtering of peaks based on whether they are called in multiple replicates/conditions. Please note that it is possible for a consensus peak to contain multiple peaks from the same sample. Unfortunately, this is sample-dependent but the files generated by the pipeline do have columns that report such instances and allow you to factor them into any further analysis.  
+    Using the consensus peaks it is possible to assess the degree of overlap between the peaks from a set of samples e.g. *Which consensus peaks contain peaks that are common/unique to a given set of samples?*. This may be useful for downstream filtering of peaks based on whether they are called in multiple replicates/conditions. Please note that it is possible for a consensus peak to contain multiple peaks from the same sample. Unfortunately, this is sample-dependent but the files generated by the pipeline do have columns that report such instances and allow you to factor them into any further analysis.  
+    
+    By default, the peak-sets are not filtered, therefore, the consensus peaks will be generated across the union set of peaks from all samples. However, you can increment the `--min_reps_consensus` parameter appropriately if you are confident you have good reproducibility amongst your replicates to create a "reproducible" set of consensus of peaks. In future iterations of the pipeline more formal analyses such as [IDR](https://projecteuclid.org/euclid.aoas/1318514284) may be implemented to obtain reproducible and high confidence peak-sets with which to perform this sort of analysis.
 
     ![R - UpSetR peak intersection plot](images/r_upsetr_intersect_plot.png)
 
@@ -218,7 +220,7 @@ The library-level alignments associated with the same sample are merged and subs
 
     DESeq2 is more commonly used to perform differential expression analysis for RNA-seq datasets. However, it can also be used for ChIP-seq differential binding analysis, in which case you can imagine that instead of counts per gene for RNA-seq data we now have counts per bound region.  
 
-    This pipeline uses a standardised DESeq2 analysis script to get an idea of the reproducibility within the experiment, and to assess the overall differential binding. Please note that this will not suit every experimental design, and if there are other problems with the experiment then it may not work as well as expected. By default, the peak sets are not filtered, therefore, the consensus peaks will be generated across the union set of peaks from all samples. However, it is possible to filter the consensus peaks and the corresponding read counts based on user-defined criteria (outlined in the section above), and then to use the same scripts to re-generate the results for a more refined analysis. In future iterations of the pipeline more formal analyses such as [IDR](https://projecteuclid.org/euclid.aoas/1318514284) may be implemented to obtain reproducible and high confidence peak sets with which to perform this sort of analysis.
+    This pipeline uses a standardised DESeq2 analysis script to get an idea of the reproducibility within the experiment, and to assess the overall differential binding. Please note that this will not suit every experimental design, and if there are other problems with the experiment then it may not work as well as expected.
 
     ![MultiQC - DESeq2 PCA plot](images/mqc_deseq2_pca_plot.png)  
 
@@ -232,7 +234,7 @@ The library-level alignments associated with the same sample are merged and subs
 
     *Output directories*:
     * `bwa/mergedLibrary/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/deseq2/`
-        * `.featureCounts.txt` file for read counts across all samples relative to consensus peak set.
+        * `.featureCounts.txt` file for read counts across all samples relative to consensus peak-set.
         * Differential binding `*.results.txt` spreadsheet containing results across all consensus peaks and all comparisons.  
         * `*.plots.pdf` file for PCA and hierarchical clustering.  
         * `*.log` file with information for number of differentially bound intervals at different FDR and fold-change thresholds for each comparison.  
