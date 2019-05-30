@@ -3,8 +3,6 @@ report_comment: >
     analysis pipeline. For information about how to interpret these results, please see the
     <a href="https://github.com/nf-core/chipseq/blob/master/docs/output.md" target="_blank">documentation</a>.
 
-skip_generalstats: true
-
 export_plots: true
 
 fn_clean_exts:
@@ -49,6 +47,11 @@ module_order:
         info: 'This section of the report shows SAMTools results after merging libraries and before filtering.'
         path_filters:
             - '*mLb.mkD.sorted.bam*'
+    - preseq:
+        name: 'Preseq (merged library; unfiltered)'
+        info: 'This section of the report shows Preseq results after merging libraries and before filtering.'
+        path_filters:
+            - '*mLb*'
     - samtools:
         name: 'SAMTools (merged library; filtered)'
         info: 'This section of the report shows SAMTools results after merging libraries and after filtering.'
@@ -83,14 +86,50 @@ report_section_order:
         order: -1400
     peak_annotation:
         order: -1500
-    deseq2_pca:
+    deseq2_pca_1:
         order: -1600
-    deseq2_clustering:
+    deseq2_pca_2:
         order: -1700
-    software_versions:
+    deseq2_pca_3:
         order: -1800
-    nf-core-chipseq-summary:
+    deseq2_pca_4:
         order: -1900
+    deseq2_pca_5:
+        order: -2000
+    deseq2_pca_6:
+        order: -2100
+    deseq2_pca_7:
+        order: -2200
+    deseq2_pca_8:
+        order: -2300
+    deseq2_pca_9:
+        order: -2400
+    deseq2_pca_10:
+        order: -2500
+    deseq2_clustering_1:
+        order: -2600
+    deseq2_clustering_2:
+        order: -2700
+    deseq2_clustering_3:
+        order: -2800
+    deseq2_clustering_4:
+        order: -2900
+    deseq2_clustering_5:
+        order: -3000
+    deseq2_clustering_6:
+        order: -3100
+    deseq2_clustering_7:
+        order: -3200
+    deseq2_clustering_8:
+        order: -3300
+    deseq2_clustering_9:
+        order: -3400
+    deseq2_clustering_10:
+        order: -3500
+    software_versions:
+        order: -3600
+    nf-core-chipseq-summary:
+        order: -3700
 
 custom_plot_config:
     picard-insertsize:

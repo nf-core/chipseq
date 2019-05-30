@@ -38,8 +38,10 @@
 * [Peaks](#peaks)
   * [`--narrowPeak`](#--narrowpeak)
   * [`--broad_cutoff`](#--broad_cutoff)
+  * [`--min_reps_consensus`](#--min_reps_consensus)
   * [`--saveMACSPileup`](#--savemacspileup)
   * [`--skipDiffAnalysis`](#--skipdiffanalysis)
+* [Skipping QC steps](#skipping-qc-steps)
 * [Job resources](#job-resources)
   * [Automatic resubmission](#automatic-resubmission)
   * [Custom resource requests](#custom-resource-requests)
@@ -108,7 +110,7 @@ This version number will be logged in reports when you run the pipeline, so that
 ## Main arguments
 
 ### `-profile`
-Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments. Note that multiple profiles can be loaded, for example: `-profile docker` - the order of arguments is important!
+Use this parameter to choose a configuration profile. Profiles can give configuration pre-sets for different compute environments. Note that multiple profiles can be loaded, for example: `-profile docker` - the order of arguments is important!
 
 If `-profile` is not specified at all the pipeline will be run locally and expects all software to be installed and available on the `PATH`.
 
@@ -142,7 +144,7 @@ The `antibody` column is required to separate the downstream consensus peak merg
 
 The `control` column should be the `group` identifier for the controls for any given IP. The pipeline will automatically pair the inputs based on replicate identifier (i.e. where you have an equal number of replicates for your IP's and controls), alternatively, the first control sample in that group will be selected.
 
-In the single-end design below there are triplicate samples for the *WT_BCATENIN_IP* group along with triplicate samples for their corresponding *WT_INPUT* samples.
+In the single-end design below there are triplicate samples for the `WT_BCATENIN_IP` group along with triplicate samples for their corresponding `WT_INPUT` samples.
 
 ```bash
 group,replicate,fastq_1,fastq_2,antibody,control
@@ -287,21 +289,21 @@ Full path to an existing BWA index for your reference genome including the base 
 ```
 
 ### `--gene_bed`
-The full path to BED file for genome-wide gene intervals. This will be created from the GTF file if it isnt specified.
+The full path to BED file for genome-wide gene intervals. This will be created from the GTF file if not specified.
 
 ```bash
 --gene_bed '[path to gene BED file]'
 ```
 
 ### `--tss_bed`
-The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if it isnt specified.
+The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if not specified.
 
 ```bash
 --tss_bed '[path to tss BED file]'
 ```
 
 ### `--macs_gsize`
-[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter isnt specified then the MACS2 peak-calling and differential analysis will be skipped.
+[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter is not specified then the MACS2 peak-calling and differential analysis will be skipped.
 
 ```bash
 --macs_gsize 2.7e9
@@ -356,13 +358,38 @@ By default, intermediate BAM files will not be saved. The final BAM files create
 MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
 
 ### `--broad_cutoff`
-Specifies broad cutoff value for MACS2. Only used when `--narrowPeak` isnt specified. Default: 0.1
+Specifies broad cut-off value for MACS2. Only used when `--narrowPeak` isnt specified. Default: 0.1
+
+### `--min_reps_consensus`
+Number of biological replicates required from a given condition for a peak to contribute to a consensus peak . If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a "reproducible" set of consensus of peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded.
+
+```bash
+-- min_reps_consensus 1
+```
 
 ### `--saveMACSPileup`
 Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
 
 ### `--skipDiffAnalysis`
 Skip read counting and differential analysis step.
+
+## Skipping QC steps
+
+The pipeline contains a large number of quality control steps. Sometimes, it may not be desirable to run all of them if time and compute resources are limited.
+The following options make this easy:
+
+| Step                    | Description                        |
+|-------------------------|------------------------------------|
+| `--skipFastQC`          | Skip FastQC                        |
+| `--skipPicardMetrics`   | Skip Picard CollectMultipleMetrics |
+| `--skipPreseq`          | Skip Preseq                        |
+| `--skipPlotProfile`     | Skip deepTools plotProfile         |
+| `--skipPlotFingerprint` | Skip deepTools plotFingerprint     |
+| `--skipSpp`             | Skip Phantompeakqualtools          |
+| `--skipIGV`             | Skip IGV                           |
+| `--skipMultiQC`         | Skip MultiQC                       |
+
+`--skipMultiQCStats` allows you to exclude the [general statistics table](https://multiqc.info/docs/#general-statistics-table) from the MultiQC report.
 
 ## Job resources
 ### Automatic resubmission
