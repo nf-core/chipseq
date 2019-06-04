@@ -559,7 +559,7 @@ process bwaMEM {
     }
     """
     bwa mem \\
-        -t $task.cpus\\
+        -t $task.cpus \\
         -M \\
         -R $rg \\
         ${index}/${bwa_base} \\
