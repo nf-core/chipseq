@@ -18,6 +18,8 @@ fn_clean_exts:
     - 'mLb'
     - '_peaks'
     - '_spp'
+    - '.spp.out'
+    - '_T1'
 
 module_order:
     - fastqc:
