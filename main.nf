@@ -810,7 +810,7 @@ if (params.singleEnd){
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 5.2 preseq analysis after merging libraries and before filtering
+ * STEP 5.1 preseq analysis after merging libraries and before filtering
  */
 process preseq {
     tag "$name"
@@ -834,7 +834,7 @@ process preseq {
 }
 
 /*
- * STEP 5.1 Picard CollectMultipleMetrics after merging libraries and filtering
+ * STEP 5.2 Picard CollectMultipleMetrics after merging libraries and filtering
  */
 process collectMultipleMetrics {
     tag "$name"
