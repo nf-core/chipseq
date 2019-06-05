@@ -16,6 +16,7 @@ fn_clean_exts:
     - 'mLb'
     - '_peaks'
     - '_spp'
+    - '.spp'
 
 module_order:
     - fastqc:
