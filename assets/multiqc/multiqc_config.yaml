@@ -19,7 +19,6 @@ fn_clean_exts:
     - '_peaks'
     - '_spp'
     - '.spp.out'
-    - '_T1'
 
 module_order:
     - fastqc:
