@@ -5,6 +5,7 @@
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
 [![Docker](https://img.shields.io/docker/automated/nfcore/chipseq.svg)](https://hub.docker.com/r/nfcore/chipseq/)
+[![DOI](https://zenodo.org/badge/130877729.svg)](https://zenodo.org/badge/latestdoi/130877729)
 
 ## Introduction
 **nfcore/chipseq** is a bioinformatics analysis pipeline used for Chromatin ImmunopreciPitation sequencing (ChIP-seq) data.
@@ -62,7 +63,7 @@ Many thanks to others who have helped out along the way too, including (but not 
 
 ## Citation
 
-<!-- If you use nf-core/chipseq for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXXX](https://doi.org/10.5281/zenodo.XXXXXXX) -->
+If you use nf-core/chipseq for your analysis, please cite it using the following doi: [10.5281/zenodo.3240507](https://doi.org/10.5281/zenodo.3240507)
 
 You can cite the `nf-core` pre-print as follows:  
 Ewels PA, Peltzer A, Fillinger S, Alneberg JA, Patel H, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. **nf-core: Community curated bioinformatics pipelines**. *bioRxiv*. 2019. p. 610741. [doi: 10.1101/610741](https://www.biorxiv.org/content/10.1101/610741v1).
