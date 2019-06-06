@@ -1,25 +1,24 @@
 # nf-core/chipseq: Changelog
 
-## v1.0dev - [date]
-* Add option for building BWA index for larger ref
-* Update software versions in uppmax-modules
-* Add function to validate input files in MACS config file
-* Remove ngsplot and move the function of plotProfile in deepTools
-* Support reference genome GRCm37
-* Add pre-defined genome sizes for all reference genomes to support macs2 peak calling and downstream processing
-* Add blacklist files for ce11, BDGP6, hg38, and mm9
-* Documents revised accordingly.
-* Major overhaul of docs and assets in-line with nf-core/tools v1.4
-* Added ability to use nf-core/configs along with associated docs
-* Updated manifest scope to deal with pipeline version
-* Removed NGI and SciLifeLab logos, and changed name of pipeline logo
-* Added awsbatch configuration
-* Put file() calls in fromFilePath()
-* Removed --project param specific to UPPMAX
-* Moved appropriate default params variables to nextflow.config
-* Changed Picard memory specification
-* Changed version number back to 1.0dev from 1.0
-* Updated conda packages
-* Major template changes in-line with nf-core/tools v1.5
+All notable changes to this project will be documented in this file.
 
-Repository moved from <https://github.com/SciLifeLab/NGI-ChIPseq>
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [1.0.0] - 2019-06-06
+
+Initial release of nf-core/chipseq pipeline.
+
+### `Added`
+
+* Raw read QC (FastQC)
+* Adapter trimming (Trim Galore!)
+* Map and filter reads (BWA, picard, SAMtools, BEDTools, BAMTools, Pysam)
+* Create library-size normalised bigWig tracks (BEDTools, bedGraphToBigWig)
+* Alignment QC metrics (Preseq, picard)
+* ChIP-seq QC metrics (deepTools, phantompeakqualtools)
+* Call and annotate broad/narrow peaks (MACS2, HOMER)
+* Create consensus set of peaks per antibody (BEDTools)
+* Quantification and differential binding analysis (featureCounts, DESeq2)
+* Collate appropriate files for genome browser visualisation (IGV)
+* Collate and present various QC metrics (MultiQC, R)

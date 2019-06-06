@@ -19,6 +19,7 @@ regexes = {
     'MACS2': ['v_macs2.txt', r"macs2 (\S+)"],
     'HOMER': ['v_homer.txt', r"(\S+)"],
     'featureCounts': ['v_featurecounts.txt', r"featureCounts v(\S+)"],
+    'Preseq': ['v_preseq.txt', r"Version: (\S+)"],
     'MultiQC': ['v_multiqc.txt', r"multiqc, version (\S+)"],
 }
 
@@ -38,6 +39,7 @@ results['Pysam'] = '<span style="color:#999999;\">N/A</span>'
 results['MACS2'] = '<span style="color:#999999;\">N/A</span>'
 results['HOMER'] = False
 results['featureCounts'] = '<span style="color:#999999;\">N/A</span>'
+results['Preseq'] = '<span style="color:#999999;\">N/A</span>'
 results['MultiQC'] = '<span style="color:#999999;\">N/A</span>'
 
 # Search each file using its regex
