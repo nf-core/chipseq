@@ -1,9 +1,6 @@
 // Initialise parameters
 params.outdir = './results'
 
-/*
- * PREPROCESSING - Generate TSS BED file
- */
 process gene_to_tss_bed {
     tag "$bed"
     publishDir "${params.outdir}/reference_genome", mode: 'copy'

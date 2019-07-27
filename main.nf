@@ -64,7 +64,7 @@ workflow.onComplete {
 }
 
 /*
- * Create channels for pipeline config file
+ * Create channels for pipeline-specific config files
  */
 // Pipeline documentation
 ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
@@ -170,31 +170,13 @@ if (!params.tss_bed){
     gene_to_tss_bed(ch_gene_bed).set { ch_tss_bed }
 }
 
-// /*
-//  * PREPROCESSING - Prepare genome intervals for filtering
-//  */
-// process makeGenomeFilter {
-//     tag "$fasta"
-//     publishDir "${params.outdir}/reference_genome", mode: 'copy'
-//
-//     input:
-//     file fasta from ch_fasta
-//
-//     output:
-//     file "$fasta" into ch_genome_fasta                 // FASTA FILE FOR IGV
-//     file "*.fai" into ch_genome_fai                    // FAI INDEX FOR REFERENCE GENOME
-//     file "*.bed" into ch_genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS
-//     file "*.sizes" into ch_genome_sizes_bigwig         // CHROMOSOME SIZES FILE FOR BEDTOOLS
-//
-//     script:
-//     blacklist_filter = params.blacklist ? "sortBed -i ${params.blacklist} -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
-//     """
-//     samtools faidx $fasta
-//     cut -f 1,2 ${fasta}.fai > ${fasta}.sizes
-//     $blacklist_filter > ${fasta}.include_regions.bed
-//     """
-// }
-//
+/*
+ * PREPROCESSING - Prepare genome intervals for filtering
+ */
+include 'modules/genome_filter' params(params)
+genome_filter(ch_fasta)
+//genome_filter.out[0].view()
+
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////
 // /* --                                                                     -- */
