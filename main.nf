@@ -494,7 +494,7 @@ if (params.skipTrimming){
         publishDir "${params.outdir}/trim_galore", mode: 'copy',
             saveAs: {filename ->
                 if (filename.endsWith(".html")) "fastqc/$filename"
-                else if (filename.endsWith(".zip")) "fastqc/zip/$filename"
+                else if (filename.endsWith(".zip")) "fastqc/zips/$filename"
                 else if (filename.endsWith("trimming_report.txt")) "logs/$filename"
                 else params.saveTrimmed ? filename : null
             }
