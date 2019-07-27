@@ -120,131 +120,56 @@ if (params.bwa_index){
 include 'modules/check_design' params(params)
 check_design(ch_design)
 
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                     PARSE DESIGN FILE                               -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// /*
-//  * PREPROCESSING - REFORMAT DESIGN FILE, CHECK VALIDITY & CREATE IP vs CONTROL MAPPINGS
-//  */
-// process checkDesign {
-//     tag "$design"
-//     publishDir "${params.outdir}/pipeline_info", mode: 'copy'
-//
-//     input:
-//     file design from ch_design
-//
-//     output:
-//     file "design_reads.csv" into ch_design_reads_csv
-//     file "design_controls.csv" into ch_design_controls_csv
-//
-//     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-//     """
-//     check_design.py $design design_reads.csv design_controls.csv
-//     """
-// }
-//
-// /*
-//  * Create channels for input fastq files
-//  */
-// if (params.singleEnd) {
-//     ch_design_reads_csv.splitCsv(header:true, sep:',')
-//                        .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true) ] ] }
-//                        .into { ch_raw_reads_fastqc;
-//                                ch_raw_reads_trimgalore }
-// } else {
-//     ch_design_reads_csv.splitCsv(header:true, sep:',')
-//                        .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] ] }
-//                        .into { ch_raw_reads_fastqc;
-//                                ch_raw_reads_trimgalore }
-// }
-//
-// /*
-//  * Create a channel with [sample_id, control id, antibody, replicatesExist, multipleGroups]
-//  */
-//  ch_design_controls_csv.splitCsv(header:true, sep:',')
-//                        .map { row -> [ row.sample_id, row.control_id, row.antibody, row.replicatesExist.toBoolean(), row.multipleGroups.toBoolean() ] }
-//                        .set { ch_design_controls_csv }
-//
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                     PREPARE ANNOTATION FILES                        -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// /*
-//  * PREPROCESSING - Build BWA index
-//  */
-// if (!params.bwa_index){
-//     process makeBWAindex {
-//         tag "$fasta"
-//         label 'process_high'
-//         publishDir path: { params.saveGenomeIndex ? "${params.outdir}/reference_genome" : params.outdir },
-//                    saveAs: { params.saveGenomeIndex ? it : null }, mode: 'copy'
-//
-//         input:
-//         file fasta from ch_fasta
-//
-//         output:
-//         file "BWAIndex" into ch_bwa_index
-//
-//         script:
-//         """
-//         bwa index -a bwtsw $fasta
-//         mkdir BWAIndex && mv ${fasta}* BWAIndex
-//         """
-//     }
-// }
-//
-// /*
-//  * PREPROCESSING - Generate gene BED file
-//  */
-// if (!params.gene_bed){
-//     process makeGeneBED {
-//         tag "$gtf"
-//         label 'process_low'
-//         publishDir "${params.outdir}/reference_genome", mode: 'copy'
-//
-//         input:
-//         file gtf from ch_gtf
-//
-//         output:
-//         file "*.bed" into ch_gene_bed
-//
-//         script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-//         """
-//         gtf2bed $gtf > ${gtf.baseName}.bed
-//         """
-//     }
-// }
-//
-// /*
-//  * PREPROCESSING - Generate TSS BED file
-//  */
-// if (!params.tss_bed){
-//     process makeTSSBED {
-//         tag "$bed"
-//         publishDir "${params.outdir}/reference_genome", mode: 'copy'
-//
-//         input:
-//         file bed from ch_gene_bed
-//
-//         output:
-//         file "*.bed" into ch_tss_bed
-//
-//         script:
-//         """
-//         cat $bed | awk -v FS='\t' -v OFS='\t' '{ if(\$6=="+") \$3=\$2+1; else \$2=\$3-1; print \$1, \$2, \$3, \$4, \$5, \$6;}' > ${bed.baseName}.tss.bed
-//         """
-//     }
-// }
-//
+/*
+ * Create channels for input fastq files
+ */
+if (params.singleEnd) {
+    check_design.out
+                .first()
+                .splitCsv(header:true, sep:',')
+                .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true) ] ] }
+                .set { ch_raw_reads }
+} else {
+    check_design.out
+                .first()
+                .splitCsv(header:true, sep:',')
+                .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] ] }
+                .set { ch_raw_reads }
+}
+
+/*
+ * Create a channel with [sample_id, control id, antibody, replicatesExist, multipleGroups]
+ */
+check_design.out
+            .last()
+            .splitCsv(header:true, sep:',')
+            .map { row -> [ row.sample_id, row.control_id, row.antibody, row.replicatesExist.toBoolean(), row.multipleGroups.toBoolean() ] }
+            .set { ch_design_controls }
+
+/*
+ * PREPROCESSING - Build BWA index
+ */
+if (!params.bwa_index){
+    include 'modules/bwa_index' params(params)
+    bwa_index(ch_fasta).set { ch_bwa_index }
+}
+
+/*
+ * PREPROCESSING - Generate gene BED file
+ */
+if (!params.gene_bed){
+    include 'modules/gtf_to_bed' params(params)
+    gtf_to_bed(ch_gtf).set { ch_gene_bed }
+}
+
+/*
+ * PREPROCESSING - Generate TSS BED file
+ */
+if (!params.tss_bed){
+    include 'modules/gene_to_tss_bed' params(params)
+    gene_to_tss_bed(ch_gene_bed).set { ch_tss_bed }
+}
+
 // /*
 //  * PREPROCESSING - Prepare genome intervals for filtering
 //  */
@@ -838,7 +763,7 @@ check_design(ch_design)
 // // Create channel linking IP bams with control bams
 // ch_rm_orphan_bam_macs_1.combine(ch_rm_orphan_bam_macs_2)
 //                        .set { ch_rm_orphan_bam_macs_1 }
-// ch_design_controls_csv.combine(ch_rm_orphan_bam_macs_1)
+// ch_design_controls.combine(ch_rm_orphan_bam_macs_1)
 //                       .filter { it[0] == it[5] && it[1] == it[7] }
 //                       .join(ch_rm_orphan_flagstat_macs)
 //                       .map { it ->  it[2..-1] }
