@@ -24,6 +24,7 @@ params.gene_bed = params.genomes[params.genome]?.gene_bed
 params.macs_gsize = params.genomes[params.genome]?.macs_gsize
 params.blacklist = params.genomes[params.genome]?.blacklist
 
+
 /*
  * Has the run name been specified by the user?
  * This has the bonus effect of catching both -name and --name
@@ -36,7 +37,7 @@ if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)){
 /*
  * Load pipeline module
  */
-include 'modules/pipeline' params(params)
+include 'modules/pipeline_parameters' params(params)
 
 /*
  * Print help message if required
@@ -54,14 +55,8 @@ summary = create_summary()
 /*
  * Check the hostnames against configured profiles
  */
-check_host_name()
-
-/*
- * Send completion email
- */
-workflow.onComplete {
-    send_email(summary)
-}
+include 'modules/check_hostname' params(params)
+check_hostname()
 
 /*
  * Create channels for pipeline-specific config files
@@ -176,6 +171,33 @@ if (!params.tss_bed){
 include 'modules/genome_filter' params(params)
 genome_filter(ch_fasta)
 //genome_filter.out[0].view()
+
+
+// /*
+//  * Output markdown documentation
+//  */
+// include 'modules/output_documentation' params(params)
+// output_documentation()
+//
+// /*
+//  * Get software versions
+//  */
+// include 'modules/get_software_versions' params(params)
+// get_software_versions()
+//
+// /*
+//  * Create workflow summary for MultiQC
+//  */
+// include 'modules/create_workflow_summary' params(params)
+// create_workflow_summary(summary)
+//
+// /*
+//  * Send completion email
+//  */
+// workflow.onComplete {
+//     include 'modules/send_email' params(params)
+//     send_email(summary)
+// }
 
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////
