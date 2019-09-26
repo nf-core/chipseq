@@ -386,7 +386,6 @@ The following options make this easy:
 | `--skipPlotProfile`     | Skip deepTools plotProfile         |
 | `--skipPlotFingerprint` | Skip deepTools plotFingerprint     |
 | `--skipSpp`             | Skip Phantompeakqualtools          |
-| `--skipDANPOS`          | Skip DANPOS2                       |
 | `--skipIGV`             | Skip IGV                           |
 | `--skipMultiQC`         | Skip MultiQC                       |
 
