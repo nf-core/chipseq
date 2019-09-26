@@ -421,7 +421,7 @@ process makeGenomeFilter {
     file "*.sizes" into ch_genome_sizes_bigwig         // CHROMOSOME SIZES FILE FOR BEDTOOLS
 
     script:
-    blacklist_filter = params.blacklist ? "sortBed -i ${params.blacklist} -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
+    def blacklist_filter = params.blacklist ? "sortBed -i ${params.blacklist} -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
     """
     samtools faidx $fasta
     cut -f 1,2 ${fasta}.fai > ${fasta}.sizes
@@ -509,10 +509,10 @@ if (params.skipTrimming){
 
         script:
         // Added soft-links to original fastqs for consistent naming in MultiQC
-        c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
-        c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
-        tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
-        tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
+        def c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
+        def c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
+        def tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
+        def tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
         if (params.singleEnd) {
             """
             [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
@@ -551,10 +551,9 @@ process bwaMEM {
     set val(name), file("*.bam") into ch_bwa_bam
 
     script:
-    prefix="${name}.Lb"
-    if (!params.seq_center) {
-        rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
-    } else {
+    def prefix="${name}.Lb"
+    def rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
+    if (params.seq_center) {
         rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
     }
     """
@@ -591,7 +590,7 @@ process sortBAM {
     file "*.{flagstat,idxstats,stats}" into ch_sort_bam_flagstat_mqc
 
     script:
-    prefix="${name}.Lb"
+    def prefix="${name}.Lb"
     """
     samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $name $bam
     samtools index ${prefix}.sorted.bam
@@ -639,11 +638,11 @@ process mergeBAM {
     file "*.txt" into ch_merge_bam_metrics_mqc
 
     script:
-    prefix="${name}.mLb.mkD"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+    def prefix="${name}.mLb.mkD"
+    def bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+    def avail_mem = 3
     if (!task.memory){
         log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
-        avail_mem = 3
     } else {
         avail_mem = task.memory.toGiga()
     }
@@ -718,12 +717,12 @@ process filterBAM {
     file "*.{idxstats,stats}" into ch_filter_bam_stats_mqc
 
     script:
-    prefix = params.singleEnd ? "${name}.mLb.clN" : "${name}.mLb.flT"
-    filter_params = params.singleEnd ? "-F 0x004" : "-F 0x004 -F 0x0008 -f 0x001"
-    dup_params = params.keepDups ? "" : "-F 0x0400"
-    multimap_params = params.keepMultiMap ? "" : "-q 1"
-    blacklist_params = params.blacklist ? "-L $bed" : ""
-    name_sort_bam = params.singleEnd ? "" : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
+    def prefix = params.singleEnd ? "${name}.mLb.clN" : "${name}.mLb.flT"
+    def filter_params = params.singleEnd ? "-F 0x004" : "-F 0x004 -F 0x0008 -f 0x001"
+    def dup_params = params.keepDups ? "" : "-F 0x0400"
+    def multimap_params = params.keepMultiMap ? "" : "-q 1"
+    def blacklist_params = params.blacklist ? "-L $bed" : ""
+    def name_sort_bam = params.singleEnd ? "" : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
     """
     samtools view \\
         $filter_params \\
@@ -788,7 +787,7 @@ if (params.singleEnd){
         file "*.{idxstats,stats}" into ch_rm_orphan_stats_mqc
 
         script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-        prefix="${name}.mLb.clN"
+        def prefix="${name}.mLb.clN"
         """
         bampe_rm_orphan.py ${bam[0]} ${prefix}.bam --only_fr_pairs
 
@@ -827,7 +826,7 @@ process preseq {
     file "*.ccurve.txt" into ch_preseq_results
 
     script:
-    prefix="${name}.mLb.clN"
+    def prefix="${name}.mLb.clN"
     """
     preseq lc_extrap -v -output ${prefix}.ccurve.txt -bam ${bam[0]}
     """
@@ -858,10 +857,10 @@ process collectMultipleMetrics {
     file "*.pdf" into ch_collectmetrics_pdf
 
     script:
-    prefix="${name}.mLb.clN"
+    def prefix="${name}.mLb.clN"
+    def avail_mem = 3
     if (!task.memory){
         log.info "[Picard CollectMultipleMetrics] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
-        avail_mem = 3
     } else {
         avail_mem = task.memory.toGiga()
     }
@@ -898,9 +897,9 @@ process bigWig {
     file "*igv.txt" into ch_bigwig_igv
 
     script:
-    prefix="${name}.mLb.clN"
-    pe_fragment = params.singleEnd ? "" : "-pc"
-    extend = (params.singleEnd && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
+    def prefix="${name}.mLb.clN"
+    def pe_fragment = params.singleEnd ? "" : "-pc"
+    def extend = (params.singleEnd && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
     """
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
@@ -1024,7 +1023,7 @@ process plotFingerprint {
     file '*.raw.txt' into ch_plotfingerprint_mqc
 
     script:
-    extend = (params.singleEnd && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
+    def extend = (params.singleEnd && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
     """
     plotFingerprint \\
         --bamfiles ${ipbam[0]} ${controlbam[0]} \\
@@ -1068,10 +1067,10 @@ process macsCallPeak {
     file "*_mqc.tsv" into ch_macs_mqc
 
     script:
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
-    broad = params.narrowPeak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
-    format = params.singleEnd ? "BAM" : "BAMPE"
-    pileup = params.saveMACSPileup ? "-B --SPMR" : ""
+    def peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    def broad = params.narrowPeak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
+    def format = params.singleEnd ? "BAM" : "BAMPE"
+    def pileup = params.saveMACSPileup ? "-B --SPMR" : ""
     """
     macs2 callpeak \\
         -t ${ipbam[0]} \\
@@ -1113,7 +1112,7 @@ process annotatePeaks {
     file "*.txt" into ch_macs_annotate
 
     script:
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    def peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     """
     annotatePeaks.pl $peak \\
         $fasta \\
@@ -1143,7 +1142,7 @@ process peakQC {
    file "*.tsv" into ch_macs_qc_mqc
 
    script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-   peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+   def peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
    """
    plot_macs_qc.r -i ${peaks.join(',')} \\
       -s ${peaks.join(',').replaceAll("_peaks.${peaktype}","")} \\
@@ -1199,11 +1198,11 @@ process createConsensusPeakSet {
     file "*igv.txt" into ch_macs_consensus_igv
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
-    prefix="${antibody}.consensus_peaks"
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
-    mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
-    collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
-    expandparam = params.narrowPeak ? "--is_narrow_peak" : ""
+    def prefix="${antibody}.consensus_peaks"
+    def peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    def mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
+    def collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
+    def expandparam = params.narrowPeak ? "--is_narrow_peak" : ""
     """
     sort -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
@@ -1246,8 +1245,8 @@ process annotateConsensusPeakSet {
     file "*.annotatePeaks.txt" into ch_macs_consensus_annotate
 
     script:
-    prefix="${antibody}.consensus_peaks"
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    def prefix="${antibody}.consensus_peaks"
+    def peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     """
     annotatePeaks.pl $bed \\
         $fasta \\
@@ -1300,11 +1299,11 @@ process deseqConsensusPeakSet {
     file "*.tsv" into ch_macs_consensus_deseq_mqc
 
     script:
-    prefix="${antibody}.consensus_peaks"
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    bam_ext = params.singleEnd ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
-    pe_params = params.singleEnd ? '' : "-p --donotsort"
+    def prefix="${antibody}.consensus_peaks"
+    def peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    def bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+    def bam_ext = params.singleEnd ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
+    def pe_params = params.singleEnd ? '' : "-p --donotsort"
     """
     featureCounts -F SAF \\
         -O \\
@@ -1468,9 +1467,9 @@ process multiqc {
     file "multiqc_plots"
 
     script:
-    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-    rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-    mqcstats = params.skipMultiQCStats ? '--cl_config "skip_generalstats: true"' : ''
+    def rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
+    def rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
+    def mqcstats = params.skipMultiQCStats ? '--cl_config "skip_generalstats: true"' : ''
     """
     multiqc . -f $rtitle $rfilename --config $multiqc_config \\
         -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m preseq -m featureCounts -m deeptools -m phantompeakqualtools \\
