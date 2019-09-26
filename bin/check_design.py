@@ -159,7 +159,7 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
                         if not antibodyList in antibodyGroupDict[antibody][group]:
                             antibodyGroupDict[antibody][group].append(antibodyList)
                     else:
-                        print "{}: Control id not a valid group\nControl id: {}, Valid Groups: {}".format(ERROR_STR,groupControlDict[group],sorted(sampleMappingDict.keys()))
+                        print "{}: Control id not a valid group\nControl id: {}, Valid Groups: {}".format(ERROR_STR,control,sorted(sampleMappingDict.keys()))
                         sys.exit(1)
     fout.close()
 
