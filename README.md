@@ -44,6 +44,26 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 6. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
 7. Present QC for raw read, alignment, peak-calling and differential binding results ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
 
+## Quick Start
+
+i. Install [`nextflow`](https://nf-co.re/usage/installation)
+
+ii. Install one of [`docker`](https://docs.docker.com/engine/installation/), [`singularity`](https://www.sylabs.io/guides/3.0/user-guide/) or [`conda`](https://conda.io/miniconda.html)
+
+iii. Download the pipeline and test it on a minimal dataset with a single command
+
+```bash
+nextflow run nf-core/chipseq -profile test,<docker/singularity/conda>
+```
+
+iv. Start running your own analysis!
+
+```bash
+nextflow run nf-core/chipseq -profile <docker/singularity/conda> --design design.csv --genome GRCh37
+```
+
+See [usage docs](docs/usage.md) for all of the available options when running the pipeline.
+
 ## Documentation
 The nf-core/chipseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
 
@@ -63,7 +83,7 @@ Many thanks to others who have helped out along the way too, including (but not 
 
 ## Citation
 
-If you use nf-core/chipseq for your analysis, please cite it using the following doi: [10.5281/zenodo.3240507](https://doi.org/10.5281/zenodo.3240507)
+If you use nf-core/chipseq for your analysis, please cite it using the following doi: [10.5281/zenodo.3240506](https://doi.org/10.5281/zenodo.3240506)
 
 You can cite the `nf-core` pre-print as follows:  
 Ewels PA, Peltzer A, Fillinger S, Alneberg JA, Patel H, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. **nf-core: Community curated bioinformatics pipelines**. *bioRxiv*. 2019. p. 610741. [doi: 10.1101/610741](https://www.biorxiv.org/content/10.1101/610741v1).
