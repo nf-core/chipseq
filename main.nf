@@ -159,7 +159,7 @@ if (params.design)    { ch_design = file(params.design, checkIfExists: true) } e
 if (params.gtf)       { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
 if (params.gene_bed)  { ch_gene_bed = file(params.gene.bed, checkIfExists: true) }
 if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
-if (params.blacklist) { ch_blacklist = file(params.blacklist, checkIfExists: true) }
+if (params.blacklist) { ch_blacklist = file(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
 
 if (params.fasta){
     lastPath = params.fasta.lastIndexOf(File.separator)
@@ -290,7 +290,7 @@ if (!params.macs_gsize){
 /*
  * PREPROCESSING - REFORMAT DESIGN FILE, CHECK VALIDITY & CREATE IP vs CONTROL MAPPINGS
  */
-process checkDesign {
+process CheckDesign {
     tag "$design"
     publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
@@ -341,7 +341,7 @@ if (params.singleEnd) {
  * PREPROCESSING - Build BWA index
  */
 if (!params.bwa_index){
-    process makeBWAindex {
+    process BWAIndex {
         tag "$fasta"
         label 'process_high'
         publishDir path: { params.saveGenomeIndex ? "${params.outdir}/reference_genome" : params.outdir },
@@ -365,7 +365,7 @@ if (!params.bwa_index){
  * PREPROCESSING - Generate gene BED file
  */
 if (!params.gene_bed){
-    process makeGeneBED {
+    process MakeGeneBED {
         tag "$gtf"
         label 'process_low'
         publishDir "${params.outdir}/reference_genome", mode: 'copy'
@@ -387,7 +387,7 @@ if (!params.gene_bed){
  * PREPROCESSING - Generate TSS BED file
  */
 if (!params.tss_bed){
-    process makeTSSBED {
+    process MakeTSSBED {
         tag "$bed"
         publishDir "${params.outdir}/reference_genome", mode: 'copy'
 
@@ -407,12 +407,13 @@ if (!params.tss_bed){
 /*
  * PREPROCESSING - Prepare genome intervals for filtering
  */
-process makeGenomeFilter {
+process MakeGenomeFilter {
     tag "$fasta"
     publishDir "${params.outdir}/reference_genome", mode: 'copy'
 
     input:
     file fasta from ch_fasta
+    file blacklist from ch_blacklist
 
     output:
     file "$fasta" into ch_genome_fasta                 // FASTA FILE FOR IGV
@@ -421,7 +422,7 @@ process makeGenomeFilter {
     file "*.sizes" into ch_genome_sizes_bigwig         // CHROMOSOME SIZES FILE FOR BEDTOOLS
 
     script:
-    def blacklist_filter = params.blacklist ? "sortBed -i ${params.blacklist} -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
+    def blacklist_filter = params.blacklist ? "sortBed -i $blacklist -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
     """
     samtools faidx $fasta
     cut -f 1,2 ${fasta}.fai > ${fasta}.sizes
@@ -440,7 +441,7 @@ process makeGenomeFilter {
 /*
  * STEP 1 - FastQC
  */
-process fastqc {
+process FastQC {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/fastqc", mode: 'copy',
@@ -488,7 +489,7 @@ if (params.skipTrimming){
     ch_trimgalore_results_mqc = []
     ch_trimgalore_fastqc_reports_mqc = []
 } else {
-    process trimGalore {
+    process TrimGalore {
         tag "$name"
         label 'process_long'
         publishDir "${params.outdir}/trim_galore", mode: 'copy',
@@ -539,7 +540,7 @@ if (params.skipTrimming){
 /*
  * STEP 3.1 - Align read 1 with bwa
  */
-process bwaMEM {
+process BWAmem {
     tag "$name"
     label 'process_high'
 
@@ -570,7 +571,7 @@ process bwaMEM {
 /*
  * STEP 3.2 - Convert .bam to coordinate sorted .bam
  */
-process sortBAM {
+process SortBAM {
     tag "$name"
     label 'process_medium'
     if (params.saveAlignedIntermediates) {
@@ -616,7 +617,7 @@ ch_sort_bam_merge.map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
                  .map { it ->  [ it[0], it[1].flatten() ] }
                  .set { ch_sort_bam_merge }
 
-process mergeBAM {
+process MergeBAM {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -692,7 +693,7 @@ process mergeBAM {
 /*
  * STEP 4.2 Filter BAM file at merged library-level
  */
-process filterBAM {
+process FilterBAM {
     tag "$name"
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -758,7 +759,7 @@ if (params.singleEnd){
                                   ch_rm_orphan_flagstat_mqc }
     ch_filter_bam_stats_mqc.set { ch_rm_orphan_stats_mqc }
 } else {
-    process rmOrphanReads {
+    process RemoveOrphans {
         tag "$name"
         label 'process_medium'
         publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -811,7 +812,7 @@ if (params.singleEnd){
 /*
  * STEP 5.1 preseq analysis after merging libraries and before filtering
  */
-process preseq {
+process Preseq {
     tag "$name"
     label 'process_low'
     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: 'copy'
@@ -835,7 +836,7 @@ process preseq {
 /*
  * STEP 5.2 Picard CollectMultipleMetrics after merging libraries and filtering
  */
-process collectMultipleMetrics {
+process CollectMultipleMetrics {
     tag "$name"
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -877,7 +878,7 @@ process collectMultipleMetrics {
 /*
  * STEP 5.3 Read depth normalised bigWig
  */
-process bigWig {
+process BigWig {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/bigwig", mode: 'copy',
@@ -914,7 +915,7 @@ process bigWig {
 /*
  * STEP 5.4 generate gene body coverage plot with deepTools
  */
-process plotProfile {
+process PlotProfile {
     tag "$name"
     label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: 'copy'
@@ -953,7 +954,7 @@ process plotProfile {
 /*
  * STEP 5.5 Phantompeakqualtools
  */
-process phantomPeakQualTools {
+process PhantomPeakQualTools {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/phantompeakqualtools", mode: 'copy'
@@ -1007,7 +1008,7 @@ ch_design_controls_csv.combine(ch_rm_orphan_bam_macs_1)
 /*
  * STEP 6.1 deepTools plotFingerprint
  */
-process plotFingerprint {
+process PlotFingerprint {
     tag "${ip} vs ${control}"
     label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
@@ -1042,7 +1043,7 @@ process plotFingerprint {
 /*
  * STEP 6.2 Call peaks with MACS2 and calculate FRiP score
  */
-process macsCallPeak {
+process MACSCallPeak {
     tag "${ip} vs ${control}"
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}", mode: 'copy',
@@ -1095,7 +1096,7 @@ process macsCallPeak {
 /*
  * STEP 6.3 Annotate peaks with HOMER
  */
-process annotatePeaks {
+process AnnotatePeaks {
     tag "${ip} vs ${control}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}", mode: 'copy'
@@ -1125,7 +1126,7 @@ process annotatePeaks {
 /*
  * STEP 6.4 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
-process peakQC {
+process PeakQC {
    label "process_medium"
    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/qc", mode: 'copy'
 
@@ -1175,7 +1176,7 @@ ch_macs_consensus.map { it ->  [ it[0], it[1], it[2], it[-1] ] }
 /*
  * STEP 7.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
-process createConsensusPeakSet {
+process CreateConsensusPeakSet {
     tag "${antibody}"
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/${antibody}", mode: 'copy',
@@ -1227,7 +1228,7 @@ process createConsensusPeakSet {
 /*
  * STEP 7.2 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
-process annotateConsensusPeakSet {
+process AnnotateConsensusPeakSet {
     tag "${antibody}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/${antibody}", mode: 'copy'
@@ -1271,7 +1272,7 @@ ch_group_bam_deseq.map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
 /*
  * STEP 7.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
-process deseqConsensusPeakSet {
+process DeseqConsensusPeakSet {
     tag "${antibody}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/${antibody}/deseq2", mode: 'copy',
@@ -1339,7 +1340,7 @@ process deseqConsensusPeakSet {
 /*
  * STEP 8 - Create IGV session file
  */
-process igv {
+process IGV {
     publishDir "${params.outdir}/igv", mode: 'copy'
 
     when:
@@ -1428,7 +1429,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
 /*
  * STEP 9 - MultiQC
  */
-process multiqc {
+process MultiQC {
     publishDir "${params.outdir}/multiqc", mode: 'copy'
 
     when:
