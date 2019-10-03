@@ -21,7 +21,7 @@ def helpMessage() {
     Mandatory arguments:
       --design                      Comma-separated file containing information about the samples in the experiment (see docs/usage.md)
       --fasta                       Path to Fasta reference. Not mandatory when using reference in iGenomes config via --genome
-      --gtf                         Path to GTF file in Ensembl format. Not mandatory when using reference in iGenomes config via --genome
+      --gtf                         Path to GTF file. Not mandatory when using reference in iGenomes config via --genome
       -profile                      Configuration profile to use. Can use multiple (comma separated)
                                     Available: conda, docker, singularity, awsbatch, test
 
@@ -577,10 +577,10 @@ process SortBAM {
     if (params.saveAlignedIntermediates) {
         publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
             saveAs: { filename ->
-                    if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
-                    else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
-                    else if (filename.endsWith(".stats")) "samtools_stats/$filename"
-                    else filename }
+                if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+                else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+                else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+                else filename }
     }
 
     input:
@@ -1045,7 +1045,7 @@ process PlotFingerprint {
  */
 process MACSCallPeak {
     tag "${ip} vs ${control}"
-    label 'process_long'
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}", mode: 'copy',
         saveAs: {filename ->
                     if (filename.endsWith(".tsv")) "qc/$filename"
@@ -1081,15 +1081,14 @@ process MACSCallPeak {
         -g ${params.macs_gsize} \\
         -n $ip \\
         $pileup \\
-        --keep-dup all \\
-        --nomodel
+        --keep-dup all
 
     cat ${ip}_peaks.${peaktype} | wc -l | awk -v OFS='\t' '{ print "${ip}", \$1 }' | cat $peak_count_header - > ${ip}_peaks.count_mqc.tsv
 
     READS_IN_PEAKS=\$(intersectBed -a ${ipbam[0]} -b ${ip}_peaks.${peaktype} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
     grep 'mapped (' $ipflagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${ip}", a/\$1}' | cat $frip_score_header - > ${ip}_peaks.FRiP_mqc.tsv
 
-    find * -type f -name "*.${peaktype}" -exec echo -e "bwa/mergedLibrary/macs/${peaktype}/"{}"\\t0,0,178" \\; > ${ip}_peaks.${peaktype}.igv.txt
+    find * -type f -name "*.${peaktype}" -exec echo -e "bwa/mergedLibrary/macs/${peaktype}/"{}"\\t0,0,178" \\; > ${ip}_peaks.igv.txt
     """
 }
 
@@ -1145,12 +1144,14 @@ process PeakQC {
    script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
    def peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
    """
-   plot_macs_qc.r -i ${peaks.join(',')} \\
+   plot_macs_qc.r \\
+      -i ${peaks.join(',')} \\
       -s ${peaks.join(',').replaceAll("_peaks.${peaktype}","")} \\
       -o ./ \\
       -p macs_peak
 
-   plot_homer_annotatepeaks.r -i ${annos.join(',')} \\
+   plot_homer_annotatepeaks.r \\
+      -i ${annos.join(',')} \\
       -s ${annos.join(',').replaceAll("_peaks.annotatePeaks.txt","")} \\
       -o ./ \\
       -p macs_annotatePeaks
@@ -1341,7 +1342,7 @@ process DeseqConsensusPeakSet {
  * STEP 8 - Create IGV session file
  */
 process IGV {
-    publishDir "${params.outdir}/igv", mode: 'copy'
+    publishDir "${params.outdir}/igv/${peaktype}", mode: 'copy'
 
     when:
     !params.skipIGV
@@ -1357,6 +1358,7 @@ process IGV {
     file "*.{txt,xml}" into ch_igv_session
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
+    def peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     """
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt ../reference_genome/${fasta.getName()} --path_prefix '../'
@@ -1430,7 +1432,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
  * STEP 9 - MultiQC
  */
 process MultiQC {
-    publishDir "${params.outdir}/multiqc", mode: 'copy'
+    publishDir "${params.outdir}/multiqc/${peaktype}", mode: 'copy'
 
     when:
     !params.skipMultiQC
@@ -1468,6 +1470,7 @@ process MultiQC {
     file "multiqc_plots"
 
     script:
+    def peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     def rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     def rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     def mqcstats = params.skipMultiQCStats ? '--cl_config "skip_generalstats: true"' : ''
