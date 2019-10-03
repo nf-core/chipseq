@@ -46,7 +46,7 @@ def helpMessage() {
       --three_prime_clip_r1 [int]   Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed (Default: 0)
       --three_prime_clip_r2 [int]   Instructs Trim Galore to re move bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed (Default: 0)
       --skipTrimming                Skip the adapter trimming step
-      --saveTrimmed                 Save the trimmed FastQ files in the the results directory
+      --saveTrimmed                 Save the trimmed FastQ files in the results directory
 
     Alignments
       --keepDups                    Duplicate reads are not filtered from alignments
@@ -413,7 +413,7 @@ process MakeGenomeFilter {
 
     input:
     file fasta from ch_fasta
-    file blacklist from ch_blacklist
+    file blacklist from ch_blacklist.ifEmpty([])
 
     output:
     file "$fasta" into ch_genome_fasta                 // FASTA FILE FOR IGV
@@ -1361,7 +1361,7 @@ process IGV {
     def peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     """
     cat *.txt > igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt ../reference_genome/${fasta.getName()} --path_prefix '../'
+    igv_files_to_session.py igv_session.xml igv_files.txt ../../reference_genome/${fasta.getName()} --path_prefix '../../'
     """
 }
 
@@ -1440,9 +1440,12 @@ process MultiQC {
     input:
     file multiqc_config from ch_multiqc_config
 
-    file ('fastqc/*') from ch_fastqc_reports_mqc.collect()
-    file ('trimgalore/*') from ch_trimgalore_results_mqc.collect()
-    file ('trimgalore/fastqc/*') from ch_trimgalore_fastqc_reports_mqc.collect()
+    file ('software_versions/*') from ch_software_versions_mqc.collect()
+    file ('workflow_summary/*') from create_workflow_summary(summary)
+    
+    file ('fastqc/*') from ch_fastqc_reports_mqc.collect().ifEmpty([])
+    file ('trimgalore/*') from ch_trimgalore_results_mqc.collect().ifEmpty([])
+    file ('trimgalore/fastqc/*') from ch_trimgalore_fastqc_reports_mqc.collect().ifEmpty([])
 
     file ('alignment/library/*') from ch_sort_bam_flagstat_mqc.collect()
     file ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
@@ -1461,8 +1464,6 @@ process MultiQC {
     file ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
     file ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
     file ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
-    file ('software_versions/*') from ch_software_versions_mqc.collect()
-    file ('workflow_summary/*') from create_workflow_summary(summary)
 
     output:
     file "*multiqc_report.html" into ch_multiqc_report
