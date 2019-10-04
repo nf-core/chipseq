@@ -581,7 +581,7 @@ process SortBAM {
                 else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
                 else if (filename.endsWith(".stats")) "samtools_stats/$filename"
                 else filename }
-    }
+            }
 
     input:
     set val(name), file(bam) from ch_bwa_bam
