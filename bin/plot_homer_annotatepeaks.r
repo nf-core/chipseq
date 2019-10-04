@@ -57,7 +57,7 @@ plot.feature.dat <- data.frame()
 for (idx in 1:length(HomerFiles)) {
 
     sampleid = SampleIDs[idx]
-    anno.dat <- read.table(HomerFiles[idx], sep="\t", header=TRUE)
+    anno.dat <- read.table(HomerFiles[idx], sep="\t", header=TRUE,quote="")
     anno.dat <- anno.dat[,c("Annotation","Distance.to.TSS","Nearest.PromoterID")]
     anno.dat <- anno.dat[which(!is.na(anno.dat$Distance.to.TSS)),]
     if (nrow(anno.dat) == 0) {
