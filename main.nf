@@ -345,7 +345,7 @@ if (!params.bwa_index){
         tag "$fasta"
         label 'process_high'
         publishDir path: { params.saveGenomeIndex ? "${params.outdir}/reference_genome" : params.outdir },
-                   saveAs: { params.saveGenomeIndex ? it : null }, mode: 'copy'
+            saveAs: { params.saveGenomeIndex ? it : null }, mode: 'copy'
 
         input:
         file fasta from ch_fasta
