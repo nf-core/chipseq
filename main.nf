@@ -693,7 +693,7 @@ process MergeBAM {
 /*
  * STEP 4.2 Filter BAM file at merged library-level
  */
-process FilterBAM {
+process MergeBAMFilter {
     tag "$name"
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -759,7 +759,7 @@ if (params.singleEnd){
                                   ch_rm_orphan_flagstat_mqc }
     ch_filter_bam_stats_mqc.set { ch_rm_orphan_stats_mqc }
 } else {
-    process RemoveOrphans {
+    process MergeBAMRemoveOrphan {
         tag "$name"
         label 'process_medium'
         publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -1177,7 +1177,7 @@ ch_macs_consensus.map { it ->  [ it[0], it[1], it[2], it[-1] ] }
 /*
  * STEP 7.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
-process CreateConsensusPeakSet {
+process ConsensusPeakSet {
     tag "${antibody}"
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/${antibody}", mode: 'copy',
@@ -1229,7 +1229,7 @@ process CreateConsensusPeakSet {
 /*
  * STEP 7.2 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
-process AnnotateConsensusPeakSet {
+process ConsensusPeakSetAnnotate {
     tag "${antibody}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/${antibody}", mode: 'copy'
@@ -1273,7 +1273,7 @@ ch_group_bam_deseq.map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
 /*
  * STEP 7.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
-process DeseqConsensusPeakSet {
+process ConsensusPeakSetDESeq {
     tag "${antibody}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/${antibody}/deseq2", mode: 'copy',
