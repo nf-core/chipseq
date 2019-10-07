@@ -157,7 +157,7 @@ ch_spp_rsc_header = file("$baseDir/assets/multiqc/spp_rsc_header.txt", checkIfEx
 // Validate inputs
 if (params.design)    { ch_design = file(params.design, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
 if (params.gtf)       { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
-if (params.gene_bed)  { ch_gene_bed = file(params.gene.bed, checkIfExists: true) }
+if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
 if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
 if (params.blacklist) { ch_blacklist = file(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
 
