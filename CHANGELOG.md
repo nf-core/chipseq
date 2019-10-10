@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#46](https://github.com/nf-core/atacseq/issues/46) - Missing gene_bed path in igenomes config
 * Capitalised process names
 * Add quick start information to main README
+* Update template to tools v1.7
 
 ### `Fixed`
 
