@@ -7,3 +7,6 @@
 #pconfig:
 #    title: 'Peak to feature %'
 #    ylab: 'Feature %'
+#    ymax: 100
+#    ymin: 0
+#    cpswitch_c_active: false

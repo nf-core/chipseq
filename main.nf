@@ -463,14 +463,14 @@ process FastQC {
     if (params.singleEnd) {
         """
         [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-        fastqc -q ${name}.fastq.gz
+        fastqc -q -t $task.cpus ${name}.fastq.gz
         """
     } else {
         """
         [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
         [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
-        fastqc -q ${name}_1.fastq.gz
-        fastqc -q ${name}_2.fastq.gz
+        fastqc -q -t $task.cpus ${name}_1.fastq.gz
+        fastqc -q -t $task.cpus ${name}_2.fastq.gz
         """
     }
 }
@@ -945,7 +945,7 @@ process PlotProfile {
         --afterRegionStartLength 3000 \\
         --skipZeros \\
         --smartLabels \\
-        -p $task.cpus
+        --numberOfProcessors $task.cpus
 
     plotProfile --matrixFile ${name}.computeMatrix.mat.gz \\
         --outFileName ${name}.plotProfile.pdf \\
@@ -1037,8 +1037,8 @@ process PlotFingerprint {
         --outQualityMetrics ${ip}.plotFingerprint.qcmetrics.txt \\
         --skipZeros \\
         --JSDsample ${controlbam[0]} \\
-        --numberOfProcessors ${task.cpus} \\
-        --numberOfSamples ${params.fingerprint_bins}
+        --numberOfProcessors $task.cpus \\
+        --numberOfSamples $params.fingerprint_bins
     """
 }
 
@@ -1080,7 +1080,7 @@ process MACSCallPeak {
         -c ${controlbam[0]} \\
         $broad \\
         -f $format \\
-        -g ${params.macs_gsize} \\
+        -g $params.macs_gsize \\
         -n $ip \\
         $pileup \\
         --keep-dup all
@@ -1120,6 +1120,7 @@ process AnnotatePeaks {
         $fasta \\
         -gid \\
         -gtf $gtf \\
+        -cpu $task.cpus \\
         > ${ip}_peaks.annotatePeaks.txt
     """
 }
@@ -1256,6 +1257,7 @@ process ConsensusPeakSetAnnotate {
         $fasta \\
         -gid \\
         -gtf $gtf \\
+        -cpu $task.cpus \\
         > ${prefix}.annotatePeaks.txt
 
     cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
