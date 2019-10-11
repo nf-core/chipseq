@@ -81,7 +81,7 @@ for (idx in 1:length(PeakFiles)) {
     peaks.dat$name <- rep(sampleid,nrow(peaks.dat))
     plot.dat <- rbind(plot.dat,peaks.dat)
 }
-levels(plot.dat$name) <- sort(unique(as.character(plot.dat$name)))
+plot.dat$name <- factor(plot.dat$name, levels=sort(unique(as.character(plot.dat$name))))
 
 SummaryFile <- file.path(opt$outdir,paste(opt$outprefix,".summary.txt",sep=""))
 write.table(summary.dat,file=SummaryFile,quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)

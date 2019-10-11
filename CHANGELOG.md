@@ -12,11 +12,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#46](https://github.com/nf-core/atacseq/issues/46) - Missing gene_bed path in igenomes config
 * Capitalised process names
 * Add quick start information to main README
+* Update template to tools `1.7`
+* Bump Nextflow version to `19.04.0`
 
 ### `Fixed`
 
-* [#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly
 * [#44](https://github.com/nf-core/atacseq/issues/44) - Output directory missing: macs2/consensus/deseq2
+* [#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?
+* [#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly
+* [#50](https://github.com/nf-core/atacseq/issues/50) - HOMER number of peaks does not correspond to found MACS2 peaks
 * Increase default resource requirements in `base.config`
 * Increase process-specific requirements based on user-reported failures
 
