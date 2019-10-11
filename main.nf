@@ -1551,7 +1551,7 @@ workflow.onComplete {
     def mqc_report = null
     try {
         if (workflow.success) {
-            mqc_report = multiqc_report.getVal()
+            mqc_report = ch_multiqc_report.getVal()
             if (mqc_report.getClass() == ArrayList) {
                 log.warn "[nf-core/chipseq] Found multiple reports from process 'multiqc', will use only one"
                 mqc_report = mqc_report[0]
