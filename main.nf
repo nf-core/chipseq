@@ -160,7 +160,7 @@ if (params.design)    { ch_design = file(params.design, checkIfExists: true) } e
 if (params.gtf)       { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
 if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
 if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
-if (params.blacklist) { ch_blacklist = file(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
+if (params.blacklist) { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
 
 if (params.fasta){
     lastPath = params.fasta.lastIndexOf(File.separator)
