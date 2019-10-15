@@ -97,7 +97,7 @@ def helpMessage() {
  */
 
 // Show help message
-if (params.help){
+if (params.help) {
     helpMessage()
     exit 0
 }
@@ -122,8 +122,8 @@ params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: 
 // Has the run name been specified by the user?
 //  this has the bonus effect of catching both -name and --name
 custom_runName = params.name
-if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)){
-  custom_runName = workflow.runName
+if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
+    custom_runName = workflow.runName
 }
 
 ////////////////////////////////////////////////////
@@ -162,7 +162,7 @@ if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true)
 if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
 if (params.blacklist) { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
 
-if (params.fasta){
+if (params.fasta) {
     lastPath = params.fasta.lastIndexOf(File.separator)
     bwa_base = params.fasta.substring(lastPath+1)
     ch_fasta = file(params.fasta, checkIfExists: true)
@@ -170,27 +170,26 @@ if (params.fasta){
     exit 1, "Fasta file not specified!"
 }
 
-if (params.bwa_index){
+if (params.bwa_index) {
     lastPath = params.bwa_index.lastIndexOf(File.separator)
     bwa_dir =  params.bwa_index.substring(0,lastPath+1)
     bwa_base = params.bwa_index.substring(lastPath+1)
     ch_bwa_index = Channel
         .fromPath(bwa_dir, checkIfExists: true)
-        .ifEmpty { exit 1, "BWA index directory not found: ${bwa_dir}" }
 }
 
 ////////////////////////////////////////////////////
 /* --                   AWS                    -- */
 ////////////////////////////////////////////////////
 
-if ( workflow.profile == 'awsbatch') {
-  // AWSBatch sanity checking
-  if (!params.awsqueue || !params.awsregion) exit 1, "Specify correct --awsqueue and --awsregion parameters on AWSBatch!"
-  // Check outdir paths to be S3 buckets if running on AWSBatch
-  // related: https://github.com/nextflow-io/nextflow/issues/813
-  if (!params.outdir.startsWith('s3:')) exit 1, "Outdir not on S3 - specify S3 Bucket to run on AWSBatch!"
-  // Prevent trace files to be stored on S3 since S3 does not support rolling files.
-  if (workflow.tracedir.startsWith('s3:')) exit 1, "Specify a local tracedir or run without trace! S3 cannot be used for tracefiles."
+if (workflow.profile == 'awsbatch') {
+    // AWSBatch sanity checking
+    if (!params.awsqueue || !params.awsregion) exit 1, "Specify correct --awsqueue and --awsregion parameters on AWSBatch!"
+    // Check outdir paths to be S3 buckets if running on AWSBatch
+    // related: https://github.com/nextflow-io/nextflow/issues/813
+    if (!params.outdir.startsWith('s3:')) exit 1, "Outdir not on S3 - specify S3 Bucket to run on AWSBatch!"
+    // Prevent trace files to be stored on S3 since S3 does not support rolling files.
+    if (workflow.tracedir.startsWith('s3:')) exit 1, "Specify a local tracedir or run without trace! S3 cannot be used for tracefiles."
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -218,7 +217,7 @@ summary['MACS2 Genome Size']    = params.macs_gsize ?: 'Not supplied'
 summary['Min Consensus Reps']   = params.min_reps_consensus
 if (params.macs_gsize)          summary['MACS2 Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
 if (!params.narrowPeak)         summary['MACS2 Broad Cutoff'] = params.broad_cutoff
-if (params.skipTrimming){
+if (params.skipTrimming) {
     summary['Trimming Step']    = 'Skipped'
 } else {
     summary['Trim R1']          = "$params.clip_r1 bp"
@@ -252,7 +251,7 @@ summary['Launch Dir']           = workflow.launchDir
 summary['Working Dir']          = workflow.workDir
 summary['Script Dir']           = workflow.projectDir
 summary['User']                 = workflow.userName
-if (workflow.profile == 'awsbatch'){
+if (workflow.profile == 'awsbatch') {
    summary['AWS Region']        = params.awsregion
    summary['AWS Queue']         = params.awsqueue
 }
@@ -272,7 +271,7 @@ log.info "-\033[2m--------------------------------------------------\033[0m-"
 checkHostname()
 
 // Show a big warning message if we're not running MACS
-if (!params.macs_gsize){
+if (!params.macs_gsize) {
     def warnstring = params.genome ? "supported for '${params.genome}'" : 'supplied'
     log.warn "=================================================================\n" +
              "  WARNING! MACS genome size parameter not $warnstring.\n" +
@@ -342,7 +341,7 @@ if (params.singleEnd) {
 /*
  * PREPROCESSING - Build BWA index
  */
-if (!params.bwa_index){
+if (!params.bwa_index) {
     process BWAIndex {
         tag "$fasta"
         label 'process_high'
@@ -366,7 +365,7 @@ if (!params.bwa_index){
 /*
  * PREPROCESSING - Generate gene BED file
  */
-if (!params.gene_bed){
+if (!params.gene_bed) {
     process MakeGeneBED {
         tag "$gtf"
         label 'process_low'
@@ -388,7 +387,7 @@ if (!params.gene_bed){
 /*
  * PREPROCESSING - Generate TSS BED file
  */
-if (!params.tss_bed){
+if (!params.tss_bed) {
     process MakeTSSBED {
         tag "$bed"
         publishDir "${params.outdir}/reference_genome", mode: 'copy'
@@ -486,7 +485,7 @@ process FastQC {
 /*
  * STEP 2 - Trim Galore!
  */
-if (params.skipTrimming){
+if (params.skipTrimming) {
     ch_trimmed_reads = ch_raw_reads_trimgalore
     ch_trimgalore_results_mqc = []
     ch_trimgalore_fastqc_reports_mqc = []
@@ -542,7 +541,7 @@ if (params.skipTrimming){
 /*
  * STEP 3.1 - Align read 1 with bwa
  */
-process BWAmem {
+process BWAMem {
     tag "$name"
     label 'process_high'
 
@@ -554,10 +553,10 @@ process BWAmem {
     set val(name), file("*.bam") into ch_bwa_bam
 
     script:
-    prefix="${name}.Lb"
-    rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
+    prefix = "${name}.Lb"
+    rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
     if (params.seq_center) {
-        rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
+        rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
     }
     """
     bwa mem \\
@@ -593,7 +592,7 @@ process SortBAM {
     file "*.{flagstat,idxstats,stats}" into ch_sort_bam_flagstat_mqc
 
     script:
-    prefix="${name}.Lb"
+    prefix = "${name}.Lb"
     """
     samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $name $bam
     samtools index ${prefix}.sorted.bam
@@ -612,7 +611,7 @@ process SortBAM {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 4.1 Merge BAM files for all libraries from same sample
+ * STEP 4.1 Merge BAM files for all libraries from same replicate
  */
 ch_sort_bam_merge.map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
                  .groupTuple(by: [0])
@@ -641,10 +640,10 @@ process MergeBAM {
     file "*.txt" into ch_merge_bam_metrics_mqc
 
     script:
-    prefix="${name}.mLb.mkD"
+    prefix = "${name}.mLb.mkD"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     def avail_mem = 3
-    if (!task.memory){
+    if (!task.memory) {
         log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
     } else {
         avail_mem = task.memory.toGiga()
@@ -749,7 +748,7 @@ process MergeBAMFilter {
 /*
  * STEP 4.3 Remove orphan reads from paired-end BAM file
  */
-if (params.singleEnd){
+if (params.singleEnd) {
     ch_filter_bam.into { ch_rm_orphan_bam_metrics;
                          ch_rm_orphan_bam_bigwig;
                          ch_rm_orphan_bam_macs_1;
@@ -790,7 +789,7 @@ if (params.singleEnd){
         file "*.{idxstats,stats}" into ch_rm_orphan_stats_mqc
 
         script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-        prefix="${name}.mLb.clN"
+        prefix = "${name}.mLb.clN"
         """
         bampe_rm_orphan.py ${bam[0]} ${prefix}.bam --only_fr_pairs
 
@@ -829,7 +828,7 @@ process Preseq {
     file "*.ccurve.txt" into ch_preseq_results
 
     script:
-    prefix="${name}.mLb.clN"
+    prefix = "${name}.mLb.clN"
     """
     preseq lc_extrap -v -output ${prefix}.ccurve.txt -bam ${bam[0]}
     """
@@ -860,9 +859,9 @@ process CollectMultipleMetrics {
     file "*.pdf" into ch_collectmetrics_pdf
 
     script:
-    prefix="${name}.mLb.clN"
+    prefix = "${name}.mLb.clN"
     def avail_mem = 3
-    if (!task.memory){
+    if (!task.memory) {
         log.info "[Picard CollectMultipleMetrics] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
     } else {
         avail_mem = task.memory.toGiga()
@@ -885,7 +884,7 @@ process BigWig {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/bigwig", mode: 'copy',
         saveAs: {filename ->
-                    if (filename.endsWith(".txt")) "scale/$filename"
+                    if (filename.endsWith("scale_factor.txt")) "scale/$filename"
                     else if (filename.endsWith(".bigWig")) "$filename"
                     else null
                 }
@@ -900,7 +899,7 @@ process BigWig {
     file "*igv.txt" into ch_bigwig_igv
 
     script:
-    prefix="${name}.mLb.clN"
+    prefix = "${name}.mLb.clN"
     pe_fragment = params.singleEnd ? "" : "-pc"
     extend = (params.singleEnd && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
     """
@@ -1116,7 +1115,8 @@ process AnnotatePeaks {
     script:
     peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     """
-    annotatePeaks.pl $peak \\
+    annotatePeaks.pl \\
+        $peak \\
         $fasta \\
         -gid \\
         -gtf $gtf \\
@@ -1129,38 +1129,38 @@ process AnnotatePeaks {
  * STEP 6.4 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
 process PeakQC {
-   label "process_medium"
-   publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/qc", mode: 'copy'
+    label "process_medium"
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/qc", mode: 'copy'
 
-   when:
-   params.macs_gsize
+    when:
+    params.macs_gsize
 
-   input:
-   file peaks from ch_macs_qc.collect{ it[-1] }
-   file annos from ch_macs_annotate.collect()
-   file peak_annotation_header from ch_peak_annotation_header
+    input:
+    file peaks from ch_macs_qc.collect{ it[-1] }
+    file annos from ch_macs_annotate.collect()
+    file peak_annotation_header from ch_peak_annotation_header
 
-   output:
-   file "*.{txt,pdf}" into ch_macs_qc_output
-   file "*.tsv" into ch_macs_qc_mqc
+    output:
+    file "*.{txt,pdf}" into ch_macs_qc_output
+    file "*.tsv" into ch_macs_qc_mqc
 
-   script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-   peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
-   """
-   plot_macs_qc.r \\
-      -i ${peaks.join(',')} \\
-      -s ${peaks.join(',').replaceAll("_peaks.${peaktype}","")} \\
-      -o ./ \\
-      -p macs_peak
+    script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    """
+    plot_macs_qc.r \\
+        -i ${peaks.join(',')} \\
+        -s ${peaks.join(',').replaceAll("_peaks.${peaktype}","")} \\
+        -o ./ \\
+        -p macs_peak
 
-   plot_homer_annotatepeaks.r \\
-      -i ${annos.join(',')} \\
-      -s ${annos.join(',').replaceAll("_peaks.annotatePeaks.txt","")} \\
-      -o ./ \\
-      -p macs_annotatePeaks
+    plot_homer_annotatepeaks.r \\
+        -i ${annos.join(',')} \\
+        -s ${annos.join(',').replaceAll("_peaks.annotatePeaks.txt","")} \\
+        -o ./ \\
+        -p macs_annotatePeaks
 
-   cat $peak_annotation_header macs_annotatePeaks.summary.txt > macs_annotatePeaks.summary_mqc.tsv
-   """
+    cat $peak_annotation_header macs_annotatePeaks.summary.txt > macs_annotatePeaks.summary_mqc.tsv
+    """
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1203,7 +1203,7 @@ process ConsensusPeakSet {
     file "*igv.txt" into ch_macs_consensus_igv
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
-    prefix="${antibody}.consensus_peaks"
+    prefix = "${antibody}.consensus_peaks"
     peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
     collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
@@ -1250,10 +1250,11 @@ process ConsensusPeakSetAnnotate {
     file "*.annotatePeaks.txt" into ch_macs_consensus_annotate
 
     script:
-    prefix="${antibody}.consensus_peaks"
+    prefix = "${antibody}.consensus_peaks"
     peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     """
-    annotatePeaks.pl $bed \\
+    annotatePeaks.pl \\
+        $bed \\
         $fasta \\
         -gid \\
         -gtf $gtf \\
@@ -1305,13 +1306,14 @@ process ConsensusPeakSetDESeq {
     file "*.tsv" into ch_macs_consensus_deseq_mqc
 
     script:
-    prefix="${antibody}.consensus_peaks"
+    prefix = "${antibody}.consensus_peaks"
     peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     bam_ext = params.singleEnd ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
     pe_params = params.singleEnd ? '' : "-p --donotsort"
     """
-    featureCounts -F SAF \\
+    featureCounts \\
+        -F SAF \\
         -O \\
         --fracOverlap 0.2 \\
         -T $task.cpus \\
@@ -1587,7 +1589,7 @@ workflow.onComplete {
     // Send the HTML e-mail
     if (email_address) {
         try {
-          if ( params.plaintext_email ){ throw GroovyException('Send plaintext e-mail, not HTML') }
+          if (params.plaintext_email) { throw GroovyException('Send plaintext e-mail, not HTML') }
           // Try to send HTML e-mail using sendmail
           [ 'sendmail', '-t' ].execute() << sendmail_html
           log.info "[nf-core/chipseq] Sent summary e-mail to $email_address (sendmail)"
@@ -1636,7 +1638,7 @@ workflow.onComplete {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-def nfcoreHeader(){
+def nfcoreHeader() {
     // Log colors ANSI codes
     c_reset = params.monochrome_logs ? '' : "\033[0m";
     c_dim = params.monochrome_logs ? '' : "\033[2m";
@@ -1659,7 +1661,7 @@ def nfcoreHeader(){
     """.stripIndent()
 }
 
-def checkHostname(){
+def checkHostname() {
     def c_reset = params.monochrome_logs ? '' : "\033[0m"
     def c_white = params.monochrome_logs ? '' : "\033[0;37m"
     def c_red = params.monochrome_logs ? '' : "\033[1;91m"
