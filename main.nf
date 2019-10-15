@@ -446,7 +446,9 @@ process FastQC {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/fastqc", mode: 'copy',
-        saveAs: {filename -> filename.endsWith(".zip") ? "zips/$filename" : "$filename"}
+        saveAs: { filename ->
+                      filename.endsWith(".zip") ? "zips/$filename" : "$filename"
+                }
 
     when:
     !params.skipFastQC
@@ -494,12 +496,12 @@ if (params.skipTrimming) {
         tag "$name"
         label 'process_long'
         publishDir "${params.outdir}/trim_galore", mode: 'copy',
-            saveAs: {filename ->
-                if (filename.endsWith(".html")) "fastqc/$filename"
-                else if (filename.endsWith(".zip")) "fastqc/zips/$filename"
-                else if (filename.endsWith("trimming_report.txt")) "logs/$filename"
-                else params.saveTrimmed ? filename : null
-            }
+            saveAs: { filename ->
+                          if (filename.endsWith(".html")) "fastqc/$filename"
+                          else if (filename.endsWith(".zip")) "fastqc/zips/$filename"
+                          else if (filename.endsWith("trimming_report.txt")) "logs/$filename"
+                          else params.saveTrimmed ? filename : null
+                    }
 
         input:
         set val(name), file(reads) from ch_raw_reads_trimgalore
@@ -578,11 +580,12 @@ process SortBAM {
     if (params.saveAlignedIntermediates) {
         publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
             saveAs: { filename ->
-                if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
-                else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
-                else if (filename.endsWith(".stats")) "samtools_stats/$filename"
-                else filename }
-            }
+                          if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+                          else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+                          else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+                          else filename
+                    }
+    }
 
     input:
     set val(name), file(bam) from ch_bwa_bam
@@ -623,12 +626,12 @@ process MergeBAM {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
         saveAs: { filename ->
-            if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
-            else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
-            else if (filename.endsWith(".stats")) "samtools_stats/$filename"
-            else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
-            else params.saveAlignedIntermediates ? filename : null
-        }
+                      if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+                      else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+                      else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+                      else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
+                      else params.saveAlignedIntermediates ? filename : null
+                }
 
     input:
     set val(name), file(bams) from ch_sort_bam_merge
@@ -699,14 +702,15 @@ process MergeBAMFilter {
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
         saveAs: { filename ->
-            if (params.singleEnd || params.saveAlignedIntermediates) {
-                if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
-                else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
-                else if (filename.endsWith(".stats")) "samtools_stats/$filename"
-                else if (filename.endsWith(".sorted.bam")) filename
-                else if (filename.endsWith(".sorted.bam.bai")) filename
-                else null }
-            }
+                      if (params.singleEnd || params.saveAlignedIntermediates) {
+                          if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+                          else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+                          else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+                          else if (filename.endsWith(".sorted.bam")) filename
+                          else if (filename.endsWith(".sorted.bam.bai")) filename
+                          else null
+                      }
+                }
 
     input:
     set val(name), file(bam) from ch_merge_bam_filter
@@ -765,13 +769,13 @@ if (params.singleEnd) {
         label 'process_medium'
         publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
             saveAs: { filename ->
-                if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
-                else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
-                else if (filename.endsWith(".stats")) "samtools_stats/$filename"
-                else if (filename.endsWith(".sorted.bam")) filename
-                else if (filename.endsWith(".sorted.bam.bai")) filename
-                else null
-            }
+                          if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+                          else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+                          else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+                          else if (filename.endsWith(".sorted.bam")) filename
+                          else if (filename.endsWith(".sorted.bam.bai")) filename
+                          else null
+                    }
 
         input:
         set val(name), file(bam) from ch_filter_bam
@@ -825,7 +829,7 @@ process Preseq {
     set val(name), file(bam) from ch_merge_bam_preseq
 
     output:
-    file "*.ccurve.txt" into ch_preseq_results
+    file "*.ccurve.txt" into ch_preseq_mqc
 
     script:
     prefix = "${name}.mLb.clN"
@@ -842,10 +846,10 @@ process CollectMultipleMetrics {
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
         saveAs: { filename ->
-            if (filename.endsWith("_metrics")) "picard_metrics/$filename"
-            else if (filename.endsWith(".pdf")) "picard_metrics/pdf/$filename"
-            else null
-        }
+                      if (filename.endsWith("_metrics")) "picard_metrics/$filename"
+                      else if (filename.endsWith(".pdf")) "picard_metrics/pdf/$filename"
+                      else null
+                }
 
     when:
     !params.skipPicardMetrics
@@ -883,10 +887,10 @@ process BigWig {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/bigwig", mode: 'copy',
-        saveAs: {filename ->
-                    if (filename.endsWith("scale_factor.txt")) "scale/$filename"
-                    else if (filename.endsWith(".bigWig")) "$filename"
-                    else null
+        saveAs: { filename ->
+                      if (filename.endsWith("scale_factor.txt")) "scale/$filename"
+                      else if (filename.endsWith(".bigWig")) "$filename"
+                      else null
                 }
 
     input:
@@ -1048,10 +1052,10 @@ process MACSCallPeak {
     tag "${ip} vs ${control}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}", mode: 'copy',
-        saveAs: {filename ->
-                    if (filename.endsWith(".tsv")) "qc/$filename"
-                    else if (filename.endsWith(".igv.txt")) null
-                    else filename
+        saveAs: { filename ->
+                      if (filename.endsWith(".tsv")) "qc/$filename"
+                      else if (filename.endsWith(".igv.txt")) null
+                      else filename
                 }
 
     when:
@@ -1184,9 +1188,9 @@ process ConsensusPeakSet {
     tag "${antibody}"
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/${antibody}", mode: 'copy',
-        saveAs: {filename ->
-                    if (filename.endsWith(".igv.txt")) null
-                    else filename
+        saveAs: { filename ->
+                      if (filename.endsWith(".igv.txt")) null
+                      else filename
                 }
 
     when:
@@ -1282,9 +1286,9 @@ process ConsensusPeakSetDESeq {
     tag "${antibody}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/${antibody}/deseq2", mode: 'copy',
-        saveAs: {filename ->
-                    if (filename.endsWith(".igv.txt")) null
-                    else filename
+        saveAs: { filename ->
+                      if (filename.endsWith(".igv.txt")) null
+                      else filename
                 }
 
     when:
@@ -1384,10 +1388,10 @@ process IGV {
  */
 process get_software_versions {
     publishDir "${params.outdir}/pipeline_info", mode: 'copy',
-        saveAs: {filename ->
-            if (filename.indexOf(".csv") > 0) filename
-            else null
-        }
+        saveAs: { filename ->
+                      if (filename.indexOf(".csv") > 0) filename
+                      else null
+                }
 
     output:
     file 'software_versions_mqc.yaml' into ch_software_versions_mqc
@@ -1465,7 +1469,7 @@ process MultiQC {
     file ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
     file ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
-    file ('preseq/*') from ch_preseq_results.collect().ifEmpty([])
+    file ('preseq/*') from ch_preseq_mqc.collect().ifEmpty([])
     file ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
     file ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
     file ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
