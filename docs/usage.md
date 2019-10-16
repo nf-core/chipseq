@@ -328,14 +328,16 @@ Do not load `igenomes.config` when running the pipeline. You may choose this opt
 The pipeline accepts a number of parameters to change how the trimming is done, according to your data type.
 You can specify custom trimming parameters as follows:
 
-* `--clip_r1 <NUMBER>`
-  * Instructs Trim Galore to remove bp from the 5' end of read 1 (for single-end reads).
-* `--clip_r2 <NUMBER>`
-  * Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only).
-* `--three_prime_clip_r1 <NUMBER>`
-  * Instructs Trim Galore to remove bp from the 3' end of read 1 _AFTER_ adapter/quality trimming has been
-* `--three_prime_clip_r2 <NUMBER>`
-  * Instructs Trim Galore to re move bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
+* `--clip_r1 [int]`
+  * Instructs Trim Galore to remove [int] bp from the 5' end of read 1 (for single-end reads).
+* `--clip_r2 [int]`
+  * Instructs Trim Galore to remove [int] bp from the 5' end of read 2 (paired-end reads only).
+* `--three_prime_clip_r1 [int]`
+  * Instructs Trim Galore to remove [int] bp from the 3' end of read 1 _AFTER_ adapter/quality trimming has been
+* `--three_prime_clip_r2 [int]`
+  * Instructs Trim Galore to remove [int] bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
+* `--trim_nextseq [int]`
+  * This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases.
 
 ### `--skipTrimming`
 Skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.

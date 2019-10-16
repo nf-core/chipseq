@@ -45,6 +45,7 @@ def helpMessage() {
       --clip_r2 [int]               Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only) (Default: 0)
       --three_prime_clip_r1 [int]   Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed (Default: 0)
       --three_prime_clip_r2 [int]   Instructs Trim Galore to re move bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed (Default: 0)
+      --trim_nextseq [int]          Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails (Default: 0)
       --skipTrimming                Skip the adapter trimming step
       --saveTrimmed                 Save the trimmed FastQ files in the results directory
 
@@ -223,6 +224,7 @@ if (params.skipTrimming) {
     summary['Trim R2']          = "$params.clip_r2 bp"
     summary["Trim 3' R1"]       = "$params.three_prime_clip_r1 bp"
     summary["Trim 3' R2"]       = "$params.three_prime_clip_r2 bp"
+    summary["NextSeq Trim"]     = "$params.trim_nextseq bp"
 }
 if (params.seq_center)          summary['Sequencing Center'] = params.seq_center
 if (params.singleEnd)           summary['Fragment Size'] = "$params.fragment_size bp"
@@ -515,16 +517,17 @@ if (params.skipTrimming) {
         c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
         tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
         tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
+        nextseq = params.trim_nextseq > 0 ? "--nextseq ${params.trim_nextseq}" : ''
         if (params.singleEnd) {
             """
             [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-            trim_galore --fastqc --gzip $c_r1 $tpc_r1 ${name}.fastq.gz
+            trim_galore --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
             """
         } else {
             """
             [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
             [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
-            trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 ${name}_1.fastq.gz ${name}_2.fastq.gz
+            trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq ${name}_1.fastq.gz ${name}_2.fastq.gz
             """
         }
     }
