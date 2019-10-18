@@ -84,7 +84,7 @@
 * [xfun](https://CRAN.R-project.org/package=xfun)
   > Yihui Xie (2018). xfun: Miscellaneous Functions by 'Yihui Xie'.
 
-## Software packaging/container tools
+## Software packaging/containerisation tools
 
 * [Bioconda](https://www.ncbi.nlm.nih.gov/pubmed/29967506/)
   > Grüning B, Dale R, Sjödin A, Chapman BA, Rowe J, Tomkins-Tinch CH, Valieris R, Köster J; Bioconda Team. Bioconda: sustainable and comprehensive software distribution for the life sciences. Nat Methods. 2018 Jul;15(7):475-476. doi: 10.1038/s41592-018-0046-7. PubMed PMID: 29967506.
