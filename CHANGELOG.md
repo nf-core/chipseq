@@ -13,9 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Capitalised process names
 * Add quick start information to main README
 * Update template to tools `1.7`
-* Bump Nextflow version to `19.04.0`
-* Change all parameters from `camelCase` to `snake_case`
-* Change `--design` parameter to `--input` for standardisation
+* Add `--trim_nextseq` parameter
 
 ### `Fixed`
 
@@ -26,9 +24,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Increase default resource requirements in `base.config`
 * Increase process-specific requirements based on user-reported failures
 * Change parameter `saveGenomeIndex` to `save_reference`
+* Change parameter `--design` to `--input`
+* Change all parameters from `camelCase` to `snake_case`
+* Fixed bug in UpSetR peak intersection plot
 
 ### `Dependencies`
 
+* Bump Nextflow version to `19.04.0`
 
 ## [1.0.0] - 2019-06-06
 
