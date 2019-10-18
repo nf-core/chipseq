@@ -1306,7 +1306,7 @@ process ConsensusPeakSetDESeq {
                 }
 
     when:
-    params.macs_gsize && !params.skip_diff_analysis && replicatesExist && multipleGroups
+    params.macs_gsize && replicatesExist && multipleGroups && !params.skip_diff_analysis
 
     input:
     set val(antibody), val(replicatesExist), val(multipleGroups), file(bams) ,file(saf) from ch_group_bam_deseq
