@@ -55,21 +55,21 @@ def helpMessage() {
       --save_align_intermeds    Save the intermediate BAM files from the alignment step - not done by default
 
     Peaks
-      --narrowPeak                  Run MACS2 in narrowPeak mode
-      --broad_cutoff [float]        Specifies broad cutoff value for MACS2. Only used when --narrowPeak isnt specified (Default: 0.1)
+      --narrow_peak                  Run MACS2 in narrowPeak mode
+      --broad_cutoff [float]        Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified (Default: 0.1)
       --min_reps_consensus          Number of biological replicates required from a given condition for a peak to contribute to a consensus peak (Default: 1)
-      --saveMACSPileup              Instruct MACS2 to create bedGraph files normalised to signal per million reads
-      --skipDiffAnalysis            Skip differential binding analysis
+      --save_macs_pileup              Instruct MACS2 to create bedGraph files normalised to signal per million reads
+      --skip_diff_analysis            Skip differential binding analysis
 
     QC
-      --skipFastQC                  Skip FastQC
-      --skipPicardMetrics           Skip Picard CollectMultipleMetrics
-      --skipPreseq                  Skip Preseq
-      --skipPlotProfile             Skip deepTools plotProfile
-      --skipPlotFingerprint         Skip deepTools plotFingerprint
-      --skipSpp                     Skip Phantompeakqualtools
-      --skipIGV                     Skip IGV
-      --skipMultiQC                 Skip MultiQC
+      --skip_fastqc                  Skip FastQC
+      --skip_picard_metrics           Skip Picard CollectMultipleMetrics
+      --skip_preseq                  Skip Preseq
+      --skip_plot_profile             Skip deepTools plotProfile
+      --skip_plot_fingerprint         Skip deepTools plotFingerprint
+      --skip_spp                     Skip Phantompeakqualtools
+      --skip_igv                     Skip IGV
+      --skip_multiqc                 Skip MultiQC
 
     Other
       --outdir                      The output directory where the results will be saved
@@ -215,8 +215,8 @@ if (params.bwa_index)           summary['BWA Index'] = params.bwa_index
 if (params.blacklist)           summary['Blacklist BED'] = params.blacklist
 summary['MACS2 Genome Size']    = params.macs_gsize ?: 'Not supplied'
 summary['Min Consensus Reps']   = params.min_reps_consensus
-if (params.macs_gsize)          summary['MACS2 Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
-if (!params.narrowPeak)         summary['MACS2 Broad Cutoff'] = params.broad_cutoff
+if (params.macs_gsize)          summary['MACS2 Narrow Peaks'] = params.narrow_peak ? 'Yes' : 'No'
+if (!params.narrow_peak)         summary['MACS2 Broad Cutoff'] = params.broad_cutoff
 if (params.skip_trimming) {
     summary['Trimming Step']    = 'Skipped'
 } else {
@@ -234,16 +234,16 @@ if (params.keep_multi_map)        summary['Keep Multi-mapped'] = 'Yes'
 summary['Save Genome Index']    = params.save_reference ? 'Yes' : 'No'
 if (params.save_trimmed)         summary['Save Trimmed'] = 'Yes'
 if (params.save_align_intermeds) summary['Save Intermeds'] =  'Yes'
-if (params.saveMACSPileup)      summary['Save MACS2 Pileup'] = 'Yes'
-if (params.skipDiffAnalysis)    summary['Skip Diff Analysis'] = 'Yes'
-if (params.skipFastQC)          summary['Skip FastQC'] = 'Yes'
-if (params.skipPicardMetrics)   summary['Skip Picard Metrics'] = 'Yes'
-if (params.skipPreseq)          summary['Skip Preseq'] = 'Yes'
-if (params.skipPlotProfile)     summary['Skip plotProfile'] = 'Yes'
-if (params.skipPlotFingerprint) summary['Skip plotFingerprint'] = 'Yes'
-if (params.skipSpp)             summary['Skip spp'] = 'Yes'
-if (params.skipIGV)             summary['Skip IGV'] = 'Yes'
-if (params.skipMultiQC)         summary['Skip MultiQC'] = 'Yes'
+if (params.save_macs_pileup)      summary['Save MACS2 Pileup'] = 'Yes'
+if (params.skip_diff_analysis)    summary['Skip Diff Analysis'] = 'Yes'
+if (params.skip_fastqc)          summary['Skip FastQC'] = 'Yes'
+if (params.skip_picard_metrics)   summary['Skip Picard Metrics'] = 'Yes'
+if (params.skip_preseq)          summary['Skip Preseq'] = 'Yes'
+if (params.skip_plot_profile)     summary['Skip plotProfile'] = 'Yes'
+if (params.skip_plot_fingerprint) summary['Skip plotFingerprint'] = 'Yes'
+if (params.skip_spp)             summary['Skip spp'] = 'Yes'
+if (params.skip_igv)             summary['Skip IGV'] = 'Yes'
+if (params.skip_multiqc)         summary['Skip MultiQC'] = 'Yes'
 summary['Max Resources']        = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
 summary['Output Dir']           = params.outdir
@@ -451,7 +451,7 @@ process FastQC {
                 }
 
     when:
-    !params.skipFastQC
+    !params.skip_fastqc
 
     input:
     set val(name), file(reads) from ch_raw_reads_fastqc
@@ -824,7 +824,7 @@ process Preseq {
     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: 'copy'
 
     when:
-    !params.skipPreseq
+    !params.skip_preseq
 
     input:
     set val(name), file(bam) from ch_merge_bam_preseq
@@ -853,7 +853,7 @@ process CollectMultipleMetrics {
                 }
 
     when:
-    !params.skipPicardMetrics
+    !params.skip_picard_metrics
 
     input:
     set val(name), file(bam) from ch_rm_orphan_bam_metrics
@@ -927,7 +927,7 @@ process PlotProfile {
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: 'copy'
 
     when:
-    !params.skipPlotProfile
+    !params.skip_plot_profile
 
     input:
     set val(name), file(bigwig) from ch_bigwig_plotprofile
@@ -966,7 +966,7 @@ process PhantomPeakQualTools {
     publishDir "${params.outdir}/bwa/mergedLibrary/phantompeakqualtools", mode: 'copy'
 
     when:
-    !params.skipSpp
+    !params.skip_spp
 
     input:
     set val(name), file(bam) from ch_rm_orphan_bam_phantompeakqualtools
@@ -1020,7 +1020,7 @@ process PlotFingerprint {
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
 
     when:
-    !params.skipPlotFingerprint
+    !params.skip_plot_fingerprint
 
     input:
     set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), file(ipbam), val(control), file(controlbam), file(ipflagstat) from ch_group_bam_plotfingerprint
@@ -1074,10 +1074,10 @@ process MACSCallPeak {
     file "*_mqc.tsv" into ch_macs_mqc
 
     script:
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
-    broad = params.narrowPeak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
+    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
+    broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
     format = params.single_end ? "BAM" : "BAMPE"
-    pileup = params.saveMACSPileup ? "-B --SPMR" : ""
+    pileup = params.save_macs_pileup ? "-B --SPMR" : ""
     """
     macs2 callpeak \\
         -t ${ipbam[0]} \\
@@ -1118,7 +1118,7 @@ process AnnotatePeaks {
     file "*.txt" into ch_macs_annotate
 
     script:
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     annotatePeaks.pl \\
         $peak \\
@@ -1150,7 +1150,7 @@ process PeakQC {
     file "*.tsv" into ch_macs_qc_mqc
 
     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     plot_macs_qc.r \\
         -i ${peaks.join(',')} \\
@@ -1209,10 +1209,10 @@ process ConsensusPeakSet {
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
     prefix = "${antibody}.consensus_peaks"
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
-    mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
-    collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
-    expandparam = params.narrowPeak ? "--is_narrow_peak" : ""
+    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
+    mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
+    collapsecols = params.narrow_peak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
+    expandparam = params.narrow_peak ? "--is_narrow_peak" : ""
     """
     sort -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
@@ -1256,7 +1256,7 @@ process ConsensusPeakSetAnnotate {
 
     script:
     prefix = "${antibody}.consensus_peaks"
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     annotatePeaks.pl \\
         $bed \\
@@ -1293,7 +1293,7 @@ process ConsensusPeakSetDESeq {
                 }
 
     when:
-    params.macs_gsize && !params.skipDiffAnalysis && replicatesExist && multipleGroups
+    params.macs_gsize && !params.skip_diff_analysis && replicatesExist && multipleGroups
 
     input:
     set val(antibody), val(replicatesExist), val(multipleGroups), file(bams) ,file(saf) from ch_group_bam_deseq
@@ -1312,7 +1312,7 @@ process ConsensusPeakSetDESeq {
 
     script:
     prefix = "${antibody}.consensus_peaks"
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
     pe_params = params.single_end ? '' : "-p --donotsort"
@@ -1356,7 +1356,7 @@ process IGV {
     publishDir "${params.outdir}/igv/${peaktype}", mode: 'copy'
 
     when:
-    !params.skipIGV
+    !params.skip_igv
 
     input:
     file fasta from ch_fasta
@@ -1369,7 +1369,7 @@ process IGV {
     file "*.{txt,xml}" into ch_igv_session
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt ../../reference_genome/${fasta.getName()} --path_prefix '../../'
@@ -1446,7 +1446,7 @@ process MultiQC {
     publishDir "${params.outdir}/multiqc/${peaktype}", mode: 'copy'
 
     when:
-    !params.skipMultiQC
+    !params.skip_multiqc
 
     input:
     file multiqc_config from ch_multiqc_config
@@ -1482,7 +1482,7 @@ process MultiQC {
     file "multiqc_plots"
 
     script:
-    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
+    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     """
