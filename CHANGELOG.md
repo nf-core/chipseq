@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Add quick start information to main README
 * Update template to tools `1.7`
 * Bump Nextflow version to `19.04.0`
+* Change all parameters from `camelCase` to `snake_case`
 
 ### `Fixed`
 
@@ -23,7 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#50](https://github.com/nf-core/atacseq/issues/50) - HOMER number of peaks does not correspond to found MACS2 peaks
 * Increase default resource requirements in `base.config`
 * Increase process-specific requirements based on user-reported failures
-* Change parameter `saveGenomeIndex` to `saveReference`
+* Change parameter `saveGenomeIndex` to `save_reference`
 
 ### `Dependencies`
 
