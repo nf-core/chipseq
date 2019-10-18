@@ -203,66 +203,66 @@ if (workflow.profile == 'awsbatch') {
 // Header log info
 log.info nfcoreHeader()
 def summary = [:]
-summary['Run Name']             = custom_runName ?: workflow.runName
-summary['Data Type']            = params.single_end ? 'Single-End' : 'Paired-End'
-summary['Design File']          = params.design
-summary['Genome']               = params.genome ?: 'Not supplied'
-summary['Fasta File']           = params.fasta
-summary['GTF File']             = params.gtf
-if (params.gene_bed)            summary['Gene BED File'] = params.gene_bed
-if (params.tss_bed)             summary['TSS BED File'] = params.tss_bed
-if (params.bwa_index)           summary['BWA Index'] = params.bwa_index
-if (params.blacklist)           summary['Blacklist BED'] = params.blacklist
-summary['MACS2 Genome Size']    = params.macs_gsize ?: 'Not supplied'
-summary['Min Consensus Reps']   = params.min_reps_consensus
-if (params.macs_gsize)          summary['MACS2 Narrow Peaks'] = params.narrow_peak ? 'Yes' : 'No'
-if (!params.narrow_peak)         summary['MACS2 Broad Cutoff'] = params.broad_cutoff
+summary['Run Name']               = custom_runName ?: workflow.runName
+summary['Data Type']              = params.single_end ? 'Single-End' : 'Paired-End'
+summary['Design File']            = params.design
+summary['Genome']                 = params.genome ?: 'Not supplied'
+summary['Fasta File']             = params.fasta
+summary['GTF File']               = params.gtf
+if (params.gene_bed)              summary['Gene BED File'] = params.gene_bed
+if (params.tss_bed)               summary['TSS BED File'] = params.tss_bed
+if (params.bwa_index)             summary['BWA Index'] = params.bwa_index
+if (params.blacklist)             summary['Blacklist BED'] = params.blacklist
+summary['MACS2 Genome Size']      = params.macs_gsize ?: 'Not supplied'
+summary['Min Consensus Reps']     = params.min_reps_consensus
+if (params.macs_gsize)            summary['MACS2 Narrow Peaks'] = params.narrow_peak ? 'Yes' : 'No'
+if (!params.narrow_peak)          summary['MACS2 Broad Cutoff'] = params.broad_cutoff
 if (params.skip_trimming) {
-    summary['Trimming Step']    = 'Skipped'
+    summary['Trimming Step']      = 'Skipped'
 } else {
-    summary['Trim R1']          = "$params.clip_r1 bp"
-    summary['Trim R2']          = "$params.clip_r2 bp"
-    summary["Trim 3' R1"]       = "$params.three_prime_clip_r1 bp"
-    summary["Trim 3' R2"]       = "$params.three_prime_clip_r2 bp"
-    summary["NextSeq Trim"]     = "$params.trim_nextseq bp"
+    summary['Trim R1']            = "$params.clip_r1 bp"
+    summary['Trim R2']            = "$params.clip_r2 bp"
+    summary["Trim 3' R1"]         = "$params.three_prime_clip_r1 bp"
+    summary["Trim 3' R2"]         = "$params.three_prime_clip_r2 bp"
+    summary["NextSeq Trim"]       = "$params.trim_nextseq bp"
 }
-if (params.seq_center)          summary['Sequencing Center'] = params.seq_center
-if (params.single_end)           summary['Fragment Size'] = "$params.fragment_size bp"
-summary['Fingerprint Bins']     = params.fingerprint_bins
-if (params.keep_dups)            summary['Keep Duplicates'] = 'Yes'
+if (params.seq_center)            summary['Sequencing Center'] = params.seq_center
+if (params.single_end)            summary['Fragment Size'] = "$params.fragment_size bp"
+summary['Fingerprint Bins']       = params.fingerprint_bins
+if (params.keep_dups)             summary['Keep Duplicates'] = 'Yes'
 if (params.keep_multi_map)        summary['Keep Multi-mapped'] = 'Yes'
-summary['Save Genome Index']    = params.save_reference ? 'Yes' : 'No'
-if (params.save_trimmed)         summary['Save Trimmed'] = 'Yes'
-if (params.save_align_intermeds) summary['Save Intermeds'] =  'Yes'
+summary['Save Genome Index']      = params.save_reference ? 'Yes' : 'No'
+if (params.save_trimmed)          summary['Save Trimmed'] = 'Yes'
+if (params.save_align_intermeds)  summary['Save Intermeds'] =  'Yes'
 if (params.save_macs_pileup)      summary['Save MACS2 Pileup'] = 'Yes'
 if (params.skip_diff_analysis)    summary['Skip Diff Analysis'] = 'Yes'
-if (params.skip_fastqc)          summary['Skip FastQC'] = 'Yes'
+if (params.skip_fastqc)           summary['Skip FastQC'] = 'Yes'
 if (params.skip_picard_metrics)   summary['Skip Picard Metrics'] = 'Yes'
-if (params.skip_preseq)          summary['Skip Preseq'] = 'Yes'
+if (params.skip_preseq)           summary['Skip Preseq'] = 'Yes'
 if (params.skip_plot_profile)     summary['Skip plotProfile'] = 'Yes'
 if (params.skip_plot_fingerprint) summary['Skip plotFingerprint'] = 'Yes'
-if (params.skip_spp)             summary['Skip spp'] = 'Yes'
-if (params.skip_igv)             summary['Skip IGV'] = 'Yes'
-if (params.skip_multiqc)         summary['Skip MultiQC'] = 'Yes'
-summary['Max Resources']        = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
+if (params.skip_spp)              summary['Skip spp'] = 'Yes'
+if (params.skip_igv)              summary['Skip IGV'] = 'Yes'
+if (params.skip_multiqc)          summary['Skip MultiQC'] = 'Yes'
+summary['Max Resources']          = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
-summary['Output Dir']           = params.outdir
-summary['Launch Dir']           = workflow.launchDir
-summary['Working Dir']          = workflow.workDir
-summary['Script Dir']           = workflow.projectDir
-summary['User']                 = workflow.userName
+summary['Output Dir']             = params.outdir
+summary['Launch Dir']             = workflow.launchDir
+summary['Working Dir']            = workflow.workDir
+summary['Script Dir']             = workflow.projectDir
+summary['User']                   = workflow.userName
 if (workflow.profile == 'awsbatch') {
-   summary['AWS Region']        = params.awsregion
-   summary['AWS Queue']         = params.awsqueue
+   summary['AWS Region']          = params.awsregion
+   summary['AWS Queue']           = params.awsqueue
 }
-summary['Config Profile']       = workflow.profile
+summary['Config Profile']         = workflow.profile
 if (params.config_profile_description) summary['Config Description'] = params.config_profile_description
 if (params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
 if (params.config_profile_url)         summary['Config URL']         = params.config_profile_url
 if (params.email || params.email_on_fail) {
-  summary['E-mail Address']     = params.email
-  summary['E-mail on failure']  = params.email_on_fail
-  summary['MultiQC Max Size']   = params.max_multiqc_email_size
+  summary['E-mail Address']       = params.email
+  summary['E-mail on failure']    = params.email_on_fail
+  summary['MultiQC Max Size']     = params.max_multiqc_email_size
 }
 log.info summary.collect { k,v -> "${k.padRight(20)}: $v" }.join("\n")
 log.info "-\033[2m--------------------------------------------------\033[0m-"
