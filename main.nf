@@ -174,8 +174,9 @@ if (params.bwa_index) {
     lastPath = params.bwa_index.lastIndexOf(File.separator)
     bwa_dir =  params.bwa_index.substring(0,lastPath+1)
     bwa_base = params.bwa_index.substring(lastPath+1)
-    ch_bwa_index = Channel
+    Channel
         .fromPath(bwa_dir, checkIfExists: true)
+        .set { ch_bwa_index }
 }
 
 ////////////////////////////////////////////////////
@@ -312,23 +313,26 @@ process CheckDesign {
  * Create channels for input fastq files
  */
 if (params.single_end) {
-    ch_design_reads_csv.splitCsv(header:true, sep:',')
-                       .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true) ] ] }
-                       .into { ch_raw_reads_fastqc;
-                               ch_raw_reads_trimgalore }
+    ch_design_reads_csv
+        .splitCsv(header:true, sep:',')
+        .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true) ] ] }
+        .into { ch_raw_reads_fastqc;
+                ch_raw_reads_trimgalore }
 } else {
-    ch_design_reads_csv.splitCsv(header:true, sep:',')
-                       .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] ] }
-                       .into { ch_raw_reads_fastqc;
-                               ch_raw_reads_trimgalore }
+    ch_design_reads_csv
+        .splitCsv(header:true, sep:',')
+        .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] ] }
+        .into { ch_raw_reads_fastqc;
+                ch_raw_reads_trimgalore }
 }
 
 /*
  * Create a channel with [sample_id, control id, antibody, replicatesExist, multipleGroups]
  */
- ch_design_controls_csv.splitCsv(header:true, sep:',')
-                       .map { row -> [ row.sample_id, row.control_id, row.antibody, row.replicatesExist.toBoolean(), row.multipleGroups.toBoolean() ] }
-                       .set { ch_design_controls_csv }
+ch_design_controls_csv
+    .splitCsv(header:true, sep:',')
+    .map { row -> [ row.sample_id, row.control_id, row.antibody, row.replicatesExist.toBoolean(), row.multipleGroups.toBoolean() ] }
+    .set { ch_design_controls_csv }
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -617,10 +621,11 @@ process SortBAM {
 /*
  * STEP 4.1 Merge BAM files for all libraries from same replicate
  */
-ch_sort_bam_merge.map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
-                 .groupTuple(by: [0])
-                 .map { it ->  [ it[0], it[1].flatten() ] }
-                 .set { ch_sort_bam_merge }
+ch_sort_bam_merge
+    .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
+    .groupTuple(by: [0])
+    .map { it ->  [ it[0], it[1].flatten() ] }
+    .set { ch_sort_bam_merge }
 
 process MergeBAM {
     tag "$name"
@@ -754,16 +759,21 @@ process MergeBAMFilter {
  * STEP 4.3 Remove orphan reads from paired-end BAM file
  */
 if (params.single_end) {
-    ch_filter_bam.into { ch_rm_orphan_bam_metrics;
-                         ch_rm_orphan_bam_bigwig;
-                         ch_rm_orphan_bam_macs_1;
-                         ch_rm_orphan_bam_macs_2;
-                         ch_rm_orphan_bam_phantompeakqualtools;
-                         ch_rm_orphan_name_bam_counts }
-    ch_filter_bam_flagstat.into { ch_rm_orphan_flagstat_bigwig;
-                                  ch_rm_orphan_flagstat_macs;
-                                  ch_rm_orphan_flagstat_mqc }
-    ch_filter_bam_stats_mqc.set { ch_rm_orphan_stats_mqc }
+    ch_filter_bam
+        .into { ch_rm_orphan_bam_metrics;
+                ch_rm_orphan_bam_bigwig;
+                ch_rm_orphan_bam_macs_1;
+                ch_rm_orphan_bam_macs_2;
+                ch_rm_orphan_bam_phantompeakqualtools;
+                ch_rm_orphan_name_bam_counts }
+
+    ch_filter_bam_flagstat
+        .into { ch_rm_orphan_flagstat_bigwig;
+                ch_rm_orphan_flagstat_macs;
+                ch_rm_orphan_flagstat_mqc }
+
+    ch_filter_bam_stats_mqc
+        .set { ch_rm_orphan_stats_mqc }
 } else {
     process MergeBAMRemoveOrphan {
         tag "$name"
@@ -1001,15 +1011,18 @@ process PhantomPeakQualTools {
 ///////////////////////////////////////////////////////////////////////////////
 
 // Create channel linking IP bams with control bams
-ch_rm_orphan_bam_macs_1.combine(ch_rm_orphan_bam_macs_2)
-                       .set { ch_rm_orphan_bam_macs_1 }
-ch_design_controls_csv.combine(ch_rm_orphan_bam_macs_1)
-                      .filter { it[0] == it[5] && it[1] == it[7] }
-                      .join(ch_rm_orphan_flagstat_macs)
-                      .map { it ->  it[2..-1] }
-                      .into { ch_group_bam_macs;
-                              ch_group_bam_plotfingerprint;
-                              ch_group_bam_deseq }
+ch_rm_orphan_bam_macs_1
+    .combine(ch_rm_orphan_bam_macs_2)
+    .set { ch_rm_orphan_bam_macs_1 }
+
+ch_design_controls_csv
+    .combine(ch_rm_orphan_bam_macs_1)
+    .filter { it[0] == it[5] && it[1] == it[7] }
+    .join(ch_rm_orphan_flagstat_macs)
+    .map { it ->  it[2..-1] }
+    .into { ch_group_bam_macs;
+            ch_group_bam_plotfingerprint;
+            ch_group_bam_deseq }
 
 /*
  * STEP 6.1 deepTools plotFingerprint
@@ -1177,10 +1190,11 @@ process PeakQC {
 ///////////////////////////////////////////////////////////////////////////////
 
 // group by ip from this point and carry forward boolean variables
-ch_macs_consensus.map { it ->  [ it[0], it[1], it[2], it[-1] ] }
-                 .groupTuple()
-                 .map { it ->  [ it[0], it[1][0], it[2][0], it[3].sort() ] }
-                 .set { ch_macs_consensus }
+ch_macs_consensus
+    .map { it ->  [ it[0], it[1], it[2], it[-1] ] }
+    .groupTuple()
+    .map { it ->  [ it[0], it[1][0], it[2][0], it[3].sort() ] }
+    .set { ch_macs_consensus }
 
 /*
  * STEP 7.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
@@ -1272,13 +1286,14 @@ process ConsensusPeakSetAnnotate {
 }
 
 // get bam and saf files for each ip
-ch_group_bam_deseq.map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
-                  .join(ch_rm_orphan_name_bam_counts)
-                  .map { it -> [ it[1][0], it[1][1], it[1][2], it[2] ] }
-                  .groupTuple()
-                  .map { it -> [ it[0], it[1][0], it[2][0], it[3].flatten().sort() ] }
-                  .join(ch_macs_consensus_saf)
-                  .set { ch_group_bam_deseq }
+ch_group_bam_deseq
+    .map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
+    .join(ch_rm_orphan_name_bam_counts)
+    .map { it -> [ it[1][0], it[1][1], it[1][2], it[2] ] }
+    .groupTuple()
+    .map { it -> [ it[0], it[1][0], it[2][0], it[3].flatten().sort() ] }
+    .join(ch_macs_consensus_saf)
+    .set { ch_group_bam_deseq }
 
 /*
  * STEP 7.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
@@ -1604,13 +1619,13 @@ workflow.onComplete {
     }
 
     // Write summary e-mail HTML to a file
-    def output_d = new File( "${params.outdir}/pipeline_info/" )
+    def output_d = new File("${params.outdir}/pipeline_info/")
     if (!output_d.exists()) {
       output_d.mkdirs()
     }
-    def output_hf = new File( output_d, "pipeline_report.html" )
+    def output_hf = new File(output_d, "pipeline_report.html")
     output_hf.withWriter { w -> w << email_html }
-    def output_tf = new File( output_d, "pipeline_report.txt" )
+    def output_tf = new File(output_d, "pipeline_report.txt")
     output_tf.withWriter { w -> w << email_txt }
 
     c_reset = params.monochrome_logs ? '' : "\033[0m";
