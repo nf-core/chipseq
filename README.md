@@ -92,6 +92,8 @@ For further information or help, don't hesitate to get in touch on [Slack](https
 
 ## Citation
 
+A list of references for the tools used in the pipeline can be found in the [citations](docs/citations.md) file.
+
 If you use nf-core/chipseq for your analysis, please cite it using the following doi: [10.5281/zenodo.3240506](https://doi.org/10.5281/zenodo.3240506)
 
 You can cite the `nf-core` pre-print as follows:  
