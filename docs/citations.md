@@ -1,4 +1,4 @@
-# Citations
+# nf-core/chipseq: Citations
 
 ## Pipeline tools
 
