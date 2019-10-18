@@ -4,4 +4,5 @@ LABEL authors="Philip Ewels" \
 
 COPY environment.yml /
 RUN conda env create -f /environment.yml && conda clean -a
+RUN conda env export --name nf-core-chipseq-1.0.1dev > nf-core-chipseq-1.0.1dev.yml
 ENV PATH /opt/conda/envs/nf-core-chipseq-1.0.1dev/bin:$PATH
