@@ -84,7 +84,7 @@
 * [xfun](https://CRAN.R-project.org/package=xfun)
   > Yihui Xie (2018). xfun: Miscellaneous Functions by 'Yihui Xie'.
 
-## Infrastructure tools
+## Software packaging/container tools
 
 * [Bioconda](https://www.ncbi.nlm.nih.gov/pubmed/29967506/)
   > Grüning B, Dale R, Sjödin A, Chapman BA, Rowe J, Tomkins-Tinch CH, Valieris R, Köster J; Bioconda Team. Bioconda: sustainable and comprehensive software distribution for the life sciences. Nat Methods. 2018 Jul;15(7):475-476. doi: 10.1038/s41592-018-0046-7. PubMed PMID: 29967506.
@@ -94,3 +94,5 @@
 
 * [Singularity](https://www.ncbi.nlm.nih.gov/pubmed/28494014/)
   > Kurtzer GM, Sochat V, Bauer MW. Singularity: Scientific containers for mobility of compute. PLoS One. 2017 May 11;12(5):e0177459. doi: 10.1371/journal.pone.0177459. eCollection 2017. PubMed PMID: 28494014; PubMed Central PMCID: PMC5426675.
+
+* [Docker](https://www.docker.com/)
