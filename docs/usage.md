@@ -11,7 +11,7 @@
   * [Reproducibility](#reproducibility)
 * [Main arguments](#main-arguments)
   * [`-profile`](#-profile)
-  * [`--design`](#--design)
+  * [`--input`](#--input)
 * [Generic arguments](#generic-arguments)
   * [`--single_end`](#--single_end)
   * [`--seq_center`](#--seq_center)
@@ -80,7 +80,7 @@ NXF_OPTS='-Xms1g -Xmx4g'
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run nf-core/chipseq --design design.csv --genome GRCh37 -profile docker
+nextflow run nf-core/chipseq --input design.csv --genome GRCh37 -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -131,11 +131,11 @@ If `-profile` is not specified at all the pipeline will be run locally and expec
   * A profile with a complete configuration for automated testing
   * Includes links to test data so needs no other parameters
 
-### `--design`
+### `--input`
 You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 6 columns, and a header row as shown in the examples below.
 
 ```bash
---design '[path to design file]'
+--input '[path to design file]'
 ```
 
 #### Multiple replicates

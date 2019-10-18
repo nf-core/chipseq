@@ -16,10 +16,10 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-      nextflow run nf-core/chipseq --design design.csv --genome GRCh37 -profile docker
+      nextflow run nf-core/chipseq --input design.csv --genome GRCh37 -profile docker
 
     Mandatory arguments:
-      --design [file]                 Comma-separated file containing information about the samples in the experiment (see docs/usage.md)
+      --input [file]                  Comma-separated file containing information about the samples in the experiment (see docs/usage.md)
       --fasta [file]                  Path to Fasta reference. Not mandatory when using reference in iGenomes config via --genome
       --gtf [file]                    Path to GTF file. Not mandatory when using reference in iGenomes config via --genome
       -profile [str]                  Configuration profile to use. Can use multiple (comma separated)
@@ -156,7 +156,7 @@ ch_spp_rsc_header = file("$baseDir/assets/multiqc/spp_rsc_header.txt", checkIfEx
 ////////////////////////////////////////////////////
 
 // Validate inputs
-if (params.design)    { ch_design = file(params.design, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
+if (params.input)     { ch_input = file(params.input, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
 if (params.gtf)       { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
 if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
 if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
@@ -205,7 +205,7 @@ log.info nfcoreHeader()
 def summary = [:]
 summary['Run Name']               = custom_runName ?: workflow.runName
 summary['Data Type']              = params.single_end ? 'Single-End' : 'Paired-End'
-summary['Design File']            = params.design
+summary['Design File']            = params.input
 summary['Genome']                 = params.genome ?: 'Not supplied'
 summary['Fasta File']             = params.fasta
 summary['GTF File']               = params.gtf
@@ -296,7 +296,7 @@ process CheckDesign {
     publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
     input:
-    file design from ch_design
+    file design from ch_input
 
     output:
     file "design_reads.csv" into ch_design_reads_csv

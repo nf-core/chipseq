@@ -60,7 +60,7 @@ nextflow run nf-core/chipseq -profile test,<docker/singularity/conda>
 iv. Start running your own analysis!
 
 ```bash
-nextflow run nf-core/chipseq -profile <docker/singularity/conda> --design design.csv --genome GRCh37
+nextflow run nf-core/chipseq -profile <docker/singularity/conda> --input design.csv --genome GRCh37
 ```
 
 See [usage docs](docs/usage.md) for all of the available options when running the pipeline.

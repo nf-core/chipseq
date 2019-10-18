@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update template to tools `1.7`
 * Bump Nextflow version to `19.04.0`
 * Change all parameters from `camelCase` to `snake_case`
+* Change `--design` parameter to `--input` for standardisation
 
 ### `Fixed`
 
