@@ -2,6 +2,9 @@
 
 ## Pipeline tools
 
+* [Nextflow](https://www.ncbi.nlm.nih.gov/pubmed/28398311/)
+  > Di Tommaso P, Chatzou M, Floden EW, Barja PP, Palumbo E, Notredame C. Nextflow enables reproducible computational workflows. Nat Biotechnol. 2017 Apr 11;35(4):316-319. doi: 10.1038/nbt.3820. PubMed PMID: 28398311.
+
 * [BWA](https://www.ncbi.nlm.nih.gov/pubmed/19451168/)
   > Li H, Durbin R. Fast and accurate short read alignment with Burrows-Wheeler transform. Bioinformatics. 2009 Jul 15;25(14):1754-60. doi: 10.1093/bioinformatics/btp324. Epub 2009 May 18. PubMed PMID: 19451168; PubMed Central PMCID: PMC2705234.
 
