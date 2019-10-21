@@ -2,7 +2,7 @@
 
 #######################################################################
 #######################################################################
-## Created on April 4th 2019 to reformat nf-core/chipseq design file
+## Created on April 4th 2019 to check nf-core/chipseq design file
 #######################################################################
 #######################################################################
 
@@ -18,7 +18,7 @@ import argparse
 ############################################
 
 Description = 'Reformat nf-core/chipseq design file and check its contents.'
-Epilog = """Example usage: python reformat_design.py <DESIGN_FILE_IN> <DESIGN_FILE_OUT>"""
+Epilog = """Example usage: python check_design.py <DESIGN_FILE_IN> <DESIGN_FILE_OUT>"""
 
 argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 

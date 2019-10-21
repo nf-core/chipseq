@@ -11,9 +11,9 @@
   * [Reproducibility](#reproducibility)
 * [Main arguments](#main-arguments)
   * [`-profile`](#-profile)
-  * [`--design`](#--design)
+  * [`--input`](#--input)
 * [Generic arguments](#generic-arguments)
-  * [`--singleEnd`](#--singleend)
+  * [`--single_end`](#--single_end)
   * [`--seq_center`](#--seq_center)
   * [`--fragment_size`](#--fragment_size)
   * [`--fingerprint_bins`](#--fingerprint_bins)
@@ -26,21 +26,21 @@
   * [`--tss_bed`](#--tss_bed)
   * [`--macs_gsize`](#--macs_gsize)
   * [`--blacklist`](#--blacklist)
-  * [`--saveGenomeIndex`](#--savegenomeindex)
-  * [`--igenomesIgnore`](#--igenomesignore)
+  * [`--save_reference`](#--save_reference)
+  * [`--igenomes_ignore`](#--igenomes_ignore)
 * [Adapter trimming](#adapter-trimming)
-  * [`--skipTrimming`](#--skiptrimming)
-  * [`--saveTrimmed`](#--savetrimmed)
+  * [`--skip_trimming`](#--skip_trimming)
+  * [`--save_trimmed`](#--save_trimmed)
 * [Alignments](#alignments)
-  * [`--keepDups`](#--keepdups)
-  * [`--keepMultiMap`](#--keepmultimap)
-  * [`--saveAlignedIntermediates`](#--savealignedintermediates)
+  * [`--keep_dups`](#--keep_dups)
+  * [`--keep_multi_map`](#--keep_multi_map)
+  * [`--save_align_intermeds`](#--save_align_intermeds)
 * [Peaks](#peaks)
-  * [`--narrowPeak`](#--narrowpeak)
+  * [`--narrow_peak`](#--narrow_peak)
   * [`--broad_cutoff`](#--broad_cutoff)
   * [`--min_reps_consensus`](#--min_reps_consensus)
-  * [`--saveMACSPileup`](#--savemacspileup)
-  * [`--skipDiffAnalysis`](#--skipdiffanalysis)
+  * [`--save_macs_pileup`](#--save_macs_pileup)
+  * [`--skip_diff_analysis`](#--skip_diff_analysis)
 * [Skipping QC steps](#skipping-qc-steps)
 * [Job resources](#job-resources)
   * [Automatic resubmission](#automatic-resubmission)
@@ -52,6 +52,7 @@
   * [`--outdir`](#--outdir)
   * [`--email`](#--email)
   * [`--email_on_fail`](#--email_on_fail)
+  * [`--max_multiqc_email_size`](#--max_multiqc_email_size)
   * [`-name`](#-name)
   * [`-resume`](#-resume)
   * [`-c`](#-c)
@@ -79,7 +80,7 @@ NXF_OPTS='-Xms1g -Xmx4g'
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run nf-core/chipseq --design design.csv --genome GRCh37 -profile docker
+nextflow run nf-core/chipseq --input design.csv --genome GRCh37 -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -130,11 +131,11 @@ If `-profile` is not specified at all the pipeline will be run locally and expec
   * A profile with a complete configuration for automated testing
   * Includes links to test data so needs no other parameters
 
-### `--design`
+### `--input`
 You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 6 columns, and a header row as shown in the examples below.
 
 ```bash
---design '[path to design file]'
+--input '[path to design file]'
 ```
 
 #### Multiple replicates
@@ -215,8 +216,8 @@ Example design files have been provided with the pipeline for [paired-end](../as
 
 ## Generic arguments
 
-### `--singleEnd`
-By default, the pipeline expects paired-end data. If you have single-end data, specify `--singleEnd` on the command line when you launch the pipeline.
+### `--single_end`
+By default, the pipeline expects paired-end data. If you have single-end data, specify `--single_end` on the command line when you launch the pipeline.
 
 It is not possible to run a mixture of single-end and paired-end files in one run.
 
@@ -224,14 +225,10 @@ It is not possible to run a mixture of single-end and paired-end files in one ru
 Sequencing center information that will be added to read groups in BAM files.
 
 ### `--fragment_size`
-Number of base pairs to extend single-end reads when creating bigWig files.
-
-Default: `200`
+Number of base pairs to extend single-end reads when creating bigWig files (Default: `200`).
 
 ### `--fingerprint_bins`
-Number of genomic bins to use when generating the deepTools fingerprint plot. Larger numbers will give a smoother profile, but take longer to run.
-
-Default: `500000`
+Number of genomic bins to use when generating the deepTools fingerprint plot. Larger numbers will give a smoother profile, but take longer to run (Default: `500000`).
 
 ## Reference genomes
 
@@ -269,7 +266,7 @@ params {
 ```
 
 ### `--fasta`
-Full path to fasta file containing reference genome (*mandatory* if `--genome` is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveGenomeIndex` to save BWA index for future runs.
+Full path to fasta file containing reference genome (*mandatory* if `--genome` is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.
 
 ```bash
 --fasta '[path to FASTA reference]'
@@ -317,49 +314,51 @@ If provided, alignments that overlap with the regions in this file will be filte
 --blacklist '[path to blacklisted regions]'
 ```
 
-### `--saveGenomeIndex`
+### `--save_reference`
 If the BWA index is generated by the pipeline use this parameter to save it to your results folder. These can then be used for future pipeline runs, reducing processing times.
 
-### `--igenomesIgnore`
+### `--igenomes_ignore`
 Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`.
 
 ## Adapter trimming
 The pipeline accepts a number of parameters to change how the trimming is done, according to your data type.
 You can specify custom trimming parameters as follows:
 
-* `--clip_r1 <NUMBER>`
-  * Instructs Trim Galore to remove bp from the 5' end of read 1 (for single-end reads).
-* `--clip_r2 <NUMBER>`
-  * Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only).
-* `--three_prime_clip_r1 <NUMBER>`
-  * Instructs Trim Galore to remove bp from the 3' end of read 1 _AFTER_ adapter/quality trimming has been
-* `--three_prime_clip_r2 <NUMBER>`
-  * Instructs Trim Galore to re move bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
+* `--clip_r1 [int]`
+  * Instructs Trim Galore to remove [int] bp from the 5' end of read 1 (for single-end reads).
+* `--clip_r2 [int]`
+  * Instructs Trim Galore to remove [int] bp from the 5' end of read 2 (paired-end reads only).
+* `--three_prime_clip_r1 [int]`
+  * Instructs Trim Galore to remove [int] bp from the 3' end of read 1 _AFTER_ adapter/quality trimming has been
+* `--three_prime_clip_r2 [int]`
+  * Instructs Trim Galore to remove [int] bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
+* `--trim_nextseq [int]`
+  * This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases.
 
-### `--skipTrimming`
+### `--skip_trimming`
 Skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.
 
-### `--saveTrimmed`
+### `--save_trimmed`
 By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.
 
 ## Alignments
-
-### `--keepDups`
+narrow_peak
+### `--keep_dups`
 Duplicate reads are not filtered from alignments.
 
-### `--keepMultiMap`
+### `--keep_multi_map`
 Reads mapping to multiple locations in the genome are not filtered from alignments.
 
-### `--saveAlignedIntermediates`
+### `--save_align_intermeds`
 By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also save other intermediate BAM files.
 
 ## Peaks
 
-### `--narrowPeak`
+### `--narrow_peak`
 MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
 
 ### `--broad_cutoff`
-Specifies broad cut-off value for MACS2. Only used when `--narrowPeak` isnt specified. Default: 0.1
+Specifies broad cut-off value for MACS2. Only used when `--narrow_peak` isnt specified (Default: `0.1`).
 
 ### `--min_reps_consensus`
 Number of biological replicates required from a given condition for a peak to contribute to a consensus peak . If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a "reproducible" set of consensus of peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded.
@@ -368,10 +367,10 @@ Number of biological replicates required from a given condition for a peak to co
 -- min_reps_consensus 1
 ```
 
-### `--saveMACSPileup`
+### `--save_macs_pileup`
 Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
 
-### `--skipDiffAnalysis`
+### `--skip_diff_analysis`
 Skip read counting and differential analysis step.
 
 ## Skipping QC steps
@@ -379,18 +378,16 @@ Skip read counting and differential analysis step.
 The pipeline contains a large number of quality control steps. Sometimes, it may not be desirable to run all of them if time and compute resources are limited.
 The following options make this easy:
 
-| Step                    | Description                        |
-|-------------------------|------------------------------------|
-| `--skipFastQC`          | Skip FastQC                        |
-| `--skipPicardMetrics`   | Skip Picard CollectMultipleMetrics |
-| `--skipPreseq`          | Skip Preseq                        |
-| `--skipPlotProfile`     | Skip deepTools plotProfile         |
-| `--skipPlotFingerprint` | Skip deepTools plotFingerprint     |
-| `--skipSpp`             | Skip Phantompeakqualtools          |
-| `--skipIGV`             | Skip IGV                           |
-| `--skipMultiQC`         | Skip MultiQC                       |
-
-`--skipMultiQCStats` allows you to exclude the [general statistics table](https://multiqc.info/docs/#general-statistics-table) from the MultiQC report.
+| Step                      | Description                        |
+|---------------------------|------------------------------------|
+| `--skip_fastqc`           | Skip FastQC                        |
+| `--skip_picard_metrics`   | Skip Picard CollectMultipleMetrics |
+| `--skip_preseq`           | Skip Preseq                        |
+| `--skip_plot_profile`     | Skip deepTools plotProfile         |
+| `--skip_plot_fingerprint` | Skip deepTools plotFingerprint     |
+| `--skip_spp`              | Skip Phantompeakqualtools          |
+| `--skip_igv`              | Skip IGV                           |
+| `--skip_multiqc`          | Skip MultiQC                       |
 
 ## Job resources
 ### Automatic resubmission
@@ -422,6 +419,9 @@ Set this parameter to your e-mail address to get a summary e-mail with details o
 
 ### `--email_on_fail`
 This works exactly as with `--email`, except emails are only sent if the workflow is not successful.
+
+### `--max_multiqc_email_size`
+Theshold size for MultiQC report to be attached in notification email. If file generated by pipeline exceeds the threshold, it will not be attached (Default: `25MB`).
 
 ### `-name`
 Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic.
