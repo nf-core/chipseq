@@ -97,5 +97,5 @@ If you use nf-core/chipseq for your analysis, please cite it using the following
 You can cite the `nf-core` pre-print as follows:  
 > Ewels PA, Peltzer A, Fillinger S, Alneberg JA, Patel H, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. **nf-core: Community curated bioinformatics pipelines**. *bioRxiv*. 2019. p. 610741. [doi: 10.1101/610741](https://www.biorxiv.org/content/10.1101/610741v1).
 
-An extensive list of references for the tools used by the pipeline can be found in the [citation](CITATIONS.md) file.
+An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
