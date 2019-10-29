@@ -1,6 +1,6 @@
 # ![nf-core/chipseq](docs/images/nf-core-chipseq_logo.png)
 
-[![Build Status](https://travis-ci.org/nf-core/chipseq.svg?branch=master)](https://travis-ci.org/nf-core/chipseq)
+[![Build Status](https://travis-ci.com/nf-core/chipseq.svg?branch=master)](https://travis-ci.com/nf-core/chipseq)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.04.0-brightgreen.svg)](https://www.nextflow.io/)
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
@@ -54,13 +54,15 @@ ii. Install one of [`docker`](https://docs.docker.com/engine/installation/), [`s
 iii. Download the pipeline and test it on a minimal dataset with a single command
 
 ```bash
-nextflow run nf-core/chipseq -profile test,<docker/singularity/conda>
+nextflow run nf-core/chipseq -profile test,<docker/singularity/conda/institute>
 ```
+
+> Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile institute` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
 
 iv. Start running your own analysis!
 
 ```bash
-nextflow run nf-core/chipseq -profile <docker/singularity/conda> --input design.csv --genome GRCh37
+nextflow run nf-core/chipseq -profile <docker/singularity/conda/institute> --input design.csv --genome GRCh37
 ```
 
 See [usage docs](docs/usage.md) for all of the available options when running the pipeline.
@@ -98,4 +100,3 @@ You can cite the `nf-core` pre-print as follows:
 > Ewels PA, Peltzer A, Fillinger S, Alneberg JA, Patel H, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. **nf-core: Community curated bioinformatics pipelines**. *bioRxiv*. 2019. p. 610741. [doi: 10.1101/610741](https://www.biorxiv.org/content/10.1101/610741v1).
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
-
