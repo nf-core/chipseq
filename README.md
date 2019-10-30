@@ -5,7 +5,7 @@
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
 [![Docker](https://img.shields.io/docker/automated/nfcore/chipseq.svg)](https://hub.docker.com/r/nfcore/chipseq/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3240507.svg)](https://doi.org/10.5281/zenodo.3240507)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3240506.svg)](https://doi.org/10.5281/zenodo.3240506)
 
 ## Introduction
 
