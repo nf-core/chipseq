@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Dependencies`
 
-* Update `Nextflow 0.32.0` -> `19.04.0`
+* Update Nextflow `0.32.0` -> `19.04.0`
 
 ### `Deprecated`
 
