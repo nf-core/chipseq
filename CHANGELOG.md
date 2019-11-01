@@ -10,28 +10,47 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### `Added`
 
 * [#46](https://github.com/nf-core/atacseq/issues/46) - Missing gene_bed path in igenomes config
-* Capitalised process names
-* Add quick start information to main README
 * Update template to tools `1.7`
 * Add `--trim_nextseq` parameter
 * Added `CITATIONS.md` file
+* Capitalised process names
 
 ### `Fixed`
 
+* **Change all parameters from `camelCase` to `snake_case`**
 * [#44](https://github.com/nf-core/atacseq/issues/44) - Output directory missing: macs2/consensus/deseq2
 * [#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?
 * [#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly
 * [#50](https://github.com/nf-core/atacseq/issues/50) - HOMER number of peaks does not correspond to found MACS2 peaks
 * Increase default resource requirements in `base.config`
 * Increase process-specific requirements based on user-reported failures
-* Change parameter `saveGenomeIndex` to `save_reference`
-* Change parameter `--design` to `--input`
-* Change all parameters from `camelCase` to `snake_case`
 * Fixed bug in UpSetR peak intersection plot
 
 ### `Dependencies`
 
 * Bump Nextflow version to `19.04.0`
+
+### `Deprecated`
+
+* `--design` -> `--input`
+* `--singleEnd` -> `--single_end`
+* `--saveGenomeIndex` -> `--save_reference`
+* `--skipTrimming` -> `--skip_trimming`
+* `--saveTrimmed` -> `--save_trimmed`
+* `--keepDups` -> `--keep_dups`
+* `--keepMultiMap` -> `--keep_multi_map`
+* `--saveAlignedIntermediates` -> `--save_align_intermeds`
+* `--narrowPeak` -> `--narrow_peak`
+* `--saveMACSPileup` -> `--save_macs_pileup`
+* `--skipDiffAnalysis` -> `--skip_diff_analysis`
+* `--skipFastQC` -> `--skip_fastqc`
+* `--skipPicardMetrics` -> `--skip_picard_metrics``
+* `--skipPreseq` -> `--skip_preseq`
+* `--skipPlotProfile` -> `--skip_plot_profile`
+* `--skipPlotFingerprint` -> `--skip_plot_fingerprint`
+* `--skipSpp` -> `--skip_spp`
+* `--skipIGV` -> `--skip_igv`
+* `--skipMultiQC` -> `--skip_multiqc`
 
 ## [1.0.0] - 2019-06-06
 
