@@ -12,12 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#46](https://github.com/nf-core/atacseq/issues/46) - Missing gene_bed path in igenomes config
 * Update template to tools `1.7`
 * Add `--trim_nextseq` parameter
-* Added `CITATIONS.md` file
+* Add `CITATIONS.md` file
 * Capitalised process names
 
 ### `Fixed`
 
-* **Change all parameters from `camelCase` to `snake_case`**
+* **Change all parameters from `camelCase` to `snake_case` (see [Deprecated](#Deprecated)**
 * [#44](https://github.com/nf-core/atacseq/issues/44) - Output directory missing: macs2/consensus/deseq2
 * [#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?
 * [#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly
