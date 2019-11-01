@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Deprecated`
 
-| Deprecated                   | Added                     |
+| Deprecated                   | Replacement               |
 |------------------------------|---------------------------|
 | `--design`                   | `--input`                 |
 | `--singleEnd`                | `--single_end`            |
@@ -53,47 +53,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 | `--skipSpp`                  | `--skip_spp`              |
 | `--skipIGV`                  | `--skip_igv`              |
 | `--skipMultiQC`              | `--skip_multiqc`          |
-
-* `--design` -> `--input`
-* `--singleEnd` -> `--single_end`
-* `--saveGenomeIndex` -> `--save_reference`
-* `--skipTrimming` -> `--skip_trimming`
-* `--saveTrimmed` -> `--save_trimmed`
-* `--keepDups` -> `--keep_dups`
-* `--keepMultiMap` -> `--keep_multi_map`
-* `--saveAlignedIntermediates` -> `--save_align_intermeds`
-* `--narrowPeak` -> `--narrow_peak`
-* `--saveMACSPileup` -> `--save_macs_pileup`
-* `--skipDiffAnalysis` -> `--skip_diff_analysis`
-* `--skipFastQC` -> `--skip_fastqc`
-* `--skipPicardMetrics` -> `--skip_picard_metrics``
-* `--skipPreseq` -> `--skip_preseq`
-* `--skipPlotProfile` -> `--skip_plot_profile`
-* `--skipPlotFingerprint` -> `--skip_plot_fingerprint`
-* `--skipSpp` -> `--skip_spp`
-* `--skipIGV` -> `--skip_igv`
-* `--skipMultiQC` -> `--skip_multiqc`
-
-
-* `--design` -> `--input`
-* `--singleEnd` -> `--single_end`
-* `--saveGenomeIndex` -> `--save_reference`
-* `--skipTrimming` -> `--skip_trimming`
-* `--saveTrimmed` -> `--save_trimmed`
-* `--keepDups` -> `--keep_dups`
-* `--keepMultiMap` -> `--keep_multi_map`
-* `--saveAlignedIntermediates` -> `--save_align_intermeds`
-* `--narrowPeak` -> `--narrow_peak`
-* `--saveMACSPileup` -> `--save_macs_pileup`
-* `--skipDiffAnalysis` -> `--skip_diff_analysis`
-* `--skipFastQC` -> `--skip_fastqc`
-* `--skipPicardMetrics` -> `--skip_picard_metrics``
-* `--skipPreseq` -> `--skip_preseq`
-* `--skipPlotProfile` -> `--skip_plot_profile`
-* `--skipPlotFingerprint` -> `--skip_plot_fingerprint`
-* `--skipSpp` -> `--skip_spp`
-* `--skipIGV` -> `--skip_igv`
-* `--skipMultiQC` -> `--skip_multiqc`
 
 ## [1.0.0] - 2019-06-06
 
