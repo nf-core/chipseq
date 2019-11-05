@@ -1,18 +1,19 @@
-# ![nf-core/chipseq](docs/images/nfcore-chipseq_logo.png)
+# ![nf-core/chipseq](docs/images/nf-core-chipseq_logo.png)
 
-[![Build Status](https://travis-ci.org/nf-core/chipseq.svg?branch=master)](https://travis-ci.org/nf-core/chipseq)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.32.0-brightgreen.svg)](https://www.nextflow.io/)
+[![Build Status](https://travis-ci.com/nf-core/chipseq.svg?branch=master)](https://travis-ci.com/nf-core/chipseq)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.10.0-brightgreen.svg)](https://www.nextflow.io/)
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
 [![Docker](https://img.shields.io/docker/automated/nfcore/chipseq.svg)](https://hub.docker.com/r/nfcore/chipseq/)
-[![DOI](https://zenodo.org/badge/130877729.svg)](https://zenodo.org/badge/latestdoi/130877729)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3240506.svg)](https://doi.org/10.5281/zenodo.3240506)
 
 ## Introduction
+
 **nfcore/chipseq** is a bioinformatics analysis pipeline used for Chromatin ImmunopreciPitation sequencing (ChIP-seq) data.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It comes with docker containers making installation trivial and results highly reproducible.
 
-### Pipeline summary
+## Pipeline summary
 
 1. Raw read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 2. Adapter trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
@@ -44,7 +45,30 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 6. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
 7. Present QC for raw read, alignment, peak-calling and differential binding results ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
 
-### Documentation
+## Quick Start
+
+i. Install [`nextflow`](https://nf-co.re/usage/installation)
+
+ii. Install one of [`docker`](https://docs.docker.com/engine/installation/), [`singularity`](https://www.sylabs.io/guides/3.0/user-guide/) or [`conda`](https://conda.io/miniconda.html)
+
+iii. Download the pipeline and test it on a minimal dataset with a single command
+
+```bash
+nextflow run nf-core/chipseq -profile test,<docker/singularity/conda/institute>
+```
+
+> Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile institute` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
+
+iv. Start running your own analysis!
+
+```bash
+nextflow run nf-core/chipseq -profile <docker/singularity/conda/institute> --input design.csv --genome GRCh37
+```
+
+See [usage docs](docs/usage.md) for all of the available options when running the pipeline.
+
+## Documentation
+
 The nf-core/chipseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
 
 1. [Installation](https://nf-co.re/usage/installation)
@@ -57,13 +81,22 @@ The nf-core/chipseq pipeline comes with documentation about the pipeline, found 
 5. [Troubleshooting](https://nf-co.re/usage/troubleshooting)
 
 ## Credits
+
 These scripts were orginally written by Chuan Wang ([@chuan-wang](https://github.com/chuan-wang)) and Phil Ewels ([@ewels](https://github.com/ewels)) for use at the [National Genomics Infrastructure](https://portal.scilifelab.se/genomics/) at [SciLifeLab](http://www.scilifelab.se/) in Stockholm, Sweden. It has since been re-implemented by Harshil Patel ([@drpatelh](https://github.com/drpatelh)) from [The Bioinformatics & Biostatistics Group](https://www.crick.ac.uk/research/science-technology-platforms/bioinformatics-and-biostatistics/) at [The Francis Crick Institute](https://www.crick.ac.uk/), London.
 
-Many thanks to others who have helped out along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@bc2zb](https://github.com/bc2zb), [@drejom](https://github.com/drejom), [@KevinMenden](https://github.com/KevinMenden), [@pditommaso](https://github.com/pditommaso).
+Many thanks to others who have helped out along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@bc2zb](https://github.com/bc2zb), [@drejom](https://github.com/drejom), [@KevinMenden](https://github.com/KevinMenden), [@crickbabs](https://github.com/crickbabs), [@pditommaso](https://github.com/pditommaso).
+
+## Contributions and Support
+
+If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
+
+For further information or help, don't hesitate to get in touch on [Slack](https://nfcore.slack.com/channels/chipseq) (you can join with [this invite](https://nf-co.re/join/slack)).
 
 ## Citation
 
-If you use nf-core/chipseq for your analysis, please cite it using the following doi: [10.5281/zenodo.3240507](https://doi.org/10.5281/zenodo.3240507)
+If you use nf-core/chipseq for your analysis, please cite it using the following doi: [10.5281/zenodo.3240506](https://doi.org/10.5281/zenodo.3240506)
 
 You can cite the `nf-core` pre-print as follows:  
-Ewels PA, Peltzer A, Fillinger S, Alneberg JA, Patel H, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. **nf-core: Community curated bioinformatics pipelines**. *bioRxiv*. 2019. p. 610741. [doi: 10.1101/610741](https://www.biorxiv.org/content/10.1101/610741v1).
+> Ewels PA, Peltzer A, Fillinger S, Alneberg JA, Patel H, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. **nf-core: Community curated bioinformatics pipelines**. *bioRxiv*. 2019. p. 610741. [doi: 10.1101/610741](https://www.biorxiv.org/content/10.1101/610741v1).
+
+An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.

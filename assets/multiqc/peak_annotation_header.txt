@@ -5,8 +5,5 @@
 #plot_type: 'bargraph'
 #anchor: 'nfcore_chipseq-peak_annotation'
 #pconfig:
-#    title: 'Peak to feature %'
-#    ylab: 'Feature %'
-#    ymax: 100
-#    ymin: 0
-#    cpswitch_c_active: false
+#    title: 'Peak to feature proportion'
+#    ylab: 'Peak count'

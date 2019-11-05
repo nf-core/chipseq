@@ -45,14 +45,28 @@ comb.dat <- read.table(opt$input_file,sep="\t",header=FALSE)
 comb.vec <- comb.dat[,2]
 comb.vec <- setNames(comb.vec,comb.dat[,1])
 
-pdf(opt$output_file,onefile=F,height=10,width=14)
+sets <- sort(unique(unlist(strsplit(names(comb.vec),split='&'))), decreasing = TRUE)
+nintersects = length(names(comb.vec))
+if (nintersects > 70) {
+    nintersects <- 70
+}
 
-upset(fromExpression(comb.vec),
-      sets.bar.color = "#56B4E9",
-      point.size = 5,
-      line.size = 2,
-      order.by = "freq",
-      text.scale = c(1.7, 1.5, 1.7, 1.5, 1.7, 1.7))
+pdf(opt$output_file,onefile=F,height=10,width=20)
+
+upset(
+    fromExpression(comb.vec),
+    nsets = length(sets),
+    nintersects = nintersects,
+    sets = sets,
+    keep.order = TRUE,
+    sets.bar.color = "#56B4E9",
+    point.size = 3,
+    line.size = 1,
+    mb.ratio = c(0.55, 0.45),
+    order.by = "freq",
+    number.angles = 30,
+    text.scale = c(1.5, 1.5, 1.5, 1.5, 1.5, 1.2)
+)
 
 dev.off()
 
