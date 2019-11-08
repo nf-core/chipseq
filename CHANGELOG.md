@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Fixed`
 
+* [#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
+
 ### `Dependencies`
 
 ### `Deprecated`
