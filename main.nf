@@ -496,8 +496,8 @@ process FastQC {
  */
 if (params.skip_trimming) {
     ch_trimmed_reads = ch_raw_reads_trimgalore
-    ch_trimgalore_results_mqc = []
-    ch_trimgalore_fastqc_reports_mqc = []
+    ch_trimgalore_results_mqc = Channel.empty()
+    ch_trimgalore_fastqc_reports_mqc = Channel.empty()
 } else {
     process TrimGalore {
         tag "$name"
