@@ -12,8 +12,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### `Fixed`
 
 * [#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
+* Make executables in `bin/` compatible with Python 3
 
 ### `Dependencies`
+
+* Add genrich `0.6`
+* Update gawk `4.2.1` -> `5.0.1`
+* Update r-base `3.4.1` -> `3.6.1`
+* Update r-optparse `1.6.0` -> `1.6.4`
+* Update r-ggplot2 `3.1.0` -> `3.2.1`
+* Update r-pheatmap `1.0.10` -> `1.0.12`
+* Update r-lattice `0.20_35` -> `0.20_38`
+* Update r-upsetr `1.3.3` -> `1.4.0`
+* Update r-xfun `0.3` -> `0.11`
+* Update trim-galore `0.5.0` -> `0.6.4`
+* Update picard `2.19.0` -> `2.21.3`
+* Update pysam `0.15.2` -> `0.15.3`
+* Update bedtools `2.27.1` -> `2.29.0`
+* Update ucsc-bedgraphtobigwig `377` -> `357`
+* Update deeptools `3.2.1` -> `3.3.1`
+* Update macs2 `2.1.2` -> `2.2.5`
+* Update homer `4.9.1` -> `4.10`
+* Update phantompeakqualtools `1.2` -> `1.2.1.1`
+* Update bioconductor-deseq2 `1.20.0` -> `1.26.0`
+* Update bioconductor-vsn `3.46.0` -> `3.54.0`
 
 ### `Deprecated`
 
