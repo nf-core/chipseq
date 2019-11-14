@@ -61,10 +61,11 @@ def bampe_rm_orphan(BAMIn,BAMOut,onlyFRPairs=False):
 
     ## ITERATE THROUGH BAM FILE
     EOF = 0
-    SAMFin = pysam.Samfile(BAMIn,"rb")
-    SAMFout = pysam.Samfile(BAMOut, "wb",header=SAMFin.header)
-    currRead = SAMFin.next()
-    for read in SAMFin:
+    SAMFin = pysam.AlignmentFile(BAMIn, "rb")
+    SAMFout = pysam.AlignmentFile(BAMOut, "wb", header=SAMFin.header)
+    iter = SAMFin.fetch(until_eof=True)
+    currRead = iter.__next__()
+    for read in iter:
         totalReads += 1
         if currRead.qname == read.qname:
             pair1 = currRead; pair2 = read
@@ -103,7 +104,7 @@ def bampe_rm_orphan(BAMIn,BAMOut,onlyFRPairs=False):
             ## RESET COUNTER
             try:
                 totalReads += 1
-                currRead = SAMFin.next()
+                currRead = iter.__next__()
             except:
                 StopIteration
                 EOF = 1
