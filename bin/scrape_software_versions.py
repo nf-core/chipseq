@@ -52,9 +52,9 @@ for k, v in regexes.items():
                 results[k] = "v{}".format(match.group(1))
     except IOError:
         results[k] = False
-        
+
 # Remove software set to false in results
-for k in results:
+for k in list(results):
     if not results[k]:
         del(results[k])
 
