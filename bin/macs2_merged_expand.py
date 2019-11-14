@@ -87,9 +87,9 @@ def macs2_merged_expand(MergedIntervalTxtFile,SampleNameList,OutFile,isNarrow=Fa
             groupDict = {}
             for sID in ['_'.join(x.split('_')[:-2]) for x in names]:
                 gID = '_'.join(sID.split('_')[:-1])
-                if not groupDict.has_key(gID):
+                if gID not in groupDict:
                     groupDict[gID] = []
-                if not sID in groupDict[gID]:
+                if sID not in groupDict[gID]:
                     groupDict[gID].append(sID)
 
             ## GET SAMPLES THAT PASS REPLICATE THRESHOLD
@@ -103,23 +103,23 @@ def macs2_merged_expand(MergedIntervalTxtFile,SampleNameList,OutFile,isNarrow=Fa
             for idx in range(len(names)):
                 sample = '_'.join(names[idx].split('_')[:-2])
                 if sample in passRepThreshList:
-                    if not fcDict.has_key(sample):
+                    if sample not in fcDict:
                         fcDict[sample] = []
                     fcDict[sample].append(str(fcs[idx]))
-                    if not qvalDict.has_key(sample):
+                    if sample not in qvalDict:
                         qvalDict[sample] = []
                     qvalDict[sample].append(str(qvals[idx]))
-                    if not pvalDict.has_key(sample):
+                    if sample not in pvalDict:
                         pvalDict[sample] = []
                     pvalDict[sample].append(str(pvals[idx]))
-                    if not startDict.has_key(sample):
+                    if sample not in startDict:
                         startDict[sample] = []
                     startDict[sample].append(str(starts[idx]))
-                    if not endDict.has_key(sample):
+                    if sample not in endDict:
                         endDict[sample] = []
                     endDict[sample].append(str(ends[idx]))
                     if isNarrow:
-                        if not summitDict.has_key(sample):
+                        if sample not in summitDict:
                             summitDict[sample] = []
                         summitDict[sample].append(str(summits[idx]))
 
@@ -138,7 +138,7 @@ def macs2_merged_expand(MergedIntervalTxtFile,SampleNameList,OutFile,isNarrow=Fa
                 fout.write('\t'.join(oList) + '\n')
 
                 tsamples = tuple(sorted(samples))
-                if not combFreqDict.has_key(tsamples):
+                if tsamples not in combFreqDict:
                     combFreqDict[tsamples] = 0
                 combFreqDict[tsamples] += 1
                 totalOutIntervals += 1
