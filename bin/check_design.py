@@ -42,7 +42,7 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
     fin = open(DesignFile,'r')
     header = fin.readline().strip().split(',')
     if header != HEADER:
-        print "{} header: {} != {}".format(ERROR_STR,','.join(header),','.join(HEADER))
+        print("{} header: {} != {}".format(ERROR_STR,','.join(header),','.join(HEADER)))
         sys.exit(1)
 
     numColList = []
@@ -57,25 +57,25 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
             ## CHECK VALID NUMBER OF COLUMNS PER SAMPLE
             numCols = len(lspl)
             if numCols not in [6]:
-                print "{}: Invalid number of columns (should be 6)!\nLine: '{}'".format(ERROR_STR,line.strip())
+                print("{}: Invalid number of columns (should be 6)!\nLine: '{}'".format(ERROR_STR,line.strip()))
                 sys.exit(1)
             numColList.append(numCols)
 
             ## CHECK GROUP ID DOESNT CONTAIN SPACES
             if group.find(' ') != -1:
-                print "{}: Group id contains spaces!\nLine: '{}'".format(ERROR_STR,line.strip())
+                print("{}: Group id contains spaces!\nLine: '{}'".format(ERROR_STR,line.strip()))
                 sys.exit(1)
 
             ## CHECK REPLICATE COLUMN IS INTEGER
             if not replicate.isdigit():
-                print "{}: Replicate id not an integer!\nLine: '{}'".format(ERROR_STR,line.strip())
+                print("{}: Replicate id not an integer!\nLine: '{}'".format(ERROR_STR,line.strip()))
                 sys.exit(1)
             replicate = int(replicate)
 
             for fastq in fastQFiles:
                 ## CHECK FASTQ FILE EXTENSION
                 if fastq[-9:] != '.fastq.gz' and fastq[-6:] != '.fq.gz':
-                    print "{}: FastQ file has incorrect extension (has to be '.fastq.gz' or 'fq.gz') - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
+                    print("{}: FastQ file has incorrect extension (has to be '.fastq.gz' or 'fq.gz') - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip()))
                     sys.exit(1)
 
             ## CREATE GROUP MAPPING DICT = {GROUP_ID: {REPLICATE_ID:[[FASTQ_FILES]]}
@@ -88,17 +88,17 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
             ## CHECK BOTH ANTIBODY AND CONTROL COLUMNS HAVE VALID VALUES
             if antibody:
                 if antibody.find(' ') != -1:
-                    print "{}: Antibody id contains spaces!\nLine: '{}'".format(ERROR_STR,line.strip())
+                    print("{}: Antibody id contains spaces!\nLine: '{}'".format(ERROR_STR,line.strip()))
                     sys.exit(1)
                 if not control:
-                    print "{}: both Antibody and Control must be specified!\nLine: '{}'".format(ERROR_STR,line.strip())
+                    print("{}: both Antibody and Control must be specified!\nLine: '{}'".format(ERROR_STR,line.strip()))
                     sys.exit(1)
             if control:
                 if control.find(' ') != -1:
-                    print "{}: Control id contains spaces!\nLine: '{}'".format(ERROR_STR,line.strip())
+                    print("{}: Control id contains spaces!\nLine: '{}'".format(ERROR_STR,line.strip()))
                     sys.exit(1)
                 if not antibody:
-                    print "{}: both Antibody and Control must be specified!\nLine: '{}'".format(ERROR_STR,line.strip())
+                    print("{}: both Antibody and Control must be specified!\nLine: '{}'".format(ERROR_STR,line.strip()))
                     sys.exit(1)
 
             ## CREATE ANTIBODY MAPPING CONTROL DICT
@@ -111,12 +111,12 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
 
     ## CHECK IF DATA IS PAIRED-END OR SINGLE-END AND NOT A MIXTURE
     if min(numColList) != max(numColList):
-        print "{}: Mixture of paired-end and single-end reads!".format(ERROR_STR)
+        print("{}: Mixture of paired-end and single-end reads!".format(ERROR_STR))
         sys.exit(1)
 
     ## CHECK IF ANTIBODY AND CONTROL COLUMNS HAVE BEEN SPECIFIED AT LEAST ONCE
     if len(antibodyDict) == 0:
-        print "{}: Antibody and Control must be specified at least once!".format(ERROR_STR)
+        print("{}: Antibody and Control must be specified at least once!".format(ERROR_STR))
         sys.exit(1)
 
     ## WRITE READ MAPPING FILE
@@ -128,7 +128,7 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
         ## CHECK THAT REPLICATE IDS ARE IN FORMAT 1..<NUM_REPLICATES>
         uniq_rep_ids = set(sampleMappingDict[group].keys())
         if len(uniq_rep_ids) != max(uniq_rep_ids):
-            print "{}: Replicate IDs must start with 1..<num_replicates>\nGroup: {}, Replicate IDs: {}".format(ERROR_STR,group,list(uniq_rep_ids))
+            print("{}: Replicate IDs must start with 1..<num_replicates>\nGroup: {}, Replicate IDs: {}".format(ERROR_STR,group,list(uniq_rep_ids)))
             sys.exit(1)
 
         ## RECONSTRUCT LINE FOR SAMPLE IN DESIGN
@@ -158,7 +158,7 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
                         if not antibodyList in antibodyGroupDict[antibody][group]:
                             antibodyGroupDict[antibody][group].append(antibodyList)
                     else:
-                        print "{}: Control id not a valid group\nControl id: {}, Valid Groups: {}".format(ERROR_STR,control,sorted(sampleMappingDict.keys()))
+                        print("{}: Control id not a valid group\nControl id: {}, Valid Groups: {}".format(ERROR_STR,control,sorted(sampleMappingDict.keys())))
                         sys.exit(1)
     fout.close()
 
