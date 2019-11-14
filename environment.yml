@@ -26,7 +26,7 @@ dependencies:
   - samtools=1.9
   - picard=2.21.3
   - bamtools=2.5.1
-  - pysam=0.15.2               ## Keep this version for bin/bampe_rm_orphan.py
+  - pysam=0.15.3
   - bedtools=2.29.0
   - ucsc-bedgraphtobigwig=357
   - deeptools=3.3.1
