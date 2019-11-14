@@ -79,9 +79,9 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
                     sys.exit(1)
 
             ## CREATE GROUP MAPPING DICT = {GROUP_ID: {REPLICATE_ID:[[FASTQ_FILES]]}
-            if not sampleMappingDict.has_key(group):
+            if group not in sampleMappingDict:
                 sampleMappingDict[group] = {}
-            if not sampleMappingDict[group].has_key(replicate):
+            if replicate not in sampleMappingDict[group]:
                 sampleMappingDict[group][replicate] = []
             sampleMappingDict[group][replicate].append(fastQFiles)
 
@@ -144,15 +144,15 @@ def reformat_design(DesignFile,ReadMappingFile,ControlMappingFile):
                 fout.write(','.join(oList) + '\n')
 
                 ## EXTRAPOLATE CONTROL COLUMN
-                if antibodyDict.has_key(group):
+                if group in antibodyDict:
                     antibody,control = antibodyDict[group]
                     if control in sampleMappingDict.keys():
                         control_id = "{}_R1".format(control)
-                        if sampleMappingDict[control].has_key(replicate):
+                        if replicate in sampleMappingDict[control]:
                             control_id = "{}_R{}".format(control,replicate)
-                        if not antibodyGroupDict.has_key(antibody):
+                        if antibody not in antibodyGroupDict:
                             antibodyGroupDict[antibody] = {}
-                        if not antibodyGroupDict[antibody].has_key(group):
+                        if group not in antibodyGroupDict[antibody]:
                             antibodyGroupDict[antibody][group] = []
                         antibodyList = [sample_id[:-3],control_id]
                         if not antibodyList in antibodyGroupDict[antibody][group]:
