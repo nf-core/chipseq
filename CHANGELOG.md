@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### `Dependencies`
 
 * Add genrich `0.6`
+* Add r-stringi `1.4.3`
 * Update gawk `4.2.1` -> `5.0.1`
 * Update r-base `3.4.1` -> `3.6.1`
 * Update r-optparse `1.6.0` -> `1.6.4`
