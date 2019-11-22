@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Added`
 
-* Added multicore support for Trim Galore!
+* [#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
 
 ### `Fixed`
 
