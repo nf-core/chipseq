@@ -501,7 +501,7 @@ if (params.skip_trimming) {
 } else {
     process TrimGalore {
         tag "$name"
-        label 'process_long'
+        label 'process_medium'
         publishDir "${params.outdir}/trim_galore", mode: 'copy',
             saveAs: { filename ->
                           if (filename.endsWith(".html")) "fastqc/$filename"
@@ -528,13 +528,13 @@ if (params.skip_trimming) {
         if (params.single_end) {
             """
             [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-            trim_galore --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
+            trim_galore --cores $task.cpus --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
             """
         } else {
             """
             [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
             [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
-            trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq ${name}_1.fastq.gz ${name}_2.fastq.gz
+            trim_galore --cores $task.cpus --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq ${name}_1.fastq.gz ${name}_2.fastq.gz
             """
         }
     }
