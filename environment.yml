@@ -19,6 +19,7 @@ dependencies:
   - conda-forge::r-upsetr=1.4.0
   - conda-forge::r-xfun=0.11
   - conda-forge::icu=64.2
+  - conda-forge::pigz=2.3.4
 
   ## bioconda packages
   - bioconda::fastqc=0.11.8

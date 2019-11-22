@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Added`
 
+* Added multicore support for Trim Galore!
+
 ### `Fixed`
 
 * [#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
@@ -37,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update phantompeakqualtools `1.2` -> `1.2.1.1`
 * Update bioconductor-deseq2 `1.20.0` -> `1.26.0`
 * Update bioconductor-vsn `3.46.0` -> `3.54.0`
+* Added pigz `2.3.4`
 
 ### `Deprecated`
 
