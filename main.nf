@@ -501,7 +501,7 @@ if (params.skip_trimming) {
 } else {
     process TrimGalore {
         tag "$name"
-        label 'process_medium'
+        label 'process_high'
         publishDir "${params.outdir}/trim_galore", mode: 'copy',
             saveAs: { filename ->
                           if (filename.endsWith(".html")) "fastqc/$filename"
@@ -519,22 +519,33 @@ if (params.skip_trimming) {
         file "*.{zip,html}" into ch_trimgalore_fastqc_reports_mqc
 
         script:
-        // Added soft-links to original fastqs for consistent naming in MultiQC
+        // Calculate number of --cores for TrimGalore based on value of task.cpus
+        // See: https://github.com/FelixKrueger/TrimGalore/blob/master/Changelog.md#version-060-release-on-1-mar-2019
+        def cores = 1
+        if (task.cpus) {
+            tcores = (((task.cpus as int) - 3) / 3) as int
+            if (tcores > 1) {
+              cores = tcores
+            }
+        }
+
         c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
         c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
         tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
         tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
         nextseq = params.trim_nextseq > 0 ? "--nextseq ${params.trim_nextseq}" : ''
+
+        // Added soft-links to original fastqs for consistent naming in MultiQC
         if (params.single_end) {
             """
             [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-            trim_galore --cores $task.cpus --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
+            trim_galore --cores $cores --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
             """
         } else {
             """
             [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
             [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
-            trim_galore --cores $task.cpus --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq ${name}_1.fastq.gz ${name}_2.fastq.gz
+            trim_galore --cores $cores --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq ${name}_1.fastq.gz ${name}_2.fastq.gz
             """
         }
     }
