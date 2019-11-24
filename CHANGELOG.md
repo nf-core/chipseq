@@ -28,8 +28,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update r-pheatmap `1.0.10` -> `1.0.12`
 * Update r-lattice `0.20_35` -> `0.20_38`
 * Update r-upsetr `1.3.3` -> `1.4.0`
+* Update r-scales `1.0.0` -> `1.1.0`
 * Update r-xfun `0.3` -> `0.11`
-* Update trim-galore `0.5.0` -> `0.6.4`
+* Update trim-galore `0.5.0` -> `0.6.5`
 * Update picard `2.19.0` -> `2.21.3`
 * Update pysam `0.15.2` -> `0.15.3`
 * Update bedtools `2.27.1` -> `2.29.0`
