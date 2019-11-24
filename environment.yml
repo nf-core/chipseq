@@ -13,7 +13,7 @@ dependencies:
   - conda-forge::r-rcolorbrewer=1.1_2
   - conda-forge::r-ggplot2=3.2.1
   - conda-forge::r-reshape2=1.4.3
-  - conda-forge::r-scales=1.0.0
+  - conda-forge::r-scales=1.1.0
   - conda-forge::r-pheatmap=1.0.12
   - conda-forge::r-lattice=0.20_38
   - conda-forge::r-upsetr=1.4.0
@@ -23,7 +23,7 @@ dependencies:
 
   ## bioconda packages
   - bioconda::fastqc=0.11.8
-  - bioconda::trim-galore=0.6.4
+  - bioconda::trim-galore=0.6.5
   - bioconda::bwa=0.7.17
   - bioconda::samtools=1.9
   - bioconda::picard=2.21.3
