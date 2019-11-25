@@ -38,6 +38,6 @@ dependencies:
   - bioconda::subread=1.6.4
   - bioconda::phantompeakqualtools=1.2.1.1
   - bioconda::preseq=2.0.3
-  - bioconda::multiqc=1.7
+  - bioconda::multiqc=1.8
   - bioconda::bioconductor-deseq2=1.26.0
   - bioconda::bioconductor-vsn=3.54.0
