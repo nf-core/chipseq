@@ -1,6 +1,6 @@
-FROM nfcore/base:1.7
+FROM nfcore/base:dev
 LABEL authors="Philip Ewels" \
-      description="Docker image containing all requirements for nf-core/chipseq pipeline"
+      description="Docker image containing all software requirements for the nf-core/chipseq pipeline"
 
 # Install the conda environment
 COPY environment.yml /
