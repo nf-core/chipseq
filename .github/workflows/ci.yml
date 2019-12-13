@@ -1,7 +1,7 @@
 name: nf-core CI
 # This workflow is triggered on pushes and PRs to the repository.
 # It runs the pipeline with the minimal test dataset to check that it completes without any syntax errors
-on: [push, pull_request]  
+on: [push, pull_request]
 
 jobs:
   test:
@@ -19,4 +19,4 @@ jobs:
           sudo mv nextflow /usr/local/bin/
       - name: Run test
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,docker
+          nextflow run ${GITHUB_WORKSPACE} -ansi-log false -profile test,docker
