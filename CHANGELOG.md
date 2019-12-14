@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### `Added`
 
 * [#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
+* Added GitHub Actions CI tests
 
 ### `Fixed`
 
@@ -44,6 +45,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update bioconductor-vsn `3.46.0` -> `3.54.0`
 
 ### `Deprecated`
+
+| Deprecated                   | Replacement               |
+|------------------------------|---------------------------|
+| `--skip_diff_analysis`       | `--skip_consensus_peaks`  |
 
 ## [1.1.0] - 2019-11-05
 
