@@ -59,7 +59,7 @@ def helpMessage() {
       --broad_cutoff [float]          Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified (Default: 0.1)
       --min_reps_consensus [int]      Number of biological replicates required from a given condition for a peak to contribute to a consensus peak (Default: 1)
       --save_macs_pileup [bool]       Instruct MACS2 to create bedGraph files normalised to signal per million reads
-      --skip_diff_analysis [bool]     Skip differential binding analysis
+      --skip_consensus_peaks [bool]   Skip consensus peak generation and differential binding analysis
 
     QC
       --skip_fastqc [bool]            Skip FastQC
@@ -240,7 +240,7 @@ summary['Save Genome Index']      = params.save_reference ? 'Yes' : 'No'
 if (params.save_trimmed)          summary['Save Trimmed'] = 'Yes'
 if (params.save_align_intermeds)  summary['Save Intermeds'] =  'Yes'
 if (params.save_macs_pileup)      summary['Save MACS2 Pileup'] = 'Yes'
-if (params.skip_diff_analysis)    summary['Skip Diff Analysis'] = 'Yes'
+if (params.skip_consensus_peaks)  summary['Skip Consensus Peaks'] = 'Yes'
 if (params.skip_fastqc)           summary['Skip FastQC'] = 'Yes'
 if (params.skip_picard_metrics)   summary['Skip Picard Metrics'] = 'Yes'
 if (params.skip_preseq)           summary['Skip Preseq'] = 'Yes'
@@ -1223,7 +1223,7 @@ process ConsensusPeakSet {
                 }
 
     when:
-    params.macs_gsize && (replicatesExist || multipleGroups)
+    params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
 
     input:
     set val(antibody), val(replicatesExist), val(multipleGroups), file(peaks) from ch_macs_consensus
@@ -1270,7 +1270,7 @@ process ConsensusPeakSetAnnotate {
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: 'copy'
 
     when:
-    params.macs_gsize && (replicatesExist || multipleGroups)
+    params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
 
     input:
     set val(antibody), val(replicatesExist), val(multipleGroups), file(bed) from ch_macs_consensus_bed
@@ -1320,7 +1320,7 @@ process ConsensusPeakSetDESeq {
                 }
 
     when:
-    params.macs_gsize && replicatesExist && multipleGroups && !params.skip_diff_analysis
+    params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks
 
     input:
     set val(antibody), val(replicatesExist), val(multipleGroups), file(bams) ,file(saf) from ch_group_bam_deseq
