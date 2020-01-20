@@ -59,10 +59,19 @@ for (idx in 1:length(HomerFiles)) {
     sampleid = SampleIDs[idx]
     anno.dat <- read.table(HomerFiles[idx], sep="\t", header=TRUE,quote="")
     anno.dat <- anno.dat[,c("Annotation","Distance.to.TSS","Nearest.PromoterID")]
-    anno.dat <- anno.dat[which(!is.na(anno.dat$Distance.to.TSS)),]
-    if (nrow(anno.dat) == 0) {
-        quit(save = "no", status = 0, runLast = FALSE)
-    }
+
+    ## REPLACE UNASSIGNED FEATURE ENTRIES WITH SENSIBLE VALUES
+    unassigned <- which(is.na(as.character(anno.dat$Distance.to.TSS)))
+    anno.dat$Distance.to.TSS[unassigned] <- 1000000
+
+    anno.dat$Annotation <- as.character(anno.dat$Annotation)
+    anno.dat$Annotation[unassigned] <- "Unassigned"
+    anno.dat$Annotation <- as.factor(anno.dat$Annotation)
+
+    anno.dat$Nearest.PromoterID <- as.character(anno.dat$Nearest.PromoterID)
+    anno.dat$Nearest.PromoterID[unassigned] <- "Unassigned"
+    anno.dat$Nearest.PromoterID <- as.factor(anno.dat$Nearest.PromoterID)
+
     anno.dat$name <- rep(sampleid,nrow(anno.dat))
     anno.dat$Distance.to.TSS <- abs(anno.dat$Distance.to.TSS) + 1
     plot.dat <- rbind(plot.dat,anno.dat)
