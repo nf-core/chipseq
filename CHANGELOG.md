@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### `Fixed`
 
 * [#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
+* [#132][https://github.com/nf-core/chipseq/issues/132] - BigWig Error: sort: cannot create temporary file in '': Read-only file system
 * Make executables in `bin/` compatible with Python 3
 
 ### `Dependencies`
