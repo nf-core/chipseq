@@ -9,14 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Added`
 
-* [#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
+* [nf-core/atacseq#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
+* [nf-core/atacseq#75](https://github.com/nf-core/atacseq/issues/75) - Include gene annotation versions in multiqc report
 * Added GitHub Actions CI tests
 
 ### `Fixed`
 
 * [#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
 * [#132](https://github.com/nf-core/chipseq/issues/132) - BigWig Error: sort: cannot create temporary file in '': Read-only file system
-* [#73](https://github.com/nf-core/atacseq/issues/73) - macs_annotatePeaks.mLb.clN.summary.txt file is not created
+* [nf-core/atacseq#73](https://github.com/nf-core/atacseq/issues/73) - macs_annotatePeaks.mLb.clN.summary.txt file is not created
 * Make executables in `bin/` compatible with Python 3
 
 ### `Dependencies`
@@ -56,7 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Added`
 
-* [#46](https://github.com/nf-core/atacseq/issues/46) - Missing gene_bed path in igenomes config
+* [nf-core/atacseq#46](https://github.com/nf-core/atacseq/issues/46) - Missing gene_bed path in igenomes config
 * Update template to tools `1.7`
 * Add `--trim_nextseq` parameter
 * Add `CITATIONS.md` file
@@ -65,10 +66,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### `Fixed`
 
 * **Change all parameters from `camelCase` to `snake_case` (see [Deprecated](#Deprecated))**
-* [#44](https://github.com/nf-core/atacseq/issues/44) - Output directory missing: macs2/consensus/deseq2
-* [#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?
-* [#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly
-* [#50](https://github.com/nf-core/atacseq/issues/50) - HOMER number of peaks does not correspond to found MACS2 peaks
+* [nf-core/atacseq#44](https://github.com/nf-core/atacseq/issues/44) - Output directory missing: macs2/consensus/deseq2
+* [nf-core/atacseq#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?
+* [nf-core/atacseq#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly
+* [nf-core/atacseq#50](https://github.com/nf-core/atacseq/issues/50) - HOMER number of peaks does not correspond to found MACS2 peaks
 * Fixed bug in UpSetR peak intersection plot
 * Increase default resource requirements in `base.config`
 * Increase process-specific requirements based on user-reported failures
