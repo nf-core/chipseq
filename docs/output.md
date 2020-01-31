@@ -183,10 +183,10 @@ The library-level alignments associated with the same sample are merged and subs
       * QC plots for peak-to-gene feature annotation: `macs_annotatePeaks.plots.pdf`
       * MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios: `*.FRiP_mqc.tsv`, `*.count_mqc.tsv` and `macs_annotatePeaks.summary_mqc.tsv` respectively.
 
-5. **Create consensus set of peaks**
+5. **Create and quantify consensus set of peaks**
 
     *Documentation*:  
-    [BEDTools](https://bedtools.readthedocs.io/en/latest/)
+    [BEDTools](https://bedtools.readthedocs.io/en/latest/), [featureCounts](http://bioinf.wehi.edu.au/featureCounts/)
 
     *Description*:  
     In order to perform the differential binding analysis we need to be able to carry out the read quantification for the same intervals across **all** of the samples in the experiment. To this end, the individual peak-sets called per sample have to be merged together in order to create a consensus set of peaks.  
@@ -197,10 +197,15 @@ The library-level alignments associated with the same sample are merged and subs
 
     ![R - UpSetR peak intersection plot](images/r_upsetr_intersect_plot.png)
 
+    The featureCounts tool is used to count the number of reads relative to the consensus peak-set across all of the samples. This essentially generates a file containing a matrix where the rows represent the consensus intervals, the columns represent all of the samples in the experiment, and the values represent the raw read counts.
+
+    ![MultiQC - featureCounts consensus peak read assignment plot](images/mqc_featureCounts_assignment_plot.png)  
+
     *Output directories*:
     * `bwa/mergedLibrary/macs/<PEAK_TYPE>/consensus/`  
       * Consensus peak-set across all samples in `*.bed` format.
       * Consensus peak-set across all samples in `*.saf` format. Required by featureCounts for read quantification.  
+      * `.featureCounts.txt` file for read counts across all samples relative to consensus peak-set.  
       * HOMER `*.annotatePeaks.txt` peak-to-gene annotation file for consensus peaks.  
       * Spreadsheet representation of consensus peak-set across samples **with** gene annotation columns: `*.boolean.annotatePeaks.txt`.  
         The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.  
@@ -211,13 +216,9 @@ The library-level alignments associated with the same sample are merged and subs
 6. **Read counting and differential binding analysis**
 
     *Documentation*:  
-    [featureCounts](http://bioinf.wehi.edu.au/featureCounts/), [DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html), [R](https://www.r-project.org/)
+    [DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html), [R](https://www.r-project.org/)
 
     *Description*:  
-    The featureCounts tool is used to count the number of reads relative to the consensus peak-set across all of the samples. This essentially generates a file containing a matrix where the rows represent the consensus intervals, the columns represent all of the samples in the experiment, and the values represent the raw read counts.
-
-    ![MultiQC - featureCounts consensus peak read assignment plot](images/mqc_featureCounts_assignment_plot.png)  
-
     DESeq2 is more commonly used to perform differential expression analysis for RNA-seq datasets. However, it can also be used for ChIP-seq differential binding analysis, in which case you can imagine that instead of counts per gene for RNA-seq data we now have counts per bound region.  
 
     This pipeline uses a standardised DESeq2 analysis script to get an idea of the reproducibility within the experiment, and to assess the overall differential binding. Please note that this will not suit every experimental design, and if there are other problems with the experiment then it may not work as well as expected.
@@ -234,7 +235,6 @@ The library-level alignments associated with the same sample are merged and subs
 
     *Output directories*:
     * `bwa/mergedLibrary/macs/<PEAK_TYPE>/consensus/<ANTIBODY>/deseq2/`
-        * `.featureCounts.txt` file for read counts across all samples relative to consensus peak-set.
         * Differential binding `*.results.txt` spreadsheet containing results across all consensus peaks and all comparisons.  
         * `*.plots.pdf` file for PCA and hierarchical clustering.  
         * `*.log` file with information for number of differentially bound intervals at different FDR and fold-change thresholds for each comparison.  
