@@ -119,6 +119,7 @@ params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : fals
 params.gene_bed = params.genome ? params.genomes[ params.genome ].bed12 ?: false : false
 params.macs_gsize = params.genome ? params.genomes[ params.genome ].macs_gsize ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
+params.anno_readme = params.genome ? params.genomes[ params.genome ].readme ?: false : false
 
 // Global variables
 def PEAK_TYPE = params.narrow_peak ? "narrowPeak" : "broadPeak"
@@ -165,6 +166,7 @@ if (params.gtf)       { ch_gtf = file(params.gtf, checkIfExists: true) } else { 
 if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
 if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
 if (params.blacklist) { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
+if (params.anno_readme && file(params.anno_readme).exists()) { ch_anno_readme = Channel.fromPath(params.anno_readme) } else { ch_anno_readme = Channel.empty() }
 
 if (params.fasta) {
     lastPath = params.fasta.lastIndexOf(File.separator)
@@ -424,10 +426,12 @@ process MakeGenomeFilter {
     input:
     file fasta from ch_fasta
     file blacklist from ch_blacklist.ifEmpty([])
+    file readme from ch_anno_readme.ifEmpty([])
 
     output:
-    file "$fasta" into ch_genome_fasta                 // FASTA FILE FOR IGV
-    file "*.fai" into ch_genome_fai                    // FAI INDEX FOR REFERENCE GENOME
+    file "$fasta"                                      // FASTA FILE FOR IGV
+    file "$readme"                                     // AWS IGENOMES FILE CONTAINING ANNOTATION VERSION
+    file "*.fai"                                       // FAI INDEX FOR REFERENCE GENOME
     file "*.bed" into ch_genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS
     file "*.sizes" into ch_genome_sizes_bigwig         // CHROMOSOME SIZES FILE FOR BEDTOOLS
 
@@ -1039,7 +1043,7 @@ ch_design_controls_csv
     .map { it ->  it[2..-1] }
     .into { ch_group_bam_macs;
             ch_group_bam_plotfingerprint;
-            ch_group_bam_deseq }
+            ch_group_bam_counts }
 
 /*
  * STEP 6.1 deepTools plotFingerprint
@@ -1298,17 +1302,52 @@ process ConsensusPeakSetAnnotate {
 }
 
 // get bam and saf files for each ip
-ch_group_bam_deseq
+ch_group_bam_counts
     .map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
     .join(ch_rm_orphan_name_bam_counts)
     .map { it -> [ it[1][0], it[1][1], it[1][2], it[2] ] }
     .groupTuple()
     .map { it -> [ it[0], it[1][0], it[2][0], it[3].flatten().sort() ] }
     .join(ch_macs_consensus_saf)
-    .set { ch_group_bam_deseq }
+    .set { ch_group_bam_counts }
 
 /*
- * STEP 7.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
+ * STEP 7.2 Count reads in consensus peaks with featureCounts
+ */
+process ConsensusPeakSetCounts {
+    tag "${antibody}"
+    label 'process_medium'
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: 'copy'
+
+    when:
+    params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
+
+    input:
+    set val(antibody), val(replicatesExist), val(multipleGroups), file(bams), file(saf) from ch_group_bam_counts
+
+    output:
+    set val(antibody), val(replicatesExist), val(multipleGroups), file("*featureCounts.txt") into ch_macs_consensus_counts
+    file "*featureCounts.txt.summary" into ch_macs_consensus_counts_mqc
+
+    script:
+    prefix = "${antibody}.consensus_peaks"
+    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+    pe_params = params.single_end ? '' : "-p --donotsort"
+    """
+    featureCounts \\
+        -F SAF \\
+        -O \\
+        --fracOverlap 0.2 \\
+        -T $task.cpus \\
+        $pe_params \\
+        -a $saf \\
+        -o ${prefix}.featureCounts.txt \\
+        ${bam_files.join(' ')}
+    """
+}
+
+/*
+ * STEP 7.3 Perform differential analysis with DESeq2
  */
 process ConsensusPeakSetDESeq {
     tag "${antibody}"
@@ -1323,13 +1362,11 @@ process ConsensusPeakSetDESeq {
     params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks
 
     input:
-    set val(antibody), val(replicatesExist), val(multipleGroups), file(bams) ,file(saf) from ch_group_bam_deseq
+    set val(antibody), val(replicatesExist), val(multipleGroups), file(counts) from ch_macs_consensus_counts
     file deseq2_pca_header from ch_deseq2_pca_header
     file deseq2_clustering_header from ch_deseq2_clustering_header
 
     output:
-    file "*featureCounts.txt" into ch_macs_consensus_counts
-    file "*featureCounts.txt.summary" into ch_macs_consensus_counts_mqc
     file "*.{RData,results.txt,pdf,log}" into ch_macs_consensus_deseq_results
     file "sizeFactors" into ch_macs_consensus_deseq_factors
     file "*vs*/*.{pdf,txt}" into ch_macs_consensus_deseq_comp_results
@@ -1339,21 +1376,9 @@ process ConsensusPeakSetDESeq {
 
     script:
     prefix = "${antibody}.consensus_peaks"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
-    pe_params = params.single_end ? '' : "-p --donotsort"
     """
-    featureCounts \\
-        -F SAF \\
-        -O \\
-        --fracOverlap 0.2 \\
-        -T $task.cpus \\
-        $pe_params \\
-        -a $saf \\
-        -o ${prefix}.featureCounts.txt \\
-        ${bam_files.join(' ')}
-
-    featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mLb
+    featurecounts_deseq2.r -i $counts -b '$bam_ext' -o ./ -p $prefix -s .mLb
 
     sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
     sed -i -e 's/DESeq2:/${antibody} DESeq2:/g' tmp.txt
