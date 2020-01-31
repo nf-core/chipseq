@@ -1043,7 +1043,7 @@ ch_design_controls_csv
     .map { it ->  it[2..-1] }
     .into { ch_group_bam_macs;
             ch_group_bam_plotfingerprint;
-            ch_group_bam_deseq }
+            ch_group_bam_counts }
 
 /*
  * STEP 6.1 deepTools plotFingerprint
@@ -1302,17 +1302,52 @@ process ConsensusPeakSetAnnotate {
 }
 
 // get bam and saf files for each ip
-ch_group_bam_deseq
+ch_group_bam_counts
     .map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
     .join(ch_rm_orphan_name_bam_counts)
     .map { it -> [ it[1][0], it[1][1], it[1][2], it[2] ] }
     .groupTuple()
     .map { it -> [ it[0], it[1][0], it[2][0], it[3].flatten().sort() ] }
     .join(ch_macs_consensus_saf)
-    .set { ch_group_bam_deseq }
+    .set { ch_group_bam_counts }
 
 /*
- * STEP 7.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
+ * STEP 7.2 Count reads in consensus peaks with featureCounts
+ */
+process ConsensusPeakSetCounts {
+    tag "${antibody}"
+    label 'process_medium'
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: 'copy'
+
+    when:
+    params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
+
+    input:
+    set val(antibody), val(replicatesExist), val(multipleGroups), file(bams), file(saf) from ch_group_bam_counts
+
+    output:
+    set val(antibody), val(replicatesExist), val(multipleGroups), file("*featureCounts.txt") into ch_macs_consensus_counts
+    file "*featureCounts.txt.summary" into ch_macs_consensus_counts_mqc
+
+    script:
+    prefix = "${antibody}.consensus_peaks"
+    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+    pe_params = params.single_end ? '' : "-p --donotsort"
+    """
+    featureCounts \\
+        -F SAF \\
+        -O \\
+        --fracOverlap 0.2 \\
+        -T $task.cpus \\
+        $pe_params \\
+        -a $saf \\
+        -o ${prefix}.featureCounts.txt \\
+        ${bam_files.join(' ')}
+    """
+}
+
+/*
+ * STEP 7.3 Perform differential analysis with DESeq2
  */
 process ConsensusPeakSetDESeq {
     tag "${antibody}"
@@ -1327,13 +1362,11 @@ process ConsensusPeakSetDESeq {
     params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks
 
     input:
-    set val(antibody), val(replicatesExist), val(multipleGroups), file(bams) ,file(saf) from ch_group_bam_deseq
+    set val(antibody), val(replicatesExist), val(multipleGroups), file(counts) from ch_macs_consensus_counts
     file deseq2_pca_header from ch_deseq2_pca_header
     file deseq2_clustering_header from ch_deseq2_clustering_header
 
     output:
-    file "*featureCounts.txt" into ch_macs_consensus_counts
-    file "*featureCounts.txt.summary" into ch_macs_consensus_counts_mqc
     file "*.{RData,results.txt,pdf,log}" into ch_macs_consensus_deseq_results
     file "sizeFactors" into ch_macs_consensus_deseq_factors
     file "*vs*/*.{pdf,txt}" into ch_macs_consensus_deseq_comp_results
@@ -1343,21 +1376,9 @@ process ConsensusPeakSetDESeq {
 
     script:
     prefix = "${antibody}.consensus_peaks"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
-    pe_params = params.single_end ? '' : "-p --donotsort"
     """
-    featureCounts \\
-        -F SAF \\
-        -O \\
-        --fracOverlap 0.2 \\
-        -T $task.cpus \\
-        $pe_params \\
-        -a $saf \\
-        -o ${prefix}.featureCounts.txt \\
-        ${bam_files.join(' ')}
-
-    featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mLb
+    featurecounts_deseq2.r -i $counts -b '$bam_ext' -o ./ -p $prefix -s .mLb
 
     sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
     sed -i -e 's/DESeq2:/${antibody} DESeq2:/g' tmp.txt
