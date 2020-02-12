@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [nf-core/atacseq#75](https://github.com/nf-core/atacseq/issues/75) - Include gene annotation versions in multiqc report
 * [nf-core/atacseq#76](https://github.com/nf-core/atacseq/issues/76) - featureCounts coupled to DESeq2
 * Added GitHub Actions CI tests
+* [#138](https://github.com/nf-core/chipseq/issues/138) - Add social preview image
 
 ### `Fixed`
 
