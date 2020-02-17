@@ -25,10 +25,10 @@ dependencies:
   - bioconda::fastqc=0.11.9
   - bioconda::trim-galore=0.6.5
   - bioconda::bwa=0.7.17
-  - bioconda::samtools=1.10
+  - bioconda::samtools=1.9
   - bioconda::picard=2.21.8
   - bioconda::bamtools=2.5.1
-  - bioconda::pysam=0.15.3
+  - bioconda::pysam=0.15.4
   - bioconda::bedtools=2.29.2
   - bioconda::ucsc-bedgraphtobigwig=357
   - bioconda::deeptools=3.3.2

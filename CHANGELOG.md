@@ -37,9 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update r-xfun `0.3` -> `0.12`
 * Update fastqc `0.11.8` -> `0.11.9`
 * Update trim-galore `0.5.0` -> `0.6.5`
-* Update samtools `1.9` -> `1.10`
 * Update picard `2.19.0` -> `2.21.8`
-* Update pysam `0.15.2` -> `0.15.3`
+* Update pysam `0.15.2` -> `0.15.4`
 * Update bedtools `2.27.1` -> `2.29.2`
 * Update ucsc-bedgraphtobigwig `377` -> `357`
 * Update deeptools `3.2.1` -> `3.3.2`
