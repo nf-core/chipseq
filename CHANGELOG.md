@@ -24,7 +24,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Dependencies`
 
-* Add genrich `0.6`
 * Add icu `64.2`
 * Add pigz `2.3.4`
 * Update gawk `4.2.1` -> `5.0.1`
