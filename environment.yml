@@ -18,7 +18,7 @@ dependencies:
   - conda-forge::r-lattice=0.20_38
   - conda-forge::r-upsetr=1.4.0
   - conda-forge::r-xfun=0.12
-  - conda-forge::pigz=2.3.4
+  - conda-forge::pigz=2.3.4               ## Required for TrimGalore multi-threading
 
   ## bioconda packages
   - bioconda::fastqc=0.11.9
