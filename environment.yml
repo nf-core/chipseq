@@ -12,13 +12,12 @@ dependencies:
   - conda-forge::r-optparse=1.6.4
   - conda-forge::r-rcolorbrewer=1.1_2
   - conda-forge::r-ggplot2=3.2.1
-  - conda-forge::r-reshape2=1.4.3
+  - conda-forge::r-tidyr=1.0.2
   - conda-forge::r-scales=1.1.0
   - conda-forge::r-pheatmap=1.0.12
   - conda-forge::r-lattice=0.20_38
   - conda-forge::r-upsetr=1.4.0
   - conda-forge::r-xfun=0.12
-  - conda-forge::icu=64.2
   - conda-forge::pigz=2.3.4
 
   ## bioconda packages
@@ -38,5 +37,6 @@ dependencies:
   - bioconda::phantompeakqualtools=1.2.2
   - bioconda::preseq=2.0.3
   - bioconda::multiqc=1.8
+  - bioconda::bioconductor-biocparallel=1.20.0
   - bioconda::bioconductor-deseq2=1.26.0
   - bioconda::bioconductor-vsn=3.54.0
