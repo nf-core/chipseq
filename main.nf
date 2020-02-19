@@ -430,8 +430,8 @@ process MakeGenomeFilter {
 
     output:
     file "$fasta"                                      // FASTA FILE FOR IGV
-    file "$readme"                                     // AWS IGENOMES FILE CONTAINING ANNOTATION VERSION
     file "*.fai"                                       // FAI INDEX FOR REFERENCE GENOME
+    //file "$readme"                                     // AWS IGENOMES FILE CONTAINING ANNOTATION VERSION
     file "*.bed" into ch_genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS
     file "*.sizes" into ch_genome_sizes_bigwig         // CHROMOSOME SIZES FILE FOR BEDTOOLS
 
