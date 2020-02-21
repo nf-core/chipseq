@@ -21,7 +21,8 @@ jobs:
           sudo mv nextflow /usr/local/bin/
       - name: Pull docker image
         run: |
-          docker pull nfcore/chipseq:dev && docker tag nfcore/chipseq:dev nfcore/chipseq:dev
+          docker pull nfcore/chipseq:dev
+          docker tag nfcore/chipseq:dev nfcore/chipseq:dev
       - name: Run pipeline with test data
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker

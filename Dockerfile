@@ -1,4 +1,4 @@
-FROM nfcore/base:1.8
+FROM nfcore/base:1.9
 LABEL authors="Philip Ewels" \
       description="Docker image containing all software requirements for the nf-core/chipseq pipeline"
 
