@@ -25,6 +25,4 @@ jobs:
           docker tag nfcore/chipseq:dev nfcore/chipseq:dev
       - name: Run pipeline with test data
         run: |
-          # TODO nf-core: You can customise CI pipeline run tests as required
-          # (eg. adding multiple test runs with different parameters)
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker
