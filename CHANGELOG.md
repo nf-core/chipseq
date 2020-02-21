@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### `Dependencies`
 
 * Add python `3.7.6`
-* Add markdown `3.2.1`
+* Add markdown `3.1.1`
 * Add pymdown-extensions `6.0`
 * Add pygments `2.5.2`
 * Add pigz `2.3.4`
