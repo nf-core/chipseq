@@ -8,7 +8,7 @@ channels:
 dependencies:
   ## conda-forge packages
   - conda-forge::python=3.7.6
-  - conda-forge::markdown=3.2.1
+  - conda-forge::markdown=3.1.1
   - conda-forge::pymdown-extensions=6.0
   - conda-forge::pygments=2.5.2
   - conda-forge::r-base=3.6.2
