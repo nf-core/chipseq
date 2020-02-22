@@ -1385,7 +1385,13 @@ process ConsensusPeakSetDESeq {
     prefix = "${antibody}.consensus_peaks"
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
     """
-    featurecounts_deseq2.r -i $counts -b '$bam_ext' -o ./ -p $prefix -s .mLb
+    featurecounts_deseq2.r \\
+        --featurecount_file $counts \\
+        --bam_suffix '$bam_ext' \\
+        --outdir ./ \\
+        --outprefix $prefix \\
+        --outsuffix .mLb \\
+        --cores $task.cpus
 
     sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
     sed -i -e 's/DESeq2:/${antibody} DESeq2:/g' tmp.txt
