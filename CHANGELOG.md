@@ -10,9 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [nf-core/atacseq#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
 * [nf-core/atacseq#75](https://github.com/nf-core/atacseq/issues/75) - Include gene annotation versions in multiqc report
 * [nf-core/atacseq#76](https://github.com/nf-core/atacseq/issues/76) - featureCounts coupled to DESeq2
+* [nf-core/atacseq#79](https://github.com/nf-core/atacseq/issues/79) - Parallelize DESeq2
 * [#138](https://github.com/nf-core/chipseq/issues/138) - Add social preview image
 * Update template to tools `1.9`
-* Add `--skip_consensus_peaks` to skip consensus peak generation
+* Parameter `--skip_consensus_peaks` to skip consensus peak generation
 
 ### `Fixed`
 
