@@ -44,11 +44,13 @@ if (file.exists(OutDir) == FALSE) {
 comb.dat <- read.table(opt$input_file,sep="\t",header=FALSE)
 comb.vec <- comb.dat[,2]
 comb.vec <- setNames(comb.vec,comb.dat[,1])
-
 sets <- sort(unique(unlist(strsplit(names(comb.vec),split='&'))), decreasing = TRUE)
+
 nintersects = length(names(comb.vec))
 if (nintersects > 70) {
     nintersects <- 70
+    comb.vec <- sort(comb.vec, decreasing = TRUE)[1:70]
+    sets <- sort(unique(unlist(strsplit(names(comb.vec),split='&'))), decreasing = TRUE)
 }
 
 pdf(opt$output_file,onefile=F,height=10,width=20)
