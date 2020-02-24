@@ -874,9 +874,8 @@ process Preseq {
     file "*.ccurve.txt" into ch_preseq_mqc
 
     script:
-    prefix = "${name}.mLb.clN"
     """
-    preseq lc_extrap -v -output ${prefix}.ccurve.txt -bam ${bam[0]}
+    preseq lc_extrap -v -output ${name}.ccurve.txt -bam ${bam[0]}
     """
 }
 
@@ -945,17 +944,16 @@ process BigWig {
     file "*igv.txt" into ch_bigwig_igv
 
     script:
-    prefix = "${name}.mLb.clN"
     pe_fragment = params.single_end ? "" : "-pc"
     extend = (params.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
     """
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
-    echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
-    genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -T '.' -k1,1 -k2,2n >  ${prefix}.bedGraph
+    echo \$SCALE_FACTOR > ${name}.scale_factor.txt
+    genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -T '.' -k1,1 -k2,2n >  ${name}.bedGraph
 
-    bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
+    bedGraphToBigWig ${name}.bedGraph $sizes ${name}.bigWig
 
-    find * -type f -name "*.bigWig" -exec echo -e "bwa/mergedLibrary/bigwig/"{}"\\t0,0,178" \\; > ${prefix}.bigWig.igv.txt
+    find * -type f -name "*.bigWig" -exec echo -e "bwa/mergedLibrary/bigwig/"{}"\\t0,0,178" \\; > ${name}.bigWig.igv.txt
     """
 }
 
@@ -1393,7 +1391,7 @@ process ConsensusPeakSetDESeq {
         --bam_suffix '$bam_ext' \\
         --outdir ./ \\
         --outprefix $prefix \\
-        --outsuffix .mLb \\
+        --outsuffix '' \\
         --cores $task.cpus
 
     sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
