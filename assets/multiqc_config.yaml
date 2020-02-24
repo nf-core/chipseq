@@ -17,6 +17,7 @@ fn_clean_exts:
     - '_peaks'
     - '_spp'
     - '.spp'
+    - 'ccurve'
 
 module_order:
     - fastqc:
