@@ -39,6 +39,7 @@
   * [`--min_reps_consensus`](#--min_reps_consensus)
   * [`--save_macs_pileup`](#--save_macs_pileup)
   * [`--skip_consensus_peaks`](#--skip_consensus_peaks)
+  * [`--skip_diff_analysis`](#--skip_diff_analysis)
 * [Skipping QC steps](#skipping-qc-steps)
 * [Job resources](#job-resources)
   * [Automatic resubmission](#automatic-resubmission)
@@ -406,7 +407,11 @@ Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
 
 ### `--skip_consensus_peaks`
 
-Skip consensus peak generation and differential binding analysis.
+Skip consensus peak generation, annotation and counting.
+
+### `--skip_diff_analysis`
+
+Skip differential binding analysis with DESeq2.
 
 ## Skipping QC steps
 

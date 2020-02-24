@@ -17,10 +17,10 @@ library(scales)
 ################################################
 ################################################
 
-option_list <- list(make_option(c("-i", "--homer_files"), type="character", default=NULL, help="Comma-separated list of homer annotated text files.", metavar="anno_files"),
-                    make_option(c("-s", "--sample_ids"), type="character", default=NULL, help="Comma-separated list of sample ids associated with homer annotated text files. Must be unique and in same order as homer files input.", metavar="sampleids"),
+option_list <- list(make_option(c("-i", "--homer_files"), type="character", default=NULL, help="Comma-separated list of homer annotated text files.", metavar="path"),
+                    make_option(c("-s", "--sample_ids"), type="character", default=NULL, help="Comma-separated list of sample ids associated with homer annotated text files. Must be unique and in same order as homer files input.", metavar="string"),
                     make_option(c("-o", "--outdir"), type="character", default='./', help="Output directory", metavar="path"),
-                    make_option(c("-p", "--outprefix"), type="character", default='homer_annotation', help="Output prefix", metavar="character"))
+                    make_option(c("-p", "--outprefix"), type="character", default='homer_annotation', help="Output prefix", metavar="string"))
 
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)

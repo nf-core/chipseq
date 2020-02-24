@@ -17,6 +17,7 @@ fn_clean_exts:
     - '_peaks'
     - '_spp'
     - '.spp'
+    - 'ccurve'
 
 module_order:
     - fastqc:
@@ -52,7 +53,7 @@ module_order:
         name: 'Preseq (merged library; unfiltered)'
         info: 'This section of the report shows Preseq results after merging libraries and before filtering.'
         path_filters:
-            - '*mLb*'
+            - '*ccurve.txt'
     - samtools:
         name: 'SAMTools (merged library; filtered)'
         info: 'This section of the report shows SAMTools results after merging libraries and after filtering.'
