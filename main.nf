@@ -172,7 +172,12 @@ if (params.gtf)       { ch_gtf = file(params.gtf, checkIfExists: true) } else { 
 if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
 if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
 if (params.blacklist) { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
-if (params.anno_readme && file(params.anno_readme).exists()) { ch_anno_readme = Channel.fromPath(params.anno_readme) } else { ch_anno_readme = Channel.empty() }
+
+// Save AWS IGenomes file conatining annotation version
+if (params.anno_readme && file(params.anno_readme).exists()) {
+    file("${params.outdir}/genome/").mkdirs()
+    file(params.anno_readme).copyTo("${params.outdir}/genome/")
+}
 
 if (params.fasta) {
     lastPath = params.fasta.lastIndexOf(File.separator)
@@ -363,7 +368,7 @@ if (!params.bwa_index) {
     process BWAIndex {
         tag "$fasta"
         label 'process_high'
-        publishDir path: { params.save_reference ? "${params.outdir}/reference_genome" : params.outdir },
+        publishDir path: { params.save_reference ? "${params.outdir}/genome" : params.outdir },
             saveAs: { params.save_reference ? it : null }, mode: 'copy'
 
         input:
@@ -387,7 +392,7 @@ if (!params.gene_bed) {
     process MakeGeneBED {
         tag "$gtf"
         label 'process_low'
-        publishDir "${params.outdir}/reference_genome", mode: 'copy'
+        publishDir "${params.outdir}/genome", mode: 'copy'
 
         input:
         file gtf from ch_gtf
@@ -408,7 +413,7 @@ if (!params.gene_bed) {
 if (!params.tss_bed) {
     process MakeTSSBED {
         tag "$bed"
-        publishDir "${params.outdir}/reference_genome", mode: 'copy'
+        publishDir "${params.outdir}/genome", mode: 'copy'
 
         input:
         file bed from ch_gene_bed
@@ -428,17 +433,15 @@ if (!params.tss_bed) {
  */
 process MakeGenomeFilter {
     tag "$fasta"
-    publishDir "${params.outdir}/reference_genome", mode: 'copy'
+    publishDir "${params.outdir}/genome", mode: 'copy'
 
     input:
     file fasta from ch_fasta
     file blacklist from ch_blacklist.ifEmpty([])
-    file readme from ch_anno_readme.ifEmpty([])
 
     output:
     file "$fasta"                                      // FASTA FILE FOR IGV
     file "*.fai"                                       // FAI INDEX FOR REFERENCE GENOME
-    //file "$readme"                                     // AWS IGENOMES FILE CONTAINING ANNOTATION VERSION
     file "*.bed" into ch_genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS
     file "*.sizes" into ch_genome_sizes_bigwig         // CHROMOSOME SIZES FILE FOR BEDTOOLS
 
@@ -1435,7 +1438,7 @@ process IGV {
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
     """
     cat *.txt > igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt ../../reference_genome/${fasta.getName()} --path_prefix '../../'
+    igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
     """
 }
 
