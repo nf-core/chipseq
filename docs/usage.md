@@ -39,6 +39,8 @@
   * [`--min_reps_consensus`](#--min_reps_consensus)
   * [`--save_macs_pileup`](#--save_macs_pileup)
   * [`--skip_consensus_peaks`](#--skip_consensus_peaks)
+* [Differential analysis](#differential_analysis)
+  * [`--deseq2_vst`](#--deseq2_vst)
   * [`--skip_diff_analysis`](#--skip_diff_analysis)
 * [Skipping QC steps](#skipping-qc-steps)
 * [Job resources](#job-resources)
@@ -408,6 +410,12 @@ Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
 ### `--skip_consensus_peaks`
 
 Skip consensus peak generation, annotation and counting.
+
+## Differential analysis
+
+### `--deseq2_vst`
+
+Use `vst` transformation instead of `rlog` with DESeq2. See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).
 
 ### `--skip_diff_analysis`
 
