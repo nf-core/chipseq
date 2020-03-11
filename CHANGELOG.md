@@ -14,7 +14,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [nf-core/atacseq#79](https://github.com/nf-core/atacseq/issues/79) - Parallelize DESeq2
 * [#138](https://github.com/nf-core/chipseq/issues/138) - Add social preview image
 * Update template to tools `1.9`
-* Parameter `--skip_consensus_peaks` to skip consensus peak generation
+* Parameters:
+  * `--skip_consensus_peaks` to skip consensus peak generation
+  * `--deseq2_vst` to use `vst` transformation instead of `rlog` with DESeq2
 
 ### `Fixed`
 
