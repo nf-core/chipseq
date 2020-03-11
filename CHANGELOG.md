@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update template to tools `1.9`
 * Parameters:
   * `--skip_consensus_peaks` to skip consensus peak generation
-  * `--deseq2_vst` to use `vst` transformation instead of `rlog` with DESeq2
+  * `--deseq2_vst` to use variance stabilizing transformation (VST) instead of regularized log transformation (rlog) with DESeq2
 
 ### `Fixed`
 
