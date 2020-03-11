@@ -57,7 +57,7 @@ plot.feature.dat <- data.frame()
 for (idx in 1:length(HomerFiles)) {
 
     sampleid = SampleIDs[idx]
-    anno.dat <- read.table(HomerFiles[idx], sep="\t", header=TRUE,quote="")
+    anno.dat <- read.csv(HomerFiles[idx], sep="\t", header=TRUE)
     anno.dat <- anno.dat[,c("Annotation","Distance.to.TSS","Nearest.PromoterID")]
 
     ## REPLACE UNASSIGNED FEATURE ENTRIES WITH SENSIBLE VALUES

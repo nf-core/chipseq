@@ -60,7 +60,10 @@ def helpMessage() {
       --min_reps_consensus [int]      Number of biological replicates required from a given condition for a peak to contribute to a consensus peak (Default: 1)
       --save_macs_pileup [bool]       Instruct MACS2 to create bedGraph files normalised to signal per million reads
       --skip_consensus_peaks [bool]   Skip consensus peak generation
-      --skip_diff_analysis [bool]     Skip differential binding analysis
+
+    Differential analysis
+      --deseq2_vst [bool]             Use vst transformation instead of rlog with DESeq2
+      --skip_diff_analysis [bool]     Skip differential accessibility analysis
 
     QC
       --skip_fastqc [bool]            Skip FastQC
@@ -254,6 +257,7 @@ if (params.save_trimmed)          summary['Save Trimmed'] = 'Yes'
 if (params.save_align_intermeds)  summary['Save Intermeds'] =  'Yes'
 if (params.save_macs_pileup)      summary['Save MACS2 Pileup'] = 'Yes'
 if (params.skip_consensus_peaks)  summary['Skip Consensus Peaks'] = 'Yes'
+if (params.deseq2_vst)            summary['Use DESeq2 vst Transform'] = 'Yes'
 if (params.skip_diff_analysis)    summary['Skip Differential Analysis'] = 'Yes'
 if (params.skip_fastqc)           summary['Skip FastQC'] = 'Yes'
 if (params.skip_picard_metrics)   summary['Skip Picard Metrics'] = 'Yes'
@@ -1385,6 +1389,7 @@ process ConsensusPeakSetDESeq {
     script:
     prefix = "${antibody}.consensus_peaks"
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
+    vst = params.deseq2_vst ? "--vst TRUE" : ""
     """
     featurecounts_deseq2.r \\
         --featurecount_file $counts \\
@@ -1392,7 +1397,8 @@ process ConsensusPeakSetDESeq {
         --outdir ./ \\
         --outprefix $prefix \\
         --outsuffix '' \\
-        --cores $task.cpus
+        --cores $task.cpus \\
+        $vst
 
     sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
     sed -i -e 's/DESeq2:/${antibody} DESeq2:/g' tmp.txt
