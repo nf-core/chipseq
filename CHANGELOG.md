@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unpublished Version / DEV]
+## [1.2.0] - 2020-03-20
 
 ### `Added`
 
@@ -59,8 +59,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update bioconductor-deseq2 `1.20.0` -> `1.26.0`
 * Update bioconductor-vsn `3.46.0` -> `3.54.0`
 * Remove r-reshape2 `1.4.3`
-
-### `Deprecated`
 
 ## [1.1.0] - 2019-11-05
 
