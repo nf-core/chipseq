@@ -304,7 +304,7 @@ if (!params.macs_gsize) {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * PREPROCESSING - Reformat design file, check validitiy and create IP vs control mappings
+ * PREPROCESSING: Reformat design file, check validitiy and create IP vs control mappings
  */
 process CheckDesign {
     tag "$design"
@@ -357,7 +357,7 @@ ch_design_controls_csv
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * PREPROCESSING - Build BWA index
+ * PREPROCESSING: Build BWA index
  */
 if (!params.bwa_index) {
     process BWAIndex {
@@ -381,7 +381,7 @@ if (!params.bwa_index) {
 }
 
 /*
- * PREPROCESSING - Generate gene BED file
+ * PREPROCESSING: Generate gene BED file
  */
 if (!params.gene_bed) {
     process MakeGeneBED {
@@ -403,7 +403,7 @@ if (!params.gene_bed) {
 }
 
 /*
- * PREPROCESSING - Generate TSS BED file
+ * PREPROCESSING: Generate TSS BED file
  */
 if (!params.tss_bed) {
     process MakeTSSBED {
@@ -424,7 +424,7 @@ if (!params.tss_bed) {
 }
 
 /*
- * PREPROCESSING - Prepare genome intervals for filtering
+ * PREPROCESSING: Prepare genome intervals for filtering
  */
 process MakeGenomeFilter {
     tag "$fasta"
