@@ -26,3 +26,25 @@ jobs:
       - name: Run pipeline with test data
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker
+
+  parameters:
+    env:
+      NXF_VER: '19.10.0'
+      NXF_ANSI_LOG: false
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        parameters: [--single_end, --skip_trimming, --skip_consensus_peaks, --skip_multiqc]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+      - name: Pull docker image
+        run: |
+          docker pull nfcore/chipseq:dev
+          docker tag nfcore/chipseq:dev nfcore/chipseq:1.2.0
+      - name: Run pipeline with various options
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile test,docker ${{ matrix.parameters }}
