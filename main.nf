@@ -868,10 +868,19 @@ process Preseq {
 
     output:
     file "*.ccurve.txt" into ch_preseq_mqc
+    file "*.log" into ch_preseq_log
 
     script:
+    pe = params.single_end ? "" : "-pe"
     """
-    preseq lc_extrap -v -output ${name}.ccurve.txt -bam ${bam[0]}
+    preseq lc_extrap \\
+        -output ${name}.ccurve.txt \\
+        -verbose \\
+        -bam \\
+        $pe \\
+        -seed 1 \\
+        ${bam[0]}
+    cp .command.err ${name}.command.log
     """
 }
 
