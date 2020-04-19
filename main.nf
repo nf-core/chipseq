@@ -140,6 +140,7 @@ def PEAK_TYPE = params.narrow_peak ? "narrowPeak" : "broadPeak"
 ch_multiqc_config = file("$baseDir/assets/multiqc_config.yaml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config, checkIfExists: true) : Channel.empty()
 ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
+ch_output_docs_images = file("$baseDir/docs/images/", checkIfExists: true)
 
 // JSON files required by BAMTools for alignment filtering
 if (params.single_end) {
@@ -1577,6 +1578,7 @@ process output_documentation {
 
     input:
     file output_docs from ch_output_docs
+    file images from ch_output_docs_images
 
     output:
     file "results_description.html"
