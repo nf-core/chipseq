@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unpublished Version / DEV]
+## [1.2.0] - 2020-03-20
 
 ### `Added`
 
@@ -12,11 +12,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [nf-core/atacseq#75](https://github.com/nf-core/atacseq/issues/75) - Include gene annotation versions in multiqc report
 * [nf-core/atacseq#76](https://github.com/nf-core/atacseq/issues/76) - featureCounts coupled to DESeq2
 * [nf-core/atacseq#79](https://github.com/nf-core/atacseq/issues/79) - Parallelize DESeq2
+* [nf-core/atacseq#97](https://github.com/nf-core/atacseq/issues/97) - PBC1, PBC2 from pipeline?
 * [#138](https://github.com/nf-core/chipseq/issues/138) - Add social preview image
 * Update template to tools `1.9`
 * Parameters:
   * `--skip_consensus_peaks` to skip consensus peak generation
   * `--deseq2_vst` to use variance stabilizing transformation (VST) instead of regularized log transformation (rlog) with DESeq2
+  * `--publish_dir_mode` to customise method of publishing results to output directory [nf-core/tools#585](https://github.com/nf-core/tools/issues/585)
 
 ### `Fixed`
 
@@ -59,8 +61,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update bioconductor-deseq2 `1.20.0` -> `1.26.0`
 * Update bioconductor-vsn `3.46.0` -> `3.54.0`
 * Remove r-reshape2 `1.4.3`
-
-### `Deprecated`
 
 ## [1.1.0] - 2019-11-05
 
