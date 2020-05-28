@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        parameters: [--single_end, --skip_trimming, --skip_consensus_peaks, --skip_multiqc]
+        parameters: [--single_end, --skip_trimming, --skip_consensus_peaks]
     steps:
       - uses: actions/checkout@v2
       - name: Install Nextflow
