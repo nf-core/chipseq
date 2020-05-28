@@ -78,7 +78,7 @@ if (file.exists(opt$outdir) == FALSE) {
 setwd(opt$outdir)
 
 samples.vec <- sort(colnames(count.table))
-groups <- substr(samples.vec, 1, nchar(samples.vec)-3)
+groups <- sub("_[^_]+$", "", samples.vec)
 print(unique(groups))
 if (length(unique(groups)) == 1) {
     quit(save = "no", status = 0, runLast = FALSE)
