@@ -308,7 +308,7 @@ if (!params.macs_gsize) {
 /*
  * PREPROCESSING: Reformat design file, check validitiy and create IP vs control mappings
  */
-process CheckDesign {
+process CHECK_DESIGN {
     tag "$design"
     publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode
 
@@ -362,7 +362,7 @@ ch_design_controls_csv
  * PREPROCESSING: Build BWA index
  */
 if (!params.bwa_index) {
-    process BWAIndex {
+    process BWA_INDEX {
         tag "$fasta"
         label 'process_high'
         publishDir path: { params.save_reference ? "${params.outdir}/genome" : params.outdir },
@@ -386,7 +386,7 @@ if (!params.bwa_index) {
  * PREPROCESSING: Generate gene BED file
  */
 if (!params.gene_bed) {
-    process MakeGeneBED {
+    process MAKE_GENE_BED {
         tag "$gtf"
         label 'process_low'
         publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
@@ -408,7 +408,7 @@ if (!params.gene_bed) {
  * PREPROCESSING: Generate TSS BED file
  */
 if (!params.tss_bed) {
-    process MakeTSSBED {
+    process MAKE_TSS_BED {
         tag "$bed"
         publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
 
@@ -428,7 +428,7 @@ if (!params.tss_bed) {
 /*
  * PREPROCESSING: Prepare genome intervals for filtering
  */
-process MakeGenomeFilter {
+process MAKE_GENOME_FILTER {
     tag "$fasta"
     publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
 
@@ -462,7 +462,7 @@ process MakeGenomeFilter {
 /*
  * STEP 1: FastQC
  */
-process FastQC {
+process FASTQC {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/fastqc", mode: params.publish_dir_mode,
@@ -512,7 +512,7 @@ if (params.skip_trimming) {
     ch_trimgalore_results_mqc = Channel.empty()
     ch_trimgalore_fastqc_reports_mqc = Channel.empty()
 } else {
-    process TrimGalore {
+    process TRIMGALORE {
         tag "$name"
         label 'process_high'
         publishDir "${params.outdir}/trim_galore", mode: params.publish_dir_mode,
@@ -576,7 +576,7 @@ if (params.skip_trimming) {
 /*
  * STEP 3.1: Map read(s) with bwa mem
  */
-process BWAMem {
+process BWA_MEM {
     tag "$name"
     label 'process_high'
 
@@ -607,7 +607,7 @@ process BWAMem {
 /*
  * STEP 3.2: Convert BAM to coordinate sorted BAM
  */
-process SortBAM {
+process SORT_BAM {
     tag "$name"
     label 'process_medium'
     if (params.save_align_intermeds) {
@@ -655,7 +655,7 @@ ch_sort_bam_merge
     .map { it ->  [ it[0], it[1].flatten() ] }
     .set { ch_sort_bam_merge }
 
-process MergeBAM {
+process MERGED_BAM {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
@@ -731,7 +731,7 @@ process MergeBAM {
 /*
  * STEP 4.2: Filter BAM file at merged library-level
  */
-process MergeBAMFilter {
+process MERGED_BAM_FILTER {
     tag "$name"
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
@@ -803,7 +803,7 @@ if (params.single_end) {
     ch_filter_bam_stats_mqc
         .set { ch_rm_orphan_stats_mqc }
 } else {
-    process MergeBAMRemoveOrphan {
+    process MERGED_BAM_REMOVE_ORPHAN {
         tag "$name"
         label 'process_medium'
         publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
@@ -856,7 +856,7 @@ if (params.single_end) {
 /*
  * STEP 5.1: Preseq analysis after merging libraries and before filtering
  */
-process Preseq {
+process PRESEQ {
     tag "$name"
     label 'process_low'
     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: params.publish_dir_mode
@@ -888,7 +888,7 @@ process Preseq {
 /*
  * STEP 5.2: Picard CollectMultipleMetrics after merging libraries and filtering
  */
-process CollectMultipleMetrics {
+process PICARD_METRICS {
     tag "$name"
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
@@ -930,7 +930,7 @@ process CollectMultipleMetrics {
 /*
  * STEP 5.3: Read depth normalised bigWig
  */
-process BigWig {
+process BIGWIG {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/bigwig", mode: params.publish_dir_mode,
@@ -966,7 +966,7 @@ process BigWig {
 /*
  * STEP 5.4: Generate gene body coverage plot with deepTools plotProfile
  */
-process PlotProfile {
+process PLOTPROFILE {
     tag "$name"
     label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: params.publish_dir_mode
@@ -1005,7 +1005,7 @@ process PlotProfile {
 /*
  * STEP 5.5: Phantompeakqualtools
  */
-process PhantomPeakQualTools {
+process PHANTOMPEAKQUALTOOLS {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/phantompeakqualtools", mode: params.publish_dir_mode
@@ -1062,7 +1062,7 @@ ch_design_controls_csv
 /*
  * STEP 6.1: deepTools plotFingerprint
  */
-process PlotFingerprint {
+process PLOTFINGERPRINT {
     tag "${ip} vs ${control}"
     label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: params.publish_dir_mode
@@ -1097,7 +1097,7 @@ process PlotFingerprint {
 /*
  * STEP 6.2: Call peaks with MACS2 and calculate FRiP score
  */
-process MACSCallPeak {
+process MACS2 {
     tag "${ip} vs ${control}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: params.publish_dir_mode,
@@ -1148,7 +1148,7 @@ process MACSCallPeak {
 /*
  * STEP 6.3: Annotate peaks with HOMER
  */
-process AnnotatePeaks {
+process MACS2_ANNOTATE {
     tag "${ip} vs ${control}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: params.publish_dir_mode
@@ -1179,7 +1179,7 @@ process AnnotatePeaks {
 /*
  * STEP 6.4: Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
-process PeakQC {
+process MACS2_QC {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/qc", mode: params.publish_dir_mode
 
@@ -1231,7 +1231,7 @@ ch_macs_consensus
 /*
  * STEP 7.1: Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts and UpSetR plot for intersection
  */
-process ConsensusPeakSet {
+process CONSENSUS_PEAKS {
     tag "${antibody}"
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: params.publish_dir_mode,
@@ -1282,7 +1282,7 @@ process ConsensusPeakSet {
 /*
  * STEP 7.2: Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
-process ConsensusPeakSetAnnotate {
+process CONSENSUS_PEAKS_ANNOTATE {
     tag "${antibody}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: params.publish_dir_mode
@@ -1328,7 +1328,7 @@ ch_group_bam_counts
 /*
  * STEP 7.3: Count reads in consensus peaks with featureCounts
  */
-process ConsensusPeakSetCounts {
+process CONSENSUS_PEAKS_COUNTS {
     tag "${antibody}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: params.publish_dir_mode
@@ -1363,7 +1363,7 @@ process ConsensusPeakSetCounts {
 /*
  * STEP 7.4: Differential analysis with DESeq2
  */
-process ConsensusPeakSetDESeq {
+process CONSENSUS_PEAKS_DESEQ2 {
     tag "${antibody}"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}/deseq2", mode: params.publish_dir_mode,
@@ -1512,7 +1512,7 @@ Channel.from(summary.collect{ [it.key, it.value] })
 /*
  * STEP 9: MultiQC
  */
-process MultiQC {
+process MULTIQC {
     publishDir "${params.outdir}/multiqc/${PEAK_TYPE}", mode: params.publish_dir_mode
 
     when:
