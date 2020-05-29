@@ -1550,15 +1550,13 @@ process MULTIQC {
     output:
     file "*multiqc_report.html" into ch_multiqc_report
     file "*_data"
-    file "multiqc_plots"
-
+    
     script:
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
     """
-    multiqc . -f $rtitle $rfilename $custom_config_file \\
-        -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m preseq -m featureCounts -m deeptools -m phantompeakqualtools
+    multiqc . -f $rtitle $rfilename $custom_config_file
     """
 }
 
