@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Add pygments `2.6.1`
 * Add pigz `2.3.4`
 * Add r-tidyr `1.1.0`
+* Add r-reshape2 `1.4.4`
 * Add bioconductor-biocparallel `1.20.0`
 * Update gawk `4.2.1` -> `5.1.0`
 * Update r-base `3.4.1` -> `3.6.2`
