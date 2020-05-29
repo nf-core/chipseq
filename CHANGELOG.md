@@ -3,17 +3,17 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2020-03-20
+## [1.2.0] - 2020-06-04
 
 ### `Added`
 
+* [#138](https://github.com/nf-core/chipseq/issues/138) - Add social preview image
 * [nf-core/atacseq#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
 * [nf-core/atacseq#71](https://github.com/nf-core/atacseq/issues/71) - consensus_peaks.mLb.clN.boolean.intersect.plot.pdf not generated
 * [nf-core/atacseq#75](https://github.com/nf-core/atacseq/issues/75) - Include gene annotation versions in multiqc report
 * [nf-core/atacseq#76](https://github.com/nf-core/atacseq/issues/76) - featureCounts coupled to DESeq2
 * [nf-core/atacseq#79](https://github.com/nf-core/atacseq/issues/79) - Parallelize DESeq2
 * [nf-core/atacseq#97](https://github.com/nf-core/atacseq/issues/97) - PBC1, PBC2 from pipeline?
-* [#138](https://github.com/nf-core/chipseq/issues/138) - Add social preview image
 * Update template to tools `1.9`
 * Parameters:
   * `--skip_consensus_peaks` to skip consensus peak generation
@@ -24,37 +24,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 * [#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
 * [#132](https://github.com/nf-core/chipseq/issues/132) - BigWig Error: sort: cannot create temporary file in '': Read-only file system
-* [](https://github.com/nf-core/atacseq/issues/73) - macs_annotatePeaks.mLb.clN.summary.txt file is not created
+* [nf-core/atacseq#73](https://github.com/nf-core/atacseq/issues/73) - macs_annotatePeaks.mLb.clN.summary.txt file is not created
 * [nf-core/atacseq#86](https://github.com/nf-core/atacseq/issues/86) - bug in the plot_homer_annotatepeaks.r script
+* [nf-core/atacseq#102](https://github.com/nf-core/atacseq/issues/102) - Incorrect Group ID assigned by featurecounts_deseq2.r
 * Make executables in `bin/` compatible with Python 3
 
 ### `Dependencies`
 
 * Add python `3.7.6`
-* Add markdown `3.1.1`
-* Add pymdown-extensions `6.0`
-* Add pygments `2.5.2`
+* Add markdown `3.2.2`
+* Add pymdown-extensions `7.1`
+* Add pygments `2.6.1`
 * Add pigz `2.3.4`
-* Add r-tidyr `1.0.2`
+* Add r-tidyr `1.1.0`
 * Add bioconductor-biocparallel `1.20.0`
-* Update gawk `4.2.1` -> `5.0.1`
+* Update gawk `4.2.1` -> `5.1.0`
 * Update r-base `3.4.1` -> `3.6.2`
-* Update r-optparse `1.6.0` -> `1.6.4`
-* Update r-ggplot2 `3.1.0` -> `3.2.1`
+* Update r-optparse `1.6.0` -> `1.6.6`
+* Update r-ggplot2 `3.1.0` -> `3.3.0`
 * Update r-pheatmap `1.0.10` -> `1.0.12`
-* Update r-lattice `0.20_35` -> `0.20_40`
+* Update r-lattice `0.20_35` -> `0.20_41`
 * Update r-upsetr `1.3.3` -> `1.4.0`
-* Update r-scales `1.0.0` -> `1.1.0`
-* Update r-xfun `0.3` -> `0.12`
+* Update r-scales `1.0.0` -> `1.1.1`
+* Update r-xfun `0.3` -> `0.14`
 * Update fastqc `0.11.8` -> `0.11.9`
 * Update trim-galore `0.5.0` -> `0.6.5`
-* Update picard `2.19.0` -> `2.21.9`
-* Update pysam `0.15.2` -> `0.15.4`
+* Update samtools `1.9` -> `1.10`
+* Update picard `2.19.0` -> `2.22.8`
+* Update pysam `0.15.2` -> `0.15.3`
 * Update bedtools `2.27.1` -> `2.29.2`
 * Update ucsc-bedgraphtobigwig `377` -> `357`
-* Update deeptools `3.2.1` -> `3.3.2`
-* Update macs2 `2.1.2` -> `2.2.6`
-* Update homer `4.9.1` -> `4.10`
+* Update deeptools `3.2.1` -> `3.4.3`
+* Update macs2 `2.1.2` -> `2.2.7.1`
+* Update homer `4.9.1` -> `4.11`
 * Update subread `1.6.4` -> `2.0.0`
 * Update multiqc `1.7` -> `1.8`  
 * Update phantompeakqualtools `1.2` -> `1.2.2`

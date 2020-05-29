@@ -22,7 +22,7 @@ jobs:
       - name: Pull docker image
         run: |
           docker pull nfcore/chipseq:dev
-          docker tag nfcore/chipseq:dev nfcore/chipseq:1.2.0
+          docker tag nfcore/chipseq:dev nfcore/chipseq:dev
       - name: Run pipeline with test data
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        parameters: [--single_end, --skip_trimming, --skip_consensus_peaks, --skip_multiqc]
+        parameters: [--single_end, --skip_trimming, --skip_consensus_peaks]
     steps:
       - uses: actions/checkout@v2
       - name: Install Nextflow
@@ -44,7 +44,7 @@ jobs:
       - name: Pull docker image
         run: |
           docker pull nfcore/chipseq:dev
-          docker tag nfcore/chipseq:dev nfcore/chipseq:1.2.0
+          docker tag nfcore/chipseq:dev nfcore/chipseq:dev
       - name: Run pipeline with various options
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker ${{ matrix.parameters }}

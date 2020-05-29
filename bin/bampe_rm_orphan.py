@@ -8,6 +8,7 @@
 
 import os
 import pysam
+import errno
 import argparse
 
 ############################################
