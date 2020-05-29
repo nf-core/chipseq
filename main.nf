@@ -858,7 +858,8 @@ if (params.single_end) {
  */
 process PRESEQ {
     tag "$name"
-    label 'process_low'
+    label 'process_medium'
+    label 'error_ignore'
     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: params.publish_dir_mode
 
     when:
@@ -1550,7 +1551,7 @@ process MULTIQC {
     output:
     file "*multiqc_report.html" into ch_multiqc_report
     file "*_data"
-    
+
     script:
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
