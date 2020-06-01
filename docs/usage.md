@@ -38,6 +38,7 @@
   * [`--broad_cutoff`](#--broad_cutoff)
   * [`--min_reps_consensus`](#--min_reps_consensus)
   * [`--save_macs_pileup`](#--save_macs_pileup)
+  * [`--skip_peak_qc`](#--skip_peak_qc)
   * [`--skip_consensus_peaks`](#--skip_consensus_peaks)
 * [Differential analysis](#differential_analysis)
   * [`--deseq2_vst`](#--deseq2_vst)
@@ -407,6 +408,10 @@ Number of biological replicates required from a given condition for a peak to co
 ### `--save_macs_pileup`
 
 Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
+
+### `--skip_peak_qc`
+
+Skip MACS2 peak QC plot generation.
 
 ### `--skip_consensus_peaks`
 
