@@ -315,11 +315,11 @@ process CHECK_DESIGN {
     publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode
 
     input:
-    file design from ch_input
+    path design from ch_input
 
     output:
-    file "design_reads.csv" into ch_design_reads_csv
-    file "design_controls.csv" into ch_design_controls_csv
+    path "design_reads.csv" into ch_design_reads_csv
+    path "design_controls.csv" into ch_design_controls_csv
 
     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     """
@@ -371,10 +371,10 @@ if (!params.bwa_index) {
             saveAs: { params.save_reference ? it : null }, mode: params.publish_dir_mode
 
         input:
-        file fasta from ch_fasta
+        path fasta from ch_fasta
 
         output:
-        file "BWAIndex" into ch_bwa_index
+        path "BWAIndex" into ch_bwa_index
 
         script:
         """
@@ -394,10 +394,10 @@ if (!params.gene_bed) {
         publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
 
         input:
-        file gtf from ch_gtf
+        path gtf from ch_gtf
 
         output:
-        file "*.bed" into ch_gene_bed
+        path "*.bed" into ch_gene_bed
 
         script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
         """
@@ -415,10 +415,10 @@ if (!params.tss_bed) {
         publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
 
         input:
-        file bed from ch_gene_bed
+        path bed from ch_gene_bed
 
         output:
-        file "*.bed" into ch_tss_bed
+        path "*.bed" into ch_tss_bed
 
         script:
         """
@@ -435,14 +435,14 @@ process MAKE_GENOME_FILTER {
     publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
 
     input:
-    file fasta from ch_fasta
-    file blacklist from ch_blacklist.ifEmpty([])
+    path fasta from ch_fasta
+    path blacklist from ch_blacklist.ifEmpty([])
 
     output:
-    file "$fasta"                                      // FASTA FILE FOR IGV
-    file "*.fai"                                       // FAI INDEX FOR REFERENCE GENOME
-    file "*.bed" into ch_genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS
-    file "*.sizes" into ch_genome_sizes_bigwig         // CHROMOSOME SIZES FILE FOR BEDTOOLS
+    path "$fasta"                                      // FASTA FILE FOR IGV
+    path "*.fai"                                       // FAI INDEX FOR REFERENCE GENOME
+    path "*.bed" into ch_genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS
+    path "*.sizes" into ch_genome_sizes_bigwig         // CHROMOSOME SIZES FILE FOR BEDTOOLS
 
     script:
     blacklist_filter = params.blacklist ? "sortBed -i $blacklist -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
@@ -476,10 +476,10 @@ process FASTQC {
     !params.skip_fastqc
 
     input:
-    set val(name), file(reads) from ch_raw_reads_fastqc
+    tuple val(name), path(reads) from ch_raw_reads_fastqc
 
     output:
-    file "*.{zip,html}" into ch_fastqc_reports_mqc
+    path "*.{zip,html}" into ch_fastqc_reports_mqc
 
     script:
     // Added soft-links to original fastqs for consistent naming in MultiQC
@@ -526,12 +526,12 @@ if (params.skip_trimming) {
                     }
 
         input:
-        set val(name), file(reads) from ch_raw_reads_trimgalore
+        tuple val(name), path(reads) from ch_raw_reads_trimgalore
 
         output:
-        set val(name), file("*.fq.gz") into ch_trimmed_reads
-        file "*.txt" into ch_trimgalore_results_mqc
-        file "*.{zip,html}" into ch_trimgalore_fastqc_reports_mqc
+        tuple val(name), path("*.fq.gz") into ch_trimmed_reads
+        path "*.txt" into ch_trimgalore_results_mqc
+        path "*.{zip,html}" into ch_trimgalore_fastqc_reports_mqc
 
         script:
         // Calculate number of --cores for TrimGalore based on value of task.cpus
@@ -583,11 +583,11 @@ process BWA_MEM {
     label 'process_high'
 
     input:
-    set val(name), file(reads) from ch_trimmed_reads
+    tuple val(name), path(reads) from ch_trimmed_reads
     file index from ch_bwa_index.collect()
 
     output:
-    set val(name), file("*.bam") into ch_bwa_bam
+    tuple val(name), path("*.bam") into ch_bwa_bam
 
     script:
     prefix = "${name}.Lb"
@@ -623,10 +623,10 @@ process SORT_BAM {
     }
 
     input:
-    set val(name), file(bam) from ch_bwa_bam
+    tuple val(name), path(bam) from ch_bwa_bam
 
     output:
-    set val(name), file("*.sorted.{bam,bam.bai}") into ch_sort_bam_merge
+    tuple val(name), path("*.sorted.{bam,bam.bai}") into ch_sort_bam_merge
     file "*.{flagstat,idxstats,stats}" into ch_sort_bam_flagstat_mqc
 
     script:
@@ -670,10 +670,10 @@ process MERGED_BAM {
                 }
 
     input:
-    set val(name), file(bams) from ch_sort_bam_merge
+    tuple val(name), path(bams) from ch_sort_bam_merge
 
     output:
-    set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into ch_merge_bam_filter,
+    tuple val(name), path("*${prefix}.sorted.{bam,bam.bai}") into ch_merge_bam_filter,
                                                                 ch_merge_bam_preseq
     file "*.{flagstat,idxstats,stats}" into ch_merge_bam_stats_mqc
     file "*.txt" into ch_merge_bam_metrics_mqc
@@ -749,13 +749,13 @@ process MERGED_BAM_FILTER {
                 }
 
     input:
-    set val(name), file(bam) from ch_merge_bam_filter
+    tuple val(name), path(bam) from ch_merge_bam_filter
     file bed from ch_genome_filter_regions.collect()
     file bamtools_filter_config from ch_bamtools_filter_config
 
     output:
-    set val(name), file("*.{bam,bam.bai}") into ch_filter_bam
-    set val(name), file("*.flagstat") into ch_filter_bam_flagstat
+    tuple val(name), path("*.{bam,bam.bai}") into ch_filter_bam
+    tuple val(name), path("*.flagstat") into ch_filter_bam_flagstat
     file "*.{idxstats,stats}" into ch_filter_bam_stats_mqc
 
     script:
@@ -819,16 +819,16 @@ if (params.single_end) {
                     }
 
         input:
-        set val(name), file(bam) from ch_filter_bam
+        tuple val(name), path(bam) from ch_filter_bam
 
         output:
-        set val(name), file("*.sorted.{bam,bam.bai}") into ch_rm_orphan_bam_metrics,
-                                                           ch_rm_orphan_bam_bigwig,
-                                                           ch_rm_orphan_bam_macs_1,
-                                                           ch_rm_orphan_bam_macs_2,
-                                                           ch_rm_orphan_bam_phantompeakqualtools
-        set val(name), file("${prefix}.bam") into ch_rm_orphan_name_bam_counts
-        set val(name), file("*.flagstat") into ch_rm_orphan_flagstat_bigwig,
+        tuple val(name), path("*.sorted.{bam,bam.bai}") into ch_rm_orphan_bam_metrics,
+                                                             ch_rm_orphan_bam_bigwig,
+                                                             ch_rm_orphan_bam_macs_1,
+                                                             ch_rm_orphan_bam_macs_2,
+                                                             ch_rm_orphan_bam_phantompeakqualtools
+        tuple val(name), path("${prefix}.bam") into ch_rm_orphan_name_bam_counts
+        tuple val(name), path("*.flagstat") into ch_rm_orphan_flagstat_bigwig,
                                                ch_rm_orphan_flagstat_macs,
                                                ch_rm_orphan_flagstat_mqc
         file "*.{idxstats,stats}" into ch_rm_orphan_stats_mqc
@@ -868,7 +868,7 @@ process PRESEQ {
     !params.skip_preseq
 
     input:
-    set val(name), file(bam) from ch_merge_bam_preseq
+    tuple val(name), path(bam) from ch_merge_bam_preseq
 
     output:
     file "*.ccurve.txt" into ch_preseq_mqc
@@ -905,7 +905,7 @@ process PICARD_METRICS {
     !params.skip_picard_metrics
 
     input:
-    set val(name), file(bam) from ch_rm_orphan_bam_metrics
+    tuple val(name), path(bam) from ch_rm_orphan_bam_metrics
     file fasta from ch_fasta
 
     output:
@@ -944,11 +944,11 @@ process BIGWIG {
                 }
 
     input:
-    set val(name), file(bam), file(flagstat) from ch_rm_orphan_bam_bigwig.join(ch_rm_orphan_flagstat_bigwig, by: [0])
+    tuple val(name), path(bam), path(flagstat) from ch_rm_orphan_bam_bigwig.join(ch_rm_orphan_flagstat_bigwig, by: [0])
     file sizes from ch_genome_sizes_bigwig.collect()
 
     output:
-    set val(name), file("*.bigWig") into ch_bigwig_plotprofile
+    tuple val(name), path("*.bigWig") into ch_bigwig_plotprofile
     file "*igv.txt" into ch_bigwig_igv
     file "*scale_factor.txt"
 
@@ -978,7 +978,7 @@ process PLOTPROFILE {
     !params.skip_plot_profile
 
     input:
-    set val(name), file(bigwig) from ch_bigwig_plotprofile
+    tuple val(name), path(bigwig) from ch_bigwig_plotprofile
     file bed from ch_gene_bed
 
     output:
@@ -1017,7 +1017,7 @@ process PHANTOMPEAKQUALTOOLS {
     !params.skip_spp
 
     input:
-    set val(name), file(bam) from ch_rm_orphan_bam_phantompeakqualtools
+    tuple val(name), path(bam) from ch_rm_orphan_bam_phantompeakqualtools
     file spp_correlation_header from ch_spp_correlation_header
     file spp_nsc_header from ch_spp_nsc_header
     file spp_rsc_header from ch_spp_rsc_header
@@ -1073,7 +1073,7 @@ process PLOTFINGERPRINT {
     !params.skip_plot_fingerprint
 
     input:
-    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), file(ipbam), val(control), file(controlbam), file(ipflagstat) from ch_group_bam_plotfingerprint
+    tuple val(antibody), val(replicatesExist), val(multipleGroups), val(ip), path(ipbam), val(control), path(controlbam), path(ipflagstat) from ch_group_bam_plotfingerprint
 
     output:
     file '*.raw.txt' into ch_plotfingerprint_mqc
@@ -1113,12 +1113,12 @@ process MACS2 {
     params.macs_gsize
 
     input:
-    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), file(ipbam), val(control), file(controlbam), file(ipflagstat) from ch_group_bam_macs
+    tuple val(antibody), val(replicatesExist), val(multipleGroups), val(ip), path(ipbam), val(control), path(controlbam), path(ipflagstat) from ch_group_bam_macs
     file peak_count_header from ch_peak_count_header
     file frip_score_header from ch_frip_score_header
 
     output:
-    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), file("*.$PEAK_TYPE") into ch_macs_homer,
+    tuple val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), path("*.$PEAK_TYPE") into ch_macs_homer,
                                                                                                                    ch_macs_qc,
                                                                                                                    ch_macs_consensus
     file "*igv.txt" into ch_macs_igv
@@ -1161,7 +1161,7 @@ process MACS2_ANNOTATE {
     params.macs_gsize
 
     input:
-    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), file(peak) from ch_macs_homer
+    tuple val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), path(peak) from ch_macs_homer
     file fasta from ch_fasta
     file gtf from ch_gtf
 
@@ -1248,11 +1248,11 @@ process CONSENSUS_PEAKS {
     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
 
     input:
-    set val(antibody), val(replicatesExist), val(multipleGroups), file(peaks) from ch_macs_consensus
+    tuple val(antibody), val(replicatesExist), val(multipleGroups), path(peaks) from ch_macs_consensus
 
     output:
-    set val(antibody), val(replicatesExist), val(multipleGroups), file("*.bed") into ch_macs_consensus_bed
-    set val(antibody), file("*.saf") into ch_macs_consensus_saf
+    tuple val(antibody), val(replicatesExist), val(multipleGroups), path("*.bed") into ch_macs_consensus_bed
+    tuple val(antibody), path("*.saf") into ch_macs_consensus_saf
     file "*.boolean.txt" into ch_macs_consensus_bool
     file "*igv.txt" into ch_macs_consensus_igv
     file "*.intersect.{txt,plot.pdf}"
@@ -1295,7 +1295,7 @@ process CONSENSUS_PEAKS_ANNOTATE {
     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
 
     input:
-    set val(antibody), val(replicatesExist), val(multipleGroups), file(bed) from ch_macs_consensus_bed
+    tuple val(antibody), val(replicatesExist), val(multipleGroups), path(bed) from ch_macs_consensus_bed
     file bool from ch_macs_consensus_bool
     file fasta from ch_fasta
     file gtf from ch_gtf
@@ -1341,10 +1341,10 @@ process CONSENSUS_PEAKS_COUNTS {
     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
 
     input:
-    set val(antibody), val(replicatesExist), val(multipleGroups), file(bams), file(saf) from ch_group_bam_counts
+    tuple val(antibody), val(replicatesExist), val(multipleGroups), path(bams), path(saf) from ch_group_bam_counts
 
     output:
-    set val(antibody), val(replicatesExist), val(multipleGroups), file("*featureCounts.txt") into ch_macs_consensus_counts
+    tuple val(antibody), val(replicatesExist), val(multipleGroups), path("*featureCounts.txt") into ch_macs_consensus_counts
     file "*featureCounts.txt.summary" into ch_macs_consensus_counts_mqc
 
     script:
@@ -1380,7 +1380,7 @@ process CONSENSUS_PEAKS_DESEQ2 {
     params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks && !params.skip_diff_analysis
 
     input:
-    set val(antibody), val(replicatesExist), val(multipleGroups), file(counts) from ch_macs_consensus_counts
+    tuple val(antibody), val(replicatesExist), val(multipleGroups), path(counts) from ch_macs_consensus_counts
     file deseq2_pca_header from ch_deseq2_pca_header
     file deseq2_clustering_header from ch_deseq2_clustering_header
 
