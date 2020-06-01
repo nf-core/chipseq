@@ -263,7 +263,7 @@ if (params.skip_spp)              summary['Skip spp'] = 'Yes'
 if (params.skip_igv)              summary['Skip IGV'] = 'Yes'
 if (params.skip_multiqc)          summary['Skip MultiQC'] = 'Yes'
 summary['Max Resources']          = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
-if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
+if (workflow.containerEngine)     summary['Container'] = "$workflow.containerEngine - $workflow.container"
 summary['Output Dir']             = params.outdir
 summary['Launch Dir']             = workflow.launchDir
 summary['Working Dir']            = workflow.workDir
@@ -872,7 +872,7 @@ process PRESEQ {
 
     output:
     file "*.ccurve.txt" into ch_preseq_mqc
-    file "*.log" into ch_preseq_log
+    file "*.log"
 
     script:
     pe = params.single_end ? "" : "-pe"
@@ -910,7 +910,7 @@ process PICARD_METRICS {
 
     output:
     file "*_metrics" into ch_collectmetrics_mqc
-    file "*.pdf" into ch_collectmetrics_pdf
+    file "*.pdf"
 
     script:
     prefix = "${name}.mLb.clN"
@@ -949,8 +949,8 @@ process BIGWIG {
 
     output:
     set val(name), file("*.bigWig") into ch_bigwig_plotprofile
-    file "*scale_factor.txt" into ch_bigwig_scale
     file "*igv.txt" into ch_bigwig_igv
+    file "*scale_factor.txt"
 
     script:
     pe_fragment = params.single_end ? "" : "-pc"
@@ -982,8 +982,8 @@ process PLOTPROFILE {
     file bed from ch_gene_bed
 
     output:
-    file '*.{gz,pdf}' into ch_plotprofile_results
     file '*.plotProfile.tab' into ch_plotprofile_mqc
+    file '*.{gz,pdf}'
 
     script:
     """
@@ -1023,10 +1023,9 @@ process PHANTOMPEAKQUALTOOLS {
     file spp_rsc_header from ch_spp_rsc_header
 
     output:
-    file '*.pdf' into ch_spp_plot
-    file '*.spp.out' into ch_spp_out,
-                          ch_spp_out_mqc
+    file '*.spp.out' into ch_spp_out_mqc
     file '*_mqc.tsv' into ch_spp_csv_mqc
+    file '*.pdf'
 
     script:
     """
@@ -1077,8 +1076,8 @@ process PLOTFINGERPRINT {
     set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), file(ipbam), val(control), file(controlbam), file(ipflagstat) from ch_group_bam_plotfingerprint
 
     output:
-    file '*.{txt,pdf}' into ch_plotfingerprint_results
     file '*.raw.txt' into ch_plotfingerprint_mqc
+    file '*.{txt,pdf}'
 
     script:
     extend = (params.single_end && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
@@ -1119,10 +1118,12 @@ process MACS2 {
     file frip_score_header from ch_frip_score_header
 
     output:
-    set val(ip), file("*.{bed,xls,gappedPeak,bdg}") into ch_macs_output
-    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), file("*.$PEAK_TYPE") into ch_macs_homer, ch_macs_qc, ch_macs_consensus
+    set val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), file("*.$PEAK_TYPE") into ch_macs_homer,
+                                                                                                                   ch_macs_qc,
+                                                                                                                   ch_macs_consensus
     file "*igv.txt" into ch_macs_igv
     file "*_mqc.tsv" into ch_macs_mqc
+    path "*.{bed,xls,gappedPeak,bdg}"
 
     script:
     broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
@@ -1195,8 +1196,8 @@ process MACS2_QC {
     file peak_annotation_header from ch_peak_annotation_header
 
     output:
-    file "*.{txt,pdf}" into ch_macs_qc_output
     file "*.tsv" into ch_macs_qc_mqc
+    file "*.{txt,pdf}"
 
     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     """
@@ -1253,8 +1254,8 @@ process CONSENSUS_PEAKS {
     set val(antibody), val(replicatesExist), val(multipleGroups), file("*.bed") into ch_macs_consensus_bed
     set val(antibody), file("*.saf") into ch_macs_consensus_saf
     file "*.boolean.txt" into ch_macs_consensus_bool
-    file "*.intersect.{txt,plot.pdf}" into ch_macs_consensus_intersect
     file "*igv.txt" into ch_macs_consensus_igv
+    file "*.intersect.{txt,plot.pdf}"
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
     prefix = "${antibody}.consensus_peaks"
@@ -1300,7 +1301,7 @@ process CONSENSUS_PEAKS_ANNOTATE {
     file gtf from ch_gtf
 
     output:
-    file "*.annotatePeaks.txt" into ch_macs_consensus_annotate
+    file "*.annotatePeaks.txt"
 
     script:
     prefix = "${antibody}.consensus_peaks"
@@ -1384,12 +1385,12 @@ process CONSENSUS_PEAKS_DESEQ2 {
     file deseq2_clustering_header from ch_deseq2_clustering_header
 
     output:
-    file "*.{RData,results.txt,pdf,log}" into ch_macs_consensus_deseq_results
-    file "sizeFactors" into ch_macs_consensus_deseq_factors
-    file "*vs*/*.{pdf,txt}" into ch_macs_consensus_deseq_comp_results
-    file "*vs*/*.bed" into ch_macs_consensus_deseq_comp_bed
-    file "*igv.txt" into ch_macs_consensus_deseq_comp_igv
     file "*.tsv" into ch_macs_consensus_deseq_mqc
+    file "*igv.txt" into ch_macs_consensus_deseq_comp_igv
+    file "*.{RData,results.txt,pdf,log}"
+    file "sizeFactors"
+    file "*vs*/*.{pdf,txt}"
+    file "*vs*/*.bed"
 
     script:
     prefix = "${antibody}.consensus_peaks"
@@ -1442,7 +1443,7 @@ process IGV {
     file differential_peaks from ch_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
 
     output:
-    file "*.{txt,xml}" into ch_igv_session
+    file "*.{txt,xml}"
 
     script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
     """
