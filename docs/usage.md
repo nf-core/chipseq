@@ -39,6 +39,7 @@
   * [`--min_reps_consensus`](#--min_reps_consensus)
   * [`--save_macs_pileup`](#--save_macs_pileup)
   * [`--skip_peak_qc`](#--skip_peak_qc)
+  * [`--skip_peak_annotation`](#--skip_peak_annotation)
   * [`--skip_consensus_peaks`](#--skip_consensus_peaks)
 * [Differential analysis](#differential_analysis)
   * [`--deseq2_vst`](#--deseq2_vst)
@@ -412,6 +413,10 @@ Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
 ### `--skip_peak_qc`
 
 Skip MACS2 peak QC plot generation.
+
+### `--skip_peak_annotation`
+
+Skip annotation of MACS2 and consensus peaks with HOMER.
 
 ### `--skip_consensus_peaks`
 
