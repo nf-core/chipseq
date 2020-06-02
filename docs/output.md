@@ -151,7 +151,7 @@ The library-level alignments associated with the same sample are merged and subs
     * `bwa/mergedLibrary/deepTools/plotFingerprint/`  
       * Output files: `*.plotFingerprint.pdf`, `*.plotFingerprint.qcmetrics.txt`, `*.plotFingerprint.raw.txt`
     * `bwa/mergedLibrary/deepTools/plotProfile/`  
-      * Output files: `*.computeMatrix.mat.gz`, `*.computeMatrix.vals.mat.tab`, `*.plotProfile.pdf`, `*.plotProfile.tab`.
+      * Output files: `*.computeMatrix.mat.gz`, `*.computeMatrix.vals.mat.tab`, `*.plotProfile.pdf`, `*.plotProfile.tab`, `*.plotHeatmap.pdf`, `*.plotHeatmap.mat.tab`.
 
 4. **Call peaks**
 

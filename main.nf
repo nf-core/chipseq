@@ -969,7 +969,7 @@ process BIGWIG {
 }
 
 /*
- * STEP 5.4: Generate gene body coverage plot with deepTools plotProfile
+ * STEP 5.4: Generate gene body coverage plot with deepTools plotProfile and plotHeatmap
  */
 process PLOTPROFILE {
     tag "$name"
@@ -1004,6 +1004,10 @@ process PLOTPROFILE {
     plotProfile --matrixFile ${name}.computeMatrix.mat.gz \\
         --outFileName ${name}.plotProfile.pdf \\
         --outFileNameData ${name}.plotProfile.tab
+
+    plotHeatmap --matrixFile ${name}.computeMatrix.mat.gz \\
+        --outFileName ${name}.plotHeatmap.pdf \\
+        --outFileNameMatrix ${name}.plotHeatmap.mat.tab
     """
 }
 
