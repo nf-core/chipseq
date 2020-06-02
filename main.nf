@@ -983,7 +983,7 @@ process PLOTPROFILE {
 
     output:
     path '*.plotProfile.tab' into ch_plotprofile_mqc
-    path '*.{gz,pdf}'
+    path '*.{gz,pdf,mat.tab}'
 
     script:
     """
@@ -991,7 +991,7 @@ process PLOTPROFILE {
         --regionsFileName $bed \\
         --scoreFileName $bigwig \\
         --outFileName ${name}.computeMatrix.mat.gz \\
-        --outFileNameMatrix ${name}.computeMatrix.vals.mat.gz \\
+        --outFileNameMatrix ${name}.computeMatrix.vals.mat.tab \\
         --regionBodyLength 1000 \\
         --beforeRegionStartLength 3000 \\
         --afterRegionStartLength 3000 \\
