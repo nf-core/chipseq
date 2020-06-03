@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * `--deseq2_vst` to use variance stabilizing transformation (VST) instead of regularized log transformation (rlog) with DESeq2
   * `--publish_dir_mode` to customise method of publishing results to output directory [nf-core/tools#585](https://github.com/nf-core/tools/issues/585)
 
+### `Removed`
+
+* `--tss_bed`
+
 ### `Fixed`
 
 * [#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE

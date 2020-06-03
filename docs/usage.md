@@ -21,7 +21,6 @@
   * [`--gtf`](#--gtf)
   * [`--bwa_index`](#--bwa_index)
   * [`--gene_bed`](#--gene_bed)
-  * [`--tss_bed`](#--tss_bed)
   * [`--macs_gsize`](#--macs_gsize)
   * [`--blacklist`](#--blacklist)
   * [`--save_reference`](#--save_reference)
@@ -316,14 +315,6 @@ The full path to BED file for genome-wide gene intervals. This will be created f
 
 ```bash
 --gene_bed '[path to gene BED file]'
-```
-
-### `--tss_bed`
-
-The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if not specified.
-
-```bash
---tss_bed '[path to tss BED file]'
 ```
 
 ### `--macs_gsize`

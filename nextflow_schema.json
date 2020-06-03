@@ -70,10 +70,6 @@
                     "type": "string",
                     "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
                 },
-                "tss_bed": {
-                    "type": "string",
-                    "description": "Path to BED file containing transcription start sites. This will be created from the gene BED file if not specified."
-                },
                 "macs_gsize": {
                     "type": "string",
                     "description": "Effective genome size parameter required by MACS2. If using iGenomes config, values have only been provided when --genome is set as GRCh37, GRCm38, hg19, mm10, BDGP6 and WBcel235",
