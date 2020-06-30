@@ -1558,7 +1558,7 @@ process MULTIQC {
  * STEP 10: Output description HTML
  */
 process output_documentation {
-    publishDir "${params.outdir}/Documentation", mode: params.publish_dir_mode
+    publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode
 
     input:
     path output_docs from ch_output_docs
