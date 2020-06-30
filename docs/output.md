@@ -238,9 +238,13 @@ By default, all possible pairwise comparisons across the groups from a particula
 
 ![MultiQC - DESeq2 sample similarity plot](images/mqc_deseq2_sample_similarity_plot.png)
 
-![R - DESeq2 MA plot](images/r_deseq2_ma_plot.png)
+<p markdown="1" align="center">
+    <img src="images/r_deseq2_ma_plot.png" alt="R - DESeq2 MA plot">
+</p>
 
-![R - DESeq2 Volcano plot](images/r_deseq2_volcano_plot.png)
+<p markdown="1" align="center">
+    <img src="images/r_deseq2_volcano_plot.png" alt="R - DESeq2 Volcano plot">
+</p>
 
 ## Aggregate analysis
 
