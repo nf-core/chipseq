@@ -55,7 +55,7 @@ Adapter-trimmed reads are mapped to the reference assembly using [BWA](http://bi
 <details markdown="1">
     <summary>Output files</summary>
 
-* `bwa/library/`  
+* `bwa/library/`
   The files resulting from the alignment of individual libraries are not saved by default so this directory will not be present in your results. You can override this behaviour with the use of the `--save_align_intermeds` flag in which case it will contain the coordinate sorted alignment files in [`*.bam`](https://samtools.github.io/hts-specs/SAMv1.pdf) format.
 * `bwa/library/samtools_stats/`  
   SAMtools `*.flagstat`, `*.idxstats` and `*.stats` files generated from the alignment files.
@@ -305,7 +305,7 @@ Reference genome-specific files can be useful to keep for the downstream process
 
 ### Pipeline information
 
-[Nextflow!](https://www.nextflow.io/docs/latest/tracing.html) provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to trouble-shoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage.
+[Nextflow](https://www.nextflow.io/docs/latest/tracing.html) provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to trouble-shoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage.
 
 <details markdown="1">
     <summary>Output files</summary>

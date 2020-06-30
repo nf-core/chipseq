@@ -5,69 +5,69 @@
 * [Table of contents](#table-of-contents)
 * [Introduction](#introduction)
 * [Running the pipeline](#running-the-pipeline)
-  * [Updating the pipeline](#updating-the-pipeline)
-  * [Reproducibility](#reproducibility)
+    * [Updating the pipeline](#updating-the-pipeline)
+    * [Reproducibility](#reproducibility)
 * [Main arguments](#main-arguments)
-  * [`-profile`](#-profile)
-  * [`--input`](#--input)
+    * [`-profile`](#-profile)
+    * [`--input`](#--input)
 * [Generic arguments](#generic-arguments)
-  * [`--single_end`](#--single_end)
-  * [`--seq_center`](#--seq_center)
-  * [`--fragment_size`](#--fragment_size)
-  * [`--fingerprint_bins`](#--fingerprint_bins)
+    * [`--single_end`](#--single_end)
+    * [`--seq_center`](#--seq_center)
+    * [`--fragment_size`](#--fragment_size)
+    * [`--fingerprint_bins`](#--fingerprint_bins)
 * [Reference genomes](#reference-genomes)
-  * [`--genome` (using iGenomes)](#--genome-using-igenomes)
-  * [`--fasta`](#--fasta)
-  * [`--gtf`](#--gtf)
-  * [`--bwa_index`](#--bwa_index)
-  * [`--gene_bed`](#--gene_bed)
-  * [`--macs_gsize`](#--macs_gsize)
-  * [`--blacklist`](#--blacklist)
-  * [`--save_reference`](#--save_reference)
-  * [`--igenomes_ignore`](#--igenomes_ignore)
+    * [`--genome` (using iGenomes)](#--genome-using-igenomes)
+    * [`--fasta`](#--fasta)
+    * [`--gtf`](#--gtf)
+    * [`--bwa_index`](#--bwa_index)
+    * [`--gene_bed`](#--gene_bed)
+    * [`--macs_gsize`](#--macs_gsize)
+    * [`--blacklist`](#--blacklist)
+    * [`--save_reference`](#--save_reference)
+    * [`--igenomes_ignore`](#--igenomes_ignore)
 * [Adapter trimming](#adapter-trimming)
-  * [`--skip_trimming`](#--skip_trimming)
-  * [`--save_trimmed`](#--save_trimmed)
+    * [`--skip_trimming`](#--skip_trimming)
+    * [`--save_trimmed`](#--save_trimmed)
 * [Alignments](#alignments)
-  * [`--keep_dups`](#--keep_dups)
-  * [`--keep_multi_map`](#--keep_multi_map)
-  * [`--save_align_intermeds`](#--save_align_intermeds)
+    * [`--keep_dups`](#--keep_dups)
+    * [`--keep_multi_map`](#--keep_multi_map)
+    * [`--save_align_intermeds`](#--save_align_intermeds)
 * [Peaks](#peaks)
-  * [`--narrow_peak`](#--narrow_peak)
-  * [`--broad_cutoff`](#--broad_cutoff)
-  * [`--min_reps_consensus`](#--min_reps_consensus)
-  * [`--save_macs_pileup`](#--save_macs_pileup)
-  * [`--skip_peak_qc`](#--skip_peak_qc)
-  * [`--skip_peak_annotation`](#--skip_peak_annotation)
-  * [`--skip_consensus_peaks`](#--skip_consensus_peaks)
+    * [`--narrow_peak`](#--narrow_peak)
+    * [`--broad_cutoff`](#--broad_cutoff)
+    * [`--min_reps_consensus`](#--min_reps_consensus)
+    * [`--save_macs_pileup`](#--save_macs_pileup)
+    * [`--skip_peak_qc`](#--skip_peak_qc)
+    * [`--skip_peak_annotation`](#--skip_peak_annotation)
+    * [`--skip_consensus_peaks`](#--skip_consensus_peaks)
 * [Differential analysis](#differential_analysis)
-  * [`--deseq2_vst`](#--deseq2_vst)
-  * [`--skip_diff_analysis`](#--skip_diff_analysis)
+    * [`--deseq2_vst`](#--deseq2_vst)
+    * [`--skip_diff_analysis`](#--skip_diff_analysis)
 * [Skipping QC steps](#skipping-qc-steps)
 * [Job resources](#job-resources)
-  * [Automatic resubmission](#automatic-resubmission)
-  * [Custom resource requests](#custom-resource-requests)
+    * [Automatic resubmission](#automatic-resubmission)
+    * [Custom resource requests](#custom-resource-requests)
 * [AWS Batch specific parameters](#aws-batch-specific-parameters)
-  * [`--awsqueue`](#--awsqueue)
-  * [`--awsregion`](#--awsregion)
-  * [`--awscli`](#--awscli)
+    * [`--awsqueue`](#--awsqueue)
+    * [`--awsregion`](#--awsregion)
+    * [`--awscli`](#--awscli)
 * [Other command line parameters](#other-command-line-parameters)
-  * [`--outdir`](#--outdir)
-  * [`--publish_dir_mode`](#--publish_dir_mode)
-  * [`--email`](#--email)
-  * [`--email_on_fail`](#--email_on_fail)
-  * [`--max_multiqc_email_size`](#--max_multiqc_email_size)
-  * [`-name`](#-name)
-  * [`-resume`](#-resume)
-  * [`-c`](#-c)
-  * [`--custom_config_version`](#--custom_config_version)
-  * [`--custom_config_base`](#--custom_config_base)
-  * [`--max_memory`](#--max_memory)
-  * [`--max_time`](#--max_time)
-  * [`--max_cpus`](#--max_cpus)
-  * [`--plaintext_email`](#--plaintext_email)
-  * [`--monochrome_logs`](#--monochrome_logs)
-  * [`--multiqc_config`](#--multiqc_config)
+    * [`--outdir`](#--outdir)
+    * [`--publish_dir_mode`](#--publish_dir_mode)
+    * [`--email`](#--email)
+    * [`--email_on_fail`](#--email_on_fail)
+    * [`--max_multiqc_email_size`](#--max_multiqc_email_size)
+    * [`-name`](#-name)
+    * [`-resume`](#-resume)
+    * [`-c`](#-c)
+    * [`--custom_config_version`](#--custom_config_version)
+    * [`--custom_config_base`](#--custom_config_base)
+    * [`--max_memory`](#--max_memory)
+    * [`--max_time`](#--max_time)
+    * [`--max_cpus`](#--max_cpus)
+    * [`--plaintext_email`](#--plaintext_email)
+    * [`--monochrome_logs`](#--monochrome_logs)
+    * [`--multiqc_config`](#--multiqc_config)
 
 ## Introduction
 
@@ -132,18 +132,18 @@ They are loaded in sequence, so later profiles can overwrite earlier profiles.
 If `-profile` is not specified, the pipeline will run locally and expect all software to be installed and available on the `PATH`. This is _not_ recommended.
 
 * `docker`
-  * A generic configuration profile to be used with [Docker](http://docker.com/)
-  * Pulls software from dockerhub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
+    * A generic configuration profile to be used with [Docker](http://docker.com/)
+    * Pulls software from dockerhub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
 * `singularity`
-  * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
-  * Pulls software from DockerHub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
+    * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
+    * Pulls software from DockerHub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
 * `conda`
-  * Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker or Singularity.
-  * A generic configuration profile to be used with [Conda](https://conda.io/docs/)
-  * Pulls most software from [Bioconda](https://bioconda.github.io/)
+    * Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker or Singularity.
+    * A generic configuration profile to be used with [Conda](https://conda.io/docs/)
+    * Pulls most software from [Bioconda](https://bioconda.github.io/)
 * `test`
-  * A profile with a complete configuration for automated testing
-  * Includes links to test data so needs no other parameters
+    * A profile with a complete configuration for automated testing
+    * Includes links to test data so needs no other parameters
 
 ### `--input`
 
@@ -260,13 +260,13 @@ There are 31 different species supported in the iGenomes references. To run the 
 You can find the keys to specify the genomes in the [iGenomes config file](../conf/igenomes.config). Common genomes that are supported are:
 
 * Human
-  * `--genome GRCh37`
+    * `--genome GRCh37`
 * Mouse
-  * `--genome GRCm38`
+    * `--genome GRCm38`
 * _Drosophila_
-  * `--genome BDGP6`
+    * `--genome BDGP6`
 * _S. cerevisiae_
-  * `--genome 'R64-1-1'`
+    * `--genome 'R64-1-1'`
 
 > There are numerous others - check the config file for more.
 
@@ -347,15 +347,15 @@ The pipeline accepts a number of parameters to change how the trimming is done, 
 You can specify custom trimming parameters as follows:
 
 * `--clip_r1 [int]`
-  * Instructs Trim Galore to remove [int] bp from the 5' end of read 1 (for single-end reads).
+    * Instructs Trim Galore to remove [int] bp from the 5' end of read 1 (for single-end reads).
 * `--clip_r2 [int]`
-  * Instructs Trim Galore to remove [int] bp from the 5' end of read 2 (paired-end reads only).
+    * Instructs Trim Galore to remove [int] bp from the 5' end of read 2 (paired-end reads only).
 * `--three_prime_clip_r1 [int]`
-  * Instructs Trim Galore to remove [int] bp from the 3' end of read 1 _AFTER_ adapter/quality trimming has been
+    * Instructs Trim Galore to remove [int] bp from the 3' end of read 1 _AFTER_ adapter/quality trimming has been
 * `--three_prime_clip_r2 [int]`
-  * Instructs Trim Galore to remove [int] bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
+    * Instructs Trim Galore to remove [int] bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
 * `--trim_nextseq [int]`
-  * This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases.
+    * This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases.
 
 ### `--skip_trimming`
 
