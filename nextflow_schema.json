@@ -1,358 +1,405 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/chipseq/master/nextflow_schema.json",
-    "title": "nf-core/chipseq pipeline parameters",
-    "description": "ChIP-seq peak-calling and differential analysis pipeline.",
+    "$id": "https://raw.githubusercontent.com/nf-core/atacseq/master/nextflow_schema.json",
+    "title": "nf-core/atacseq pipeline parameters",
+    "description": "ATACSeq peak-calling and differential analysis pipeline.",
     "type": "object",
     "properties": {
-        "Generic options": {
+        "Input/output options": {
             "type": "object",
-            "description": "",
-            "default": "",
             "properties": {
                 "input": {
                     "type": "string",
-                    "default": "./design.csv",
-                    "description": "Comma-separated file containing information about the samples in the experiment",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row. See [usage docs](https://nf-co.re/atacseq/docs/usage#--input)."
+                    "description": "Path to comma-separated file containing information about the samples in the experiment.",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row. See [usage docs](https://nf-co.re/atacseq/docs/usage#--input).",
+                    "fa_icon": "fas fa-file-csv"
                 },
                 "single_end": {
                     "type": "boolean",
-                    "description": "Specifies that the input is single-end reads",
+                    "description": "Specifies that the input is single-end reads.",
                     "fa_icon": "fas fa-align-center",
                     "default": false,
-                    "help_text": "By default, the pipeline expects paired-end data. If you have single-end data, specify `--single_end` on the command line when you launch the pipeline. It is not possible to run a mixture of single-end and paired-end files in one run."
+                    "help_text": "By default, the pipeline expects paired-end data. If you have single-end data, specify this parameter on the command line when you launch the pipeline. It is not possible to run a mixture of single-end and paired-end files in one run."
                 },
                 "fragment_size": {
                     "type": "integer",
-                    "default": 200,
-                    "description": "Estimated fragment size used to extend single-end reads"
-                },
-                "fingerprint_bins": {
-                    "type": "integer",
-                    "default": 500000,
-                    "description": "Number of genomic bins to use when calculating deepTools fingerprint plot"
+                    "default": 0,
+                    "description": "Estimated fragment size used to extend single-end reads.",
+                    "fa_icon": "fas fa-chart-area",
+                    "help_text": ""
                 },
                 "seq_center": {
                     "type": "string",
-                    "description": "Sequencing center information to be added to read group of BAM files"
+                    "description": "Sequencing center information to be added to read group of BAM files.",
+                    "fa_icon": "fas fa-synagogue"
+                },
+                "outdir": {
+                    "type": "string",
+                    "description": "Path to the output directory where the results will be saved.",
+                    "default": "./results",
+                    "fa_icon": "fas fa-folder-open",
+                    "help_text": ""
+                },
+                "email": {
+                    "type": "string",
+                    "description": "Email address for completion summary.",
+                    "fa_icon": "fas fa-envelope",
+                    "help_text": "An email address to send a summary email to when the pipeline is completed.",
+                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 }
             },
             "required": [
                 "input"
-            ]
+            ],
+            "fa_icon": "fas fa-terminal"
         },
         "Reference genome options": {
             "type": "object",
-            "description": "",
-            "default": "",
             "properties": {
                 "genome": {
                     "type": "string",
-                    "description": "Name of iGenomes reference",
+                    "description": "Name of iGenomes reference.",
                     "fa_icon": "fas fa-book",
-                    "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files. For example: `--genome GRCh38`."
+                    "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`."
                 },
                 "fasta": {
                     "type": "string",
-                    "description": "Path to Fasta reference. Not mandatory when using reference in iGenomes config via --genome",
-                    "help_text": "Full path to fasta file containing reference genome (*mandatory* if `--genome` is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs."
+                    "description": "Path to Fasta reference file.",
+                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
+                    "fa_icon": "far fa-file-code"
                 },
                 "gtf": {
                     "type": "string",
-                    "description": "Path to GTF file. Not mandatory when using reference in iGenomes config via --genome"
+                    "description": "Path to GTF annotation file.",
+                    "fa_icon": "fas fa-file-invoice",
+                    "help_text": "This parameter is *mandatory* if `--genome` is not specified."
                 },
                 "bwa_index": {
                     "type": "string",
-                    "description": "Full path to directory containing BWA index including base name i.e. /path/to/index/genome.fa"
+                    "description": "Full path to directory containing BWA index including base name. i.e. `/path/to/index/genome.fa`.",
+                    "fa_icon": "fas fa-bezier-curve",
+                    "help_text": ""
                 },
                 "gene_bed": {
                     "type": "string",
-                    "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
+                    "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified.",
+                    "fa_icon": "fas fa-procedures",
+                    "help_text": ""
                 },
                 "macs_gsize": {
                     "type": "string",
-                    "description": "Effective genome size parameter required by MACS2. If using iGenomes config, values have only been provided when --genome is set as GRCh37, GRCm38, hg19, mm10, BDGP6 and WBcel235",
-                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter is not specified then the MACS2 peak-calling and differential analysis will be skipped."
+                    "description": "Effective genome size parameter required by MACS2.",
+                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter is not specified then the MACS2 peak-calling and differential analysis will be skipped.",
+                    "fa_icon": "fas fa-arrows-alt-h"
                 },
                 "blacklist": {
                     "type": "string",
-                    "description": "Path to blacklist regions (.BED format), used for filtering alignments",
-                    "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter."
-                },
-                "mito_name": {
-                    "type": "string",
-                    "description": "Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out",
-                    "help_text": "Name of mitochondrial chomosome in reference assembly. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [`igenomes.config`](../conf/igenomes.config)."
+                    "description": "Path to blacklist regions in BED format, used for filtering alignments.",
+                    "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.",
+                    "fa_icon": "fas fa-book-dead"
                 },
                 "save_reference": {
                     "type": "boolean",
                     "default": false,
-                    "description": "If generated by the pipeline save the BWA index in the results directory",
-                    "help_text": "If the BWA index is generated by the pipeline use this parameter to save it to your results folder. These can then be used for future pipeline runs, reducing processing times."
+                    "description": "If generated by the pipeline save the BWA index in the results directory.",
+                    "help_text": "If the BWA index is generated by the pipeline use this parameter to save it to your results folder. These can then be used for future pipeline runs, reducing processing times.",
+                    "fa_icon": "fas fa-save"
                 },
                 "igenomes_base": {
                     "type": "string",
-                    "description": "Directory / URL base for iGenomes references",
+                    "description": "Directory / URL base for iGenomes references.",
                     "default": "s3://ngi-igenomes/igenomes/",
                     "fa_icon": "fas fa-cloud-download-alt",
-                    "hidden": true
+                    "hidden": true,
+                    "help_text": ""
                 },
                 "igenomes_ignore": {
                     "type": "boolean",
-                    "description": "Do not load the iGenomes reference config",
+                    "description": "Do not load the iGenomes reference config.",
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "default": false,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
                 }
             },
-            "required": [
-                "fasta",
-                "gtf"
-            ]
+            "fa_icon": "fas fa-dna"
         },
         "Adapter trimming options": {
             "type": "object",
-            "description": "",
-            "default": "",
             "properties": {
                 "clip_r1": {
                     "type": "integer",
                     "default": 0,
-                    "description": "Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads)"
+                    "description": "Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads).",
+                    "fa_icon": "fas fa-cut",
+                    "help_text": ""
                 },
                 "clip_r2": {
                     "type": "integer",
                     "default": 0,
-                    "description": "Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only)"
+                    "description": "Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only).",
+                    "fa_icon": "fas fa-cut",
+                    "help_text": ""
                 },
                 "three_prime_clip_r1": {
                     "type": "integer",
                     "default": 0,
-                    "description": "Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed"
+                    "description": "Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed.",
+                    "fa_icon": "fas fa-cut"
                 },
                 "three_prime_clip_r2": {
                     "type": "integer",
                     "default": 0,
-                    "description": "Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed"
+                    "description": "Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed.",
+                    "fa_icon": "fas fa-cut"
                 },
                 "trim_nextseq": {
                     "type": "integer",
                     "default": 0,
-                    "description": "Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails",
-                    "help_text": "This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases."
+                    "description": "Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails.",
+                    "help_text": "This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases.",
+                    "fa_icon": "fas fa-cut"
                 },
                 "skip_trimming": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip the adapter trimming step",
-                    "help_text": "Skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data."
+                    "description": "Skip the adapter trimming step.",
+                    "help_text": "Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.",
+                    "fa_icon": "fas fa-forward"
                 },
                 "save_trimmed": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Save the trimmed FastQ files in the results directory",
-                    "help_text": "By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete."
+                    "description": "Save the trimmed FastQ files in the results directory.",
+                    "help_text": "By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.",
+                    "fa_icon": "fas fa-save"
                 }
-            }
+            },
+            "fa_icon": "fas fa-cut"
         },
         "Alignment options": {
             "type": "object",
-            "description": "",
-            "default": "",
             "properties": {
                 "keep_dups": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Duplicate reads are not filtered from alignments"
+                    "description": "Duplicate reads are not filtered from alignments.",
+                    "fa_icon": "fas fa-cart-arrow-down"
                 },
                 "keep_multi_map": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Reads mapping to multiple locations are not filtered from alignments"
+                    "description": "Reads mapping to multiple locations are not filtered from alignments.",
+                    "fa_icon": "fas fa-cart-arrow-down"
                 },
                 "save_align_intermeds": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Save the intermediate BAM files from the alignment step",
-                    "help_text": "By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set this parameter to also save other intermediate BAM files."
+                    "description": "Save the intermediate BAM files from the alignment step.",
+                    "help_text": "By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set this parameter to also save other intermediate BAM files.",
+                    "fa_icon": "fas fa-save"
+                },
+                "bamtools_filter_pe_config": {
+                    "type": "string",
+                    "default": "$baseDir/assets/bamtools_filter_pe.json",
+                    "hidden": true,
+                    "description": "BAMTools JSON file with custom filters for paired-end data.",
+                    "fa_icon": "fas fa-cog",
+                    "help_text": ""
+                },
+                "bamtools_filter_se_config": {
+                    "type": "string",
+                    "default": "$baseDir/assets/bamtools_filter_se.json",
+                    "hidden": true,
+                    "description": "BAMTools JSON file with custom filters for single-end data.",
+                    "fa_icon": "fas fa-cog",
+                    "help_text": ""
                 }
-            }
+            },
+            "fa_icon": "fas fa-map-signs"
         },
         "Peak calling options": {
             "type": "object",
-            "description": "",
-            "default": "",
             "properties": {
                 "narrow_peak": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Run MACS2 in narrowPeak mode",
-                    "help_text": "MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode."
+                    "description": "Run MACS2 in narrowPeak mode.",
+                    "help_text": "MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.",
+                    "fa_icon": "fas fa-arrows-alt-h"
                 },
                 "broad_cutoff": {
                     "type": "number",
                     "default": 0.1,
-                    "description": "Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified",
-                    "help_text": "Specifies broad cut-off value for MACS2. Only used when `--narrow_peak` isnt specified."
+                    "description": "Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified.",
+                    "fa_icon": "fas fa-hand-scissors"
                 },
                 "min_reps_consensus": {
                     "type": "integer",
                     "default": 1,
-                    "description": "Number of biological replicates required from a given condition for a peak to contribute to a consensus peak",
-                    "help_text": "Number of biological replicates required from a given condition for a peak to contribute to a consensus peak . If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a \"reproducible\" set of consensus of peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded."
+                    "description": "Number of biological replicates required from a given condition for a peak to contribute to a consensus peak.",
+                    "help_text": "If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a \"reproducible\" set of consensus peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded.",
+                    "fa_icon": "fas fa-sort-numeric-down"
                 },
                 "save_macs_pileup": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Instruct MACS2 to create bedGraph files normalised to signal per million reads"
+                    "description": "Instruct MACS2 to create bedGraph files normalised to signal per million reads.",
+                    "fa_icon": "fas fa-save",
+                    "help_text": ""
+                },
+                "skip_peak_qc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-forward",
+                    "description": "Skip MACS2 peak QC plot generation.",
+                    "default": false
+                },
+                "skip_peak_annotation": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-forward",
+                    "description": "Skip annotation of MACS2 and consensus peaks with HOMER.",
+                    "default": false
                 },
                 "skip_consensus_peaks": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip consensus peak generation, annotation and counting"
+                    "description": "Skip consensus peak generation, annotation and counting.",
+                    "fa_icon": "fas fa-forward",
+                    "help_text": ""
                 }
-            }
+            },
+            "fa_icon": "fas fa-chart-area"
         },
         "Differential analysis options": {
             "type": "object",
-            "description": "",
-            "default": "",
             "properties": {
                 "deseq2_vst": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Use vst transformation instead of rlog with DESeq2",
-                    "help_text": "Use `vst` transformation instead of `rlog` with DESeq2. See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization)."
+                    "description": "Use vst transformation instead of rlog with DESeq2.",
+                    "help_text": "See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).",
+                    "fa_icon": "fas fa-dolly"
                 },
                 "skip_diff_analysis": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip differential accessibility analysis"
+                    "description": "Skip differential accessibility analysis.",
+                    "fa_icon": "fas fa-forward",
+                    "help_text": ""
                 }
-            }
+            },
+            "fa_icon": "fas fa-not-equal"
         },
         "Process skipping options": {
             "type": "object",
-            "description": "",
-            "default": "",
             "properties": {
                 "skip_fastqc": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip FastQC"
+                    "description": "Skip FastQC.",
+                    "fa_icon": "fas fa-forward"
                 },
                 "skip_picard_metrics": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip Picard CollectMultipleMetrics"
+                    "description": "Skip Picard CollectMultipleMetrics.",
+                    "fa_icon": "fas fa-forward"
                 },
                 "skip_preseq": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip Preseq"
+                    "description": "Skip Preseq.",
+                    "fa_icon": "fas fa-forward"
                 },
                 "skip_plot_profile": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip deepTools plotProfile"
+                    "description": "Skip deepTools plotProfile.",
+                    "fa_icon": "fas fa-forward"
                 },
                 "skip_plot_fingerprint": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip deepTools plotFingerprint"
+                    "description": "Skip deepTools plotFingerprint.",
+                    "fa_icon": "fas fa-forward"
                 },
                 "skip_spp": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip Phantompeakqualtools"
+                    "description": "Skip Phantompeakqualtools.",
+                    "fa_icon": "fas fa-forward"
                 },
                 "skip_igv": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip IGV"
+                    "description": "Skip IGV.",
+                    "fa_icon": "fas fa-forward"
                 },
                 "skip_multiqc": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Skip MultiQC"
+                    "description": "Skip MultiQC.",
+                    "fa_icon": "fas fa-forward"
                 }
-            }
-        },
-        "Pipeline config options": {
-            "type": "object",
-            "description": "",
-            "default": "",
-            "properties": {
-                "multiqc_config": {
-                    "type": "string",
-                    "description": "Custom config file to supply to MultiQC",
-                    "fa_icon": "fas fa-cog",
-                    "hidden": true
-                },
-                "bamtools_filter_pe_config": {
-                    "type": "string",
-                    "default": "\"$baseDir/assets/bamtools_filter_pe.json\"",
-                    "hidden": true,
-                    "description": "BAMTools JSON file with custom filters for paired-end data"
-                },
-                "bamtools_filter_se_config": {
-                    "type": "string",
-                    "default": "\"$baseDir/assets/bamtools_filter_se.json\"",
-                    "hidden": true,
-                    "description": "BAMTools JSON file with custom filters for single-end data"
-                }
-            }
+            },
+            "fa_icon": "fas fa-forward"
         },
         "Institutional config options": {
             "type": "object",
-            "description": "",
-            "default": "",
             "properties": {
                 "custom_config_version": {
                     "type": "string",
-                    "description": "Git commit id for Institutional configs",
+                    "description": "Git commit id for Institutional configs.",
                     "default": "master",
-                    "hidden": true
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog",
+                    "help_text": ""
                 },
                 "custom_config_base": {
                     "type": "string",
-                    "description": "Base directory for Institutional configs",
+                    "description": "Base directory for Institutional configs.",
                     "default": "https://raw.githubusercontent.com/nf-core/configs/master",
                     "hidden": true,
-                    "help_text": "If you're running offline, Nextflow will not be able to fetch the institutional config files\nfrom the internet. If you don't need them, then this is not a problem. If you do need them,\nyou should download the files from the repo and tell nextflow where to find them with the `--custom_config_base` option."
+                    "help_text": "If you're running offline, Nextflow will not be able to fetch the institutional config files from the internet. If you don't need them, then this is not a problem. If you do need them, you should download the files from the repo and tell Nextflow where to find them with this parameter.",
+                    "fa_icon": "fas fa-users-cog"
                 },
                 "hostnames": {
                     "type": "string",
-                    "description": "Institutional configs hostname",
-                    "hidden": true
+                    "description": "Institutional configs hostname.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog",
+                    "help_text": ""
                 },
                 "config_profile_description": {
                     "type": "string",
-                    "description": "Institutional config description",
-                    "hidden": true
+                    "description": "Institutional config description.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog",
+                    "help_text": ""
                 },
                 "config_profile_contact": {
                     "type": "string",
-                    "description": "Institutional config contact information",
-                    "hidden": true
+                    "description": "Institutional config contact information.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog",
+                    "help_text": ""
                 },
                 "config_profile_url": {
                     "type": "string",
-                    "description": "Institutional config URL link",
-                    "hidden": true
+                    "description": "Institutional config URL link.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog",
+                    "help_text": ""
                 }
-            }
+            },
+            "fa_icon": "fas fa-university"
         },
         "Max job request options": {
             "type": "object",
-            "description": "",
-            "default": "",
             "properties": {
                 "max_cpus": {
                     "type": "integer",
-                    "description": "Maximum number of CPUs that can be requested  for any single job",
+                    "description": "Maximum number of CPUs that can be requested  for any single job.",
                     "default": 16,
                     "fa_icon": "fas fa-microchip",
                     "hidden": true,
@@ -360,46 +407,45 @@
                 },
                 "max_memory": {
                     "type": "string",
-                    "description": "Maximum amount of memory that can be requested for any single job",
-                    "default": "128 GB",
+                    "description": "Maximum amount of memory that can be requested for any single job.",
+                    "default": "128.GB",
                     "fa_icon": "fas fa-memory",
                     "hidden": true,
                     "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
                 },
                 "max_time": {
                     "type": "string",
-                    "description": "Maximum amount of time that can be requested for any single job",
-                    "default": "10d",
+                    "description": "Maximum amount of time that can be requested for any single job.",
+                    "default": "240.h",
                     "fa_icon": "far fa-clock",
                     "hidden": true,
                     "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
                 }
-            }
+            },
+            "fa_icon": "fab fa-acquisitions-incorporated"
         },
-        "Pipeline template options": {
+        "Generic options": {
             "type": "object",
-            "description": "",
-            "default": "",
             "properties": {
                 "help": {
                     "type": "boolean",
-                    "description": "Display help text",
-                    "hidden": true,
+                    "description": "Display help text.",
                     "fa_icon": "fas fa-question-circle",
-                    "default": false
+                    "default": false,
+                    "hidden": true
                 },
-                "outdir": {
-                    "type": "string",
-                    "description": "The output directory where the results will be saved",
-                    "default": "./results",
-                    "fa_icon": "fas fa-folder-open"
+                "fingerprint_bins": {
+                    "type": "integer",
+                    "default": 500000,
+                    "description": "Number of genomic bins to use when calculating deepTools fingerprint plot.",
+                    "fa_icon": "fas fa-dumpster",
+                    "hidden": true
                 },
                 "publish_dir_mode": {
                     "type": "string",
                     "default": "copy",
-                    "hidden": true,
-                    "description": "Method used to save pipeline results to output directory",
-                    "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See https://www.nextflow.io/docs/latest/process.html#publishdir for details.",
+                    "description": "Method used to save pipeline results to output directory.",
+                    "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
                     "fa_icon": "fas fa-copy",
                     "enum": [
                         "symlink",
@@ -408,62 +454,72 @@
                         "copy",
                         "copyNoFollow",
                         "mov"
-                    ]
+                    ],
+                    "hidden": true
                 },
                 "name": {
                     "type": "string",
-                    "description": "Workflow name",
-                    "fa_icon": "fas fa-fingerprint",
-                    "help_text": "A custom name for the pipeline run. Unlike the core nextflow `-name` option with one hyphen this parameter can be reused multiple times, for example if using `-resume`. Passed through to steps such as MultiQC and used for things like report filenames and titles."
-                },
-                "email": {
-                    "type": "string",
-                    "description": "Email address for completion summary",
-                    "fa_icon": "fas fa-envelope",
-                    "help_text": "An email address to send a summary email to when the pipeline is completed.",
-                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
+                    "description": "Workflow name.",
+                    "fa_icon": "fas fa-address-card",
+                    "help_text": "A custom name for the pipeline run. Unlike the core nextflow `-name` option with one hyphen this parameter can be reused multiple times, for example if using `-resume`. Passed through to steps such as MultiQC and used for things like report filenames and titles.",
+                    "hidden": true
                 },
                 "email_on_fail": {
                     "type": "string",
-                    "description": "Email address for completion summary, only when pipeline fails",
+                    "description": "Email address for completion summary, only when pipeline fails.",
                     "fa_icon": "fas fa-exclamation-triangle",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$",
-                    "help_text": "An email address to send a summary email to when the pipeline is completed - ONLY sent if the pipeline does not exit successfully."
+                    "help_text": "An email address to send a summary email to when the pipeline is completed - ONLY sent if the pipeline does not exit successfully.",
+                    "hidden": true
                 },
                 "plaintext_email": {
                     "type": "boolean",
-                    "description": "Send plain-text email instead of HTML",
+                    "description": "Send plain-text email instead of HTML.",
                     "fa_icon": "fas fa-remove-format",
-                    "hidden": true,
-                    "default": false
+                    "default": false,
+                    "help_text": "",
+                    "hidden": true
                 },
                 "max_multiqc_email_size": {
                     "type": "string",
-                    "description": "File size limit when attaching MultiQC reports to summary emails",
-                    "default": "25 MB",
+                    "description": "File size limit when attaching MultiQC reports to summary emails.",
+                    "default": "25.MB",
                     "fa_icon": "fas fa-file-upload",
+                    "help_text": "",
                     "hidden": true
                 },
                 "monochrome_logs": {
                     "type": "boolean",
-                    "description": "Do not use coloured log outputs",
+                    "description": "Do not use coloured log outputs.",
                     "fa_icon": "fas fa-palette",
-                    "hidden": true,
-                    "default": false
+                    "default": false,
+                    "help_text": "",
+                    "hidden": true
+                },
+                "multiqc_config": {
+                    "type": "string",
+                    "description": "Custom config file to supply to MultiQC.",
+                    "fa_icon": "fas fa-cog",
+                    "help_text": "",
+                    "hidden": true
                 },
                 "tracedir": {
                     "type": "string",
-                    "description": "Directory to keep pipeline Nextflow logs and reports",
-                    "default": "\"${params.outdir}/pipeline_info\"",
+                    "description": "Directory to keep pipeline Nextflow logs and reports.",
+                    "default": "${params.outdir}/pipeline_info",
                     "fa_icon": "fas fa-cogs",
+                    "help_text": "",
                     "hidden": true
                 },
                 "clusterOptions": {
                     "type": "string",
-                    "description": "Arguments passed to Nextflow clusterOptions",
+                    "description": "Arguments passed to Nextflow clusterOptions.",
+                    "fa_icon": "fas fa-network-wired",
+                    "help_text": "",
                     "hidden": true
                 }
-            }
+            },
+            "fa_icon": "fas fa-file-import"
         }
     }
 }
