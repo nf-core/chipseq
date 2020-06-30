@@ -14,7 +14,7 @@ The directories listed below will be created in the output directory after the p
 
 The initial QC and alignments are performed at the library-level e.g. if the same library has been sequenced more than once to increase sequencing depth. This has the advantage of being able to assess each library individually, and the ability to process multiple libraries from the same sample in parallel.
 
-1. Raw read QC
+### Raw read QC
 
 [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/) gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%A/C/G/T). You get information about adapter contamination and other overrepresented sequences.
 
@@ -28,7 +28,7 @@ FastQC `*.zip` files for read 1 (*and read2 if paired-end*) **before** adapter t
 
 </details>
 
-2. Adapter trimming
+### Adapter trimming
 
 [Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) is a wrapper tool around Cutadapt and FastQC to consistently apply quality and adapter trimming to FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence. See [`usage.md`](usage.md) for more details about the trimming options.
 
@@ -48,7 +48,7 @@ FastQC `*.zip` files for read 1 (*and read2 if paired-end*) **before** adapter t
 
 ![MultiQC - Cutadapt trimmed sequence plot](images/mqc_cutadapt_plot.png)
 
-3. Alignment
+### Alignment
 
 Adapter-trimmed reads are mapped to the reference assembly using [BWA](http://bio-bwa.sourceforge.net/bwa.shtml). A genome index is required to run BWA so if this is not provided explicitly using the `--bwa_index` parameter then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--save_reference` parameter to save the indices for future pipeline runs, reducing processing times.
 
@@ -70,7 +70,7 @@ Adapter-trimmed reads are mapped to the reference assembly using [BWA](http://bi
 
 The library-level alignments associated with the same sample are merged and subsequently used for the downstream analyses.
 
-1. Alignment merging, duplicate marking, filtering and QC
+### Alignment merging, duplicate marking, filtering and QC
 
 [Picard MergeSamFiles and MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html) are used in combination to merge the alignments, and for the marking of duplicates, respectively. If you only have one library for any given replicate then the merging step isnt carried out because the library-level and merged library-level BAM files will be exactly the same.
 
@@ -102,7 +102,7 @@ The [Preseq](http://smithlabresearch.org/software/preseq/) package is aimed at p
 
 ![MultiQC - Preseq library complexity plot](images/mqc_preseq_plot.png)  
 
-2. Normalised bigWig files
+### Normalised bigWig files
 
 The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in an indexed binary format useful for displaying dense, continuous data in Genome Browsers such as the [UCSC](https://genome.ucsc.edu/cgi-bin/hgTracks) and [IGV](http://software.broadinstitute.org/software/igv/). This mitigates the need to load the much larger BAM files for data visualisation purposes which will be slower and result in memory issues. The coverage values represented in the bigWig file can also be normalised in order to be able to compare the coverage across multiple samples - this is not possible with BAM files. The bigWig format is also supported by various bioinformatics software for downstream processing such as meta-profile plotting.
 
@@ -114,7 +114,7 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in a
 
 </details>
 
-3. ChIP-seq QC metrics
+### ChIP-seq QC metrics
 
 [phantompeakqualtools](https://github.com/kundajelab/phantompeakqualtools) plots the strand cross-correlation of aligned reads for each sample. In a strand cross-correlation plot, reads are shifted in the direction of the strand they map to by an increasing number of base pairs and the Pearson correlation between the per-position read count for each strand is calculated. Two cross-correlation peaks are usually observed in a ChIP experiment, one corresponding to the read length ("phantom" peak) and one to the average fragment length of the library. The absolute and relative height of the two peaks are useful determinants of the success of a ChIP-seq experiment. A high-quality IP is characterized by a ChIP peak that is much higher than the "phantom" peak, while often very small or no such peak is seen in failed experiments.
 
@@ -149,7 +149,7 @@ The results from deepTools plotProfile gives you a quick visualisation for the g
 
 ![MultiQC - deepTools plotProfile plot](images/mqc_deeptools_plotProfile_plot.png)
 
-4. Call peaks
+### Call peaks
 
 [MACS2](https://github.com/taoliu/MACS) is one of the most popular peak-calling algorithms for ChIP-seq data. By default, the peaks are called with the MACS2 `--broad` parameter. If, however, you would like to call narrow peaks then please provide the `--narrow_peak` parameter when running the pipeline. See [MACS2 outputs](https://github.com/taoliu/MACS#output-files) for a description of the output files generated by MACS2.
 
@@ -179,7 +179,7 @@ Various QC plots per sample including number of peaks, fold-change distribution,
 
 ![MultiQC - MACS2 peaks FRiP score plot](images/mqc_frip_score_plot.png)
 
-5. Create and quantify consensus set of peaks
+### Create and quantify consensus set of peaks
 
 In order to perform the differential binding analysis we need to be able to carry out the read quantification for the same intervals across **all** of the samples in the experiment. To this end, the individual peak-sets called per sample have to be merged together in order to create a consensus set of peaks.  
 
@@ -209,7 +209,7 @@ The [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) tool is used to co
 
 ![MultiQC - featureCounts consensus peak read assignment plot](images/mqc_featureCounts_assignment_plot.png)
 
-6. Read counting and differential binding analysis
+### Read counting and differential binding analysis
 
 [DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) is more commonly used to perform differential expression analysis for RNA-seq datasets. However, it can also be used for ChIP-seq differential binding analysis, in which case you can imagine that instead of counts per gene for RNA-seq data we now have counts per bound region.  
 
@@ -246,7 +246,7 @@ By default, all possible pairwise comparisons across the groups from a particula
 
 ## Aggregate analysis
 
-1. Present QC for the raw read, alignment, peak and differential binding results
+### Present QC for the raw read, alignment, peak and differential binding results
 
 [MultiQC](https://multiqc.info/docs/) is a visualisation tool that generates a single HTML report summarising all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available within the report data directory.  
 
@@ -264,7 +264,7 @@ The pipeline has special steps which also allow the software versions to be repo
 
 </details>
 
-2. Create IGV session file
+### Create IGV session file
 
 An [IGV](https://software.broadinstitute.org/software/igv/UserGuide) session file will be created at the end of the pipeline containing the normalised bigWig tracks, per-sample peaks, consensus peaks and differential sites. This avoids having to load all of the data individually into IGV for visualisation.
 
@@ -289,7 +289,7 @@ Once installed, open IGV, go to `File > Open Session` and select the `igv_sessio
 
 ## Other results
 
-1. Reference genome files
+### Reference genome files
 
 Reference genome-specific files can be useful to keep for the downstream processing of the results.
 
@@ -303,7 +303,7 @@ Reference genome-specific files can be useful to keep for the downstream process
 
 </details>
 
-2. Pipeline information
+### Pipeline information
 
 [Nextflow!](https://www.nextflow.io/docs/latest/tracing.html) provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to trouble-shoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage.
 
