@@ -49,6 +49,7 @@ def helpMessage() {
       --save_trimmed [bool]           Save the trimmed FastQ files in the results directory (Default: false)
 
     Alignments
+      --bwa_min_score [int]           Don’t output BWA MEM alignments with score lower than this parameter (Default: false)
       --keep_dups [bool]              Duplicate reads are not filtered from alignments (Default: false)
       --keep_multi_map [bool]         Reads mapping to multiple locations are not filtered from alignments (Default: false)
       --save_align_intermeds [bool]   Save the intermediate BAM files from the alignment step - not done by default (Default: false)
@@ -56,6 +57,8 @@ def helpMessage() {
     Peaks
       --narrow_peak [bool]            Run MACS2 in narrowPeak mode (Default: false)
       --broad_cutoff [float]          Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified (Default: 0.1)
+      --macs_fdr [float]              Minimum FDR (q-value) cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive (Default: false)
+      --macs_pvalue [float]           p-value cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive (Default: false)
       --min_reps_consensus [int]      Number of biological replicates required from a given condition for a peak to contribute to a consensus peak (Default: 1)
       --save_macs_pileup [bool]       Instruct MACS2 to create bedGraph files normalised to signal per million reads (Default: false)
       --skip_peak_qc [bool]           Skip MACS2 peak QC plot generation (Default: false)
@@ -226,10 +229,13 @@ summary['GTF File']               = params.gtf
 if (params.gene_bed)              summary['Gene BED File'] = params.gene_bed
 if (params.bwa_index)             summary['BWA Index'] = params.bwa_index
 if (params.blacklist)             summary['Blacklist BED'] = params.blacklist
+if (params.bwa_min_score)         summary['BWA Min Score'] = params.bwa_min_score
 summary['MACS2 Genome Size']      = params.macs_gsize ?: 'Not supplied'
 summary['Min Consensus Reps']     = params.min_reps_consensus
 if (params.macs_gsize)            summary['MACS2 Narrow Peaks'] = params.narrow_peak ? 'Yes' : 'No'
 if (!params.narrow_peak)          summary['MACS2 Broad Cutoff'] = params.broad_cutoff
+if (params.macs_fdr)              summary['MACS2 FDR'] = params.macs_fdr
+if (params.macs_pvalue)           summary['MACS2 P-value'] = params.macs_pvalue
 if (params.skip_trimming) {
     summary['Trimming Step']      = 'Skipped'
 } else {
@@ -386,7 +392,17 @@ if (!params.bwa_index) {
 /*
  * PREPROCESSING: Generate gene BED file
  */
+// If --gtf is supplied along with --genome
+// Make gene bed from supplied --gtf instead of using iGenomes one automatically
+def MAKE_BED = false
 if (!params.gene_bed) {
+    MAKE_BED = true
+} else if (params.genome && params.gtf) {
+    if (params.genomes[ params.genome ].gtf != params.gtf) {
+        MAKE_BED = true
+    }
+}
+if (MAKE_BED) {
     process MAKE_GENE_BED {
         tag "$gtf"
         label 'process_low'
@@ -573,11 +589,13 @@ process BWA_MEM {
     if (params.seq_center) {
         rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
     }
+    score = params.bwa_min_score ? "-T ${params.bwa_min_score}" : ''
     """
     bwa mem \\
         -t $task.cpus \\
         -M \\
         -R $rg \\
+        $score \\
         ${index}/${bwa_base} \\
         $reads \\
         | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
@@ -1111,6 +1129,8 @@ process MACS2 {
     broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
     format = params.single_end ? 'BAM' : 'BAMPE'
     pileup = params.save_macs_pileup ? '-B --SPMR' : ''
+    fdr = params.macs_fdr ? "--qvalue ${params.macs_fdr}" : ''
+    pvalue = params.macs_pvalue ? "--pvalue ${params.macs_pvalue}" : ''
     """
     macs2 callpeak \\
         -t ${ipbam[0]} \\
@@ -1120,6 +1140,8 @@ process MACS2 {
         -g $params.macs_gsize \\
         -n $ip \\
         $pileup \\
+        $fdr \\
+        $pvalue \\
         --keep-dup all
 
     cat ${ip}_peaks.${PEAK_TYPE} | wc -l | awk -v OFS='\t' '{ print "${ip}", \$1 }' | cat $peak_count_header - > ${ip}_peaks.count_mqc.tsv
@@ -1239,7 +1261,7 @@ process CONSENSUS_PEAKS {
     path '*igv.txt' into ch_macs_consensus_igv
     path '*.intersect.{txt,plot.pdf}'
 
-    script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
+    script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
     prefix = "${antibody}.consensus_peaks"
     mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
     collapsecols = params.narrow_peak ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
@@ -1389,11 +1411,11 @@ process CONSENSUS_PEAKS_DESEQ2 {
         $vst
 
     sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
-    sed -i -e 's/DESeq2:/${antibody} DESeq2:/g' tmp.txt
+    sed -i -e 's/DESeq2 /${antibody} DESeq2 /g' tmp.txt
     cat tmp.txt ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
 
     sed 's/deseq2_clustering/deseq2_clustering_${task.index}/g' <$deseq2_clustering_header >tmp.txt
-    sed -i -e 's/DESeq2:/${antibody} DESeq2:/g' tmp.txt
+    sed -i -e 's/DESeq2 /${antibody} DESeq2 /g' tmp.txt
     cat tmp.txt ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
 
     find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
@@ -1427,7 +1449,7 @@ process IGV {
     output:
     path '*.{txt,xml}'
 
-    script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
+    script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
     """
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
