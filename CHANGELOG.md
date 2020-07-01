@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [nf-core/atacseq#76](https://github.com/nf-core/atacseq/issues/76) - featureCounts coupled to DESeq2
 * [nf-core/atacseq#79](https://github.com/nf-core/atacseq/issues/79) - Parallelize DESeq2
 * [nf-core/atacseq#97](https://github.com/nf-core/atacseq/issues/97) - PBC1, PBC2 from pipeline?
+* [nf-core/atacseq#109](https://github.com/nf-core/atacseq/issues/109) - Specify custom gtf but gene bed is not generated from that gtf?
+* Regenerated screenshots and added collapsible sections for output files in `docs/output.md`
 * Update template to tools `1.9`
 * Replace `set` with `tuple` and `file()` with `path()` in all processes
 * Capitalise process names
