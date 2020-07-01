@@ -15,12 +15,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [nf-core/atacseq#76](https://github.com/nf-core/atacseq/issues/76) - featureCounts coupled to DESeq2
 * [nf-core/atacseq#79](https://github.com/nf-core/atacseq/issues/79) - Parallelize DESeq2
 * [nf-core/atacseq#97](https://github.com/nf-core/atacseq/issues/97) - PBC1, PBC2 from pipeline?
+* [nf-core/atacseq#107](https://github.com/nf-core/atacseq/issues/107) - Add options to change MACS2 parameters
 * [nf-core/atacseq#109](https://github.com/nf-core/atacseq/issues/109) - Specify custom gtf but gene bed is not generated from that gtf?
 * Regenerated screenshots and added collapsible sections for output files in `docs/output.md`
 * Update template to tools `1.9`
 * Replace `set` with `tuple` and `file()` with `path()` in all processes
 * Capitalise process names
 * Parameters:
+    * `--macs_fdr` to provide FDR threshold for MACS2 peak calling
+    * `--macs_pvalue` to provide p-value threshold for MACS2 peak calling
     * `--skip_peak_qc` to skip MACS2 peak QC plot generation
     * `--skip_peak_annotation` to skip annotation of MACS2 and consensus peaks with HOMER
     * `--skip_consensus_peaks` to skip consensus peak generation

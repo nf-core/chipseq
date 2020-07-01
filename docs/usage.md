@@ -35,6 +35,8 @@
 * [Peaks](#peaks)
     * [`--narrow_peak`](#--narrow_peak)
     * [`--broad_cutoff`](#--broad_cutoff)
+    * [`--macs_fdr`](#--macs_fdr)
+    * [`--macs_pvalue`](#--macs_pvalue)
     * [`--min_reps_consensus`](#--min_reps_consensus)
     * [`--save_macs_pileup`](#--save_macs_pileup)
     * [`--skip_peak_qc`](#--skip_peak_qc)
@@ -388,6 +390,14 @@ MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--br
 ### `--broad_cutoff`
 
 Specifies broad cut-off value for MACS2. Only used when `--narrow_peak` isnt specified (Default: `0.1`).
+
+### `--macs_fdr`
+
+Minimum FDR (q-value) cutoff for peak detection, `--macs_fdr` and `--macs_pvalue` are mutually exclusive (Default: false).
+
+### `--macs_pvalue`
+
+p-value cutoff for peak detection, `--macs_fdr` and `--macs_pvalue` are mutually exclusive (Default: false). If `--macs_pvalue` cutoff is set, q-value will not be calculated and reported as -1 in the final .xls file.
 
 ### `--min_reps_consensus`
 
