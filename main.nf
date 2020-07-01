@@ -49,6 +49,7 @@ def helpMessage() {
       --save_trimmed [bool]           Save the trimmed FastQ files in the results directory (Default: false)
 
     Alignments
+      --bwa_min_score [int]           Don’t output BWA MEM alignments with score lower than this parameter (Default: false)
       --keep_dups [bool]              Duplicate reads are not filtered from alignments (Default: false)
       --keep_multi_map [bool]         Reads mapping to multiple locations are not filtered from alignments (Default: false)
       --save_align_intermeds [bool]   Save the intermediate BAM files from the alignment step - not done by default (Default: false)
@@ -228,6 +229,7 @@ summary['GTF File']               = params.gtf
 if (params.gene_bed)              summary['Gene BED File'] = params.gene_bed
 if (params.bwa_index)             summary['BWA Index'] = params.bwa_index
 if (params.blacklist)             summary['Blacklist BED'] = params.blacklist
+if (params.bwa_min_score)         summary['BWA Min Score'] = params.bwa_min_score
 summary['MACS2 Genome Size']      = params.macs_gsize ?: 'Not supplied'
 summary['Min Consensus Reps']     = params.min_reps_consensus
 if (params.macs_gsize)            summary['MACS2 Narrow Peaks'] = params.narrow_peak ? 'Yes' : 'No'
@@ -587,11 +589,13 @@ process BWA_MEM {
     if (params.seq_center) {
         rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
     }
+    score = params.bwa_min_score ? "-T ${params.bwa_min_score}" : ''
     """
     bwa mem \\
         -t $task.cpus \\
         -M \\
         -R $rg \\
+        $score \\
         ${index}/${bwa_base} \\
         $reads \\
         | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 * [#138](https://github.com/nf-core/chipseq/issues/138) - Add social preview image
 * [#153](https://github.com/nf-core/chipseq/issues/153) - Add plotHeatmap
+* [#159](https://github.com/nf-core/chipseq/issues/159) - expose bwa mem -T parameter
 * [nf-core/atacseq#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
 * [nf-core/atacseq#71](https://github.com/nf-core/atacseq/issues/71) - consensus_peaks.mLb.clN.boolean.intersect.plot.pdf not generated
 * [nf-core/atacseq#75](https://github.com/nf-core/atacseq/issues/75) - Include gene annotation versions in multiqc report
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Replace `set` with `tuple` and `file()` with `path()` in all processes
 * Capitalise process names
 * Parameters:
+    * `--bwa_min_score` to set minimum alignment score for BWA MEM
     * `--macs_fdr` to provide FDR threshold for MACS2 peak calling
     * `--macs_pvalue` to provide p-value threshold for MACS2 peak calling
     * `--skip_peak_qc` to skip MACS2 peak QC plot generation
