@@ -386,7 +386,17 @@ if (!params.bwa_index) {
 /*
  * PREPROCESSING: Generate gene BED file
  */
+// If --gtf is supplied along with --genome
+// Make gene bed from supplied --gtf instead of using iGenomes one automatically
+def MAKE_BED = false
 if (!params.gene_bed) {
+    MAKE_BED = true
+} else if (params.genome && params.gtf) {
+    if (params.genomes[ params.genome ].gtf != params.gtf) {
+        MAKE_BED = true
+    }
+}
+if (MAKE_BED) {
     process MAKE_GENE_BED {
         tag "$gtf"
         label 'process_low'
