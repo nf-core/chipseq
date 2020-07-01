@@ -1239,7 +1239,7 @@ process CONSENSUS_PEAKS {
     path '*igv.txt' into ch_macs_consensus_igv
     path '*.intersect.{txt,plot.pdf}'
 
-    script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
+    script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
     prefix = "${antibody}.consensus_peaks"
     mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
     collapsecols = params.narrow_peak ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
@@ -1389,11 +1389,11 @@ process CONSENSUS_PEAKS_DESEQ2 {
         $vst
 
     sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
-    sed -i -e 's/DESeq2:/${antibody} DESeq2:/g' tmp.txt
+    sed -i -e 's/DESeq2 /${antibody} DESeq2 /g' tmp.txt
     cat tmp.txt ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
 
     sed 's/deseq2_clustering/deseq2_clustering_${task.index}/g' <$deseq2_clustering_header >tmp.txt
-    sed -i -e 's/DESeq2:/${antibody} DESeq2:/g' tmp.txt
+    sed -i -e 's/DESeq2 /${antibody} DESeq2 /g' tmp.txt
     cat tmp.txt ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
 
     find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
@@ -1427,7 +1427,7 @@ process IGV {
     output:
     path '*.{txt,xml}'
 
-    script: // scripts are bundled with the pipeline, in nf-core/chipseq/bin/
+    script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
     """
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
