@@ -192,6 +192,11 @@
                     "description": "Reads mapping to multiple locations are not filtered from alignments.",
                     "fa_icon": "fas fa-cart-arrow-down"
                 },
+                "bwa_min_score": {
+                    "type": "integer",
+                    "description": "Don\u2019t output BWA MEM alignments with score lower than this parameter.",
+                    "fa_icon": "fas fa-hand-paper"
+                },
                 "save_align_intermeds": {
                     "type": "boolean",
                     "default": false,
@@ -233,6 +238,16 @@
                     "default": 0.1,
                     "description": "Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified.",
                     "fa_icon": "fas fa-hand-scissors"
+                },
+                "macs_fdr": {
+                    "type": "number",
+                    "description": "Minimum FDR (q-value) cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive.",
+                    "fa_icon": "fas fa-sort-amount-down"
+                },
+                "macs_pvalue": {
+                    "type": "number",
+                    "description": "p-value cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive. If --macs_pvalue cutoff is set, q-value will not be calculated and reported as -1 in the final .xls file.",
+                    "fa_icon": "fas fa-sort-amount-down"
                 },
                 "min_reps_consensus": {
                     "type": "integer",
