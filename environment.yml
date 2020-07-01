@@ -21,7 +21,7 @@ dependencies:
   - conda-forge::r-pheatmap=1.0.12
   - conda-forge::r-lattice=0.20_41
   - conda-forge::r-upsetr=1.4.0
-  - conda-forge::r-xfun=0.15
+  - conda-forge::r-xfun=0.14
   - conda-forge::gawk=5.1.0
   - conda-forge::pigz=2.3.4               ## Required for TrimGalore multi-threading
 

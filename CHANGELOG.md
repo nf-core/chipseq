@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update r-lattice `0.20_35` -> `0.20_41`
 * Update r-upsetr `1.3.3` -> `1.4.0`
 * Update r-scales `1.0.0` -> `1.1.1`
-* Update r-xfun `0.3` -> `0.15`
+* Update r-xfun `0.3` -> `0.14`
 * Update fastqc `0.11.8` -> `0.11.9`
 * Update trim-galore `0.5.0` -> `0.6.5`
 * Update samtools `1.9` -> `1.10`

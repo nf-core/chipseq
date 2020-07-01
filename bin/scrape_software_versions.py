@@ -13,7 +13,7 @@ regexes = {
     'BEDTools': ['v_bedtools.txt', r"bedtools v(\S+)"],
     'BamTools': ['v_bamtools.txt', r"bamtools (\S+)"],
     'deepTools': ['v_deeptools.txt', r"plotFingerprint (\S+)"],
-    'Picard': ['v_picard.txt', r"([\d\.]+)-SNAPSHOT"],
+    'Picard': ['v_picard.txt', r"\n(\S+)"],
     'R': ['v_R.txt', r"R version (\S+)"],
     'Pysam': ['v_pysam.txt', r"(\S+)"],
     'MACS2': ['v_macs2.txt', r"macs2 (\S+)"],
