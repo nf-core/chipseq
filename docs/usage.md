@@ -2,69 +2,75 @@
 
 ## Table of contents
 
-<!-- Install Atom plugin markdown-toc-auto for this ToC to auto-update on save -->
-<!-- TOC START min:2 max:3 link:true asterisk:true update:true -->
 * [Table of contents](#table-of-contents)
 * [Introduction](#introduction)
 * [Running the pipeline](#running-the-pipeline)
-  * [Updating the pipeline](#updating-the-pipeline)
-  * [Reproducibility](#reproducibility)
+    * [Updating the pipeline](#updating-the-pipeline)
+    * [Reproducibility](#reproducibility)
 * [Main arguments](#main-arguments)
-  * [`-profile`](#-profile)
-  * [`--input`](#--input)
+    * [`-profile`](#-profile)
+    * [`--input`](#--input)
 * [Generic arguments](#generic-arguments)
-  * [`--single_end`](#--single_end)
-  * [`--seq_center`](#--seq_center)
-  * [`--fragment_size`](#--fragment_size)
-  * [`--fingerprint_bins`](#--fingerprint_bins)
+    * [`--single_end`](#--single_end)
+    * [`--seq_center`](#--seq_center)
+    * [`--fragment_size`](#--fragment_size)
+    * [`--fingerprint_bins`](#--fingerprint_bins)
 * [Reference genomes](#reference-genomes)
-  * [`--genome` (using iGenomes)](#--genome-using-igenomes)
-  * [`--fasta`](#--fasta)
-  * [`--gtf`](#--gtf)
-  * [`--bwa_index`](#--bwa_index)
-  * [`--gene_bed`](#--gene_bed)
-  * [`--tss_bed`](#--tss_bed)
-  * [`--macs_gsize`](#--macs_gsize)
-  * [`--blacklist`](#--blacklist)
-  * [`--save_reference`](#--save_reference)
-  * [`--igenomes_ignore`](#--igenomes_ignore)
+    * [`--genome` (using iGenomes)](#--genome-using-igenomes)
+    * [`--fasta`](#--fasta)
+    * [`--gtf`](#--gtf)
+    * [`--bwa_index`](#--bwa_index)
+    * [`--gene_bed`](#--gene_bed)
+    * [`--macs_gsize`](#--macs_gsize)
+    * [`--blacklist`](#--blacklist)
+    * [`--save_reference`](#--save_reference)
+    * [`--igenomes_ignore`](#--igenomes_ignore)
 * [Adapter trimming](#adapter-trimming)
-  * [`--skip_trimming`](#--skip_trimming)
-  * [`--save_trimmed`](#--save_trimmed)
+    * [`--skip_trimming`](#--skip_trimming)
+    * [`--save_trimmed`](#--save_trimmed)
 * [Alignments](#alignments)
-  * [`--keep_dups`](#--keep_dups)
-  * [`--keep_multi_map`](#--keep_multi_map)
-  * [`--save_align_intermeds`](#--save_align_intermeds)
+    * [`--bwa_min_score`](#--bwa_min_score)
+    * [`--keep_dups`](#--keep_dups)
+    * [`--keep_multi_map`](#--keep_multi_map)
+    * [`--save_align_intermeds`](#--save_align_intermeds)
 * [Peaks](#peaks)
-  * [`--narrow_peak`](#--narrow_peak)
-  * [`--broad_cutoff`](#--broad_cutoff)
-  * [`--min_reps_consensus`](#--min_reps_consensus)
-  * [`--save_macs_pileup`](#--save_macs_pileup)
-  * [`--skip_diff_analysis`](#--skip_diff_analysis)
+    * [`--narrow_peak`](#--narrow_peak)
+    * [`--broad_cutoff`](#--broad_cutoff)
+    * [`--macs_fdr`](#--macs_fdr)
+    * [`--macs_pvalue`](#--macs_pvalue)
+    * [`--min_reps_consensus`](#--min_reps_consensus)
+    * [`--save_macs_pileup`](#--save_macs_pileup)
+    * [`--skip_peak_qc`](#--skip_peak_qc)
+    * [`--skip_peak_annotation`](#--skip_peak_annotation)
+    * [`--skip_consensus_peaks`](#--skip_consensus_peaks)
+* [Differential analysis](#differential_analysis)
+    * [`--deseq2_vst`](#--deseq2_vst)
+    * [`--skip_diff_analysis`](#--skip_diff_analysis)
 * [Skipping QC steps](#skipping-qc-steps)
 * [Job resources](#job-resources)
-  * [Automatic resubmission](#automatic-resubmission)
-  * [Custom resource requests](#custom-resource-requests)
+    * [Automatic resubmission](#automatic-resubmission)
+    * [Custom resource requests](#custom-resource-requests)
 * [AWS Batch specific parameters](#aws-batch-specific-parameters)
-  * [`--awsqueue`](#--awsqueue)
-  * [`--awsregion`](#--awsregion)
+    * [`--awsqueue`](#--awsqueue)
+    * [`--awsregion`](#--awsregion)
+    * [`--awscli`](#--awscli)
 * [Other command line parameters](#other-command-line-parameters)
-  * [`--outdir`](#--outdir)
-  * [`--email`](#--email)
-  * [`--email_on_fail`](#--email_on_fail)
-  * [`--max_multiqc_email_size`](#--max_multiqc_email_size)
-  * [`-name`](#-name)
-  * [`-resume`](#-resume)
-  * [`-c`](#-c)
-  * [`--custom_config_version`](#--custom_config_version)
-  * [`--custom_config_base`](#--custom_config_base)
-  * [`--max_memory`](#--max_memory)
-  * [`--max_time`](#--max_time)
-  * [`--max_cpus`](#--max_cpus)
-  * [`--plaintext_email`](#--plaintext_email)
-  * [`--monochrome_logs`](#--monochrome_logs)
-  * [`--multiqc_config`](#--multiqc_config)
-<!-- TOC END -->
+    * [`--outdir`](#--outdir)
+    * [`--publish_dir_mode`](#--publish_dir_mode)
+    * [`--email`](#--email)
+    * [`--email_on_fail`](#--email_on_fail)
+    * [`--max_multiqc_email_size`](#--max_multiqc_email_size)
+    * [`-name`](#-name)
+    * [`-resume`](#-resume)
+    * [`-c`](#-c)
+    * [`--custom_config_version`](#--custom_config_version)
+    * [`--custom_config_base`](#--custom_config_base)
+    * [`--max_memory`](#--max_memory)
+    * [`--max_time`](#--max_time)
+    * [`--max_cpus`](#--max_cpus)
+    * [`--plaintext_email`](#--plaintext_email)
+    * [`--monochrome_logs`](#--monochrome_logs)
+    * [`--multiqc_config`](#--multiqc_config)
 
 ## Introduction
 
@@ -115,24 +121,32 @@ This version number will be logged in reports when you run the pipeline, so that
 
 ### `-profile`
 
-Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments. Note that multiple profiles can be loaded, for example: `-profile docker` - the order of arguments is important!
+Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments.
 
-If `-profile` is not specified at all the pipeline will be run locally and expects all software to be installed and available on the `PATH`.
+Several generic profiles are bundled with the pipeline which instruct the pipeline to use software packaged using different methods (Docker, Singularity, Conda) - see below.
 
-* `awsbatch`
-  * A generic configuration profile to be used with AWS Batch.
-* `conda`
-  * A generic configuration profile to be used with [conda](https://conda.io/docs/)
-  * Pulls most software from [Bioconda](https://bioconda.github.io/)
+> We highly recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported.
+
+The pipeline also dynamically loads configurations from [https://github.com/nf-core/configs](https://github.com/nf-core/configs) when it runs, making multiple config profiles for various institutional clusters available at run time. For more information and to see if your system is available in these configs please see the [nf-core/configs documentation](https://github.com/nf-core/configs#documentation).
+
+Note that multiple profiles can be loaded, for example: `-profile test,docker` - the order of arguments is important!
+They are loaded in sequence, so later profiles can overwrite earlier profiles.
+
+If `-profile` is not specified, the pipeline will run locally and expect all software to be installed and available on the `PATH`. This is _not_ recommended.
+
 * `docker`
-  * A generic configuration profile to be used with [Docker](http://docker.com/)
-  * Pulls software from dockerhub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
+    * A generic configuration profile to be used with [Docker](http://docker.com/)
+    * Pulls software from dockerhub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
 * `singularity`
-  * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
-  * Pulls software from DockerHub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
+    * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
+    * Pulls software from DockerHub: [`nfcore/chipseq`](http://hub.docker.com/r/nfcore/chipseq/)
+* `conda`
+    * Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker or Singularity.
+    * A generic configuration profile to be used with [Conda](https://conda.io/docs/)
+    * Pulls most software from [Bioconda](https://bioconda.github.io/)
 * `test`
-  * A profile with a complete configuration for automated testing
-  * Includes links to test data so needs no other parameters
+    * A profile with a complete configuration for automated testing
+    * Includes links to test data so needs no other parameters
 
 ### `--input`
 
@@ -249,13 +263,13 @@ There are 31 different species supported in the iGenomes references. To run the 
 You can find the keys to specify the genomes in the [iGenomes config file](../conf/igenomes.config). Common genomes that are supported are:
 
 * Human
-  * `--genome GRCh37`
+    * `--genome GRCh37`
 * Mouse
-  * `--genome GRCm38`
+    * `--genome GRCm38`
 * _Drosophila_
-  * `--genome BDGP6`
+    * `--genome BDGP6`
 * _S. cerevisiae_
-  * `--genome 'R64-1-1'`
+    * `--genome 'R64-1-1'`
 
 > There are numerous others - check the config file for more.
 
@@ -306,14 +320,6 @@ The full path to BED file for genome-wide gene intervals. This will be created f
 --gene_bed '[path to gene BED file]'
 ```
 
-### `--tss_bed`
-
-The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if not specified.
-
-```bash
---tss_bed '[path to tss BED file]'
-```
-
 ### `--macs_gsize`
 
 [Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter is not specified then the MACS2 peak-calling and differential analysis will be skipped.
@@ -332,11 +338,11 @@ If provided, alignments that overlap with the regions in this file will be filte
 
 ### `--save_reference`
 
-If the BWA index is generated by the pipeline use this parameter to save it to your results folder. These can then be used for future pipeline runs, reducing processing times.
+If the BWA index is generated by the pipeline use this parameter to save it to your results folder. These can then be used for future pipeline runs, reducing processing times (Default: false).
 
 ### `--igenomes_ignore`
 
-Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`.
+Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config` (Default: false).
 
 ## Adapter trimming
 
@@ -344,51 +350,63 @@ The pipeline accepts a number of parameters to change how the trimming is done, 
 You can specify custom trimming parameters as follows:
 
 * `--clip_r1 [int]`
-  * Instructs Trim Galore to remove [int] bp from the 5' end of read 1 (for single-end reads).
+    * Instructs Trim Galore to remove [int] bp from the 5' end of read 1 (for single-end reads).
 * `--clip_r2 [int]`
-  * Instructs Trim Galore to remove [int] bp from the 5' end of read 2 (paired-end reads only).
+    * Instructs Trim Galore to remove [int] bp from the 5' end of read 2 (paired-end reads only).
 * `--three_prime_clip_r1 [int]`
-  * Instructs Trim Galore to remove [int] bp from the 3' end of read 1 _AFTER_ adapter/quality trimming has been
+    * Instructs Trim Galore to remove [int] bp from the 3' end of read 1 _AFTER_ adapter/quality trimming has been
 * `--three_prime_clip_r2 [int]`
-  * Instructs Trim Galore to remove [int] bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
+    * Instructs Trim Galore to remove [int] bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
 * `--trim_nextseq [int]`
-  * This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases.
+    * This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases.
 
 ### `--skip_trimming`
 
-Skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.
+Skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data (Default: false).
 
 ### `--save_trimmed`
 
-By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.
+By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete (Default: false).
 
 ## Alignments
 
+### `--bwa_min_score`
+
+Don’t output BWA MEM alignments with score lower than this parameter (Default: false).
+
 ### `--keep_dups`
 
-Duplicate reads are not filtered from alignments.
+Duplicate reads are not filtered from alignments (Default: false).
 
 ### `--keep_multi_map`
 
-Reads mapping to multiple locations in the genome are not filtered from alignments.
+Reads mapping to multiple locations in the genome are not filtered from alignments (Default: false).
 
 ### `--save_align_intermeds`
 
-By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also save other intermediate BAM files.
+By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also save other intermediate BAM files (Default: false).
 
 ## Peaks
 
 ### `--narrow_peak`
 
-MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
+MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode (Default: false).
 
 ### `--broad_cutoff`
 
 Specifies broad cut-off value for MACS2. Only used when `--narrow_peak` isnt specified (Default: `0.1`).
 
+### `--macs_fdr`
+
+Minimum FDR (q-value) cutoff for peak detection, `--macs_fdr` and `--macs_pvalue` are mutually exclusive (Default: false).
+
+### `--macs_pvalue`
+
+p-value cutoff for peak detection, `--macs_fdr` and `--macs_pvalue` are mutually exclusive (Default: false). If `--macs_pvalue` cutoff is set, q-value will not be calculated and reported as -1 in the final .xls file.
+
 ### `--min_reps_consensus`
 
-Number of biological replicates required from a given condition for a peak to contribute to a consensus peak . If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a "reproducible" set of consensus of peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded.
+Number of biological replicates required from a given condition for a peak to contribute to a consensus peak . If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a "reproducible" set of consensus of peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded (Default: 1).
 
 ```bash
 -- min_reps_consensus 1
@@ -396,11 +414,29 @@ Number of biological replicates required from a given condition for a peak to co
 
 ### `--save_macs_pileup`
 
-Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
+Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters (Default: false).
+
+### `--skip_peak_qc`
+
+Skip MACS2 peak QC plot generation (Default: false).
+
+### `--skip_peak_annotation`
+
+Skip annotation of MACS2 and consensus peaks with HOMER (Default: false).
+
+### `--skip_consensus_peaks`
+
+Skip consensus peak generation, annotation and counting (Default: false).
+
+## Differential analysis
+
+### `--deseq2_vst`
+
+Use `vst` transformation instead of `rlog` with DESeq2. See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization) (Default: false).
 
 ### `--skip_diff_analysis`
 
-Skip read counting and differential analysis step.
+Skip differential binding analysis with DESeq2 (Default: false).
 
 ## Skipping QC steps
 
@@ -430,11 +466,11 @@ Wherever process-specific requirements are set in the pipeline, the default valu
 
 If you are likely to be running `nf-core` pipelines regularly it may be a good idea to request that your custom config file is uploaded to the `nf-core/configs` git repository. Before you do this please can you test that the config file works with your pipeline of choice using the `-c` parameter (see definition below). You can then create a pull request to the `nf-core/configs` repository with the addition of your config file, associated documentation file (see examples in [`nf-core/configs/docs`](https://github.com/nf-core/configs/tree/master/docs)), and amending [`nfcore_custom.config`](https://github.com/nf-core/configs/blob/master/nfcore_custom.config) to include your custom profile.
 
-If you have any questions or issues please send us a message on [Slack](https://nf-co.re/join/slack/).
+If you have any questions or issues please send us a message on [Slack](https://nf-co.re/join/slack).
 
 ## AWS Batch specific parameters
 
-Running the pipeline on AWS Batch requires a couple of specific parameters to be set according to your AWS Batch configuration. Please use the `-awsbatch` profile and then specify all of the following parameters.
+Running the pipeline on AWS Batch requires a couple of specific parameters to be set according to your AWS Batch configuration. Please use [`-profile awsbatch`](https://github.com/nf-core/configs/blob/master/conf/awsbatch.config) and then specify all of the following parameters.
 
 ### `--awsqueue`
 
@@ -442,7 +478,11 @@ The JobQueue that you intend to use on AWS Batch.
 
 ### `--awsregion`
 
-The AWS region to run your job in. Default is set to `eu-west-1` but can be adjusted to your needs.
+The AWS region in which to run your job. Default is set to `eu-west-1` but can be adjusted to your needs.
+
+### `--awscli`
+
+The [AWS CLI](https://www.nextflow.io/docs/latest/awscloud.html#aws-cli-installation) path in your custom AMI. Default: `/home/ec2-user/miniconda/bin/aws`.
 
 Please make sure to also set the `-w/--work-dir` and `--outdir` parameters to a S3 storage bucket of your choice - you'll get an error message notifying you if you didn't.
 
@@ -451,6 +491,10 @@ Please make sure to also set the `-w/--work-dir` and `--outdir` parameters to a 
 ### `--outdir`
 
 The output directory where the results will be saved.
+
+### `--publish_dir_mode`
+
+Value passed to Nextflow [`publishDir`](https://www.nextflow.io/docs/latest/process.html#publishdir) directive for publishing results in the output directory. Available: 'symlink', 'rellink', 'link', 'copy', 'copyNoFollow' and 'move' (Default: 'copy').
 
 ### `--email`
 
@@ -462,7 +506,7 @@ This works exactly as with `--email`, except emails are only sent if the workflo
 
 ### `--max_multiqc_email_size`
 
-Threshold size for MultiQC report to be attached in notification email. If file generated by pipeline exceeds the threshold, it will not be attached (Default: `25MB`).
+Threshold size for MultiQC report to be attached in notification email. If file generated by pipeline exceeds the threshold, it will not be attached (Default: 25MB).
 
 ### `-name`
 
@@ -490,7 +534,7 @@ Note - you can use this to override pipeline defaults.
 
 ### `--custom_config_version`
 
-Provide git commit id for custom Institutional configs hosted at `nf-core/configs`. This was implemented for reproducibility purposes. Default is set to `master`.
+Provide git commit id for custom Institutional configs hosted at `nf-core/configs`. This was implemented for reproducibility purposes. Default: `master`.
 
 ```bash
 ## Download and use config file with following git commid id

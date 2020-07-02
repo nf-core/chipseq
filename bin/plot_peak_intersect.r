@@ -15,8 +15,8 @@ library(UpSetR)
 ################################################
 ################################################
 
-option_list <- list(make_option(c("-i", "--input_file"), type="character", default=NULL, help="Path to tab-delimited file containing two columns i.e sample1&sample2&sample3 indicating intersect between samples <TAB> set size.", metavar="input_file"),
-                    make_option(c("-o", "--output_file"), type="character", default=NULL, help="Path to output file with '.pdf' extension.", metavar="output_file"))
+option_list <- list(make_option(c("-i", "--input_file"), type="character", default=NULL, help="Path to tab-delimited file containing two columns i.e sample1&sample2&sample3 indicating intersect between samples <TAB> set size.", metavar="path"),
+                    make_option(c("-o", "--output_file"), type="character", default=NULL, help="Path to output file with '.pdf' extension.", metavar="path"))
 
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)
@@ -44,11 +44,13 @@ if (file.exists(OutDir) == FALSE) {
 comb.dat <- read.table(opt$input_file,sep="\t",header=FALSE)
 comb.vec <- comb.dat[,2]
 comb.vec <- setNames(comb.vec,comb.dat[,1])
-
 sets <- sort(unique(unlist(strsplit(names(comb.vec),split='&'))), decreasing = TRUE)
+
 nintersects = length(names(comb.vec))
 if (nintersects > 70) {
     nintersects <- 70
+    comb.vec <- sort(comb.vec, decreasing = TRUE)[1:70]
+    sets <- sort(unique(unlist(strsplit(names(comb.vec),split='&'))), decreasing = TRUE)
 }
 
 pdf(opt$output_file,onefile=F,height=10,width=20)
