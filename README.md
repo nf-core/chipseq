@@ -7,7 +7,7 @@
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
 [![Docker](https://img.shields.io/docker/automated/nfcore/chipseq.svg)](https://hub.docker.com/r/nfcore/chipseq/)
-![[Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23chipseq-4A154B?logo=slack)](https://nfcore.slack.com/channels/chipseq)
+[![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23chipseq-4A154B?logo=slack)](https://nfcore.slack.com/channels/chipseq)
 
 ## Introduction
 
