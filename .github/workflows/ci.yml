@@ -35,13 +35,13 @@ jobs:
 
       - name: Build new docker image
         if: env.GIT_DIFF
-        run: docker build --no-cache . -t nfcore/chipseq:dev
+        run: docker build --no-cache . -t nfcore/chipseq:1.2.0
 
       - name: Pull docker image
         if: ${{ !env.GIT_DIFF }}
         run: |
           docker pull nfcore/chipseq:dev
-          docker tag nfcore/chipseq:dev nfcore/chipseq:dev
+          docker tag nfcore/chipseq:dev nfcore/chipseq:1.2.0
 
       - name: Install Nextflow
         run: |
@@ -75,13 +75,13 @@ jobs:
 
       - name: Build new docker image
         if: env.GIT_DIFF
-        run: docker build --no-cache . -t nfcore/chipseq:dev
+        run: docker build --no-cache . -t nfcore/chipseq:1.2.0
 
       - name: Pull docker image
         if: ${{ !env.GIT_DIFF }}
         run: |
           docker pull nfcore/chipseq:dev
-          docker tag nfcore/chipseq:dev nfcore/chipseq:dev
+          docker tag nfcore/chipseq:dev nfcore/chipseq:1.2.0
 
       - name: Install Nextflow
         run: |
