@@ -189,9 +189,6 @@ workflow.onComplete {
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////
 //
-// /*
-//  * PREPROCESSING: Reformat design file, check validitiy and create IP vs control mappings
-//  */
 // process CHECK_DESIGN {
 //     tag "$design"
 //     publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode
@@ -208,7 +205,7 @@ workflow.onComplete {
 //     check_design.py $design design_reads.csv design_controls.csv
 //     """
 // }
-//
+
 // /*
 //  * Create channels for input fastq files
 //  */
