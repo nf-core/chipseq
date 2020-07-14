@@ -148,12 +148,13 @@ log.info "-\033[2m----------------------------------------------------\033[0m-"
 /*
  * Include local pipeline modules
  */
-include { CHECK_SAMPLESHEET
-          get_samplesheet_paths
+include { CHECK_SAMPLESHEET;
+          get_samplesheet_paths;
           get_samplesheet_design } from './modules/local/check_samplesheet' params(params)
 include { GTF2BED } from './modules/local/gtf2bed' params(params)
 include { GET_CHROM_SIZES } from './modules/local/get_chrom_sizes' params(params)
 include { MAKE_GENOME_FILTER } from './modules/local/make_genome_filter' params(params)
+include { FILTER_BAM } from './modules/local/filter_bam' params(params)
 include { OUTPUT_DOCUMENTATION } from './modules/local/output_documentation' params(params)
 include { GET_SOFTWARE_VERSIONS } from './modules/local/get_software_versions' params(params)
 
@@ -166,7 +167,11 @@ include { TRIMGALORE } from './modules/nf-core/trimgalore' params(params)
 include { BWA_MEM } from './modules/nf-core/bwa_mem' params(params)
 include { SAMTOOLS_SORT } from './modules/nf-core/samtools_sort' params(params)
 include { SAMTOOLS_INDEX } from './modules/nf-core/samtools_index' params(params)
-include { SAMTOOLS_STATS } from './modules/nf-core/samtools_stats' params(params)
+include { SAMTOOLS_STATS as SAMTOOLS_STATS_MAP;
+          SAMTOOLS_STATS as SAMTOOLS_STATS_MARKDUPLICATES } from './modules/nf-core/samtools_stats' params(params)
+include { PICARD_MERGESAMFILES } from './modules/nf-core/picard_mergesamfiles' params(params)
+include { PICARD_MARKDUPLICATES } from './modules/nf-core/picard_markduplicates' params(params)
+//include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collectmultiplemetrics' params(params)
 include { MULTIQC } from './modules/nf-core/multiqc' params(params)
 
 /*
@@ -216,7 +221,22 @@ workflow {
      */
     BWA_MEM(ch_trimmed_reads, ch_bwa_index.collect())
     SAMTOOLS_SORT(BWA_MEM.out) | SAMTOOLS_INDEX
-    SAMTOOLS_STATS(SAMTOOLS_SORT.out)
+    SAMTOOLS_STATS_MAP(SAMTOOLS_SORT.out)
+
+    /*
+     * MERGE RESEQUENCED BAM FILES
+     */
+    SAMTOOLS_SORT
+        .out
+        .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1], it[2] ] }
+        .groupTuple(by: [0, 1])
+        .map { it ->  [ it[0], it[1], it[2].flatten() ] }
+        .set { ch_sort_bam }
+    PICARD_MERGESAMFILES(ch_sort_bam)
+    PICARD_MARKDUPLICATES(PICARD_MERGESAMFILES.out).bam | SAMTOOLS_STATS_MARKDUPLICATES
+    FILTER_BAM(PICARD_MARKDUPLICATES.out.bam,
+               MAKE_GENOME_FILTER.out.collect(),
+               ch_bamtools_filter_config)           // Fix getting name sorted BAM here for PE/SE
 
     /*
      * PIPELINE REPORTING
@@ -250,143 +270,6 @@ workflow.onComplete {
 // /* --                                                                     -- */
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////
-//
-// /*
-//  * STEP 4.1: Merge BAM files for all libraries from same sample replicate
-//  */
-// ch_sort_bam_merge
-//     .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
-//     .groupTuple(by: [0])
-//     .map { it ->  [ it[0], it[1].flatten() ] }
-//     .set { ch_sort_bam_merge }
-//
-// process MERGED_BAM {
-//     tag "$name"
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
-//         saveAs: { filename ->
-//                       if (filename.endsWith('.flagstat')) "samtools_stats/$filename"
-//                       else if (filename.endsWith('.idxstats')) "samtools_stats/$filename"
-//                       else if (filename.endsWith('.stats')) "samtools_stats/$filename"
-//                       else if (filename.endsWith('.metrics.txt')) "picard_metrics/$filename"
-//                       else params.save_align_intermeds ? filename : null
-//                 }
-//
-//     input:
-//     tuple val(name), path(bams) from ch_sort_bam_merge
-//
-//     output:
-//     tuple val(name), path("*${prefix}.sorted.{bam,bam.bai}") into ch_merge_bam_filter,
-//                                                                   ch_merge_bam_preseq
-//     path '*.{flagstat,idxstats,stats}' into ch_merge_bam_stats_mqc
-//     path '*.txt' into ch_merge_bam_metrics_mqc
-//
-//     script:
-//     prefix = "${name}.mLb.mkD"
-//     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-//     def avail_mem = 3
-//     if (!task.memory) {
-//         log.info '[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
-//     } else {
-//         avail_mem = task.memory.toGiga()
-//     }
-//     if (bam_files.size() > 1) {
-//         """
-//         picard -Xmx${avail_mem}g MergeSamFiles \\
-//             ${'INPUT='+bam_files.join(' INPUT=')} \\
-//             OUTPUT=${name}.sorted.bam \\
-//             SORT_ORDER=coordinate \\
-//             VALIDATION_STRINGENCY=LENIENT \\
-//             TMP_DIR=tmp
-//         samtools index ${name}.sorted.bam
-//
-//         picard -Xmx${avail_mem}g MarkDuplicates \\
-//             INPUT=${name}.sorted.bam \\
-//             OUTPUT=${prefix}.sorted.bam \\
-//             ASSUME_SORTED=true \\
-//             REMOVE_DUPLICATES=false \\
-//             METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
-//             VALIDATION_STRINGENCY=LENIENT \\
-//             TMP_DIR=tmp
-//
-//         samtools index ${prefix}.sorted.bam
-//         samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-//         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-//         samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-//         """
-//     } else {
-//       """
-//       picard -Xmx${avail_mem}g MarkDuplicates \\
-//           INPUT=${bam_files[0]} \\
-//           OUTPUT=${prefix}.sorted.bam \\
-//           ASSUME_SORTED=true \\
-//           REMOVE_DUPLICATES=false \\
-//           METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
-//           VALIDATION_STRINGENCY=LENIENT \\
-//           TMP_DIR=tmp
-//
-//       samtools index ${prefix}.sorted.bam
-//       samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-//       samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-//       samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-//       """
-//     }
-// }
-//
-// /*
-//  * STEP 4.2: Filter BAM file at merged library-level
-//  */
-// process MERGED_BAM_FILTER {
-//     tag "$name"
-//     label 'process_medium'
-//     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
-//         saveAs: { filename ->
-//                       if (params.single_end || params.save_align_intermeds) {
-//                           if (filename.endsWith('.flagstat')) "samtools_stats/$filename"
-//                           else if (filename.endsWith('.idxstats')) "samtools_stats/$filename"
-//                           else if (filename.endsWith('.stats')) "samtools_stats/$filename"
-//                           else if (filename.endsWith('.sorted.bam')) filename
-//                           else if (filename.endsWith('.sorted.bam.bai')) filename
-//                           else null
-//                       }
-//                 }
-//
-//     input:
-//     tuple val(name), path(bam) from ch_merge_bam_filter
-//     path bed from ch_genome_filter_regions.collect()
-//     path bamtools_filter_config from ch_bamtools_filter_config
-//
-//     output:
-//     tuple val(name), path('*.{bam,bam.bai}') into ch_filter_bam
-//     tuple val(name), path('*.flagstat') into ch_filter_bam_flagstat
-//     path '*.{idxstats,stats}' into ch_filter_bam_stats_mqc
-//
-//     script:
-//     prefix = params.single_end ? "${name}.mLb.clN" : "${name}.mLb.flT"
-//     filter_params = params.single_end ? '-F 0x004' : '-F 0x004 -F 0x0008 -f 0x001'
-//     dup_params = params.keep_dups ? '' : '-F 0x0400'
-//     multimap_params = params.keep_multi_map ? '' : '-q 1'
-//     blacklist_params = params.blacklist ? "-L $bed" : ''
-//     name_sort_bam = params.single_end ? '' : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
-//     """
-//     samtools view \\
-//         $filter_params \\
-//         $dup_params \\
-//         $multimap_params \\
-//         $blacklist_params \\
-//         -b ${bam[0]} \\
-//         | bamtools filter \\
-//             -out ${prefix}.sorted.bam \\
-//             -script $bamtools_filter_config
-//
-//     samtools index ${prefix}.sorted.bam
-//     samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-//     samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-//     samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-//
-//     $name_sort_bam
-//     """
-// }
 //
 // /*
 //  * STEP 4.3: Remove orphan reads from paired-end BAM file
