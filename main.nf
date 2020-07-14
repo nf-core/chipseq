@@ -139,7 +139,9 @@ log.info "-\033[2m----------------------------------------------------\033[0m-"
  */
 include { OUTPUT_DOCUMENTATION } from './modules/local/output_documentation' params(params)
 include { GET_SOFTWARE_VERSIONS } from './modules/local/get_software_versions' params(params)
-include { CHECK_SAMPLESHEET; check_samplesheet_paths } from './modules/local/check_samplesheet' params(params)
+include { CHECK_SAMPLESHEET
+          get_samplesheet_paths
+          get_samplesheet_design } from './modules/local/check_samplesheet' params(params)
 
 // /*
 //  * Include nf-core modules
@@ -152,12 +154,24 @@ include { CHECK_SAMPLESHEET; check_samplesheet_paths } from './modules/local/che
  */
 workflow {
 
-    // CHECK_SAMPLESHEET(ch_input)
-    //     .splitCsv(header:true, sep:',')
-    //     .map { check_samplesheet_paths(it) }
-    //     .set { ch_raw_reads }
-    //
-    // FASTQC(ch_raw_reads)
+    // Get paths to FastQ files
+    // [sample, single_end?, [ fastq_1, fastq_2 ]]
+    CHECK_SAMPLESHEET(ch_input)
+        .reads
+        .splitCsv(header:true, sep:',')
+        .map { get_samplesheet_paths(it, params.single_end) }
+        .set { ch_raw_reads }
+
+    // Get design information from samplesheet
+    // [sample, control, antibody, replicatesExist?, multipleGroups?]
+    CHECK_SAMPLESHEET
+        .out
+        .controls
+        .splitCsv(header:true, sep:',')
+        .map { get_samplesheet_design(it) }
+        .set { ch_design }
+
+    // FASTQC(ch_raw_reads_fastqc)
 
     OUTPUT_DOCUMENTATION(
         ch_output_docs,
@@ -181,56 +195,6 @@ workflow.onComplete {
     Completion.summary(workflow, params, log)
 }
 
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                     PARSE DESIGN FILE                               -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// process CHECK_DESIGN {
-//     tag "$design"
-//     publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode
-//
-//     input:
-//     path design from ch_input
-//
-//     output:
-//     path 'design_reads.csv' into ch_design_reads_csv
-//     path 'design_controls.csv' into ch_design_controls_csv
-//
-//     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-//     """
-//     check_design.py $design design_reads.csv design_controls.csv
-//     """
-// }
-
-// /*
-//  * Create channels for input fastq files
-//  */
-// if (params.single_end) {
-//     ch_design_reads_csv
-//         .splitCsv(header:true, sep:',')
-//         .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true) ] ] }
-//         .into { ch_raw_reads_fastqc;
-//                 ch_raw_reads_trimgalore }
-// } else {
-//     ch_design_reads_csv
-//         .splitCsv(header:true, sep:',')
-//         .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] ] }
-//         .into { ch_raw_reads_fastqc;
-//                 ch_raw_reads_trimgalore }
-// }
-//
-// /*
-//  * Create a channel with [sample_id, control id, antibody, replicatesExist, multipleGroups]
-//  */
-// ch_design_controls_csv
-//     .splitCsv(header:true, sep:',')
-//     .map { row -> [ row.sample_id, row.control_id, row.antibody, row.replicatesExist.toBoolean(), row.multipleGroups.toBoolean() ] }
-//     .set { ch_design_controls_csv }
-//
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////
 // /* --                                                                     -- */
