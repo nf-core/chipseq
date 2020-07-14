@@ -59,7 +59,7 @@ if (params.blacklist) { ch_blacklist = Channel.fromPath(params.blacklist, checkI
 
 if (params.fasta) {
     lastPath = params.fasta.lastIndexOf(File.separator)
-    bwa_base = params.fasta.substring(lastPath+1)
+    params.bwa_base = params.fasta.substring(lastPath+1)
     ch_fasta = file(params.fasta, checkIfExists: true)
 } else {
     exit 1, 'Fasta file not specified!'
@@ -68,7 +68,7 @@ if (params.fasta) {
 if (params.bwa_index) {
     lastPath = params.bwa_index.lastIndexOf(File.separator)
     bwa_dir  = params.bwa_index.substring(0,lastPath+1)
-    bwa_base = params.bwa_index.substring(lastPath+1)
+    params.bwa_base = params.bwa_index.substring(lastPath+1)
     Channel
         .fromPath(bwa_dir, checkIfExists: true)
         .set { ch_bwa_index }
@@ -78,6 +78,17 @@ if (params.bwa_index) {
 if (params.anno_readme && file(params.anno_readme).exists()) {
     file("${params.outdir}/genome/").mkdirs()
     file(params.anno_readme).copyTo("${params.outdir}/genome/")
+}
+
+// If --gtf is supplied along with --genome
+// Make gene bed from supplied --gtf instead of using iGenomes one automatically
+def MAKE_BED = false
+if (!params.gene_bed) {
+    MAKE_BED = true
+} else if (params.genome && params.gtf) {
+    if (params.genomes[ params.genome ].gtf != params.gtf) {
+        MAKE_BED = true
+    }
 }
 
 /*
@@ -137,33 +148,41 @@ log.info "-\033[2m----------------------------------------------------\033[0m-"
 /*
  * Include local pipeline modules
  */
-include { OUTPUT_DOCUMENTATION } from './modules/local/output_documentation' params(params)
-include { GET_SOFTWARE_VERSIONS } from './modules/local/get_software_versions' params(params)
 include { CHECK_SAMPLESHEET
           get_samplesheet_paths
           get_samplesheet_design } from './modules/local/check_samplesheet' params(params)
+include { GTF2BED } from './modules/local/gtf2bed' params(params)
+include { GET_CHROM_SIZES } from './modules/local/get_chrom_sizes' params(params)
+include { MAKE_GENOME_FILTER } from './modules/local/make_genome_filter' params(params)
+include { OUTPUT_DOCUMENTATION } from './modules/local/output_documentation' params(params)
+include { GET_SOFTWARE_VERSIONS } from './modules/local/get_software_versions' params(params)
 
-// /*
-//  * Include nf-core modules
-//  */
-// include { FASTQC } from './modules/nf-core/fastqc' params(params)
-// include { MULTIQC } from './modules/nf-core/multiqc' params(params)
+/*
+ * Include nf-core modules
+ */
+include { FASTQC } from './modules/nf-core/fastqc' params(params)
+include { BWA_INDEX } from './modules/nf-core/bwa_index' params(params)
+include { TRIMGALORE } from './modules/nf-core/trimgalore' params(params)
+include { BWA_MEM } from './modules/nf-core/bwa_mem' params(params)
+include { SAMTOOLS_SORT } from './modules/nf-core/samtools_sort' params(params)
+include { SAMTOOLS_INDEX } from './modules/nf-core/samtools_index' params(params)
+include { SAMTOOLS_STATS } from './modules/nf-core/samtools_stats' params(params)
+include { MULTIQC } from './modules/nf-core/multiqc' params(params)
 
 /*
  * Run the workflow
  */
 workflow {
 
-    // Get paths to FastQ files
-    // [sample, single_end?, [ fastq_1, fastq_2 ]]
+    /*
+     * READ IN SAMPLESHEET
+     */
     CHECK_SAMPLESHEET(ch_input)
         .reads
         .splitCsv(header:true, sep:',')
         .map { get_samplesheet_paths(it, params.single_end) }
         .set { ch_raw_reads }
 
-    // Get design information from samplesheet
-    // [sample, control, antibody, replicatesExist?, multipleGroups?]
     CHECK_SAMPLESHEET
         .out
         .controls
@@ -171,8 +190,37 @@ workflow {
         .map { get_samplesheet_design(it) }
         .set { ch_design }
 
-    // FASTQC(ch_raw_reads_fastqc)
+    /*
+     * PREPARE GENOME FILES
+     */
+    if (!params.bwa_index) { BWA_INDEX(ch_fasta).set { ch_bwa_index } }
+    if (MAKE_BED) { GTF2BED(ch_gtf).set { ch_gene_bed } }
+    MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
 
+    /*
+     * READ QC & TRIMMING
+     */
+    FASTQC(ch_raw_reads)
+    if (params.skip_trimming) {
+        ch_trimmed_reads = ch_raw_reads
+        ch_trimgalore_log_mqc = Channel.empty()
+        ch_trimgalore_fastqc_mqc = Channel.empty()
+    } else {
+        TRIMGALORE(ch_raw_reads).reads.set { ch_trimmed_reads }
+        ch_trimgalore_log_mqc = TRIMGALORE.out.log
+        ch_trimgalore_fastqc_mqc = TRIMGALORE.out.fastqc
+    }
+
+    /*
+     * MAP READS & BAM QC
+     */
+    BWA_MEM(ch_trimmed_reads, ch_bwa_index.collect())
+    SAMTOOLS_SORT(BWA_MEM.out) | SAMTOOLS_INDEX
+    SAMTOOLS_STATS(SAMTOOLS_SORT.out)
+
+    /*
+     * PIPELINE REPORTING
+     */
     OUTPUT_DOCUMENTATION(
         ch_output_docs,
         ch_output_docs_images)
@@ -195,285 +243,6 @@ workflow.onComplete {
     Completion.summary(workflow, params, log)
 }
 
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                     PREPARE ANNOTATION FILES                        -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// /*
-//  * PREPROCESSING: Build BWA index
-//  */
-// if (!params.bwa_index) {
-//     process BWA_INDEX {
-//         tag "$fasta"
-//         label 'process_high'
-//         publishDir path: { params.save_reference ? "${params.outdir}/genome" : params.outdir },
-//             saveAs: { params.save_reference ? it : null }, mode: params.publish_dir_mode
-//
-//         input:
-//         path fasta from ch_fasta
-//
-//         output:
-//         path 'BWAIndex' into ch_bwa_index
-//
-//         script:
-//         """
-//         bwa index -a bwtsw $fasta
-//         mkdir BWAIndex && mv ${fasta}* BWAIndex
-//         """
-//     }
-// }
-//
-// /*
-//  * PREPROCESSING: Generate gene BED file
-//  */
-// // If --gtf is supplied along with --genome
-// // Make gene bed from supplied --gtf instead of using iGenomes one automatically
-// def MAKE_BED = false
-// if (!params.gene_bed) {
-//     MAKE_BED = true
-// } else if (params.genome && params.gtf) {
-//     if (params.genomes[ params.genome ].gtf != params.gtf) {
-//         MAKE_BED = true
-//     }
-// }
-// if (MAKE_BED) {
-//     process MAKE_GENE_BED {
-//         tag "$gtf"
-//         label 'process_low'
-//         publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
-//
-//         input:
-//         path gtf from ch_gtf
-//
-//         output:
-//         path '*.bed' into ch_gene_bed
-//
-//         script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-//         """
-//         gtf2bed $gtf > ${gtf.baseName}.bed
-//         """
-//     }
-// }
-//
-// /*
-//  * PREPROCESSING: Prepare genome intervals for filtering
-//  */
-// process MAKE_GENOME_FILTER {
-//     tag "$fasta"
-//     publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
-//
-//     input:
-//     path fasta from ch_fasta
-//     path blacklist from ch_blacklist.ifEmpty([])
-//
-//     output:
-//     path "$fasta"                                      // FASTA FILE FOR IGV
-//     path '*.fai'                                       // FAI INDEX FOR REFERENCE GENOME
-//     path '*.bed' into ch_genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS
-//     path '*.sizes' into ch_genome_sizes_bigwig         // CHROMOSOME SIZES FILE FOR BEDTOOLS
-//
-//     script:
-//     blacklist_filter = params.blacklist ? "sortBed -i $blacklist -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
-//     """
-//     samtools faidx $fasta
-//     cut -f 1,2 ${fasta}.fai > ${fasta}.sizes
-//     $blacklist_filter > ${fasta}.include_regions.bed
-//     """
-// }
-//
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                        FASTQ QC                                     -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// /*
-//  * STEP 1: FastQC
-//  */
-// process FASTQC {
-//     tag "$name"
-//     label 'process_medium'
-//     publishDir "${params.outdir}/fastqc", mode: params.publish_dir_mode,
-//         saveAs: { filename ->
-//                       filename.endsWith('.zip') ? "zips/$filename" : filename
-//                 }
-//
-//     when:
-//     !params.skip_fastqc
-//
-//     input:
-//     tuple val(name), path(reads) from ch_raw_reads_fastqc
-//
-//     output:
-//     path '*.{zip,html}' into ch_fastqc_reports_mqc
-//
-//     script:
-//     // Added soft-links to original fastqs for consistent naming in MultiQC
-//     if (params.single_end) {
-//         """
-//         [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-//         fastqc -q -t $task.cpus ${name}.fastq.gz
-//         """
-//     } else {
-//         """
-//         [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
-//         [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
-//         fastqc -q -t $task.cpus ${name}_1.fastq.gz
-//         fastqc -q -t $task.cpus ${name}_2.fastq.gz
-//         """
-//     }
-// }
-//
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                        ADAPTER TRIMMING                             -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// /*
-//  * STEP 2: Trim Galore!
-//  */
-// if (params.skip_trimming) {
-//     ch_trimmed_reads = ch_raw_reads_trimgalore
-//     ch_trimgalore_results_mqc = Channel.empty()
-//     ch_trimgalore_fastqc_reports_mqc = Channel.empty()
-// } else {
-//     process TRIMGALORE {
-//         tag "$name"
-//         label 'process_high'
-//         publishDir "${params.outdir}/trim_galore", mode: params.publish_dir_mode,
-//             saveAs: { filename ->
-//                           if (filename.endsWith('.html')) "fastqc/$filename"
-//                           else if (filename.endsWith('.zip')) "fastqc/zips/$filename"
-//                           else if (filename.endsWith('trimming_report.txt')) "logs/$filename"
-//                           else params.save_trimmed ? filename : null
-//                     }
-//
-//         input:
-//         tuple val(name), path(reads) from ch_raw_reads_trimgalore
-//
-//         output:
-//         tuple val(name), path('*.fq.gz') into ch_trimmed_reads
-//         path '*.txt' into ch_trimgalore_results_mqc
-//         path '*.{zip,html}' into ch_trimgalore_fastqc_reports_mqc
-//
-//         script:
-//         // Calculate number of --cores for TrimGalore based on value of task.cpus
-//         // See: https://github.com/FelixKrueger/TrimGalore/blob/master/Changelog.md#version-060-release-on-1-mar-2019
-//         // See: https://github.com/nf-core/atacseq/pull/65
-//         def cores = 1
-//         if (task.cpus) {
-//             cores = (task.cpus as int) - 4
-//             if (params.single_end) cores = (task.cpus as int) - 3
-//             if (cores < 1) cores = 1
-//             if (cores > 4) cores = 4
-//         }
-//
-//         c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
-//         c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
-//         tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
-//         tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
-//         nextseq = params.trim_nextseq > 0 ? "--nextseq ${params.trim_nextseq}" : ''
-//
-//         // Added soft-links to original fastqs for consistent naming in MultiQC
-//         if (params.single_end) {
-//             """
-//             [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-//             trim_galore --cores $cores --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
-//             """
-//         } else {
-//             """
-//             [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
-//             [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
-//             trim_galore --cores $cores --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq ${name}_1.fastq.gz ${name}_2.fastq.gz
-//             """
-//         }
-//     }
-// }
-//
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                        ALIGN                                        -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// /*
-//  * STEP 3.1: Map read(s) with bwa mem
-//  */
-// process BWA_MEM {
-//     tag "$name"
-//     label 'process_high'
-//
-//     input:
-//     tuple val(name), path(reads) from ch_trimmed_reads
-//     path index from ch_bwa_index.collect()
-//
-//     output:
-//     tuple val(name), path('*.bam') into ch_bwa_bam
-//
-//     script:
-//     prefix = "${name}.Lb"
-//     rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
-//     if (params.seq_center) {
-//         rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
-//     }
-//     score = params.bwa_min_score ? "-T ${params.bwa_min_score}" : ''
-//     """
-//     bwa mem \\
-//         -t $task.cpus \\
-//         -M \\
-//         -R $rg \\
-//         $score \\
-//         ${index}/${bwa_base} \\
-//         $reads \\
-//         | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
-//     """
-// }
-//
-// /*
-//  * STEP 3.2: Convert BAM to coordinate sorted BAM
-//  */
-// process SORT_BAM {
-//     tag "$name"
-//     label 'process_medium'
-//     if (params.save_align_intermeds) {
-//         publishDir path: "${params.outdir}/bwa/library", mode: params.publish_dir_mode,
-//             saveAs: { filename ->
-//                           if (filename.endsWith('.flagstat')) "samtools_stats/$filename"
-//                           else if (filename.endsWith('.idxstats')) "samtools_stats/$filename"
-//                           else if (filename.endsWith('.stats')) "samtools_stats/$filename"
-//                           else filename
-//                     }
-//     }
-//
-//     input:
-//     tuple val(name), path(bam) from ch_bwa_bam
-//
-//     output:
-//     tuple val(name), path('*.sorted.{bam,bam.bai}') into ch_sort_bam_merge
-//     path '*.{flagstat,idxstats,stats}' into ch_sort_bam_flagstat_mqc
-//
-//     script:
-//     prefix = "${name}.Lb"
-//     """
-//     samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $name $bam
-//     samtools index ${prefix}.sorted.bam
-//     samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-//     samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-//     samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-//     """
-// }
-//
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////
 // /* --                                                                     -- */
