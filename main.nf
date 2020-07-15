@@ -71,7 +71,7 @@ if (params.bwa_index) {
     params.bwa_base = params.bwa_index.substring(lastPath+1)
     Channel
         .fromPath(bwa_dir, checkIfExists: true)
-        .set { ch_bwa_index }
+        .set { ch_index }
 }
 
 // Save AWS IGenomes file containing annotation version
@@ -82,12 +82,12 @@ if (params.anno_readme && file(params.anno_readme).exists()) {
 
 // If --gtf is supplied along with --genome
 // Make gene bed from supplied --gtf instead of using iGenomes one automatically
-def MAKE_BED = false
+def MakeBED = false
 if (!params.gene_bed) {
-    MAKE_BED = true
+    MakeBED = true
 } else if (params.genome && params.gtf) {
     if (params.genomes[ params.genome ].gtf != params.gtf) {
-        MAKE_BED = true
+        MakeBED = true
     }
 }
 
@@ -167,26 +167,27 @@ include { TRIMGALORE } from './modules/nf-core/trimgalore' params(params)
 include { BWA_MEM } from './modules/nf-core/bwa_mem' params(params)
 include { SAMTOOLS_SORT } from './modules/nf-core/samtools_sort' params(params)
 include { SAMTOOLS_INDEX } from './modules/nf-core/samtools_index' params(params)
-include { SAMTOOLS_STATS as SAMTOOLS_STATS_MAP;
-          SAMTOOLS_STATS as SAMTOOLS_STATS_MARKDUPLICATES } from './modules/nf-core/samtools_stats' params(params)
+// include { SAMTOOLS_STATS as SAMTOOLS_STATS_MAP;
+//           SAMTOOLS_STATS as SAMTOOLS_STATS_MARKDUPLICATES } from './modules/nf-core/samtools_stats' params(params)
+include { SAMTOOLS_STATS } from './modules/nf-core/samtools_stats' params(params)
 include { PICARD_MERGESAMFILES } from './modules/nf-core/picard_mergesamfiles' params(params)
 include { PICARD_MARKDUPLICATES } from './modules/nf-core/picard_markduplicates' params(params)
 //include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collectmultiplemetrics' params(params)
 include { MULTIQC } from './modules/nf-core/multiqc' params(params)
 
 /*
- * Run the workflow
+ * Check input samplesheet and get read channels
  */
-workflow {
+workflow CHECK_INPUTS {
+    take:
+    ch_input // /path/to/samplesheet.csv
 
-    /*
-     * READ IN SAMPLESHEET
-     */
+    main:
     CHECK_SAMPLESHEET(ch_input)
         .reads
         .splitCsv(header:true, sep:',')
         .map { get_samplesheet_paths(it, params.single_end) }
-        .set { ch_raw_reads }
+        .set { ch_reads }
 
     CHECK_SAMPLESHEET
         .out
@@ -195,48 +196,110 @@ workflow {
         .map { get_samplesheet_design(it) }
         .set { ch_design }
 
-    /*
-     * PREPARE GENOME FILES
-     */
-    if (!params.bwa_index) { BWA_INDEX(ch_fasta).set { ch_bwa_index } }
-    if (MAKE_BED) { GTF2BED(ch_gtf).set { ch_gene_bed } }
-    MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
+    emit:
+    reads = ch_reads
+    design = ch_design
+}
 
-    /*
-     * READ QC & TRIMMING
-     */
-    FASTQC(ch_raw_reads)
-    if (params.skip_trimming) {
-        ch_trimmed_reads = ch_raw_reads
-        ch_trimgalore_log_mqc = Channel.empty()
-        ch_trimgalore_fastqc_mqc = Channel.empty()
-    } else {
-        TRIMGALORE(ch_raw_reads).reads.set { ch_trimmed_reads }
-        ch_trimgalore_log_mqc = TRIMGALORE.out.log
-        ch_trimgalore_fastqc_mqc = TRIMGALORE.out.fastqc
+/*
+ * Read QC and trimming
+ */
+workflow QC_TRIM_READS {
+    take:
+    ch_reads      // [ val(name), val(single_end), [ reads ] ]
+    skip_fastqc   // boolean: true/false
+    skip_trimming // boolean: true/false
+
+    main:
+    fastqc = Channel.empty()
+    if (!skip_fastqc) {
+        fastqc = FASTQC(ch_reads)
     }
 
-    /*
-     * MAP READS & BAM QC
-     */
-    BWA_MEM(ch_trimmed_reads, ch_bwa_index.collect())
-    SAMTOOLS_SORT(BWA_MEM.out) | SAMTOOLS_INDEX
-    SAMTOOLS_STATS_MAP(SAMTOOLS_SORT.out)
+    ch_trimmed_reads = ch_reads
+    trim_log = Channel.empty()
+    trim_fastqc = Channel.empty()
+    if (!skip_trimming) {
+        TRIMGALORE(ch_reads).reads.set { ch_trimmed_reads }
+        trim_log = TRIMGALORE.out.log
+        trim_fastqc = TRIMGALORE.out.fastqc
+    }
 
-    /*
-     * MERGE RESEQUENCED BAM FILES
-     */
-    SAMTOOLS_SORT
+    emit:
+    fastqc = fastqc
+    reads = ch_trimmed_reads
+    trim_log = trim_log
+    trim_fastqc = trim_fastqc
+}
+
+/*
+ * Sort, index BAM file and run samtools stats, flagstat and idxstats
+ */
+workflow SORT_BAM {
+    take:
+    ch_bam // [ val(name), val(single_end), bam ]
+
+    main:
+    SAMTOOLS_SORT(ch_bam) | SAMTOOLS_INDEX
+    SAMTOOLS_STATS(SAMTOOLS_SORT.out, SAMTOOLS_INDEX.out)
+
+    emit:
+    bam = SAMTOOLS_SORT.out
+    bai = SAMTOOLS_INDEX.out
+    stats = SAMTOOLS_STATS.out.stats
+    flagstat = SAMTOOLS_STATS.out.flagstat
+    idxstats = SAMTOOLS_STATS.out.idxstats
+}
+
+/*
+ * Map reads, sort, index BAM file and run samtools stats, flagstat and idxstats
+ */
+workflow MAP_READS {
+    take:
+    ch_reads // [ val(name), val(single_end), [ reads ] ]
+    ch_index // [ /path/to/index ]
+
+    main:
+    BWA_MEM(ch_reads, ch_index.collect())
+    SORT_BAM(BWA_MEM.out)
+
+    emit:
+    bam = SORT_BAM.out.bam
+    bai = SORT_BAM.out.bai
+    stats = SORT_BAM.out.stats
+    flagstat = SORT_BAM.out.flagstat
+    idxstats = SORT_BAM.out.idxstats
+}
+
+workflow {
+
+    // READ IN SAMPLESHEET, VALIDATE AND STAGE INPUT FILES
+    CHECK_INPUTS(ch_input)
+
+    // PREPARE GENOME FILES
+    if (!params.bwa_index) { BWA_INDEX(ch_fasta).set { ch_index } }
+    if (MakeBED) { GTF2BED(ch_gtf).set { ch_gene_bed } }
+    MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
+
+    // READ QC & TRIMMING
+    QC_TRIM_READS(CHECK_INPUTS.out.reads, params.skip_fastqc, params.skip_trimming)
+
+    // MAP READS & BAM QC
+    MAP_READS(QC_TRIM_READS.out.reads, ch_index.collect())
+
+    // MERGE RESEQUENCED BAM FILES
+    MAP_READS
         .out
+        .bam
         .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1], it[2] ] }
         .groupTuple(by: [0, 1])
         .map { it ->  [ it[0], it[1], it[2].flatten() ] }
         .set { ch_sort_bam }
-    PICARD_MERGESAMFILES(ch_sort_bam)
-    PICARD_MARKDUPLICATES(PICARD_MERGESAMFILES.out).bam | SAMTOOLS_STATS_MARKDUPLICATES
-    FILTER_BAM(PICARD_MARKDUPLICATES.out.bam,
-               MAKE_GENOME_FILTER.out.collect(),
-               ch_bamtools_filter_config)           // Fix getting name sorted BAM here for PE/SE
+    //PICARD_MERGESAMFILES(ch_sort_bam)
+    // PICARD_MARKDUPLICATES(PICARD_MERGESAMFILES.out).bam | SAMTOOLS_STATS_MARKDUPLICATES
+    // FILTER_BAM(PICARD_MARKDUPLICATES.out.bam,
+    //            MAKE_GENOME_FILTER.out.collect(),
+    //            ch_bamtools_filter_config)           // Fix getting name sorted BAM here for PE/SE
 
     /*
      * PIPELINE REPORTING
