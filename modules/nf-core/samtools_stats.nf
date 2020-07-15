@@ -8,6 +8,7 @@ process SAMTOOLS_STATS {
 
     input:
     tuple val(name), val(single_end), path(bam)
+    tuple val(name), val(single_end), path(bai)
 
     output:
     tuple val(name), val(single_end), path('*.stats'), emit: stats
