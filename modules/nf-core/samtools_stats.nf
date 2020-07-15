@@ -7,9 +7,8 @@ process SAMTOOLS_STATS {
     publishDir path: "${params.outdir}", mode: params.publish_dir_mode
 
     input:
-    tuple val(name), val(single_end), path(bam)
-    tuple val(name), val(single_end), path(bai)
-
+    tuple val(name), val(single_end), path(bam), path(bai)
+    
     output:
     tuple val(name), val(single_end), path('*.stats'), emit: stats
     tuple val(name), val(single_end), path('*.flagstat'), emit: flagstat
