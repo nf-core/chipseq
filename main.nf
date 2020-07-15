@@ -167,8 +167,6 @@ include { TRIMGALORE } from './modules/nf-core/trimgalore' params(params)
 include { BWA_MEM } from './modules/nf-core/bwa_mem' params(params)
 include { SAMTOOLS_SORT } from './modules/nf-core/samtools_sort' params(params)
 include { SAMTOOLS_INDEX } from './modules/nf-core/samtools_index' params(params)
-// include { SAMTOOLS_STATS as SAMTOOLS_STATS_MAP;
-//           SAMTOOLS_STATS as SAMTOOLS_STATS_MARKDUPLICATES } from './modules/nf-core/samtools_stats' params(params)
 include { SAMTOOLS_STATS } from './modules/nf-core/samtools_stats' params(params)
 include { PICARD_MERGESAMFILES } from './modules/nf-core/picard_mergesamfiles' params(params)
 include { PICARD_MARKDUPLICATES } from './modules/nf-core/picard_markduplicates' params(params)
@@ -241,7 +239,7 @@ workflow SORT_BAM {
 
     main:
     SAMTOOLS_SORT(ch_bam) | SAMTOOLS_INDEX
-    SAMTOOLS_STATS(SAMTOOLS_SORT.out, SAMTOOLS_INDEX.out)
+    SAMTOOLS_STATS(SAMTOOLS_SORT.out.join(SAMTOOLS_INDEX.out, by: [0,1]))
 
     emit:
     bam = SAMTOOLS_SORT.out
@@ -308,6 +306,7 @@ workflow {
         ch_output_docs,
         ch_output_docs_images)
 
+    OUTPUT_DOCUMENTATION.dump()
     GET_SOFTWARE_VERSIONS()
 
     // MULTIQC(
