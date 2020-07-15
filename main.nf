@@ -178,7 +178,7 @@ include { MULTIQC } from './modules/nf-core/multiqc' params(params)
  */
 workflow CHECK_INPUTS {
     take:
-    ch_input // /path/to/samplesheet.csv
+    ch_input // file: /path/to/samplesheet.csv
 
     main:
     CHECK_SAMPLESHEET(ch_input)
@@ -204,28 +204,35 @@ workflow CHECK_INPUTS {
  */
 workflow QC_TRIM_READS {
     take:
-    ch_reads      // [ val(name), val(single_end), [ reads ] ]
+    ch_reads      // channel: [ val(name), val(single_end), [ reads ] ]
     skip_fastqc   // boolean: true/false
     skip_trimming // boolean: true/false
+    fastqc_args   //  string: valid arguments accepted by FastQC
 
     main:
-    fastqc = Channel.empty()
+    fastqc_html = Channel.empty()
+    fastqc_zip = Channel.empty()
+    fastqc_version = Channel.empty()
     if (!skip_fastqc) {
-        fastqc = FASTQC(ch_reads)
+        FASTQC(ch_reads, fastqc_args).html.set { fastqc_html }
+        fastqc_zip = FASTQC.out.zip
+        fastqc_version = FASTQC.out.version
     }
 
-    ch_trimmed_reads = ch_reads
+    ch_trim_reads = ch_reads
     trim_log = Channel.empty()
     trim_fastqc = Channel.empty()
     if (!skip_trimming) {
-        TRIMGALORE(ch_reads).reads.set { ch_trimmed_reads }
+        TRIMGALORE(ch_reads).reads.set { ch_trim_reads }
         trim_log = TRIMGALORE.out.log
         trim_fastqc = TRIMGALORE.out.fastqc
     }
 
     emit:
-    fastqc = fastqc
-    reads = ch_trimmed_reads
+    fastqc_html = fastqc_html
+    fastqc_zip = fastqc_zip
+    fastqc_version = fastqc_version
+    reads = ch_trim_reads
     trim_log = trim_log
     trim_fastqc = trim_fastqc
 }
@@ -235,7 +242,7 @@ workflow QC_TRIM_READS {
  */
 workflow SORT_BAM {
     take:
-    ch_bam // [ val(name), val(single_end), bam ]
+    ch_bam // channel: [ val(name), val(single_end), bam ]
 
     main:
     SAMTOOLS_SORT(ch_bam) | SAMTOOLS_INDEX
@@ -254,8 +261,8 @@ workflow SORT_BAM {
  */
 workflow MAP_READS {
     take:
-    ch_reads // [ val(name), val(single_end), [ reads ] ]
-    ch_index // [ /path/to/index ]
+    ch_reads // channel: [ val(name), val(single_end), [ reads ] ]
+    ch_index // channel: [ /path/to/index ]
 
     main:
     BWA_MEM(ch_reads, ch_index.collect())
@@ -280,7 +287,8 @@ workflow {
     MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
 
     // READ QC & TRIMMING
-    QC_TRIM_READS(CHECK_INPUTS.out.reads, params.skip_fastqc, params.skip_trimming)
+    params.fastqc_args = "--quiet"
+    QC_TRIM_READS(CHECK_INPUTS.out.reads, params.skip_fastqc, params.skip_trimming, params.fastqc_args)
 
     // MAP READS & BAM QC
     MAP_READS(QC_TRIM_READS.out.reads, ch_index.collect())
@@ -306,7 +314,6 @@ workflow {
         ch_output_docs,
         ch_output_docs_images)
 
-    OUTPUT_DOCUMENTATION.dump()
     GET_SOFTWARE_VERSIONS()
 
     // MULTIQC(
