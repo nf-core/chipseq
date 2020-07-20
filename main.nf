@@ -204,7 +204,7 @@ workflow CHECK_INPUT {
  */
 workflow QC_TRIM {
     take:
-    ch_reads        // channel: [ val(metadata), [ reads ] ]
+    ch_reads        // channel: [ val(meta), [ reads ] ]
     skip_fastqc     // boolean: true/false
     skip_trimming   // boolean: true/false
     fastqc_opts     //     map: options for FastQC module
@@ -234,15 +234,15 @@ workflow QC_TRIM {
     }
 
     emit:
-    fastqc_html
-    fastqc_zip
-    fastqc_version
+    fastqc_html           // channel: [ val(meta), [ html ] ]
+    fastqc_zip            // channel: [ val(meta), [ zip ] ]
+    fastqc_version        //    path: *.version.txt
 
-    reads = ch_trim_reads
-    trim_html
-    trim_zip
-    trim_log
-    trim_version
+    reads = ch_trim_reads // channel: [ val(meta), [ reads ] ]
+    trim_html             // channel: [ val(meta), [ html ] ]
+    trim_zip              // channel: [ val(meta), [ zip ] ]
+    trim_log              // channel: [ val(meta), [ txt ] ]
+    trim_version          //    path: *.version.txt
 }
 
 /*
@@ -337,16 +337,14 @@ workflow {
     CHECK_INPUT(ch_input)
 
     // // PREPARE GENOME FILES
-    // if (!params.bwa_index) { BWA_INDEX(ch_fasta).set { ch_index } }
+    //if (!params.bwa_index) { BWA_INDEX(ch_fasta).set { ch_index } }
     // if (MakeBED) { GTF2BED(ch_gtf).set { ch_gene_bed } }
     // MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
-    //
+
     // READ QC & TRIMMING
     nextseq = params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ''
     params.modules['trim_galore'].args += nextseq
     QC_TRIM(CHECK_INPUT.out.reads, params.skip_fastqc, params.skip_trimming, params.modules['fastqc'], params.modules['trim_galore'])
-    
-    //
     // // MAP READS & BAM QC
     // ALIGN(QC_TRIM.out.reads, ch_index.collect())
     //
