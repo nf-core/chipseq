@@ -1,5 +1,3 @@
-def MODULE = "trim_galore"
-
 process TRIM_GALORE {
     tag "$meta.id"
     label 'process_high'
@@ -7,6 +5,7 @@ process TRIM_GALORE {
         mode: params.publish_dir_mode,
         saveAs: { filename ->
                     if (opts.publish_results == "none") null
+                    else if (filename.endsWith('.version.txt')) null
                     else filename }
 
     container "quay.io/biocontainers/trim-galore:0.6.5--0"

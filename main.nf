@@ -337,7 +337,7 @@ workflow {
     CHECK_INPUT(ch_input)
 
     // // PREPARE GENOME FILES
-    //if (!params.bwa_index) { BWA_INDEX(ch_fasta).set { ch_index } }
+    if (!params.bwa_index) { BWA_INDEX(ch_fasta, params.modules['bwa_index']).set { ch_index } }
     // if (MakeBED) { GTF2BED(ch_gtf).set { ch_gene_bed } }
     // MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
 

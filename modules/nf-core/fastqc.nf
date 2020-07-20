@@ -1,5 +1,3 @@
-def MODULE = "fastqc"
-
 process FASTQC {
     tag "$meta.id"
     label 'process_medium'
@@ -7,6 +5,7 @@ process FASTQC {
         mode: params.publish_dir_mode,
         saveAs: { filename ->
                     if (opts.publish_results == "none") null
+                    else if (filename.endsWith('.version.txt')) null
                     else filename }
 
     container "quay.io/biocontainers/fastqc:0.11.9--0"

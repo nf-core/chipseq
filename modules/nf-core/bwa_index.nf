@@ -1,21 +1,30 @@
-/*
- * Build BWA index
- */
 process BWA_INDEX {
     tag "$fasta"
-    //label 'process_high'
-    // publishDir path: { params.save_reference ? "${params.outdir}/genome" : params.outdir },
-    //     saveAs: { params.save_reference ? it : null }, mode: params.publish_dir_mode
+    label 'process_high'
+    publishDir "${params.outdir}/${opts.publish_dir}",
+        mode: params.publish_dir_mode,
+        saveAs: { filename ->
+                    if (opts.publish_results == "none") null
+                    else if (filename.endsWith('.version.txt')) null
+                    else filename }
+
+    container "biocontainers/bwa:v0.7.17_cv1"
+    //container "https://depot.galaxyproject.org/singularity/bwa:0.7.17--hed695b0_7"
+
+    conda (params.conda ? "${moduleDir}/environment.yml" : null)
 
     input:
     path fasta
+    val opts
 
     output:
-    path 'BWAIndex'
+    path 'BWAIndex', emit: index
+    path "*.version.txt", emit: version
 
     script:
     """
-    bwa index -a bwtsw $fasta
+    bwa index $opts.args -a bwtsw $fasta
     mkdir BWAIndex && mv ${fasta}* BWAIndex
+    echo \$(bwa 2>&1) | sed -n "s/.*\\(v.*\$\\)/\\1/p" > bwa.version.txt
     """
 }
