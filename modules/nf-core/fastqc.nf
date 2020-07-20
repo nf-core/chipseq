@@ -2,13 +2,15 @@ def MODULE = "fastqc"
 
 process FASTQC {
     tag "$meta.id"
+    label 'process_medium'
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
                     if (opts.publish_results == "none") null
                     else filename }
 
-    container = "quay.io/biocontainers/fastqc:0.11.9--0"
+    container "quay.io/biocontainers/fastqc:0.11.9--0"
+    //container "https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0"
 
     conda (params.conda ? "${moduleDir}/environment.yml" : null)
 

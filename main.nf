@@ -161,9 +161,9 @@ include { GET_SOFTWARE_VERSIONS } from './modules/local/get_software_versions'
 /*
  * Include nf-core modules
  */
-include { FASTQC } from './modules/nf-core/fastqc' addParams(fastqc_args : "--quiet")
+include { FASTQC } from './modules/nf-core/fastqc'
+include { TRIM_GALORE } from './modules/nf-core/trim_galore'
 include { BWA_INDEX } from './modules/nf-core/bwa_index'
-include { TRIMGALORE } from './modules/nf-core/trimgalore'
 include { BWA_MEM } from './modules/nf-core/bwa_mem'
 include { SAMTOOLS_SORT } from './modules/nf-core/samtools_sort'
 include { SAMTOOLS_INDEX } from './modules/nf-core/samtools_index'
@@ -220,22 +220,29 @@ workflow QC_TRIM {
         fastqc_version = FASTQC.out.version
     }
 
-    // ch_trim_reads = ch_reads
-    // trim_log = Channel.empty()
-    // trim_fastqc = Channel.empty()
-    // if (!skip_trimming) {
-    //     TRIMGALORE(ch_reads, trimgalore_opts).reads.set { ch_trim_reads }
-    //     trim_log = TRIMGALORE.out.log
-    //     trim_fastqc = TRIMGALORE.out.fastqc
-    // }
+    ch_trim_reads = ch_reads
+    trim_html = Channel.empty()
+    trim_zip = Channel.empty()
+    trim_log = Channel.empty()
+    trim_version = Channel.empty()
+    if (!skip_trimming) {
+        TRIM_GALORE(ch_reads, trimgalore_opts).reads.set { ch_trim_reads }
+        trim_html = TRIM_GALORE.out.html
+        trim_zip = TRIM_GALORE.out.zip
+        trim_log = TRIM_GALORE.out.log
+        trim_version = TRIM_GALORE.out.version
+    }
 
     emit:
-    fastqc_html = fastqc_html
-    fastqc_zip = fastqc_zip
-    fastqc_version = fastqc_version
-    // reads = ch_trim_reads
-    // trim_log = trim_log
-    // trim_fastqc = trim_fastqc
+    fastqc_html
+    fastqc_zip
+    fastqc_version
+
+    reads = ch_trim_reads
+    trim_html
+    trim_zip
+    trim_log
+    trim_version
 }
 
 /*
@@ -335,8 +342,10 @@ workflow {
     // MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
     //
     // READ QC & TRIMMING
-    def trimgalore_opts = [:]
-    QC_TRIM(CHECK_INPUT.out.reads, params.skip_fastqc, params.skip_trimming, params.modules['fastqc'], trimgalore_opts)
+    nextseq = params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ''
+    params.modules['trim_galore'].args += nextseq
+    QC_TRIM(CHECK_INPUT.out.reads, params.skip_fastqc, params.skip_trimming, params.modules['fastqc'], params.modules['trim_galore'])
+    
     //
     // // MAP READS & BAM QC
     // ALIGN(QC_TRIM.out.reads, ch_index.collect())
