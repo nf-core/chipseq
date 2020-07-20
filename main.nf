@@ -335,13 +335,8 @@ workflow {
     // MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
     //
     // READ QC & TRIMMING
-    def fastqc_opts = [:]
-    fastqc_opts.args = "--quiet"
-    fastqc_opts.suffix = "test"
-    fastqc_opts.publish_dir = "fastqc_test"
-    fastqc_opts.publish_results = "all"
     def trimgalore_opts = [:]
-    QC_TRIM(CHECK_INPUT.out.reads, params.skip_fastqc, params.skip_trimming, fastqc_opts, trimgalore_opts)
+    QC_TRIM(CHECK_INPUT.out.reads, params.skip_fastqc, params.skip_trimming, params.modules['fastqc'], trimgalore_opts)
     //
     // // MAP READS & BAM QC
     // ALIGN(QC_TRIM.out.reads, ch_index.collect())
