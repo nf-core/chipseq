@@ -1,42 +1,40 @@
 def MODULE = "fastqc"
-params.publish_dir = MODULE
-params.publish_results = "default"
-//params.fastqc_args = ''
 
 process FASTQC {
-    tag "$name"
-    publishDir "${params.outdir}/${params.publish_dir}",
+    tag "$meta.id"
+    publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (params.publish_results == "none") null
+                    if (opts.publish_results == "none") null
                     else filename }
 
-    //container "docker.pkg.github.com/nf-core/$MODULE"
+    container = "quay.io/biocontainers/fastqc:0.11.9--0"
 
-    //conda "${moduleDir}/environment.yml"
+    conda (params.conda ? "${moduleDir}/environment.yml" : null)
 
     input:
-    tuple val(name), val(single_end), path(reads)
-    //val (fastqc_args)
+    tuple val(meta), path(reads)
+    val opts
 
     output:
-    tuple val(name), val(single_end), path("*.html"), emit: html
-    tuple val(name), val(single_end), path("*.zip"), emit: zip
+    tuple val(meta), path("*.html"), emit: html
+    tuple val(meta), path("*.zip"), emit: zip
     path "*.version.txt", emit: version
 
     script:
     // Add soft-links to original FastQs for consistent naming in pipeline
-    if (single_end) {
+    prefix = opts.suffix ? "${meta.id}.${opts.suffix}" : "${meta.id}"
+    if (meta.single_end) {
         """
-        [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-        fastqc $params.fastqc_args --threads $task.cpus ${name}.fastq.gz
+        [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz
+        fastqc $opts.args --threads $task.cpus ${prefix}.fastq.gz
         fastqc --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > fastqc.version.txt
         """
     } else {
         """
-        [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
-        [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
-        fastqc $params.fastqc_args --threads $task.cpus ${name}_1.fastq.gz ${name}_2.fastq.gz
+        [ ! -f  ${prefix}_1.fastq.gz ] && ln -s ${reads[0]} ${prefix}_1.fastq.gz
+        [ ! -f  ${prefix}_2.fastq.gz ] && ln -s ${reads[1]} ${prefix}_2.fastq.gz
+        fastqc $opts.args --threads $task.cpus ${prefix}_1.fastq.gz ${prefix}_2.fastq.gz
         fastqc --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > fastqc.version.txt
         """
     }

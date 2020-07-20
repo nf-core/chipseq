@@ -191,7 +191,7 @@ workflow CHECK_INPUT {
         .out
         .controls
         .splitCsv(header:true, sep:',')
-        .map { get_samplesheet_design(it) }
+        .map { get_samplesheet_design(it, params.single_end) }
         .set { ch_design }
 
     emit:
@@ -204,38 +204,38 @@ workflow CHECK_INPUT {
  */
 workflow QC_TRIM {
     take:
-    ch_reads      // channel: [ val(name), val(single_end), [ reads ] ]
-    skip_fastqc   // boolean: true/false
-    skip_trimming // boolean: true/false
-    //fastqc_args   //  string: valid arguments accepted by FastQC
+    ch_reads        // channel: [ val(metadata), [ reads ] ]
+    skip_fastqc     // boolean: true/false
+    skip_trimming   // boolean: true/false
+    fastqc_opts     //     map: options for FastQC module
+    trimgalore_opts //     map: options for TrimGalore! module
 
     main:
     fastqc_html = Channel.empty()
     fastqc_zip = Channel.empty()
     fastqc_version = Channel.empty()
     if (!skip_fastqc) {
-        //FASTQC(ch_reads, fastqc_args).html.set { fastqc_html }
-        FASTQC(ch_reads).html.set { fastqc_html }
+        FASTQC(ch_reads, fastqc_opts).html.set { fastqc_html }
         fastqc_zip = FASTQC.out.zip
         fastqc_version = FASTQC.out.version
     }
 
-    ch_trim_reads = ch_reads
-    trim_log = Channel.empty()
-    trim_fastqc = Channel.empty()
-    if (!skip_trimming) {
-        TRIMGALORE(ch_reads).reads.set { ch_trim_reads }
-        trim_log = TRIMGALORE.out.log
-        trim_fastqc = TRIMGALORE.out.fastqc
-    }
+    // ch_trim_reads = ch_reads
+    // trim_log = Channel.empty()
+    // trim_fastqc = Channel.empty()
+    // if (!skip_trimming) {
+    //     TRIMGALORE(ch_reads, trimgalore_opts).reads.set { ch_trim_reads }
+    //     trim_log = TRIMGALORE.out.log
+    //     trim_fastqc = TRIMGALORE.out.fastqc
+    // }
 
     emit:
     fastqc_html = fastqc_html
     fastqc_zip = fastqc_zip
     fastqc_version = fastqc_version
-    reads = ch_trim_reads
-    trim_log = trim_log
-    trim_fastqc = trim_fastqc
+    // reads = ch_trim_reads
+    // trim_log = trim_log
+    // trim_fastqc = trim_fastqc
 }
 
 /*
@@ -329,43 +329,47 @@ workflow {
     // READ IN SAMPLESHEET, VALIDATE AND STAGE INPUT FILES
     CHECK_INPUT(ch_input)
 
-    // PREPARE GENOME FILES
-    if (!params.bwa_index) { BWA_INDEX(ch_fasta).set { ch_index } }
-    if (MakeBED) { GTF2BED(ch_gtf).set { ch_gene_bed } }
-    MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
-
+    // // PREPARE GENOME FILES
+    // if (!params.bwa_index) { BWA_INDEX(ch_fasta).set { ch_index } }
+    // if (MakeBED) { GTF2BED(ch_gtf).set { ch_gene_bed } }
+    // MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
+    //
     // READ QC & TRIMMING
-    //params.fastqc_args = "--quiet"
-    //QC_TRIM_READS(CHECK_INPUTS.out.reads, params.skip_fastqc, params.skip_trimming, params.fastqc_args)
-    QC_TRIM(CHECK_INPUT.out.reads, params.skip_fastqc, params.skip_trimming)
-
-    // MAP READS & BAM QC
-    ALIGN(QC_TRIM.out.reads, ch_index.collect())
-
-    // MERGE RESEQUENCED BAM FILES
-    ALIGN
-        .out
-        .bam
-        .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1], it[2] ] }
-        .groupTuple(by: [0, 1])
-        .map { it ->  [ it[0], it[1], it[2].flatten() ] }
-        .set { ch_sort_bam }
-    PICARD_MERGESAMFILES(ch_sort_bam) | MARKDUP
-
-    // FILTER BAM FILES
-    // FILTER_BAM(MARK_DUPS.out.bam,
-    //            MAKE_GENOME_FILTER.out.collect(),
-    //            ch_bamtools_filter_config)           // Fix getting name sorted BAM here for PE/SE
-
-    // PIPELINE TEMPLATE REPORTING
-    GET_SOFTWARE_VERSIONS()
-    OUTPUT_DOCUMENTATION(ch_output_docs,ch_output_docs_images)
-
-    // MULTIQC(
-    //     summary,
-    //     FASTQC.out,
-    //     ch_multiqc_config
-    // )
+    def fastqc_opts = [:]
+    fastqc_opts.args = "--quiet"
+    fastqc_opts.suffix = "test"
+    fastqc_opts.publish_dir = "fastqc_test"
+    fastqc_opts.publish_results = "all"
+    def trimgalore_opts = [:]
+    QC_TRIM(CHECK_INPUT.out.reads, params.skip_fastqc, params.skip_trimming, fastqc_opts, trimgalore_opts)
+    //
+    // // MAP READS & BAM QC
+    // ALIGN(QC_TRIM.out.reads, ch_index.collect())
+    //
+    // // MERGE RESEQUENCED BAM FILES
+    // ALIGN
+    //     .out
+    //     .bam
+    //     .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1], it[2] ] }
+    //     .groupTuple(by: [0, 1])
+    //     .map { it ->  [ it[0], it[1], it[2].flatten() ] }
+    //     .set { ch_sort_bam }
+    // PICARD_MERGESAMFILES(ch_sort_bam) | MARKDUP
+    //
+    // // FILTER BAM FILES
+    // // FILTER_BAM(MARK_DUPS.out.bam,
+    // //            MAKE_GENOME_FILTER.out.collect(),
+    // //            ch_bamtools_filter_config)           // Fix getting name sorted BAM here for PE/SE
+    //
+    // // PIPELINE TEMPLATE REPORTING
+    // GET_SOFTWARE_VERSIONS()
+    // OUTPUT_DOCUMENTATION(ch_output_docs,ch_output_docs_images)
+    //
+    // // MULTIQC(
+    // //     summary,
+    // //     FASTQC.out,
+    // //     ch_multiqc_config
+    // // )
 }
 
 /*
