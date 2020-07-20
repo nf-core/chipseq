@@ -1,8 +1,10 @@
 def MODULE = "fastqc"
 params.publish_dir = MODULE
 params.publish_results = "default"
+//params.fastqc_args = ''
 
 process FASTQC {
+    tag "$name"
     publishDir "${params.outdir}/${params.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
@@ -15,7 +17,7 @@ process FASTQC {
 
     input:
     tuple val(name), val(single_end), path(reads)
-    val (fastqc_args)
+    //val (fastqc_args)
 
     output:
     tuple val(name), val(single_end), path("*.html"), emit: html
@@ -27,14 +29,14 @@ process FASTQC {
     if (single_end) {
         """
         [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-        fastqc $fastqc_args --threads $task.cpus ${name}.fastq.gz
+        fastqc $params.fastqc_args --threads $task.cpus ${name}.fastq.gz
         fastqc --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > fastqc.version.txt
         """
     } else {
         """
         [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
         [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
-        fastqc $fastqc_args --threads $task.cpus ${name}_1.fastq.gz ${name}_2.fastq.gz
+        fastqc $params.fastqc_args --threads $task.cpus ${name}_1.fastq.gz ${name}_2.fastq.gz
         fastqc --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > fastqc.version.txt
         """
     }

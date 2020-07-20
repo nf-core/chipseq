@@ -150,33 +150,33 @@ log.info "-\033[2m----------------------------------------------------\033[0m-"
  */
 include { CHECK_SAMPLESHEET;
           get_samplesheet_paths;
-          get_samplesheet_design } from './modules/local/check_samplesheet' params(params)
-include { GTF2BED } from './modules/local/gtf2bed' params(params)
-include { GET_CHROM_SIZES } from './modules/local/get_chrom_sizes' params(params)
-include { MAKE_GENOME_FILTER } from './modules/local/make_genome_filter' params(params)
-include { FILTER_BAM } from './modules/local/filter_bam' params(params)
-include { OUTPUT_DOCUMENTATION } from './modules/local/output_documentation' params(params)
-include { GET_SOFTWARE_VERSIONS } from './modules/local/get_software_versions' params(params)
+          get_samplesheet_design } from './modules/local/check_samplesheet'
+include { GTF2BED } from './modules/local/gtf2bed'
+include { GET_CHROM_SIZES } from './modules/local/get_chrom_sizes'
+include { MAKE_GENOME_FILTER } from './modules/local/make_genome_filter'
+include { FILTER_BAM } from './modules/local/filter_bam'
+include { OUTPUT_DOCUMENTATION } from './modules/local/output_documentation'
+include { GET_SOFTWARE_VERSIONS } from './modules/local/get_software_versions'
 
 /*
  * Include nf-core modules
  */
-include { FASTQC } from './modules/nf-core/fastqc' params(params)
-include { BWA_INDEX } from './modules/nf-core/bwa_index' params(params)
-include { TRIMGALORE } from './modules/nf-core/trimgalore' params(params)
-include { BWA_MEM } from './modules/nf-core/bwa_mem' params(params)
-include { SAMTOOLS_SORT } from './modules/nf-core/samtools_sort' params(params)
-include { SAMTOOLS_INDEX } from './modules/nf-core/samtools_index' params(params)
-include { SAMTOOLS_STATS } from './modules/nf-core/samtools_stats' params(params)
-include { PICARD_MERGESAMFILES } from './modules/nf-core/picard_mergesamfiles' params(params)
-include { PICARD_MARKDUPLICATES } from './modules/nf-core/picard_markduplicates' params(params)
-//include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collectmultiplemetrics' params(params)
-include { MULTIQC } from './modules/nf-core/multiqc' params(params)
+include { FASTQC } from './modules/nf-core/fastqc' addParams(fastqc_args : "--quiet")
+include { BWA_INDEX } from './modules/nf-core/bwa_index'
+include { TRIMGALORE } from './modules/nf-core/trimgalore'
+include { BWA_MEM } from './modules/nf-core/bwa_mem'
+include { SAMTOOLS_SORT } from './modules/nf-core/samtools_sort'
+include { SAMTOOLS_INDEX } from './modules/nf-core/samtools_index'
+include { SAMTOOLS_STATS } from './modules/nf-core/samtools_stats'
+include { PICARD_MERGESAMFILES } from './modules/nf-core/picard_mergesamfiles'
+include { PICARD_MARKDUPLICATES } from './modules/nf-core/picard_markduplicates'
+//include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collectmultiplemetrics'
+include { MULTIQC } from './modules/nf-core/multiqc'
 
 /*
  * Check input samplesheet and get read channels
  */
-workflow CHECK_INPUTS {
+workflow CHECK_INPUT {
     take:
     ch_input // file: /path/to/samplesheet.csv
 
@@ -202,19 +202,20 @@ workflow CHECK_INPUTS {
 /*
  * Read QC and trimming
  */
-workflow QC_TRIM_READS {
+workflow QC_TRIM {
     take:
     ch_reads      // channel: [ val(name), val(single_end), [ reads ] ]
     skip_fastqc   // boolean: true/false
     skip_trimming // boolean: true/false
-    fastqc_args   //  string: valid arguments accepted by FastQC
+    //fastqc_args   //  string: valid arguments accepted by FastQC
 
     main:
     fastqc_html = Channel.empty()
     fastqc_zip = Channel.empty()
     fastqc_version = Channel.empty()
     if (!skip_fastqc) {
-        FASTQC(ch_reads, fastqc_args).html.set { fastqc_html }
+        //FASTQC(ch_reads, fastqc_args).html.set { fastqc_html }
+        FASTQC(ch_reads).html.set { fastqc_html }
         fastqc_zip = FASTQC.out.zip
         fastqc_version = FASTQC.out.version
     }
@@ -259,7 +260,7 @@ workflow SORT_BAM {
 /*
  * Map reads, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
-workflow MAP_READS {
+workflow ALIGN {
     take:
     ch_reads // channel: [ val(name), val(single_end), [ reads ] ]
     ch_index // channel: [ /path/to/index ]
@@ -276,10 +277,57 @@ workflow MAP_READS {
     idxstats = SORT_BAM.out.idxstats
 }
 
+/*
+ * Picard MarkDuplicates, sort, index BAM file and run samtools stats, flagstat and idxstats
+ */
+workflow MARKDUP {
+    take:
+    ch_bam // channel: [ val(name), val(single_end), bam ]
+
+    main:
+    PICARD_MARKDUPLICATES(ch_bam)
+    SAMTOOLS_INDEX(PICARD_MARKDUPLICATES.out.bam)
+    SAMTOOLS_STATS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out, by: [0,1]))
+
+    emit:
+    bam = PICARD_MARKDUPLICATES.out.bam
+    metrics = PICARD_MARKDUPLICATES.out.metrics
+    bai = SAMTOOLS_INDEX.out
+    stats = SAMTOOLS_STATS.out.stats
+    flagstat = SAMTOOLS_STATS.out.flagstat
+    idxstats = SAMTOOLS_STATS.out.idxstats
+}
+
+/*
+ * Filter BAM file
+ */
+workflow FILTER_BAM {
+    take:
+    ch_bam // channel: [ val(name), val(single_end), bam ]
+    ch_bai // channel: [ val(name), val(single_end), bai ]
+    ch_bed // channel: [ bed ]
+    config //    file: BAMtools filter JSON config file
+
+    main:
+    FILTER_BAM(ch_bam,
+               ch_bai,
+               ch_bed,
+               config)                  // Fix getting name sorted BAM here for PE/SE
+    SAMTOOLS_INDEX(FILTER_BAM.out.bam)
+    SAMTOOLS_STATS(FILTER_BAM.out.bam.join(SAMTOOLS_INDEX.out, by: [0,1]))
+
+    emit:
+    bam = FILTER_BAM.out.bam
+    bai = SAMTOOLS_INDEX.out
+    stats = SAMTOOLS_STATS.out.stats
+    flagstat = SAMTOOLS_STATS.out.flagstat
+    idxstats = SAMTOOLS_STATS.out.idxstats
+}
+
 workflow {
 
     // READ IN SAMPLESHEET, VALIDATE AND STAGE INPUT FILES
-    CHECK_INPUTS(ch_input)
+    CHECK_INPUT(ch_input)
 
     // PREPARE GENOME FILES
     if (!params.bwa_index) { BWA_INDEX(ch_fasta).set { ch_index } }
@@ -287,34 +335,31 @@ workflow {
     MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
 
     // READ QC & TRIMMING
-    params.fastqc_args = "--quiet"
-    QC_TRIM_READS(CHECK_INPUTS.out.reads, params.skip_fastqc, params.skip_trimming, params.fastqc_args)
+    //params.fastqc_args = "--quiet"
+    //QC_TRIM_READS(CHECK_INPUTS.out.reads, params.skip_fastqc, params.skip_trimming, params.fastqc_args)
+    QC_TRIM(CHECK_INPUT.out.reads, params.skip_fastqc, params.skip_trimming)
 
     // MAP READS & BAM QC
-    MAP_READS(QC_TRIM_READS.out.reads, ch_index.collect())
+    ALIGN(QC_TRIM.out.reads, ch_index.collect())
 
     // MERGE RESEQUENCED BAM FILES
-    MAP_READS
+    ALIGN
         .out
         .bam
         .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1], it[2] ] }
         .groupTuple(by: [0, 1])
         .map { it ->  [ it[0], it[1], it[2].flatten() ] }
         .set { ch_sort_bam }
-    //PICARD_MERGESAMFILES(ch_sort_bam)
-    // PICARD_MARKDUPLICATES(PICARD_MERGESAMFILES.out).bam | SAMTOOLS_STATS_MARKDUPLICATES
-    // FILTER_BAM(PICARD_MARKDUPLICATES.out.bam,
+    PICARD_MERGESAMFILES(ch_sort_bam) | MARKDUP
+
+    // FILTER BAM FILES
+    // FILTER_BAM(MARK_DUPS.out.bam,
     //            MAKE_GENOME_FILTER.out.collect(),
     //            ch_bamtools_filter_config)           // Fix getting name sorted BAM here for PE/SE
 
-    /*
-     * PIPELINE REPORTING
-     */
-    OUTPUT_DOCUMENTATION(
-        ch_output_docs,
-        ch_output_docs_images)
-
+    // PIPELINE TEMPLATE REPORTING
     GET_SOFTWARE_VERSIONS()
+    OUTPUT_DOCUMENTATION(ch_output_docs,ch_output_docs_images)
 
     // MULTIQC(
     //     summary,
