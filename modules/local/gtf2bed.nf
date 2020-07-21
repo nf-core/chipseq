@@ -1,3 +1,6 @@
+/*
+ * Convert GTF file to BED format
+ */
 process GTF2BED {
     tag "$gtf"
     label 'process_low'

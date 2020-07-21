@@ -1,14 +1,23 @@
 /*
- * Prepare genome intervals for filtering
- * by removing regions in blacklist file
+ * Prepare genome intervals for filtering by removing regions in blacklist file
  */
 process MAKE_GENOME_FILTER {
     tag "$sizes"
-    publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
+    publishDir "${params.outdir}/${opts.publish_dir}",
+        mode: params.publish_dir_mode,
+        saveAs: { filename ->
+                    if (opts.publish_results == "none") null
+                    else filename }
+
+    container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
+    //container "https://depot.galaxyproject.org/singularity/bedtools:2.29.2--hc088bd4_0"
+
+    //conda (params.conda ? "${moduleDir}/environment.yml" : null)
 
     input:
     path sizes
     path blacklist
+    val opts
 
     output:
     path '*.bed'

@@ -339,7 +339,9 @@ workflow {
     // // PREPARE GENOME FILES
     if (!params.bwa_index) { BWA_INDEX(ch_fasta, params.modules['bwa_index']).set { ch_index } }
     if (makeBED) { GTF2BED(ch_gtf, params.modules['gtf2bed']).set { ch_gene_bed } }
-    // MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
+    MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta, params.modules['get_chrom_sizes']).sizes,
+                       ch_blacklist.ifEmpty([]),
+                       params.modules['make_genome_filter'])
 
     // READ QC & TRIMMING
     nextseq = params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ''
