@@ -82,12 +82,12 @@ if (params.anno_readme && file(params.anno_readme).exists()) {
 
 // If --gtf is supplied along with --genome
 // Make gene bed from supplied --gtf instead of using iGenomes one automatically
-def MakeBED = false
+def makeBED = false
 if (!params.gene_bed) {
-    MakeBED = true
+    makeBED = true
 } else if (params.genome && params.gtf) {
     if (params.genomes[ params.genome ].gtf != params.gtf) {
-        MakeBED = true
+        makeBED = true
     }
 }
 
@@ -338,7 +338,7 @@ workflow {
 
     // // PREPARE GENOME FILES
     if (!params.bwa_index) { BWA_INDEX(ch_fasta, params.modules['bwa_index']).set { ch_index } }
-    // if (MakeBED) { GTF2BED(ch_gtf).set { ch_gene_bed } }
+    if (makeBED) { GTF2BED(ch_gtf, params.modules['gtf2bed']).set { ch_gene_bed } }
     // MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta).sizes, ch_blacklist.ifEmpty([]))
 
     // READ QC & TRIMMING
