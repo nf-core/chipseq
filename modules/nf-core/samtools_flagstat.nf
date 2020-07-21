@@ -1,4 +1,4 @@
-process SAMTOOLS_INDEX {
+process SAMTOOLS_FLAGSTAT {
     tag "$meta.id"
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
@@ -13,16 +13,16 @@ process SAMTOOLS_INDEX {
     conda (params.conda ? "${moduleDir}/environment.yml" : null)
 
     input:
-    tuple val(meta), path(bam)
+    tuple val(meta), path(bam), path(bai)
     val opts
 
     output:
-    tuple val(meta), path("*.bai"), emit: bai
+    tuple val(meta), path("*.flagstat"), emit: flagstat
     path "*.version.txt", emit: version
 
     script:
     """
-    samtools index $bam
+    samtools flagstat $bam > ${bam}.flagstat
     samtools --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > samtools.version.txt
     """
 }

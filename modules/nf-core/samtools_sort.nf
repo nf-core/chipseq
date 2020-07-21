@@ -1,31 +1,30 @@
-def MODULE = "samtools_sort"
-params.publish_dir = MODULE
-params.publish_results = "default"
-params.suffix = ''
-//params.samtools_sort_args = ''
-
 process SAMTOOLS_SORT {
-    publishDir "${params.outdir}/${params.publish_dir}",
+    tag "$meta.id"
+    label 'process_medium'
+    publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (params.publish_results == "none") null
+                    if (opts.publish_results == "none") null
+                    else if (filename.endsWith('.version.txt')) null
                     else filename }
 
-    container "docker.pkg.github.com/nf-core/$MODULE"
-    conda "${moduleDir}/environment.yml"
+    container "quay.io/biocontainers/samtools:1.10--h9402c20_2"
+    //container " https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2"
+
+    conda (params.conda ? "${moduleDir}/environment.yml" : null)
 
     input:
-    tuple val(name), val(single_end), path(bam)
-    //val (samtools_sort_args)
+    tuple val(meta), path(bam)
+    val opts
 
     output:
-    tuple val(name), val(single_end), path('*.bam')
+    tuple val(meta), path("*.bam"), emit: bam
     path "*.version.txt", emit: version
 
     script:
-    prefix = "${name}.${suffix}"
+    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
     """
-    samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $name $bam
+    samtools sort $opts.args -@ $task.cpus -o ${prefix}.bam -T $prefix $bam
     samtools --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > samtools.version.txt
     """
 }

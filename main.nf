@@ -157,6 +157,8 @@ include { BWA_MEM } from './modules/nf-core/bwa_mem'
 include { SAMTOOLS_SORT } from './modules/nf-core/samtools_sort'
 include { SAMTOOLS_INDEX } from './modules/nf-core/samtools_index'
 include { SAMTOOLS_STATS } from './modules/nf-core/samtools_stats'
+include { SAMTOOLS_IDXSTATS } from './modules/nf-core/samtools_idxstats'
+include { SAMTOOLS_FLAGSTAT } from './modules/nf-core/samtools_flagstat'
 include { PICARD_MERGESAMFILES } from './modules/nf-core/picard_mergesamfiles'
 include { PICARD_MARKDUPLICATES } from './modules/nf-core/picard_markduplicates'
 //include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collectmultiplemetrics'
@@ -185,8 +187,8 @@ workflow CHECK_INPUT {
         .set { ch_design }
 
     emit:
-    reads = ch_reads
-    design = ch_design
+    reads = ch_reads   // channel: [ val(meta), [ reads ] ]
+    design = ch_design // channel: [ val(meta), [ reads ] ]
 }
 
 /*
@@ -214,13 +216,13 @@ workflow QC_TRIM {
     trim_html = Channel.empty()
     trim_zip = Channel.empty()
     trim_log = Channel.empty()
-    trim_version = Channel.empty()
+    trim_galore_version = Channel.empty()
     if (!skip_trimming) {
         TRIM_GALORE(ch_reads, trim_galore_opts).reads.set { ch_trim_reads }
         trim_html = TRIM_GALORE.out.html
         trim_zip = TRIM_GALORE.out.zip
         trim_log = TRIM_GALORE.out.log
-        trim_version = TRIM_GALORE.out.version
+        trim_galore_version = TRIM_GALORE.out.version
     }
 
     emit:
@@ -232,7 +234,27 @@ workflow QC_TRIM {
     trim_html             // channel: [ val(meta), [ html ] ]
     trim_zip              // channel: [ val(meta), [ zip ] ]
     trim_log              // channel: [ val(meta), [ txt ] ]
-    trim_version          //    path: *.version.txt
+    trim_galore_version   //    path: *.version.txt
+}
+
+/*
+ * Run SAMtools stats, flagstat and idxstats
+ */
+workflow BAM_STATS {
+    take:
+    ch_bam_bai    // channel: [ val(meta), [ bam ], [bai] ]
+    samtools_opts //     map: options for SAMTools modules
+
+    main:
+    SAMTOOLS_STATS(ch_bam_bai, samtools_opts)
+    SAMTOOLS_FLAGSTAT(ch_bam_bai, samtools_opts)
+    SAMTOOLS_IDXSTATS(ch_bam_bai, samtools_opts)
+
+    emit:
+    stats = SAMTOOLS_STATS.out.stats              // channel: [ val(meta), [ stats ] ]
+    flagstat = SAMTOOLS_FLAGSTAT.out.flagstat     // channel: [ val(meta), [ flagstat ] ]
+    idxstats = SAMTOOLS_IDXSTATS.out.idxstats     // channel: [ val(meta), [ idxstats ] ]
+    samtools_version = SAMTOOLS_STATS.out.version //    path: *.version.txt
 }
 
 /*
@@ -240,18 +262,21 @@ workflow QC_TRIM {
  */
 workflow SORT_BAM {
     take:
-    ch_bam // channel: [ val(name), val(single_end), bam ]
+    ch_bam        // channel: [ val(meta), [ bam ] ]
+    samtools_opts //     map: options for SAMTools modules
 
     main:
-    SAMTOOLS_SORT(ch_bam) | SAMTOOLS_INDEX
-    SAMTOOLS_STATS(SAMTOOLS_SORT.out.join(SAMTOOLS_INDEX.out, by: [0,1]))
+    SAMTOOLS_SORT(ch_bam, samtools_opts)
+    SAMTOOLS_INDEX(SAMTOOLS_SORT.out.bam, samtools_opts)
+    BAM_STATS(SAMTOOLS_SORT.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_opts)
 
     emit:
-    bam = SAMTOOLS_SORT.out
-    bai = SAMTOOLS_INDEX.out
-    stats = SAMTOOLS_STATS.out.stats
-    flagstat = SAMTOOLS_STATS.out.flagstat
-    idxstats = SAMTOOLS_STATS.out.idxstats
+    bam = SAMTOOLS_SORT.out.bam                  // channel: [ val(meta), [ bam ] ]
+    bai = SAMTOOLS_INDEX.out.bai                 // channel: [ val(meta), [ bai ] ]
+    stats = BAM_STATS.out.stats                  // channel: [ val(meta), [ stats ] ]
+    flagstat = BAM_STATS.out.flagstat            // channel: [ val(meta), [ flagstat ] ]
+    idxstats = BAM_STATS.out.idxstats            // channel: [ val(meta), [ idxstats ] ]
+    samtools_version = SAMTOOLS_SORT.out.version //    path: *.version.txt
 }
 
 /*
@@ -259,29 +284,30 @@ workflow SORT_BAM {
  */
 workflow ALIGN {
     take:
-    ch_reads    // channel: [ val(meta), [ reads ] ]
-    ch_index    //    path: /path/to/index
-    ch_fasta    //    path: /path/to/genome.fasta
-    bwa_mem_opts //     map: options for BWA MEM module
+    ch_reads      // channel: [ val(meta), [ reads ] ]
+    ch_index      //    path: /path/to/index
+    ch_fasta      //    path: /path/to/genome.fasta
+    bwa_mem_opts  //     map: options for BWA MEM module
+    samtools_opts //     map: options for SAMTools modules
 
     main:
     BWA_MEM(ch_reads, ch_index, ch_fasta, bwa_mem_opts)
-    //SORT_BAM(BWA_MEM.out)
+    SORT_BAM(BWA_MEM.out.bam, samtools_opts)
 
     emit:
-    bam = BWA_MEM.out.bam
-    // bam = SORT_BAM.out.bam
-    // bai = SORT_BAM.out.bai
-    // stats = SORT_BAM.out.stats
-    // flagstat = SORT_BAM.out.flagstat
-    // idxstats = SORT_BAM.out.idxstats
-    bwa_version = BWA_MEM.out.version
+    bam = SORT_BAM.out.bam                           // channel: [ val(meta), [ bam ] ]
+    bai = SORT_BAM.out.bai                           // channel: [ val(meta), [ bai ] ]
+    stats = SORT_BAM.out.stats                       // channel: [ val(meta), [ stats ] ]
+    flagstat = SORT_BAM.out.flagstat                 // channel: [ val(meta), [ flagstat ] ]
+    idxstats = SORT_BAM.out.idxstats                 // channel: [ val(meta), [ idxstats ] ]
+    bwa_version = BWA_MEM.out.version                //    path: *.version.txt
+    samtools_version = SORT_BAM.out.samtools_version //    path: *.version.txt
 }
 
 /*
  * Picard MarkDuplicates, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
-workflow MARKDUP {
+workflow MARKDUPLICATES {
     take:
     ch_bam // channel: [ val(name), val(single_end), bam ]
 
@@ -349,7 +375,7 @@ workflow {
     // MAP READS & BAM QC
     score = params.bwa_min_score ? " -T ${params.bwa_min_score}" : ''
     params.modules['bwa_mem'].args += score
-    ALIGN(QC_TRIM.out.reads, ch_index, ch_fasta, params.modules['bwa_mem'])
+    ALIGN(QC_TRIM.out.reads, ch_index, ch_fasta, params.modules['bwa_mem'], params.modules['samtools_sort_lib'])
 
     //
     // // MERGE RESEQUENCED BAM FILES
@@ -363,7 +389,7 @@ workflow {
     // PICARD_MERGESAMFILES(ch_sort_bam) | MARKDUP
     //
     // // FILTER BAM FILES
-    // // FILTER_BAM(MARK_DUPS.out.bam,
+    // // FILTER_BAM(MARKDUPLICATES.out.bam,
     // //            MAKE_GENOME_FILTER.out.collect(),
     // //            ch_bamtools_filter_config)           // Fix getting name sorted BAM here for PE/SE
     //
