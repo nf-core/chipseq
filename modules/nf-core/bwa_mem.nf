@@ -1,32 +1,39 @@
-/*
- * Map read(s) with bwa mem
- */
 process BWA_MEM {
-    tag "$name"
+    tag "$meta.id"
     label 'process_high'
+    publishDir "${params.outdir}/${opts.publish_dir}",
+        mode: params.publish_dir_mode,
+        saveAs: { filename ->
+                    if (opts.publish_results == "none") null
+                    else if (filename.endsWith('.version.txt')) null
+                    else filename }
+
+    container "quay.io/biocontainers/mulled-v2-fe8faa35dbf6dc65a0f7f5d4ea12e31a79f73e40:eabfac3657eda5818bae4090db989e3d41b01542-0"
+    //container "https://depot.galaxyproject.org/singularity/mulled-v2-fe8faa35dbf6dc65a0f7f5d4ea12e31a79f73e40:eabfac3657eda5818bae4090db989e3d41b01542-0"
+
+    conda (params.conda ? "${moduleDir}/environment.yml" : null)
 
     input:
-    tuple val(name), val(single_end), path(reads)
+    tuple val(meta), path(reads)
     path index
+    path fasta
+    val opts
 
     output:
-    tuple val(name), val(single_end), path('*.bam')
+    tuple val(meta), path("*.bam"), emit: bam
+    path "*.version.txt", emit: version
 
     script:
-    prefix = "${name}.Lb"
-    rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
-    if (params.seq_center) {
-        rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
-    }
-    score = params.bwa_min_score ? "-T ${params.bwa_min_score}" : ''
+    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    rg = meta.read_group ? "-R ${meta.read_group}" : ""
     """
     bwa mem \\
+        $opts.args \\
+        $rg \\
         -t $task.cpus \\
-        -M \\
-        -R $rg \\
-        $score \\
-        ${index}/${params.bwa_base} \\
+        $fasta \\
         $reads \\
-        | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
+        | samtools view $opts.args2 -@ $task.cpus -bS -o ${prefix}.bam -
+    echo \$(bwa 2>&1) | sed -n "s/.*\\(v.*\$\\)/\\1/p" > bwa.version.txt
     """
 }

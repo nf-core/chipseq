@@ -58,20 +58,9 @@ if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true)
 if (params.blacklist) { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
 
 if (params.fasta) {
-    lastPath = params.fasta.lastIndexOf(File.separator)
-    params.bwa_base = params.fasta.substring(lastPath+1)
     ch_fasta = file(params.fasta, checkIfExists: true)
 } else {
     exit 1, 'Fasta file not specified!'
-}
-
-if (params.bwa_index) {
-    lastPath = params.bwa_index.lastIndexOf(File.separator)
-    bwa_dir  = params.bwa_index.substring(0,lastPath+1)
-    params.bwa_base = params.bwa_index.substring(lastPath+1)
-    Channel
-        .fromPath(bwa_dir, checkIfExists: true)
-        .set { ch_index }
 }
 
 // Save AWS IGenomes file containing annotation version
@@ -178,13 +167,14 @@ include { MULTIQC } from './modules/nf-core/multiqc'
  */
 workflow CHECK_INPUT {
     take:
-    ch_input // file: /path/to/samplesheet.csv
+    ch_input   //   file: /path/to/samplesheet.csv
+    seq_center // string: sequencing center for read group
 
     main:
     CHECK_SAMPLESHEET(ch_input)
         .reads
         .splitCsv(header:true, sep:',')
-        .map { get_samplesheet_paths(it, params.single_end) }
+        .map { get_samplesheet_paths(it, params.single_end, seq_center) }
         .set { ch_reads }
 
     CHECK_SAMPLESHEET
@@ -204,11 +194,11 @@ workflow CHECK_INPUT {
  */
 workflow QC_TRIM {
     take:
-    ch_reads        // channel: [ val(meta), [ reads ] ]
-    skip_fastqc     // boolean: true/false
-    skip_trimming   // boolean: true/false
-    fastqc_opts     //     map: options for FastQC module
-    trimgalore_opts //     map: options for TrimGalore! module
+    ch_reads         // channel: [ val(meta), [ reads ] ]
+    skip_fastqc      // boolean: true/false
+    skip_trimming    // boolean: true/false
+    fastqc_opts      //     map: options for FastQC module
+    trim_galore_opts //     map: options for TrimGalore! module
 
     main:
     fastqc_html = Channel.empty()
@@ -226,7 +216,7 @@ workflow QC_TRIM {
     trim_log = Channel.empty()
     trim_version = Channel.empty()
     if (!skip_trimming) {
-        TRIM_GALORE(ch_reads, trimgalore_opts).reads.set { ch_trim_reads }
+        TRIM_GALORE(ch_reads, trim_galore_opts).reads.set { ch_trim_reads }
         trim_html = TRIM_GALORE.out.html
         trim_zip = TRIM_GALORE.out.zip
         trim_log = TRIM_GALORE.out.log
@@ -269,19 +259,23 @@ workflow SORT_BAM {
  */
 workflow ALIGN {
     take:
-    ch_reads // channel: [ val(name), val(single_end), [ reads ] ]
-    ch_index // channel: [ /path/to/index ]
+    ch_reads    // channel: [ val(meta), [ reads ] ]
+    ch_index    //    path: /path/to/index
+    ch_fasta    //    path: /path/to/genome.fasta
+    bwa_mem_opts //     map: options for BWA MEM module
 
     main:
-    BWA_MEM(ch_reads, ch_index.collect())
-    SORT_BAM(BWA_MEM.out)
+    BWA_MEM(ch_reads, ch_index, ch_fasta, bwa_mem_opts)
+    //SORT_BAM(BWA_MEM.out)
 
     emit:
-    bam = SORT_BAM.out.bam
-    bai = SORT_BAM.out.bai
-    stats = SORT_BAM.out.stats
-    flagstat = SORT_BAM.out.flagstat
-    idxstats = SORT_BAM.out.idxstats
+    bam = BWA_MEM.out.bam
+    // bam = SORT_BAM.out.bam
+    // bai = SORT_BAM.out.bai
+    // stats = SORT_BAM.out.stats
+    // flagstat = SORT_BAM.out.flagstat
+    // idxstats = SORT_BAM.out.idxstats
+    bwa_version = BWA_MEM.out.version
 }
 
 /*
@@ -334,10 +328,10 @@ workflow FILTER_BAM {
 workflow {
 
     // READ IN SAMPLESHEET, VALIDATE AND STAGE INPUT FILES
-    CHECK_INPUT(ch_input)
+    CHECK_INPUT(ch_input, params.seq_center)
 
-    // // PREPARE GENOME FILES
-    if (!params.bwa_index) { BWA_INDEX(ch_fasta, params.modules['bwa_index']).set { ch_index } }
+    // PREPARE GENOME FILES
+    ch_index = params.bwa_index ? Channel.value(file(params.bwa_index)) : BWA_INDEX(ch_fasta, params.modules['bwa_index']).index
     if (makeBED) { GTF2BED(ch_gtf, params.modules['gtf2bed']).set { ch_gene_bed } }
     MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta, params.modules['get_chrom_sizes']).sizes,
                        ch_blacklist.ifEmpty([]),
@@ -346,9 +340,17 @@ workflow {
     // READ QC & TRIMMING
     nextseq = params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ''
     params.modules['trim_galore'].args += nextseq
-    QC_TRIM(CHECK_INPUT.out.reads, params.skip_fastqc, params.skip_trimming, params.modules['fastqc'], params.modules['trim_galore'])
-    // // MAP READS & BAM QC
-    // ALIGN(QC_TRIM.out.reads, ch_index.collect())
+    QC_TRIM(CHECK_INPUT.out.reads,
+            params.skip_fastqc,
+            params.skip_trimming,
+            params.modules['fastqc'],
+            params.modules['trim_galore'])
+
+    // MAP READS & BAM QC
+    score = params.bwa_min_score ? " -T ${params.bwa_min_score}" : ''
+    params.modules['bwa_mem'].args += score
+    ALIGN(QC_TRIM.out.reads, ch_index, ch_fasta, params.modules['bwa_mem'])
+
     //
     // // MERGE RESEQUENCED BAM FILES
     // ALIGN

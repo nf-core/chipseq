@@ -43,7 +43,7 @@ process TRIM_GALORE {
     tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
 
     // Added soft-links to original fastqs for consistent naming in MultiQC
-    prefix = opts.suffix ? "${meta.id}.${opts.suffix}" : "${meta.id}"
+    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
     if (meta.single_end) {
         """
         [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz

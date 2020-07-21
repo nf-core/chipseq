@@ -19,10 +19,16 @@ process CHECK_SAMPLESHEET {
 }
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
-def get_samplesheet_paths(LinkedHashMap row, boolean single_end) {
+def get_samplesheet_paths(LinkedHashMap row, boolean single_end, String seq_center) {
     def meta = [:]
     meta.id = row.sample_id
     meta.single_end = single_end
+
+    def rg = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\'"
+    if (seq_center) {
+        rg = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\\tCN:${seq_center}\'"
+    }
+    meta.read_group = rg
 
     def array = []
     if (single_end) {

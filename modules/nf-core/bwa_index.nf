@@ -18,13 +18,12 @@ process BWA_INDEX {
     val opts
 
     output:
-    path 'BWAIndex', emit: index
+    path "${fasta}.*", emit: index
     path "*.version.txt", emit: version
 
     script:
     """
-    bwa index $opts.args -a bwtsw $fasta
-    mkdir BWAIndex && mv ${fasta}* BWAIndex
+    bwa index $opts.args $fasta
     echo \$(bwa 2>&1) | sed -n "s/.*\\(v.*\$\\)/\\1/p" > bwa.version.txt
     """
 }
