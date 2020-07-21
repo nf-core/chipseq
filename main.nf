@@ -309,20 +309,24 @@ workflow ALIGN {
  */
 workflow MARKDUPLICATES {
     take:
-    ch_bam // channel: [ val(name), val(single_end), bam ]
+    ch_bam              // channel: [ val(meta), [ bam ] ]
+    markduplicates_opts //     map: options for picard MarkDuplicates module
+    samtools_opts       //     map: options for SAMTools modules
 
     main:
-    PICARD_MARKDUPLICATES(ch_bam)
-    SAMTOOLS_INDEX(PICARD_MARKDUPLICATES.out.bam)
-    SAMTOOLS_STATS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out, by: [0,1]))
+    PICARD_MARKDUPLICATES(ch_bam, markduplicates_opts)
+    SAMTOOLS_INDEX(PICARD_MARKDUPLICATES.out.bam, samtools_opts)
+    BAM_STATS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_opts)
 
     emit:
-    bam = PICARD_MARKDUPLICATES.out.bam
-    metrics = PICARD_MARKDUPLICATES.out.metrics
-    bai = SAMTOOLS_INDEX.out
-    stats = SAMTOOLS_STATS.out.stats
-    flagstat = SAMTOOLS_STATS.out.flagstat
-    idxstats = SAMTOOLS_STATS.out.idxstats
+    bam = PICARD_MARKDUPLICATES.out.bam                // channel: [ val(meta), [ bam ] ]
+    metrics = PICARD_MARKDUPLICATES.out.metrics        // channel: [ val(meta), [ metrics ] ]
+    bai = SAMTOOLS_INDEX.out.bai                       // channel: [ val(meta), [ bai ] ]
+    stats = BAM_STATS.out.stats                        // channel: [ val(meta), [ stats ] ]
+    flagstat = BAM_STATS.out.flagstat                  // channel: [ val(meta), [ flagstat ] ]
+    idxstats = BAM_STATS.out.idxstats                  // channel: [ val(meta), [ idxstats ] ]
+    picard_version = PICARD_MARKDUPLICATES.out.version //    path: *.version.txt
+    samtools_version = SAMTOOLS_INDEX.out.version      //    path: *.version.txt
 }
 
 /*
@@ -377,17 +381,21 @@ workflow {
     params.modules['bwa_mem'].args += score
     ALIGN(QC_TRIM.out.reads, ch_index, ch_fasta, params.modules['bwa_mem'], params.modules['samtools_sort_lib'])
 
-    //
-    // // MERGE RESEQUENCED BAM FILES
-    // ALIGN
-    //     .out
-    //     .bam
-    //     .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1], it[2] ] }
-    //     .groupTuple(by: [0, 1])
-    //     .map { it ->  [ it[0], it[1], it[2].flatten() ] }
-    //     .set { ch_sort_bam }
-    // PICARD_MERGESAMFILES(ch_sort_bam) | MARKDUP
-    //
+    // MERGE RESEQUENCED BAM FILES
+    ALIGN
+        .out
+        .bam
+        .map { meta, bam ->
+                   fmeta = meta.findAll { it.key != 'read_group' }
+                   fmeta.id = fmeta.id.split('_')[0..-2].join('_')
+                   [ fmeta, bam ] }
+       .groupTuple(by: [0])
+       .map { it ->  [ it[0], it[1].flatten() ] }
+       .set { ch_sort_bam }
+
+    PICARD_MERGESAMFILES(ch_sort_bam, params.modules['picard_mergesamfiles'])
+    MARKDUPLICATES(PICARD_MERGESAMFILES.out.bam, params.modules['picard_markduplicates'], params.modules['samtools_sort_merged_lib'])
+
     // // FILTER BAM FILES
     // // FILTER_BAM(MARKDUPLICATES.out.bam,
     // //            MAKE_GENOME_FILTER.out.collect(),

@@ -1,19 +1,28 @@
-/*
- * Picard MergeSamFiles
- */
 process PICARD_MERGESAMFILES {
-    tag "$name"
+    tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode
+    publishDir "${params.outdir}/${opts.publish_dir}",
+        mode: params.publish_dir_mode,
+        saveAs: { filename ->
+                    if (opts.publish_results == "none") null
+                    else if (filename.endsWith('.version.txt')) null
+                    else filename }
+
+    container "quay.io/biocontainers/picard:2.23.2--0"
+    //container "https://depot.galaxyproject.org/singularity/picard:2.23.2--0"
+
+    conda (params.conda ? "${moduleDir}/environment.yml" : null)
 
     input:
-    tuple val(name), val(single_end), path(bams)
+    tuple val(meta), path(bams)
+    val opts
 
     output:
-    tuple val(name), val(single_end), path("*.bam")
+    tuple val(meta), path("*.bam"), emit: bam
+    path "*.version.txt", emit: version
 
     script:
-    prefix = "${name}.mLb.mkD"
+    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
     bam_files = bams.sort()
     def avail_mem = 3
     if (!task.memory) {
@@ -23,16 +32,18 @@ process PICARD_MERGESAMFILES {
     }
     if (bam_files.size() > 1) {
         """
-        picard -Xmx${avail_mem}g MergeSamFiles \\
+        picard \\
+            -Xmx${avail_mem}g \\
+            MergeSamFiles \\
+            $opts.args \\
             ${'INPUT='+bam_files.join(' INPUT=')} \\
-            OUTPUT=${name}.sorted.bam \\
-            SORT_ORDER=coordinate \\
-            VALIDATION_STRINGENCY=LENIENT \\
-            TMP_DIR=tmp
+            OUTPUT=${prefix}.bam
+        picard MergeSamFiles --version &> picard.version.txt || true
         """
     } else {
         """
-        ln -s ${bam_files[0]} ${name}.sorted.bam
+        ln -s ${bam_files[0]} ${prefix}.bam
+        picard MergeSamFiles --version &> picard.version.txt || true
         """
     }
 }
