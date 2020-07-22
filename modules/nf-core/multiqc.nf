@@ -52,5 +52,6 @@ process MULTIQC {
     // TODO nf-core: Specify which MultiQC modules to use with -m for a faster run time
     """
     multiqc -f $rtitle $rfilename $custom_config_file .
+    multiqc --version > multiqc.version.txt
     """
 }

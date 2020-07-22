@@ -437,17 +437,15 @@ workflow {
     params.modules['deeptools_plotfingerprint'].args += " --numberOfSamples $params.fingerprint_bins"
     DEEPTOOLS_PLOTFINGERPRINT(CLEAN_BAM.out.bam.join(CLEAN_BAM.out.bai, by: [0]), params.modules['deeptools_plotfingerprint'])
 
+    // PIPELINE REPORTING
+    GET_SOFTWARE_VERSIONS(params.modules['get_software_versions'])
+    OUTPUT_DOCUMENTATION(ch_output_docs, ch_output_docs_images, params.modules['output_documentation'])
 
-
-    // PIPELINE TEMPLATE REPORTING
-    //GET_SOFTWARE_VERSIONS(params.modules['get_software_versions'])
-    //OUTPUT_DOCUMENTATION(ch_output_docs, ch_output_docs_images, params.modules['output_documentation'])
-
-    // // MULTIQC(
-    // //     summary,
-    // //     FASTQC.out,
-    // //     ch_multiqc_config
-    // // )
+    // MULTIQC(
+    //     summary,
+    //     FASTQC.out,
+    //     ch_multiqc_config
+    // )
 }
 
 /*
