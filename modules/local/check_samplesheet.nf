@@ -3,10 +3,15 @@
  */
 process CHECK_SAMPLESHEET {
     tag "$samplesheet"
-    publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode
+    publishDir "${params.outdir}/${opts.publish_dir}",
+        mode: params.publish_dir_mode,
+        saveAs: { filename ->
+                    if (opts.publish_results == "none") null
+                    else filename }
 
     input:
     path samplesheet
+    val opts
 
     output:
     path 'samplesheet_reads.csv', emit: reads

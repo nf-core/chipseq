@@ -161,7 +161,7 @@ include { SAMTOOLS_IDXSTATS } from './modules/nf-core/samtools_idxstats'
 include { SAMTOOLS_FLAGSTAT } from './modules/nf-core/samtools_flagstat'
 include { PICARD_MERGESAMFILES } from './modules/nf-core/picard_mergesamfiles'
 include { PICARD_MARKDUPLICATES } from './modules/nf-core/picard_markduplicates'
-//include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collectmultiplemetrics'
+include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collectmultiplemetrics'
 include { MULTIQC } from './modules/nf-core/multiqc'
 
 /*
@@ -169,11 +169,12 @@ include { MULTIQC } from './modules/nf-core/multiqc'
  */
 workflow CHECK_INPUT {
     take:
-    ch_input   //   file: /path/to/samplesheet.csv
-    seq_center // string: sequencing center for read group
+    ch_input               //   file: /path/to/samplesheet.csv
+    seq_center             // string: sequencing center for read group
+    check_samplesheet_opts //    map: options for TrimGalore! module
 
     main:
-    CHECK_SAMPLESHEET(ch_input)
+    CHECK_SAMPLESHEET(ch_input, check_samplesheet_opts)
         .reads
         .splitCsv(header:true, sep:',')
         .map { get_samplesheet_paths(it, params.single_end, seq_center) }
@@ -332,33 +333,32 @@ workflow MARKDUPLICATES {
 /*
  * Filter BAM file
  */
-workflow FILTER_BAM {
+workflow CLEAN_BAM {
     take:
-    ch_bam // channel: [ val(name), val(single_end), bam ]
-    ch_bai // channel: [ val(name), val(single_end), bai ]
-    ch_bed // channel: [ bed ]
-    config //    file: BAMtools filter JSON config file
+    ch_bam_bai      // channel: [ val(meta), [ bam ], [bai] ]
+    ch_bed          // channel: [ bed ]
+    config          //    file: BAMtools filter JSON config file
+    filter_bam_opts //     map: options for filter_bam module
+    samtools_opts   //     map: options for SAMTools modules
 
     main:
-    FILTER_BAM(ch_bam,
-               ch_bai,
-               ch_bed,
-               config)                  // Fix getting name sorted BAM here for PE/SE
-    SAMTOOLS_INDEX(FILTER_BAM.out.bam)
-    SAMTOOLS_STATS(FILTER_BAM.out.bam.join(SAMTOOLS_INDEX.out, by: [0,1]))
+    FILTER_BAM(ch_bam_bai, ch_bed, config, filter_bam_opts)
+    SAMTOOLS_INDEX(FILTER_BAM.out.bam, samtools_opts)
+    BAM_STATS(FILTER_BAM.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_opts)
 
     emit:
-    bam = FILTER_BAM.out.bam
-    bai = SAMTOOLS_INDEX.out
-    stats = SAMTOOLS_STATS.out.stats
-    flagstat = SAMTOOLS_STATS.out.flagstat
-    idxstats = SAMTOOLS_STATS.out.idxstats
+    bam = FILTER_BAM.out.bam                  // channel: [ val(meta), [ bam ] ]
+    bai = SAMTOOLS_INDEX.out.bai              // channel: [ val(meta), [ bai ] ]
+    stats = BAM_STATS.out.stats               // channel: [ val(meta), [ stats ] ]
+    flagstat = BAM_STATS.out.flagstat         // channel: [ val(meta), [ flagstat ] ]
+    idxstats = BAM_STATS.out.idxstats         // channel: [ val(meta), [ idxstats ] ]
+    bamtools_version = FILTER_BAM.out.version //    path: *.version.txt
 }
 
 workflow {
 
     // READ IN SAMPLESHEET, VALIDATE AND STAGE INPUT FILES
-    CHECK_INPUT(ch_input, params.seq_center)
+    CHECK_INPUT(ch_input, params.seq_center, params.modules['check_samplesheet'])
 
     // PREPARE GENOME FILES
     ch_index = params.bwa_index ? Channel.value(file(params.bwa_index)) : BWA_INDEX(ch_fasta, params.modules['bwa_index']).index
@@ -396,15 +396,20 @@ workflow {
     PICARD_MERGESAMFILES(ch_sort_bam, params.modules['picard_mergesamfiles'])
     MARKDUPLICATES(PICARD_MERGESAMFILES.out.bam, params.modules['picard_markduplicates'], params.modules['samtools_sort_merged_lib'])
 
-    // // FILTER BAM FILES
-    // // FILTER_BAM(MARKDUPLICATES.out.bam,
-    // //            MAKE_GENOME_FILTER.out.collect(),
-    // //            ch_bamtools_filter_config)           // Fix getting name sorted BAM here for PE/SE
-    //
-    // // PIPELINE TEMPLATE REPORTING
-    // GET_SOFTWARE_VERSIONS()
-    // OUTPUT_DOCUMENTATION(ch_output_docs,ch_output_docs_images)
-    //
+    // FILTER BAM FILES
+      // Fix getting name sorted BAM here for PE/SE
+    CLEAN_BAM(MARKDUPLICATES.out.bam.join(MARKDUPLICATES.out.bai, by: [0]),
+               MAKE_GENOME_FILTER.out.collect(),
+               ch_bamtools_filter_config,
+               params.modules['filter_bam'],
+               params.modules['samtools_sort_filter'])
+
+    //PICARD_COLLECTMULTIPLEMETRICS(MARKDUPLICATES.out.bam, ch_fasta, params.modules['picard_collectmultiplemetrics'])
+
+    // PIPELINE TEMPLATE REPORTING
+    //GET_SOFTWARE_VERSIONS(params.modules['get_software_versions'])
+    //OUTPUT_DOCUMENTATION(ch_output_docs, ch_output_docs_images, params.modules['output_documentation'])
+
     // // MULTIQC(
     // //     summary,
     // //     FASTQC.out,
@@ -529,48 +534,6 @@ workflow.onComplete {
 //         -seed 1 \\
 //         ${bam[0]}
 //     cp .command.err ${name}.command.log
-//     """
-// }
-//
-// /*
-//  * STEP 5.2: Picard CollectMultipleMetrics after merging libraries and filtering
-//  */
-// process PICARD_METRICS {
-//     tag "$name"
-//     label 'process_medium'
-//     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
-//         saveAs: { filename ->
-//                       if (filename.endsWith('_metrics')) "picard_metrics/$filename"
-//                       else if (filename.endsWith('.pdf')) "picard_metrics/pdf/$filename"
-//                       else null
-//                 }
-//
-//     when:
-//     !params.skip_picard_metrics
-//
-//     input:
-//     tuple val(name), path(bam) from ch_rm_orphan_bam_metrics
-//     path fasta from ch_fasta
-//
-//     output:
-//     path '*_metrics' into ch_collectmetrics_mqc
-//     path '*.pdf'
-//
-//     script:
-//     prefix = "${name}.mLb.clN"
-//     def avail_mem = 3
-//     if (!task.memory) {
-//         log.info '[Picard CollectMultipleMetrics] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
-//     } else {
-//         avail_mem = task.memory.toGiga()
-//     }
-//     """
-//     picard -Xmx${avail_mem}g CollectMultipleMetrics \\
-//         INPUT=${bam[0]} \\
-//         OUTPUT=${prefix}.CollectMultipleMetrics \\
-//         REFERENCE_SEQUENCE=$fasta \\
-//         VALIDATION_STRINGENCY=LENIENT \\
-//         TMP_DIR=tmp
 //     """
 // }
 //

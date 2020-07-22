@@ -2,11 +2,15 @@
  * Parse software version numbers
  */
 process GET_SOFTWARE_VERSIONS {
-    publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode,
+    publishDir "${params.outdir}/${opts.publish_dir}",
+        mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (filename.indexOf(".csv") > 0) filename
-                      else null
-                }
+                    if (opts.publish_results == "none") null
+                    else if (filename.endsWith('.yaml')) null
+                    else filename }
+
+    input:
+    val opts
 
     output:
     path 'software_versions_mqc.yaml'
