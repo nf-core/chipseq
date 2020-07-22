@@ -170,9 +170,9 @@ include { DEEPTOOLS_COMPUTEMATRIX } from './modules/nf-core/deeptools_computemat
 include { DEEPTOOLS_PLOTPROFILE } from './modules/nf-core/deeptools_plotprofile'
 include { DEEPTOOLS_PLOTHEATMAP } from './modules/nf-core/deeptools_plotheatmap'
 include { DEEPTOOLS_PLOTFINGERPRINT } from './modules/nf-core/deeptools_plotfingerprint'
+include { PHANTOMPEAKQUALTOOLS } from './modules/nf-core/phantompeakqualtools'
 //include { MACSC2_CALLPEAK } from './modules/nf-core/macs2_callpeak'
 //include { HOMER_ANNOTATEPEAKS } from './modules/nf-core/homer_annotatepeaks'
-//include { PHANTOMPEAKQUALTOOLS } from './modules/nf-core/phantompeakqualtools'
 //include { SUBREAD_FEATURECOUNTS } from './modules/nf-core/subread_featurecounts'
 include { MULTIQC } from './modules/nf-core/multiqc'
 
@@ -422,6 +422,7 @@ workflow {
     // POST ALIGNMENT QC
     PICARD_COLLECTMULTIPLEMETRICS(CLEAN_BAM.out.bam, ch_fasta, params.modules['picard_collectmultiplemetrics'])
     //PRESEQ_LC_EXTRAP(CLEAN_BAM.out.bam, params.modules['preseq_lc_extrap'])
+    PHANTOMPEAKQUALTOOLS(CLEAN_BAM.out.bam, params.modules['phantompeakqualtools'])
 
     // COVERAGE TRACKS
     BEDTOOLS_GENOMECOV(CLEAN_BAM.out.bam.join(CLEAN_BAM.out.flagstat, by: [0]), params.modules['bedtools_genomecov'])
@@ -435,6 +436,8 @@ workflow {
     // Join control BAM here too to generate plots with IP and CONTROL together
     params.modules['deeptools_plotfingerprint'].args += " --numberOfSamples $params.fingerprint_bins"
     DEEPTOOLS_PLOTFINGERPRINT(CLEAN_BAM.out.bam.join(CLEAN_BAM.out.bai, by: [0]), params.modules['deeptools_plotfingerprint'])
+
+
 
     // PIPELINE TEMPLATE REPORTING
     //GET_SOFTWARE_VERSIONS(params.modules['get_software_versions'])
@@ -455,41 +458,7 @@ workflow.onComplete {
     Completion.email(workflow, params, summary, run_name, baseDir, multiqc_report, log)
     Completion.summary(workflow, params, log)
 }
-//
-// /*
-//  * STEP 5.5: Phantompeakqualtools
-//  */
-// process PHANTOMPEAKQUALTOOLS {
-//     tag "$name"
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/phantompeakqualtools", mode: params.publish_dir_mode
-//
-//     when:
-//     !params.skip_spp
-//
-//     input:
-//     tuple val(name), path(bam) from ch_rm_orphan_bam_phantompeakqualtools
-//     path spp_correlation_header from ch_spp_correlation_header
-//     path spp_nsc_header from ch_spp_nsc_header
-//     path spp_rsc_header from ch_spp_rsc_header
-//
-//     output:
-//     path '*.spp.out' into ch_spp_out_mqc
-//     path '*_mqc.tsv' into ch_spp_csv_mqc
-//     path '*.pdf'
-//
-//     script:
-//     """
-//     RUN_SPP=`which run_spp.R`
-//     Rscript -e "library(caTools); source(\\"\$RUN_SPP\\")" -c="${bam[0]}" -savp="${name}.spp.pdf" -savd="${name}.spp.Rdata" -out="${name}.spp.out" -p=$task.cpus
-//     cp $spp_correlation_header ${name}_spp_correlation_mqc.tsv
-//     Rscript -e "load('${name}.spp.Rdata'); write.table(crosscorr\\\$cross.correlation, file=\\"${name}_spp_correlation_mqc.tsv\\", sep=",", quote=FALSE, row.names=FALSE, col.names=FALSE,append=TRUE)"
-//
-//     awk -v OFS='\t' '{print "${name}", \$9}' ${name}.spp.out | cat $spp_nsc_header - > ${name}_spp_nsc_mqc.tsv
-//     awk -v OFS='\t' '{print "${name}", \$10}' ${name}.spp.out | cat $spp_rsc_header - > ${name}_spp_rsc_mqc.tsv
-//     """
-// }
-//
+
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////
 // /* --                                                                     -- */
