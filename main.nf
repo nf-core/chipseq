@@ -145,6 +145,7 @@ include { GET_CHROM_SIZES } from './modules/local/get_chrom_sizes'
 include { MAKE_GENOME_FILTER } from './modules/local/make_genome_filter'
 include { FILTER_BAM } from './modules/local/filter_bam'
 include { REMOVE_BAM_ORPHANS } from './modules/local/remove_bam_orphans'
+include { BEDTOOLS_GENOMECOV } from './modules/local/bedtools_genomecov'
 include { OUTPUT_DOCUMENTATION } from './modules/local/output_documentation'
 include { GET_SOFTWARE_VERSIONS } from './modules/local/get_software_versions'
 
@@ -163,6 +164,16 @@ include { SAMTOOLS_FLAGSTAT } from './modules/nf-core/samtools_flagstat'
 include { PICARD_MERGESAMFILES } from './modules/nf-core/picard_mergesamfiles'
 include { PICARD_MARKDUPLICATES } from './modules/nf-core/picard_markduplicates'
 include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collectmultiplemetrics'
+include { PRESEQ_LC_EXTRAP } from './modules/nf-core/preseq_lc_extrap'
+//include { UCSC_BEDRAPHTOBIGWIG } from './modules/nf-core/ucsc_bedgraphtobigwig'
+//include { DEEPTOOLS_PLOTPROFILE } from './modules/nf-core/deeptools_plotprofile'
+//include { DEEPTOOLS_PLOTHEATMAP } from './modules/nf-core/deeptools_plotheatmap'
+//include { DEEPTOOLS_PLOTFINGERPRINT } from './modules/nf-core/deeptools_plotfingerprint'
+//include { DEEPTOOLS_COMPUTEMATRIX } from './modules/nf-core/deeptools_computematrix'
+//include { MACSC2_CALLPEAK } from './modules/nf-core/macs2_callpeak'
+//include { HOMER_ANNOTATEPEAKS } from './modules/nf-core/homer_annotatepeaks'
+//include { PHANTOMPEAKQUALTOOLS } from './modules/nf-core/phantompeakqualtools'
+//include { SUBREAD_FEATURECOUNTS } from './modules/nf-core/subread_featurecounts'
 include { MULTIQC } from './modules/nf-core/multiqc'
 
 /*
@@ -408,7 +419,8 @@ workflow {
                params.modules['remove_bam_orphans'],
                params.modules['samtools_sort_filter'])
 
-    //PICARD_COLLECTMULTIPLEMETRICS(CLEAN_BAM.out.bam, ch_fasta, params.modules['picard_collectmultiplemetrics'])
+    PICARD_COLLECTMULTIPLEMETRICS(CLEAN_BAM.out.bam, ch_fasta, params.modules['picard_collectmultiplemetrics'])
+    PRESEQ_LC_EXTRAP(CLEAN_BAM.out.bam, params.modules['preseq_lc_extrap'])
 
     // PIPELINE TEMPLATE REPORTING
     //GET_SOFTWARE_VERSIONS(params.modules['get_software_versions'])
@@ -437,39 +449,6 @@ workflow.onComplete {
 // /* --                                                                     -- */
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////
-//
-// /*
-//  * STEP 5.1: Preseq analysis after merging libraries and before filtering
-//  */
-// process PRESEQ {
-//     tag "$name"
-//     label 'process_medium'
-//     label 'error_ignore'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: params.publish_dir_mode
-//
-//     when:
-//     !params.skip_preseq
-//
-//     input:
-//     tuple val(name), path(bam) from ch_merge_bam_preseq
-//
-//     output:
-//     path '*.ccurve.txt' into ch_preseq_mqc
-//     path '*.log'
-//
-//     script:
-//     pe = params.single_end ? '' : '-pe'
-//     """
-//     preseq lc_extrap \\
-//         -output ${name}.ccurve.txt \\
-//         -verbose \\
-//         -bam \\
-//         $pe \\
-//         -seed 1 \\
-//         ${bam[0]}
-//     cp .command.err ${name}.command.log
-//     """
-// }
 //
 // /*
 //  * STEP 5.3: Read depth normalised bigWig
