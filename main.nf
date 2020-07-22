@@ -144,6 +144,7 @@ include { GTF2BED } from './modules/local/gtf2bed'
 include { GET_CHROM_SIZES } from './modules/local/get_chrom_sizes'
 include { MAKE_GENOME_FILTER } from './modules/local/make_genome_filter'
 include { FILTER_BAM } from './modules/local/filter_bam'
+include { REMOVE_BAM_ORPHANS } from './modules/local/remove_bam_orphans'
 include { OUTPUT_DOCUMENTATION } from './modules/local/output_documentation'
 include { GET_SOFTWARE_VERSIONS } from './modules/local/get_software_versions'
 
@@ -174,7 +175,7 @@ workflow CHECK_INPUT {
     check_samplesheet_opts //    map: options for TrimGalore! module
 
     main:
-    CHECK_SAMPLESHEET(ch_input, check_samplesheet_opts)
+    CHECK_SAMPLESHEET (ch_input, check_samplesheet_opts)
         .reads
         .splitCsv(header:true, sep:',')
         .map { get_samplesheet_paths(it, params.single_end, seq_center) }
@@ -335,23 +336,25 @@ workflow MARKDUPLICATES {
  */
 workflow CLEAN_BAM {
     take:
-    ch_bam_bai      // channel: [ val(meta), [ bam ], [bai] ]
-    ch_bed          // channel: [ bed ]
-    config          //    file: BAMtools filter JSON config file
-    filter_bam_opts //     map: options for filter_bam module
-    samtools_opts   //     map: options for SAMTools modules
+    ch_bam_bai          // channel: [ val(meta), [ bam ], [bai] ]
+    ch_bed              // channel: [ bed ]
+    config              //    file: BAMtools filter JSON config file
+    filter_bam_opts     //     map: options for filter_bam module
+    rm_bam_orphans_opts //     map: options for remove_bam_orphans module
+    samtools_opts       //     map: options for SAMTools modules
 
     main:
     FILTER_BAM(ch_bam_bai, ch_bed, config, filter_bam_opts)
-    SAMTOOLS_INDEX(FILTER_BAM.out.bam, samtools_opts)
-    BAM_STATS(FILTER_BAM.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_opts)
+    REMOVE_BAM_ORPHANS(FILTER_BAM.out.bam, rm_bam_orphans_opts)
+    SORT_BAM(REMOVE_BAM_ORPHANS.out.bam, samtools_opts)
 
     emit:
-    bam = FILTER_BAM.out.bam                  // channel: [ val(meta), [ bam ] ]
-    bai = SAMTOOLS_INDEX.out.bai              // channel: [ val(meta), [ bai ] ]
-    stats = BAM_STATS.out.stats               // channel: [ val(meta), [ stats ] ]
-    flagstat = BAM_STATS.out.flagstat         // channel: [ val(meta), [ flagstat ] ]
-    idxstats = BAM_STATS.out.idxstats         // channel: [ val(meta), [ idxstats ] ]
+    name_bam = REMOVE_BAM_ORPHANS.out.bam     // channel: [ val(meta), [ bam ] ]
+    bam = SORT_BAM.out.bam                    // channel: [ val(meta), [ bam ] ]
+    bai = SORT_BAM.out.bai                    // channel: [ val(meta), [ bai ] ]
+    stats = SORT_BAM.out.stats                // channel: [ val(meta), [ stats ] ]
+    flagstat = SORT_BAM.out.flagstat          // channel: [ val(meta), [ flagstat ] ]
+    idxstats = SORT_BAM.out.idxstats          // channel: [ val(meta), [ idxstats ] ]
     bamtools_version = FILTER_BAM.out.version //    path: *.version.txt
 }
 
@@ -402,9 +405,10 @@ workflow {
                MAKE_GENOME_FILTER.out.collect(),
                ch_bamtools_filter_config,
                params.modules['filter_bam'],
+               params.modules['remove_bam_orphans'],
                params.modules['samtools_sort_filter'])
 
-    //PICARD_COLLECTMULTIPLEMETRICS(MARKDUPLICATES.out.bam, ch_fasta, params.modules['picard_collectmultiplemetrics'])
+    //PICARD_COLLECTMULTIPLEMETRICS(CLEAN_BAM.out.bam, ch_fasta, params.modules['picard_collectmultiplemetrics'])
 
     // PIPELINE TEMPLATE REPORTING
     //GET_SOFTWARE_VERSIONS(params.modules['get_software_versions'])
@@ -426,76 +430,6 @@ workflow.onComplete {
     Completion.summary(workflow, params, log)
 }
 
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                    MERGE LIBRARY BAM                                -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// /*
-//  * STEP 4.3: Remove orphan reads from paired-end BAM file
-//  */
-// if (params.single_end) {
-//     ch_filter_bam
-//         .into { ch_rm_orphan_bam_metrics;
-//                 ch_rm_orphan_bam_bigwig;
-//                 ch_rm_orphan_bam_macs_1;
-//                 ch_rm_orphan_bam_macs_2;
-//                 ch_rm_orphan_bam_phantompeakqualtools;
-//                 ch_rm_orphan_name_bam_counts }
-//
-//     ch_filter_bam_flagstat
-//         .into { ch_rm_orphan_flagstat_bigwig;
-//                 ch_rm_orphan_flagstat_macs;
-//                 ch_rm_orphan_flagstat_mqc }
-//
-//     ch_filter_bam_stats_mqc
-//         .set { ch_rm_orphan_stats_mqc }
-// } else {
-//     process MERGED_BAM_REMOVE_ORPHAN {
-//         tag "$name"
-//         label 'process_medium'
-//         publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
-//             saveAs: { filename ->
-//                           if (filename.endsWith('.flagstat')) "samtools_stats/$filename"
-//                           else if (filename.endsWith('.idxstats')) "samtools_stats/$filename"
-//                           else if (filename.endsWith('.stats')) "samtools_stats/$filename"
-//                           else if (filename.endsWith('.sorted.bam')) filename
-//                           else if (filename.endsWith('.sorted.bam.bai')) filename
-//                           else null
-//                     }
-//
-//         input:
-//         tuple val(name), path(bam) from ch_filter_bam
-//
-//         output:
-//         tuple val(name), path('*.sorted.{bam,bam.bai}') into ch_rm_orphan_bam_metrics,
-//                                                              ch_rm_orphan_bam_bigwig,
-//                                                              ch_rm_orphan_bam_macs_1,
-//                                                              ch_rm_orphan_bam_macs_2,
-//                                                              ch_rm_orphan_bam_phantompeakqualtools
-//         tuple val(name), path("${prefix}.bam") into ch_rm_orphan_name_bam_counts
-//         tuple val(name), path('*.flagstat') into ch_rm_orphan_flagstat_bigwig,
-//                                                  ch_rm_orphan_flagstat_macs,
-//                                                  ch_rm_orphan_flagstat_mqc
-//         path '*.{idxstats,stats}' into ch_rm_orphan_stats_mqc
-//
-//         script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-//         prefix = "${name}.mLb.clN"
-//         """
-//         bampe_rm_orphan.py ${bam[0]} ${prefix}.bam --only_fr_pairs
-//
-//         samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $prefix ${prefix}.bam
-//         samtools index ${prefix}.sorted.bam
-//         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-//         samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-//         samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-//         """
-//     }
-// }
-//
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////
 // /* --                                                                     -- */

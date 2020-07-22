@@ -35,11 +35,8 @@ process FILTER_BAM {
         $blacklist_params \\
         -b $bam \\
         | bamtools filter \\
-            -out ${prefix}.sorted.bam \\
+            -out ${prefix}.bam \\
             -script $config
     echo \$(bamtools --version 2>&1) > bamtools.version.txt
     """
 }
-//prefix = meta.single_end ? "${name}.mLb.clN" : "${name}.mLb.flT"
-//name_sort_bam = meta.single_end ? '' : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
-//$name_sort_bam
