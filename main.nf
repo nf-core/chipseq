@@ -167,9 +167,9 @@ include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collect
 include { PRESEQ_LC_EXTRAP } from './modules/nf-core/preseq_lc_extrap'
 include { UCSC_BEDRAPHTOBIGWIG } from './modules/nf-core/ucsc_bedgraphtobigwig'
 include { DEEPTOOLS_COMPUTEMATRIX } from './modules/nf-core/deeptools_computematrix'
-//include { DEEPTOOLS_PLOTPROFILE } from './modules/nf-core/deeptools_plotprofile'
-//include { DEEPTOOLS_PLOTHEATMAP } from './modules/nf-core/deeptools_plotheatmap'
-//include { DEEPTOOLS_PLOTFINGERPRINT } from './modules/nf-core/deeptools_plotfingerprint'
+include { DEEPTOOLS_PLOTPROFILE } from './modules/nf-core/deeptools_plotprofile'
+include { DEEPTOOLS_PLOTHEATMAP } from './modules/nf-core/deeptools_plotheatmap'
+include { DEEPTOOLS_PLOTFINGERPRINT } from './modules/nf-core/deeptools_plotfingerprint'
 //include { MACSC2_CALLPEAK } from './modules/nf-core/macs2_callpeak'
 //include { HOMER_ANNOTATEPEAKS } from './modules/nf-core/homer_annotatepeaks'
 //include { PHANTOMPEAKQUALTOOLS } from './modules/nf-core/phantompeakqualtools'
@@ -421,14 +421,20 @@ workflow {
 
     // POST ALIGNMENT QC
     PICARD_COLLECTMULTIPLEMETRICS(CLEAN_BAM.out.bam, ch_fasta, params.modules['picard_collectmultiplemetrics'])
-    PRESEQ_LC_EXTRAP(CLEAN_BAM.out.bam, params.modules['preseq_lc_extrap'])
+    //PRESEQ_LC_EXTRAP(CLEAN_BAM.out.bam, params.modules['preseq_lc_extrap'])
 
     // COVERAGE TRACKS
     BEDTOOLS_GENOMECOV(CLEAN_BAM.out.bam.join(CLEAN_BAM.out.flagstat, by: [0]), params.modules['bedtools_genomecov'])
     UCSC_BEDRAPHTOBIGWIG(BEDTOOLS_GENOMECOV.out.bedgraph, GET_CHROM_SIZES.out.sizes, params.modules['ucsc_bedgraphtobigwig'])
 
     // COVERATE PLOTS
-    //DEEPTOOLS_COMPUTEMATRIX(UCSC_BEDRAPHTOBIGWIG.out.bigwig, ch_gene_bed, params.modules['deeptools_computematrix'])
+    DEEPTOOLS_COMPUTEMATRIX(UCSC_BEDRAPHTOBIGWIG.out.bigwig, ch_gene_bed, params.modules['deeptools_computematrix'])
+    DEEPTOOLS_PLOTPROFILE(DEEPTOOLS_COMPUTEMATRIX.out.matrix, params.modules['deeptools_plotprofile'])
+    DEEPTOOLS_PLOTHEATMAP(DEEPTOOLS_COMPUTEMATRIX.out.matrix, params.modules['deeptools_plotheatmap'])
+
+    // Join control BAM here too to generate plots with IP and CONTROL together
+    params.modules['deeptools_plotfingerprint'].args += " --numberOfSamples $params.fingerprint_bins"
+    DEEPTOOLS_PLOTFINGERPRINT(CLEAN_BAM.out.bam.join(CLEAN_BAM.out.bai, by: [0]), params.modules['deeptools_plotfingerprint'])
 
     // PIPELINE TEMPLATE REPORTING
     //GET_SOFTWARE_VERSIONS(params.modules['get_software_versions'])
@@ -449,49 +455,6 @@ workflow.onComplete {
     Completion.email(workflow, params, summary, run_name, baseDir, multiqc_report, log)
     Completion.summary(workflow, params, log)
 }
-
-// /*
-//  * STEP 5.4: Generate gene body coverage plot with deepTools plotProfile and plotHeatmap
-//  */
-// process PLOTPROFILE {
-//     tag "$name"
-//     label 'process_high'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: params.publish_dir_mode
-//
-//     when:
-//     !params.skip_plot_profile
-//
-//     input:
-//     tuple val(name), path(bigwig) from ch_bigwig_plotprofile
-//     path bed from ch_gene_bed
-//
-//     output:
-//     path '*.plotProfile.tab' into ch_plotprofile_mqc
-//     path '*.{gz,pdf,mat.tab}'
-//
-//     script:
-//     """
-//     computeMatrix scale-regions \\
-//         --regionsFileName $bed \\
-//         --scoreFileName $bigwig \\
-//         --outFileName ${name}.computeMatrix.mat.gz \\
-//         --outFileNameMatrix ${name}.computeMatrix.vals.mat.tab \\
-//         --regionBodyLength 1000 \\
-//         --beforeRegionStartLength 3000 \\
-//         --afterRegionStartLength 3000 \\
-//         --skipZeros \\
-//         --smartLabels \\
-//         --numberOfProcessors $task.cpus
-//
-//     plotProfile --matrixFile ${name}.computeMatrix.mat.gz \\
-//         --outFileName ${name}.plotProfile.pdf \\
-//         --outFileNameData ${name}.plotProfile.tab
-//
-//     plotHeatmap --matrixFile ${name}.computeMatrix.mat.gz \\
-//         --outFileName ${name}.plotHeatmap.pdf \\
-//         --outFileNameMatrix ${name}.plotHeatmap.mat.tab
-//     """
-// }
 //
 // /*
 //  * STEP 5.5: Phantompeakqualtools
@@ -548,41 +511,6 @@ workflow.onComplete {
 //     .into { ch_group_bam_macs;
 //             ch_group_bam_plotfingerprint;
 //             ch_group_bam_counts }
-//
-// /*
-//  * STEP 6.1: deepTools plotFingerprint
-//  */
-// process PLOTFINGERPRINT {
-//     tag "${ip} vs ${control}"
-//     label 'process_high'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: params.publish_dir_mode
-//
-//     when:
-//     !params.skip_plot_fingerprint
-//
-//     input:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), val(ip), path(ipbam), val(control), path(controlbam), path(ipflagstat) from ch_group_bam_plotfingerprint
-//
-//     output:
-//     path '*.raw.txt' into ch_plotfingerprint_mqc
-//     path '*.{txt,pdf}'
-//
-//     script:
-//     extend = (params.single_end && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
-//     """
-//     plotFingerprint \\
-//         --bamfiles ${ipbam[0]} ${controlbam[0]} \\
-//         --plotFile ${ip}.plotFingerprint.pdf \\
-//         $extend \\
-//         --labels $ip $control \\
-//         --outRawCounts ${ip}.plotFingerprint.raw.txt \\
-//         --outQualityMetrics ${ip}.plotFingerprint.qcmetrics.txt \\
-//         --skipZeros \\
-//         --JSDsample ${controlbam[0]} \\
-//         --numberOfProcessors $task.cpus \\
-//         --numberOfSamples $params.fingerprint_bins
-//     """
-// }
 //
 // /*
 //  * STEP 6.2: Call peaks with MACS2 and calculate FRiP score
