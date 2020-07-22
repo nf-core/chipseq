@@ -18,7 +18,7 @@ process BEDTOOLS_GENOMECOV {
     val opts
 
     output:
-    tuple val(meta), path("*.bigWig"), emit: bigwig
+    tuple val(meta), path("*.bedGraph"), emit: bedgraph
     tuple val(meta), path("*.txt"), emit: scale_factor
     path "*.version.txt", emit: version
 
@@ -37,12 +37,8 @@ process BEDTOOLS_GENOMECOV {
         -scale \$SCALE_FACTOR \\
         $pe \\
         $extend \\
-        | sort -T '.' -k1,1 -k2,2n >  ${prefix}.bedGraph
+        | sort -T '.' -k1,1 -k2,2n > ${prefix}.bedGraph
 
     bedtools --version > bedtools.version.txt
     """
 }
-//     tuple val(name), path(bam), path(flagstat) from ch_rm_orphan_bam_bigwig.join(ch_rm_orphan_flagstat_bigwig, by: [0])
-//     path sizes from ch_genome_sizes_bigwig.collect()
-// bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
-//find * -type f -name "*.bigWig" -exec echo -e "bwa/mergedLibrary/bigwig/"{}"\\t0,0,178" \\; > ${name}.bigWig.igv.txt

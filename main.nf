@@ -165,11 +165,11 @@ include { PICARD_MERGESAMFILES } from './modules/nf-core/picard_mergesamfiles'
 include { PICARD_MARKDUPLICATES } from './modules/nf-core/picard_markduplicates'
 include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collectmultiplemetrics'
 include { PRESEQ_LC_EXTRAP } from './modules/nf-core/preseq_lc_extrap'
-//include { UCSC_BEDRAPHTOBIGWIG } from './modules/nf-core/ucsc_bedgraphtobigwig'
+include { UCSC_BEDRAPHTOBIGWIG } from './modules/nf-core/ucsc_bedgraphtobigwig'
+include { DEEPTOOLS_COMPUTEMATRIX } from './modules/nf-core/deeptools_computematrix'
 //include { DEEPTOOLS_PLOTPROFILE } from './modules/nf-core/deeptools_plotprofile'
 //include { DEEPTOOLS_PLOTHEATMAP } from './modules/nf-core/deeptools_plotheatmap'
 //include { DEEPTOOLS_PLOTFINGERPRINT } from './modules/nf-core/deeptools_plotfingerprint'
-//include { DEEPTOOLS_COMPUTEMATRIX } from './modules/nf-core/deeptools_computematrix'
 //include { MACSC2_CALLPEAK } from './modules/nf-core/macs2_callpeak'
 //include { HOMER_ANNOTATEPEAKS } from './modules/nf-core/homer_annotatepeaks'
 //include { PHANTOMPEAKQUALTOOLS } from './modules/nf-core/phantompeakqualtools'
@@ -419,10 +419,16 @@ workflow {
                params.modules['remove_bam_orphans'],
                params.modules['samtools_sort_filter'])
 
+    // POST ALIGNMENT QC
     PICARD_COLLECTMULTIPLEMETRICS(CLEAN_BAM.out.bam, ch_fasta, params.modules['picard_collectmultiplemetrics'])
     PRESEQ_LC_EXTRAP(CLEAN_BAM.out.bam, params.modules['preseq_lc_extrap'])
+
+    // COVERAGE TRACKS
     BEDTOOLS_GENOMECOV(CLEAN_BAM.out.bam.join(CLEAN_BAM.out.flagstat, by: [0]), params.modules['bedtools_genomecov'])
     UCSC_BEDRAPHTOBIGWIG(BEDTOOLS_GENOMECOV.out.bedgraph, GET_CHROM_SIZES.out.sizes, params.modules['ucsc_bedgraphtobigwig'])
+
+    // COVERATE PLOTS
+    //DEEPTOOLS_COMPUTEMATRIX(UCSC_BEDRAPHTOBIGWIG.out.bigwig, ch_gene_bed, params.modules['deeptools_computematrix'])
 
     // PIPELINE TEMPLATE REPORTING
     //GET_SOFTWARE_VERSIONS(params.modules['get_software_versions'])

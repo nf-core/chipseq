@@ -20,12 +20,10 @@ process UCSC_BEDRAPHTOBIGWIG {
 
     output:
     tuple val(meta), path("*.bigWig"), emit: bigwig
-    path "*.version.txt", emit: version
 
     script:
     prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
     """
     bedGraphToBigWig $bedgraph $sizes ${prefix}.bigWig
-    bedGraphToBigWig > ucsc.version.txt
     """
 }
