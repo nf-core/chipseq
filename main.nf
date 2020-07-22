@@ -421,6 +421,8 @@ workflow {
 
     PICARD_COLLECTMULTIPLEMETRICS(CLEAN_BAM.out.bam, ch_fasta, params.modules['picard_collectmultiplemetrics'])
     PRESEQ_LC_EXTRAP(CLEAN_BAM.out.bam, params.modules['preseq_lc_extrap'])
+    BEDTOOLS_GENOMECOV(CLEAN_BAM.out.bam.join(CLEAN_BAM.out.flagstat, by: [0]), params.modules['bedtools_genomecov'])
+    UCSC_BEDRAPHTOBIGWIG(BEDTOOLS_GENOMECOV.out.bedgraph, GET_CHROM_SIZES.out.sizes, params.modules['ucsc_bedgraphtobigwig'])
 
     // PIPELINE TEMPLATE REPORTING
     //GET_SOFTWARE_VERSIONS(params.modules['get_software_versions'])
@@ -442,50 +444,6 @@ workflow.onComplete {
     Completion.summary(workflow, params, log)
 }
 
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                 MERGE LIBRARY BAM POST-ANALYSIS                     -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// /*
-//  * STEP 5.3: Read depth normalised bigWig
-//  */
-// process BIGWIG {
-//     tag "$name"
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/bigwig", mode: params.publish_dir_mode,
-//         saveAs: { filename ->
-//                       if (filename.endsWith('scale_factor.txt')) "scale/$filename"
-//                       else if (filename.endsWith('.bigWig')) filename
-//                       else null
-//                 }
-//
-//     input:
-//     tuple val(name), path(bam), path(flagstat) from ch_rm_orphan_bam_bigwig.join(ch_rm_orphan_flagstat_bigwig, by: [0])
-//     path sizes from ch_genome_sizes_bigwig.collect()
-//
-//     output:
-//     tuple val(name), path('*.bigWig') into ch_bigwig_plotprofile
-//     path '*igv.txt' into ch_bigwig_igv
-//     path '*scale_factor.txt'
-//
-//     script:
-//     pe_fragment = params.single_end ? '' : '-pc'
-//     extend = (params.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
-//     """
-//     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
-//     echo \$SCALE_FACTOR > ${name}.scale_factor.txt
-//     genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -T '.' -k1,1 -k2,2n >  ${name}.bedGraph
-//
-//     bedGraphToBigWig ${name}.bedGraph $sizes ${name}.bigWig
-//
-//     find * -type f -name "*.bigWig" -exec echo -e "bwa/mergedLibrary/bigwig/"{}"\\t0,0,178" \\; > ${name}.bigWig.igv.txt
-//     """
-// }
-//
 // /*
 //  * STEP 5.4: Generate gene body coverage plot with deepTools plotProfile and plotHeatmap
 //  */
