@@ -1,4 +1,4 @@
-process TRIM_GALORE {
+process TRIMGALORE {
     tag "$meta.id"
     label 'process_high'
     publishDir "${params.outdir}/${opts.publish_dir}",

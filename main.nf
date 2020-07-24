@@ -134,312 +134,212 @@ log.info Headers.nf_core(workflow, params.monochrome_logs)
 log.info summary.collect { k,v -> "${k.padRight(22)}: $v" }.join("\n")
 log.info "-\033[2m----------------------------------------------------\033[0m-"
 
-/*
- * Include local pipeline modules
- */
-include { CHECK_SAMPLESHEET;
-          get_samplesheet_paths;
-          get_samplesheet_design } from './modules/local/check_samplesheet'
-include { GTF2BED } from './modules/local/gtf2bed'
-include { GET_CHROM_SIZES } from './modules/local/get_chrom_sizes'
-include { MAKE_GENOME_FILTER } from './modules/local/make_genome_filter'
-include { FILTER_BAM } from './modules/local/filter_bam'
-include { REMOVE_BAM_ORPHANS } from './modules/local/remove_bam_orphans'
-include { BEDTOOLS_GENOMECOV } from './modules/local/bedtools_genomecov'
-include { OUTPUT_DOCUMENTATION } from './modules/local/output_documentation'
-include { GET_SOFTWARE_VERSIONS } from './modules/local/get_software_versions'
+////////////////////////////////////////////////////
+/* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
+////////////////////////////////////////////////////
 
-/*
- * Include nf-core modules
- */
-include { FASTQC } from './modules/nf-core/fastqc'
-include { TRIM_GALORE } from './modules/nf-core/trim_galore'
-include { BWA_INDEX } from './modules/nf-core/bwa_index'
-include { BWA_MEM } from './modules/nf-core/bwa_mem'
-include { SAMTOOLS_SORT } from './modules/nf-core/samtools_sort'
-include { SAMTOOLS_INDEX } from './modules/nf-core/samtools_index'
-include { SAMTOOLS_STATS } from './modules/nf-core/samtools_stats'
-include { SAMTOOLS_IDXSTATS } from './modules/nf-core/samtools_idxstats'
-include { SAMTOOLS_FLAGSTAT } from './modules/nf-core/samtools_flagstat'
-include { PICARD_MERGESAMFILES } from './modules/nf-core/picard_mergesamfiles'
-include { PICARD_MARKDUPLICATES } from './modules/nf-core/picard_markduplicates'
-include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/picard_collectmultiplemetrics'
-include { PRESEQ_LC_EXTRAP } from './modules/nf-core/preseq_lc_extrap'
-include { UCSC_BEDRAPHTOBIGWIG } from './modules/nf-core/ucsc_bedgraphtobigwig'
-include { DEEPTOOLS_COMPUTEMATRIX } from './modules/nf-core/deeptools_computematrix'
-include { DEEPTOOLS_PLOTPROFILE } from './modules/nf-core/deeptools_plotprofile'
-include { DEEPTOOLS_PLOTHEATMAP } from './modules/nf-core/deeptools_plotheatmap'
-include { DEEPTOOLS_PLOTFINGERPRINT } from './modules/nf-core/deeptools_plotfingerprint'
-include { PHANTOMPEAKQUALTOOLS } from './modules/nf-core/phantompeakqualtools'
-//include { MACSC2_CALLPEAK } from './modules/nf-core/macs2_callpeak'
-//include { HOMER_ANNOTATEPEAKS } from './modules/nf-core/homer_annotatepeaks'
-//include { SUBREAD_FEATURECOUNTS } from './modules/nf-core/subread_featurecounts'
-include { MULTIQC } from './modules/nf-core/multiqc'
+include { GTF2BED               } from './modules/local/process/gtf2bed'
+include { GET_CHROM_SIZES       } from './modules/local/process/get_chrom_sizes'
+include { MAKE_GENOME_FILTER    } from './modules/local/process/make_genome_filter'
+include { BEDTOOLS_GENOMECOV    } from './modules/local/process/bedtools_genomecov'
+include { OUTPUT_DOCUMENTATION  } from './modules/local/process/output_documentation'
+include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions'
 
-/*
- * Check input samplesheet and get read channels
- */
-workflow CHECK_INPUT {
-    take:
-    ch_input               //   file: /path/to/samplesheet.csv
-    seq_center             // string: sequencing center for read group
-    check_samplesheet_opts //    map: options for TrimGalore! module
+include { CHECK_INPUT           } from './modules/local/subworkflow/check_input'
+include { CLEAN_BAM             } from './modules/local/subworkflow/clean_bam'
 
-    main:
-    CHECK_SAMPLESHEET (ch_input, check_samplesheet_opts)
-        .reads
-        .splitCsv(header:true, sep:',')
-        .map { get_samplesheet_paths(it, params.single_end, seq_center) }
-        .set { ch_reads }
+////////////////////////////////////////////////////
+/* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
+////////////////////////////////////////////////////
 
-    CHECK_SAMPLESHEET
-        .out
-        .controls
-        .splitCsv(header:true, sep:',')
-        .map { get_samplesheet_design(it, params.single_end) }
-        .set { ch_design }
+include { BWA_INDEX                     } from './modules/nf-core/software/bwa_index'
+include { PICARD_MERGESAMFILES          } from './modules/nf-core/software/picard_mergesamfiles'
+include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/software/picard_collectmultiplemetrics'
+include { PRESEQ_LCEXTRAP               } from './modules/nf-core/software/preseq_lcextrap'
+include { UCSC_BEDRAPHTOBIGWIG          } from './modules/nf-core/software/ucsc_bedgraphtobigwig'
+include { DEEPTOOLS_COMPUTEMATRIX       } from './modules/nf-core/software/deeptools_computematrix'
+include { DEEPTOOLS_PLOTPROFILE         } from './modules/nf-core/software/deeptools_plotprofile'
+include { DEEPTOOLS_PLOTHEATMAP         } from './modules/nf-core/software/deeptools_plotheatmap'
+include { DEEPTOOLS_PLOTFINGERPRINT     } from './modules/nf-core/software/deeptools_plotfingerprint'
+include { PHANTOMPEAKQUALTOOLS          } from './modules/nf-core/software/phantompeakqualtools'
+//include { MACSC2_CALLPEAK             } from './modules/nf-core/software/macs2_callpeak'
+//include { HOMER_ANNOTATEPEAKS         } from './modules/nf-core/software/homer_annotatepeaks'
+//include { SUBREAD_FEATURECOUNTS       } from './modules/nf-core/software/subread_featurecounts'
+include { MULTIQC                       } from './modules/nf-core/software/multiqc'
 
-    emit:
-    reads = ch_reads   // channel: [ val(meta), [ reads ] ]
-    design = ch_design // channel: [ val(meta), [ reads ] ]
-}
+include { QC_TRIM                       } from './modules/nf-core/subworkflow/qc_trim'
+include { BAM_STATS                     } from './modules/nf-core/subworkflow/bam_stats'
+include { SORT_BAM                      } from './modules/nf-core/subworkflow/sort_bam'
+include { MAP_READS                     } from './modules/nf-core/subworkflow/map_reads'
+include { MARK_DUPLICATES               } from './modules/nf-core/subworkflow/mark_duplicates'
 
-/*
- * Read QC and trimming
- */
-workflow QC_TRIM {
-    take:
-    ch_reads         // channel: [ val(meta), [ reads ] ]
-    skip_fastqc      // boolean: true/false
-    skip_trimming    // boolean: true/false
-    fastqc_opts      //     map: options for FastQC module
-    trim_galore_opts //     map: options for TrimGalore! module
-
-    main:
-    fastqc_html = Channel.empty()
-    fastqc_zip = Channel.empty()
-    fastqc_version = Channel.empty()
-    if (!skip_fastqc) {
-        FASTQC(ch_reads, fastqc_opts).html.set { fastqc_html }
-        fastqc_zip = FASTQC.out.zip
-        fastqc_version = FASTQC.out.version
-    }
-
-    ch_trim_reads = ch_reads
-    trim_html = Channel.empty()
-    trim_zip = Channel.empty()
-    trim_log = Channel.empty()
-    trim_galore_version = Channel.empty()
-    if (!skip_trimming) {
-        TRIM_GALORE(ch_reads, trim_galore_opts).reads.set { ch_trim_reads }
-        trim_html = TRIM_GALORE.out.html
-        trim_zip = TRIM_GALORE.out.zip
-        trim_log = TRIM_GALORE.out.log
-        trim_galore_version = TRIM_GALORE.out.version
-    }
-
-    emit:
-    fastqc_html           // channel: [ val(meta), [ html ] ]
-    fastqc_zip            // channel: [ val(meta), [ zip ] ]
-    fastqc_version        //    path: *.version.txt
-
-    reads = ch_trim_reads // channel: [ val(meta), [ reads ] ]
-    trim_html             // channel: [ val(meta), [ html ] ]
-    trim_zip              // channel: [ val(meta), [ zip ] ]
-    trim_log              // channel: [ val(meta), [ txt ] ]
-    trim_galore_version   //    path: *.version.txt
-}
-
-/*
- * Run SAMtools stats, flagstat and idxstats
- */
-workflow BAM_STATS {
-    take:
-    ch_bam_bai    // channel: [ val(meta), [ bam ], [bai] ]
-    samtools_opts //     map: options for SAMTools modules
-
-    main:
-    SAMTOOLS_STATS(ch_bam_bai, samtools_opts)
-    SAMTOOLS_FLAGSTAT(ch_bam_bai, samtools_opts)
-    SAMTOOLS_IDXSTATS(ch_bam_bai, samtools_opts)
-
-    emit:
-    stats = SAMTOOLS_STATS.out.stats              // channel: [ val(meta), [ stats ] ]
-    flagstat = SAMTOOLS_FLAGSTAT.out.flagstat     // channel: [ val(meta), [ flagstat ] ]
-    idxstats = SAMTOOLS_IDXSTATS.out.idxstats     // channel: [ val(meta), [ idxstats ] ]
-    samtools_version = SAMTOOLS_STATS.out.version //    path: *.version.txt
-}
-
-/*
- * Sort, index BAM file and run samtools stats, flagstat and idxstats
- */
-workflow SORT_BAM {
-    take:
-    ch_bam        // channel: [ val(meta), [ bam ] ]
-    samtools_opts //     map: options for SAMTools modules
-
-    main:
-    SAMTOOLS_SORT(ch_bam, samtools_opts)
-    SAMTOOLS_INDEX(SAMTOOLS_SORT.out.bam, samtools_opts)
-    BAM_STATS(SAMTOOLS_SORT.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_opts)
-
-    emit:
-    bam = SAMTOOLS_SORT.out.bam                  // channel: [ val(meta), [ bam ] ]
-    bai = SAMTOOLS_INDEX.out.bai                 // channel: [ val(meta), [ bai ] ]
-    stats = BAM_STATS.out.stats                  // channel: [ val(meta), [ stats ] ]
-    flagstat = BAM_STATS.out.flagstat            // channel: [ val(meta), [ flagstat ] ]
-    idxstats = BAM_STATS.out.idxstats            // channel: [ val(meta), [ idxstats ] ]
-    samtools_version = SAMTOOLS_SORT.out.version //    path: *.version.txt
-}
-
-/*
- * Map reads, sort, index BAM file and run samtools stats, flagstat and idxstats
- */
-workflow ALIGN {
-    take:
-    ch_reads      // channel: [ val(meta), [ reads ] ]
-    ch_index      //    path: /path/to/index
-    ch_fasta      //    path: /path/to/genome.fasta
-    bwa_mem_opts  //     map: options for BWA MEM module
-    samtools_opts //     map: options for SAMTools modules
-
-    main:
-    BWA_MEM(ch_reads, ch_index, ch_fasta, bwa_mem_opts)
-    SORT_BAM(BWA_MEM.out.bam, samtools_opts)
-
-    emit:
-    bam = SORT_BAM.out.bam                           // channel: [ val(meta), [ bam ] ]
-    bai = SORT_BAM.out.bai                           // channel: [ val(meta), [ bai ] ]
-    stats = SORT_BAM.out.stats                       // channel: [ val(meta), [ stats ] ]
-    flagstat = SORT_BAM.out.flagstat                 // channel: [ val(meta), [ flagstat ] ]
-    idxstats = SORT_BAM.out.idxstats                 // channel: [ val(meta), [ idxstats ] ]
-    bwa_version = BWA_MEM.out.version                //    path: *.version.txt
-    samtools_version = SORT_BAM.out.samtools_version //    path: *.version.txt
-}
-
-/*
- * Picard MarkDuplicates, sort, index BAM file and run samtools stats, flagstat and idxstats
- */
-workflow MARKDUPLICATES {
-    take:
-    ch_bam              // channel: [ val(meta), [ bam ] ]
-    markduplicates_opts //     map: options for picard MarkDuplicates module
-    samtools_opts       //     map: options for SAMTools modules
-
-    main:
-    PICARD_MARKDUPLICATES(ch_bam, markduplicates_opts)
-    SAMTOOLS_INDEX(PICARD_MARKDUPLICATES.out.bam, samtools_opts)
-    BAM_STATS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_opts)
-
-    emit:
-    bam = PICARD_MARKDUPLICATES.out.bam                // channel: [ val(meta), [ bam ] ]
-    metrics = PICARD_MARKDUPLICATES.out.metrics        // channel: [ val(meta), [ metrics ] ]
-    bai = SAMTOOLS_INDEX.out.bai                       // channel: [ val(meta), [ bai ] ]
-    stats = BAM_STATS.out.stats                        // channel: [ val(meta), [ stats ] ]
-    flagstat = BAM_STATS.out.flagstat                  // channel: [ val(meta), [ flagstat ] ]
-    idxstats = BAM_STATS.out.idxstats                  // channel: [ val(meta), [ idxstats ] ]
-    picard_version = PICARD_MARKDUPLICATES.out.version //    path: *.version.txt
-    samtools_version = SAMTOOLS_INDEX.out.version      //    path: *.version.txt
-}
-
-/*
- * Filter BAM file
- */
-workflow CLEAN_BAM {
-    take:
-    ch_bam_bai          // channel: [ val(meta), [ bam ], [bai] ]
-    ch_bed              // channel: [ bed ]
-    config              //    file: BAMtools filter JSON config file
-    filter_bam_opts     //     map: options for filter_bam module
-    rm_bam_orphans_opts //     map: options for remove_bam_orphans module
-    samtools_opts       //     map: options for SAMTools modules
-
-    main:
-    FILTER_BAM(ch_bam_bai, ch_bed, config, filter_bam_opts)
-    REMOVE_BAM_ORPHANS(FILTER_BAM.out.bam, rm_bam_orphans_opts)
-    SORT_BAM(REMOVE_BAM_ORPHANS.out.bam, samtools_opts)
-
-    emit:
-    name_bam = REMOVE_BAM_ORPHANS.out.bam     // channel: [ val(meta), [ bam ] ]
-    bam = SORT_BAM.out.bam                    // channel: [ val(meta), [ bam ] ]
-    bai = SORT_BAM.out.bai                    // channel: [ val(meta), [ bai ] ]
-    stats = SORT_BAM.out.stats                // channel: [ val(meta), [ stats ] ]
-    flagstat = SORT_BAM.out.flagstat          // channel: [ val(meta), [ flagstat ] ]
-    idxstats = SORT_BAM.out.idxstats          // channel: [ val(meta), [ idxstats ] ]
-    bamtools_version = FILTER_BAM.out.version //    path: *.version.txt
-}
+////////////////////////////////////////////////////
+/* --           RUN MAIN WORKFLOW              -- */
+////////////////////////////////////////////////////
 
 workflow {
 
-    // READ IN SAMPLESHEET, VALIDATE AND STAGE INPUT FILES
-    CHECK_INPUT(ch_input, params.seq_center, params.modules['check_samplesheet'])
+    /*
+     * Read in samplesheet, validate and stage input files
+     */
+    CHECK_INPUT (
+        ch_input,
+        params.seq_center,
+        params.modules['check_samplesheet']
+    )
 
-    // PREPARE GENOME FILES
-    ch_index = params.bwa_index ? Channel.value(file(params.bwa_index)) : BWA_INDEX(ch_fasta, params.modules['bwa_index']).index
-    if (makeBED) { GTF2BED(ch_gtf, params.modules['gtf2bed']).set { ch_gene_bed } }
-    MAKE_GENOME_FILTER(GET_CHROM_SIZES(ch_fasta, params.modules['get_chrom_sizes']).sizes,
-                       ch_blacklist.ifEmpty([]),
-                       params.modules['make_genome_filter'])
+    /*
+     * Prepare genome files
+     */
+    ch_index = params.bwa_index ? Channel.value(file(params.bwa_index)) : BWA_INDEX ( ch_fasta, params.modules['bwa_index'] ).index
 
-    // READ QC & TRIMMING
+    if (makeBED) { ch_gene_bed = GTF2BED ( ch_gtf, params.modules['gtf2bed'] ) }
+
+    MAKE_GENOME_FILTER (
+        GET_CHROM_SIZES (
+            ch_fasta,
+            params.modules['get_chrom_sizes']
+        ).sizes,
+        ch_blacklist.ifEmpty([]),
+        params.modules['make_genome_filter']
+    )
+
+    /*
+     * Read QC & trimming
+     */
     nextseq = params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ''
-    params.modules['trim_galore'].args += nextseq
-    QC_TRIM(CHECK_INPUT.out.reads,
-            params.skip_fastqc,
-            params.skip_trimming,
-            params.modules['fastqc'],
-            params.modules['trim_galore'])
+    params.modules['trimgalore'].args += nextseq
+    QC_TRIM (
+        CHECK_INPUT.out.reads,
+        params.skip_fastqc,
+        params.skip_trimming,
+        params.modules['fastqc'],
+        params.modules['trimgalore']
+    )
 
-    // MAP READS & BAM QC
+    /*
+     * Map reads & BAM QC
+     */
     score = params.bwa_min_score ? " -T ${params.bwa_min_score}" : ''
     params.modules['bwa_mem'].args += score
-    ALIGN(QC_TRIM.out.reads, ch_index, ch_fasta, params.modules['bwa_mem'], params.modules['samtools_sort_lib'])
+    MAP_READS (
+        QC_TRIM.out.reads,
+        ch_index,
+        ch_fasta,
+        params.modules['bwa_mem'],
+        params.modules['samtools_sort_lib']
+    )
 
-    // MERGE RESEQUENCED BAM FILES
-    ALIGN
+    /*
+     * Merge resequenced BAM files
+     */
+    MAP_READS
         .out
         .bam
-        .map { meta, bam ->
-                   fmeta = meta.findAll { it.key != 'read_group' }
-                   fmeta.id = fmeta.id.split('_')[0..-2].join('_')
-                   [ fmeta, bam ] }
+        .map {
+            meta, bam ->
+                fmeta = meta.findAll { it.key != 'read_group' }
+                fmeta.id = fmeta.id.split('_')[0..-2].join('_')
+                [ fmeta, bam ] }
        .groupTuple(by: [0])
        .map { it ->  [ it[0], it[1].flatten() ] }
        .set { ch_sort_bam }
 
-    PICARD_MERGESAMFILES(ch_sort_bam, params.modules['picard_mergesamfiles'])
-    MARKDUPLICATES(PICARD_MERGESAMFILES.out.bam, params.modules['picard_markduplicates'], params.modules['samtools_sort_merged_lib'])
+    PICARD_MERGESAMFILES (
+        ch_sort_bam,
+        params.modules['picard_mergesamfiles']
+    )
 
-    // FILTER BAM FILES
-      // Fix getting name sorted BAM here for PE/SE
-    CLEAN_BAM(MARKDUPLICATES.out.bam.join(MARKDUPLICATES.out.bai, by: [0]),
-               MAKE_GENOME_FILTER.out.collect(),
-               ch_bamtools_filter_config,
-               params.modules['filter_bam'],
-               params.modules['remove_bam_orphans'],
-               params.modules['samtools_sort_filter'])
+    /*
+     * Mark duplicates & filter BAM files
+     */
+    MARK_DUPLICATES (
+        PICARD_MERGESAMFILES.out.bam,
+        params.modules['picard_markduplicates'],
+        params.modules['samtools_sort_merged_lib']
+    )
 
-    // POST ALIGNMENT QC
-    PICARD_COLLECTMULTIPLEMETRICS(CLEAN_BAM.out.bam, ch_fasta, params.modules['picard_collectmultiplemetrics'])
-    //PRESEQ_LC_EXTRAP(CLEAN_BAM.out.bam, params.modules['preseq_lc_extrap'])
-    PHANTOMPEAKQUALTOOLS(CLEAN_BAM.out.bam, params.modules['phantompeakqualtools'])
+    // Fix getting name sorted BAM here for PE/SE
+    CLEAN_BAM (
+        MARK_DUPLICATES.out.bam.join(MARK_DUPLICATES.out.bai, by: [0]),
+        MAKE_GENOME_FILTER.out.collect(),
+        ch_bamtools_filter_config,
+        params.modules['filter_bam'],
+        params.modules['remove_bam_orphans'],
+        params.modules['samtools_sort_filter']
+    )
 
-    // COVERAGE TRACKS
-    BEDTOOLS_GENOMECOV(CLEAN_BAM.out.bam.join(CLEAN_BAM.out.flagstat, by: [0]), params.modules['bedtools_genomecov'])
-    UCSC_BEDRAPHTOBIGWIG(BEDTOOLS_GENOMECOV.out.bedgraph, GET_CHROM_SIZES.out.sizes, params.modules['ucsc_bedgraphtobigwig'])
+    /*
+     * Post alignment QC
+     */
+    PICARD_COLLECTMULTIPLEMETRICS (
+        CLEAN_BAM.out.bam,
+        ch_fasta,
+        params.modules['picard_collectmultiplemetrics']
+    )
 
-    // COVERATE PLOTS
-    DEEPTOOLS_COMPUTEMATRIX(UCSC_BEDRAPHTOBIGWIG.out.bigwig, ch_gene_bed, params.modules['deeptools_computematrix'])
-    DEEPTOOLS_PLOTPROFILE(DEEPTOOLS_COMPUTEMATRIX.out.matrix, params.modules['deeptools_plotprofile'])
-    DEEPTOOLS_PLOTHEATMAP(DEEPTOOLS_COMPUTEMATRIX.out.matrix, params.modules['deeptools_plotheatmap'])
+    PRESEQ_LCEXTRAP (
+        CLEAN_BAM.out.bam,
+        params.modules['preseq_lcextrap']
+    )
+
+    PHANTOMPEAKQUALTOOLS (
+        CLEAN_BAM.out.bam,
+        params.modules['phantompeakqualtools']
+    )
+
+    /*
+     * Coverage tracks
+     */
+    BEDTOOLS_GENOMECOV (
+        CLEAN_BAM.out.bam.join(CLEAN_BAM.out.flagstat, by: [0]),
+        params.modules['bedtools_genomecov']
+    )
+
+    UCSC_BEDRAPHTOBIGWIG (
+        BEDTOOLS_GENOMECOV.out.bedgraph,
+        GET_CHROM_SIZES.out.sizes,
+        params.modules['ucsc_bedgraphtobigwig']
+    )
+
+    /*
+     * Coverage plots
+     */
+    DEEPTOOLS_COMPUTEMATRIX (
+        UCSC_BEDRAPHTOBIGWIG.out.bigwig,
+        ch_gene_bed,
+        params.modules['deeptools_computematrix']
+    )
+
+    DEEPTOOLS_PLOTPROFILE (
+        DEEPTOOLS_COMPUTEMATRIX.out.matrix,
+        params.modules['deeptools_plotprofile']
+    )
+
+    DEEPTOOLS_PLOTHEATMAP (
+        DEEPTOOLS_COMPUTEMATRIX.out.matrix,
+        params.modules['deeptools_plotheatmap']
+    )
 
     // Join control BAM here too to generate plots with IP and CONTROL together
     params.modules['deeptools_plotfingerprint'].args += " --numberOfSamples $params.fingerprint_bins"
-    DEEPTOOLS_PLOTFINGERPRINT(CLEAN_BAM.out.bam.join(CLEAN_BAM.out.bai, by: [0]), params.modules['deeptools_plotfingerprint'])
+    DEEPTOOLS_PLOTFINGERPRINT (
+        CLEAN_BAM.out.bam.join(CLEAN_BAM.out.bai, by: [0]),
+        params.modules['deeptools_plotfingerprint']
+    )
 
-    // PIPELINE REPORTING
-    GET_SOFTWARE_VERSIONS(params.modules['get_software_versions'])
-    OUTPUT_DOCUMENTATION(ch_output_docs, ch_output_docs_images, params.modules['output_documentation'])
+    /*
+     * Pipeline reporting
+     */
+    GET_SOFTWARE_VERSIONS (
+        params.modules['get_software_versions']
+    )
+
+    OUTPUT_DOCUMENTATION (
+        ch_output_docs,
+        ch_output_docs_images,
+        params.modules['output_documentation']
+    )
 
     // MULTIQC(
     //     summary,
@@ -448,14 +348,19 @@ workflow {
     // )
 }
 
-/*
- * Send completion email
- */
+////////////////////////////////////////////////////
+/* --              COMPLETION EMAIL            -- */
+////////////////////////////////////////////////////
+
 workflow.onComplete {
     def multiqc_report = []
     Completion.email(workflow, params, summary, run_name, baseDir, multiqc_report, log)
     Completion.summary(workflow, params, log)
 }
+
+////////////////////////////////////////////////////
+/* --                  THE END                 -- */
+////////////////////////////////////////////////////
 
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////

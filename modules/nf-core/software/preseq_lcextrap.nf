@@ -1,4 +1,4 @@
-process PRESEQ_LC_EXTRAP {
+process PRESEQ_LCEXTRAP {
     tag "$meta.id"
     label 'process_medium'
     label 'error_ignore'
