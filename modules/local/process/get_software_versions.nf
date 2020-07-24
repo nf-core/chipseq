@@ -9,12 +9,6 @@ process GET_SOFTWARE_VERSIONS {
                     else if (filename.endsWith('.yaml')) null
                     else filename }
 
-    // Re-use Python 3 in MultiQC container
-    container "quay.io/biocontainers/multiqc:1.9--pyh9f0ad1d_0"
-    //container "https://depot.galaxyproject.org/singularity/multiqc:1.9--pyh9f0ad1d_0"
-
-    conda (params.conda ? "bioconda::multiqc=1.9" : null)
-    
     input:
     val opts
 
