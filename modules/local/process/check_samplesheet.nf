@@ -14,20 +14,21 @@ process CHECK_SAMPLESHEET {
     val opts
 
     output:
-    path 'samplesheet_reads.csv', emit: reads
-    path 'samplesheet_controls.csv', emit: controls
+    path '*.csv'
 
     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     """
-    check_samplesheet.py $samplesheet samplesheet_reads.csv samplesheet_controls.csv
+    check_samplesheet.py $samplesheet samplesheet.valid.csv
     """
 }
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
-def get_samplesheet_paths(LinkedHashMap row, boolean single_end, String seq_center) {
+def get_samplesheet_paths(LinkedHashMap row, String seq_center) {
     def meta = [:]
-    meta.id = row.sample_id
-    meta.single_end = single_end
+    meta.id = row.sample
+    meta.single_end = row.single_end.toBoolean()
+    meta.antibody = row.antibody
+    meta.control = row.control
 
     def rg = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\'"
     if (seq_center) {
@@ -36,24 +37,10 @@ def get_samplesheet_paths(LinkedHashMap row, boolean single_end, String seq_cent
     meta.read_group = rg
 
     def array = []
-    if (single_end) {
+    if (meta.single_end) {
         array = [ meta, [ file(row.fastq_1, checkIfExists: true) ] ]
     } else {
         array = [ meta, [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] ]
     }
     return array
-}
-
-// Function to get list of [sample, control, antibody, replicatesExist?, multipleGroups?]
-def get_samplesheet_design(LinkedHashMap row, boolean single_end) {
-    def meta = [:]
-    meta.id = row.sample_id
-    meta.single_end = single_end
-    meta.antibody = row.antibody
-    meta.control_id = row.control_id
-    meta.reps_exist = row.replicatesExist.toBoolean()
-    meta.groups_exist = row.multipleGroups.toBoolean()
-
-    //return [ row.sample_id, row.control_id, row.antibody, row.replicatesExist.toBoolean(), row.multipleGroups.toBoolean() ]
-    return meta
 }
