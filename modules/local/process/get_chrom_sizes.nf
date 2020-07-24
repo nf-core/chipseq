@@ -12,8 +12,8 @@ process GET_CHROM_SIZES {
     container "quay.io/biocontainers/samtools:1.10--h9402c20_2"
     //container " https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2"
 
-    //conda (params.conda ? "${moduleDir}/environment.yml" : null)
-
+    conda (params.conda ? "bioconda::samtools=1.10" : null)
+    
     input:
     path fasta
     val opts

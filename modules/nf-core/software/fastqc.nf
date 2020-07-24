@@ -11,7 +11,7 @@ process FASTQC {
     container "quay.io/biocontainers/fastqc:0.11.9--0"
     //container "https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0"
 
-    conda (params.conda ? "${moduleDir}/environment.yml" : null)
+    conda (params.conda ? "bioconda::fastqc=0.11.9" : null)
 
     input:
     tuple val(meta), path(reads)

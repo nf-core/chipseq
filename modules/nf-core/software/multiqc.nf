@@ -30,8 +30,8 @@ process MULTIQC {
     container "quay.io/biocontainers/multiqc:1.9--pyh9f0ad1d_0"
     //container "https://depot.galaxyproject.org/singularity/multiqc:1.9--pyh9f0ad1d_0"
 
-    conda (params.conda ? "${moduleDir}/environment.yml" : null)
-
+    conda (params.conda ? "bioconda::multiqc=1.9" : null)
+    
     input:
     path (multiqc_config) from ch_multiqc_config
     path (mqc_custom_config) from ch_multiqc_custom_config.collect().ifEmpty([])

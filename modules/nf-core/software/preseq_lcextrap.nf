@@ -12,7 +12,7 @@ process PRESEQ_LCEXTRAP {
     container "quay.io/biocontainers/preseq:2.0.3--hf53bd2b_3"
     //container "https://depot.galaxyproject.org/singularity/preseq:2.0.3--hf53bd2b_3"
 
-    conda (params.conda ? "${moduleDir}/environment.yml" : null)
+    conda (params.conda ? "bioconda::preseq=2.0.3" : null)
 
     input:
     tuple val(meta), path(bam)

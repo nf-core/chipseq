@@ -11,7 +11,7 @@ process TRIMGALORE {
     container "quay.io/biocontainers/trim-galore:0.6.5--0"
     //container "https://depot.galaxyproject.org/singularity/trim-galore:0.6.5--0"
 
-    conda (params.conda ? "${moduleDir}/environment.yml" : null)
+    conda (params.conda ? "bioconda::trim-galore=0.6.5" : null)
 
     input:
     tuple val(meta), path(reads)

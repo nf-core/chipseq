@@ -13,7 +13,7 @@ process GTF2BED {
     container "quay.io/biocontainers/perl:5.26.2"
     //container "https://depot.galaxyproject.org/singularity/perl:5.26.2"
 
-    //conda (params.conda ? "${moduleDir}/environment.yml" : null)
+    conda (params.conda ? "conda-forge::perl=5.26.2" : null)
 
     input:
     path gtf

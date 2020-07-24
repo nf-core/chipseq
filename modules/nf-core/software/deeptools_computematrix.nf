@@ -11,7 +11,7 @@ process DEEPTOOLS_COMPUTEMATRIX {
     container "quay.io/biocontainers/deeptools:3.4.3--py_0"
     //container "https://depot.galaxyproject.org/singularity/deeptools:3.4.3--py_0"
 
-    conda (params.conda ? "${moduleDir}/environment.yml" : null)
+    conda (params.conda ? "bioconda::deeptools=3.4.3" : null)
 
     input:
     tuple val(meta), path(bigwig)

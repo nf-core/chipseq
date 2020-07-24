@@ -11,7 +11,7 @@ process UCSC_BEDRAPHTOBIGWIG {
     container "quay.io/biocontainers/ucsc-bedgraphtobigwig:377--h446ed27_1"
     //container "https://depot.galaxyproject.org/singularity/ucsc-bedgraphtobigwig:377--h446ed27_1"
 
-    conda (params.conda ? "${moduleDir}/environment.yml" : null)
+    conda (params.conda ? "bioconda::ucsc-bedgraphtobigwig=377" : null)
 
     input:
     tuple val(meta), path(bedgraph)

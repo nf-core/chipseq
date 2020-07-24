@@ -11,7 +11,7 @@ process BEDTOOLS_GENOMECOV {
     container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
     //container "https://depot.galaxyproject.org/singularity/bedtools:2.29.2--hc088bd4_0"
 
-    conda (params.conda ? "${moduleDir}/environment.yml" : null)
+    conda (params.conda ? "bioconda::bedtools=2.29.2" : null)
 
     input:
     tuple val(meta), path(bam), path(flagstat)

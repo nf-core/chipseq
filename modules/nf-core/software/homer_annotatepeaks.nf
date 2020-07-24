@@ -11,8 +11,8 @@ process HOMER_ANNOTATEPEAKS {
     container "quay.io/biocontainers/homer:4.11--pl526h9a982cc_2"
     //container "https://depot.galaxyproject.org/singularity/homer:4.11--pl526h9a982cc_2"
 
-    conda (params.conda ? "${moduleDir}/environment.yml" : null)
-
+    conda (params.conda ? "bioconda::homer=4.11" : null)
+    
     input:
     tuple val(meta), path(bed)
     path fasta

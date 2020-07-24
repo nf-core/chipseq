@@ -11,8 +11,8 @@ process PHANTOMPEAKQUALTOOLS {
     container "quay.io/biocontainers/phantompeakqualtools:1.2.2--0"
     //container "https://depot.galaxyproject.org/singularity/phantompeakqualtools:1.2.2--0"
 
-    conda (params.conda ? "${moduleDir}/environment.yml" : null)
-
+    conda (params.conda ? "bioconda::phantompeakqualtools=1.2.2" : null)
+    
     input:
     tuple val(meta), path(bam)
     val opts
