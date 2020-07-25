@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Added`
 
+* Move template boilerplate code to Groovy `lib/`
+* Implement pipeline in DSL 2
+
 ### `Fixed`
 
 ### `Dependencies`
+
+* Update Nextflow `19.10.0` -> `20.07.1`
 
 ## [1.2.0] - 2020-07-02
 

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # Copyright (c) 2011 Erik Aronesty (erik@q32.com)
 #
@@ -87,7 +87,7 @@ for $id (
 
 		my $beg = $ex[0][3];
 		my $end = $ex[-1][4];
-		
+
 		if ($dir eq '-') {
 			# swap
 			$tmp=$cds;
@@ -103,7 +103,7 @@ for $id (
 
 		# adjust start for bed
 		--$beg; --$cds;
-	
+
 		my $exn = @ex;												# exon count
 		my $exst = join ",", map {$_->[3]-$beg-1} @ex;				# exon start
 		my $exsz = join ",", map {$_->[4]-$_->[3]+1} @ex;			# exon size

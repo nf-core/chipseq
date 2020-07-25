@@ -7,11 +7,11 @@ channels:
   - defaults
 dependencies:
   ## conda-forge packages
-  - conda-forge::python=3.7.6
+  - conda-forge::python=3.7.8
   - conda-forge::markdown=3.2.2
   - conda-forge::pymdown-extensions=7.1
   - conda-forge::pygments=2.6.1
-  - conda-forge::r-base=3.6.2
+  - conda-forge::r-base=4.0.2
   - conda-forge::r-optparse=1.6.6
   - conda-forge::r-rcolorbrewer=1.1_2
   - conda-forge::r-reshape2=1.4.4
@@ -21,27 +21,13 @@ dependencies:
   - conda-forge::r-pheatmap=1.0.12
   - conda-forge::r-lattice=0.20_41
   - conda-forge::r-upsetr=1.4.0
-  - conda-forge::r-xfun=0.15
-  - conda-forge::gawk=5.1.0
-  - conda-forge::pigz=2.3.4               ## Required for TrimGalore multi-threading
+  - conda-forge::r-xfun=0.16
 
   ## bioconda packages
-  - bioconda::fastqc=0.11.9
-  - bioconda::trim-galore=0.6.5
-  - bioconda::bwa=0.7.17
   - bioconda::samtools=1.10
-  - bioconda::picard=2.23.1
   - bioconda::bamtools=2.5.1
-  - bioconda::pysam=0.15.3
+  - bioconda::pysam=0.16.0.1
   - bioconda::bedtools=2.29.2
-  - bioconda::ucsc-bedgraphtobigwig=357
-  - bioconda::deeptools=3.4.3
-  - bioconda::macs2=2.2.7.1
-  - bioconda::homer=4.11
-  - bioconda::subread=2.0.1
-  - bioconda::phantompeakqualtools=1.2.2
-  - bioconda::preseq=2.0.3
-  - bioconda::multiqc=1.9
-  - bioconda::bioconductor-biocparallel=1.20.0
-  - bioconda::bioconductor-deseq2=1.26.0
-  - bioconda::bioconductor-vsn=3.54.0
+  - bioconda::bioconductor-biocparallel=1.22.0
+  - bioconda::bioconductor-deseq2=1.28.0
+  - bioconda::bioconductor-vsn=3.56.0
