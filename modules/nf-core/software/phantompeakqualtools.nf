@@ -4,9 +4,9 @@ process PHANTOMPEAKQUALTOOLS {
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.version.txt')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
     container "quay.io/biocontainers/phantompeakqualtools:1.2.2--0"
     //container "https://depot.galaxyproject.org/singularity/phantompeakqualtools:1.2.2--0"

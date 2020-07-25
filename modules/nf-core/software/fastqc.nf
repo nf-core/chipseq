@@ -4,9 +4,9 @@ process FASTQC {
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.version.txt')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
     container "quay.io/biocontainers/fastqc:0.11.9--0"
     //container "https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0"

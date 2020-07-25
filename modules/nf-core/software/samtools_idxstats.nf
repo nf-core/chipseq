@@ -3,9 +3,9 @@ process SAMTOOLS_IDXSTATS {
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.version.txt')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
     container "quay.io/biocontainers/samtools:1.10--h9402c20_2"
     //container " https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2"

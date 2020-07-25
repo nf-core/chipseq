@@ -4,9 +4,9 @@ process BWA_INDEX {
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.version.txt')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
     container "biocontainers/bwa:v0.7.17_cv1"
     //container "https://depot.galaxyproject.org/singularity/bwa:0.7.17--hed695b0_7"

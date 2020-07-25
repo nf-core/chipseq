@@ -4,9 +4,9 @@ process DEEPTOOLS_COMPUTEMATRIX {
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.version.txt')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
     container "quay.io/biocontainers/deeptools:3.4.3--py_0"
     //container "https://depot.galaxyproject.org/singularity/deeptools:3.4.3--py_0"

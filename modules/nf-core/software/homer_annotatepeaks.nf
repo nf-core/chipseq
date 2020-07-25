@@ -4,15 +4,15 @@ process HOMER_ANNOTATEPEAKS {
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.version.txt')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
     container "quay.io/biocontainers/homer:4.11--pl526h9a982cc_2"
     //container "https://depot.galaxyproject.org/singularity/homer:4.11--pl526h9a982cc_2"
 
     conda (params.conda ? "bioconda::homer=4.11" : null)
-    
+
     input:
     tuple val(meta), path(bed)
     path fasta

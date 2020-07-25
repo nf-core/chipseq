@@ -6,8 +6,8 @@ process GET_CHROM_SIZES {
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else filename }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
     
