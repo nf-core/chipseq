@@ -1,3 +1,4 @@
+//conda (params.conda ? "${baseDir}/environment.yml" : null)
 // /*
 //  * STEP 8: Create IGV session file
 //  */

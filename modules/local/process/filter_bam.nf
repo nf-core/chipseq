@@ -11,6 +11,8 @@ process FILTER_BAM {
                     else if (filename.endsWith('.version.txt')) null
                     else filename }
 
+    conda (params.conda ? "${baseDir}/environment.yml" : null)
+    
     input:
     tuple val(meta), path(bam), path(bai)
     path bed

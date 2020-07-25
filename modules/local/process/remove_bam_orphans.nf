@@ -10,6 +10,8 @@ process REMOVE_BAM_ORPHANS {
                     if (opts.publish_results == "none") null
                     else filename }
 
+    conda (params.conda ? "${baseDir}/environment.yml" : null)
+    
     input:
     tuple val(meta), path(bam)
     val opts

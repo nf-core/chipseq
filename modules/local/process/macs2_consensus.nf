@@ -1,3 +1,4 @@
+// conda (params.conda ? "${baseDir}/environment.yml" : null)
 // /*
 //  * STEP 7.1: Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts and UpSetR plot for intersection
 //  */

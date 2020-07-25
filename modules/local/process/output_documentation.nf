@@ -8,6 +8,8 @@ process OUTPUT_DOCUMENTATION {
                     if (opts.publish_results == "none") null
                     else filename }
 
+    conda (params.conda ? "${baseDir}/environment.yml" : null)
+
     input:
     path output_docs
     path images

@@ -1,3 +1,4 @@
+conda (params.conda ? "${baseDir}/environment.yml" : null)
 // /*
 //  * STEP 6.4: Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
 //  */

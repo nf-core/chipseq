@@ -9,11 +9,7 @@ process CHECK_SAMPLESHEET {
                     if (opts.publish_results == "none") null
                     else filename }
 
-    // Re-use Python 3 in MultiQC container
-    container "quay.io/biocontainers/multiqc:1.9--pyh9f0ad1d_0"
-    //container "https://depot.galaxyproject.org/singularity/multiqc:1.9--pyh9f0ad1d_0"
-
-    conda (params.conda ? "bioconda::multiqc=1.9" : null)
+    conda (params.conda ? "${baseDir}/environment.yml" : null)
 
     input:
     path samplesheet
