@@ -275,10 +275,10 @@ workflow {
         params.modules['picard_collectmultiplemetrics']
     )
 
-    // PRESEQ_LCEXTRAP (
-    //     CLEAN_BAM.out.bam,
-    //     params.modules['preseq_lcextrap']
-    // )
+    PRESEQ_LCEXTRAP (
+        CLEAN_BAM.out.bam,
+        params.modules['preseq_lcextrap']
+    )
 
     PHANTOMPEAKQUALTOOLS (
         CLEAN_BAM.out.bam,
@@ -318,32 +318,39 @@ workflow {
         params.modules['deeptools_plotheatmap']
     )
 
-    // Join control BAM here too to generate plots with IP and CONTROL together
-    params.modules['deeptools_plotfingerprint'].args += " --numberOfSamples $params.fingerprint_bins"
-    DEEPTOOLS_PLOTFINGERPRINT (
-        CLEAN_BAM.out.bam.join(CLEAN_BAM.out.bai, by: [0]),
-        params.modules['deeptools_plotfingerprint']
-    )
-
     /*
-     * Call peaks
+     * Refactor channels: [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
      */
     CLEAN_BAM
         .out
         .bam
-        .map { meta, bam -> meta.control ? null : [ meta.id, bam ] }
-        .set { ch_control_bam }
+        .join ( CLEAN_BAM.out.bai, by: [0] )
+        .map { meta, bam, bai -> meta.control ? null : [ meta.id, [ bam ] , [ bai ] ] }
+        .set { ch_ip_control_bam }
 
-    // Create channel: [ val(meta), ip_bam, control_bam ]
     CLEAN_BAM
         .out
         .bam
-        .map { meta, bam -> meta.control ? [ meta.control, meta, bam ] : null }
-        .combine(ch_control_bam, by: 0)
-        .map { it -> [ it[1] , it[2], it[3] ] }
-        .set { ch_control_bam }
+        .join ( CLEAN_BAM.out.bai, by: [0] )
+        .map { meta, bam, bai -> meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null }
+        .combine(ch_ip_control_bam, by: 0)
+        .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
+        .set { ch_ip_control_bam }
+
+    /*
+     * plotFingerprint for IP and control together
+     */
+    params.modules['deeptools_plotfingerprint'].args += " --numberOfSamples $params.fingerprint_bins"
+    DEEPTOOLS_PLOTFINGERPRINT (
+        ch_ip_control_bam,
+        params.modules['deeptools_plotfingerprint']
+    )
 
     if (params.macs_gsize) {
+
+        /*
+         * Call peaks
+         */
         peakType = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
         broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
         pileup = params.save_macs_pileup ? '--bdg --SPMR' : ''
@@ -351,8 +358,14 @@ workflow {
         pvalue = params.macs_pvalue ? "--pvalue ${params.macs_pvalue}" : ''
         params.modules['macs2_callpeak'].publish_dir += "/$peakType"
         params.modules['macs2_callpeak'].args += " $broad $pileup $fdr $pvalue"
+
+        // Create channel: [ val(meta), ip_bam, control_bam ]
+        ch_ip_control_bam
+            .map { it -> [ it[0] , it[1][0], it[1][1] ] }
+            .set { ch_ip_control_bam }
+
         MACS2_CALLPEAK (
-            ch_control_bam,
+            ch_ip_control_bam,
             params.macs_gsize,
             params.modules['macs2_callpeak']
         )
@@ -369,6 +382,27 @@ workflow {
     /*
      * Pipeline reporting
      */
+    MAP_READS.out.bwa_version.first()
+        .concat(
+            QC_TRIM.out.fastqc_version.first().ifEmpty(null),
+            QC_TRIM.out.trimgalore_version.first().ifEmpty(null),
+            MAP_READS.out.samtools_version.first().ifEmpty(null),
+            MAKE_GENOME_FILTER.out.version.first().ifEmpty(null),
+            CLEAN_BAM.out.bamtools_version.first().ifEmpty(null),
+            PICARD_MERGESAMFILES.out.version.first().ifEmpty(null),
+            PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null),
+            PHANTOMPEAKQUALTOOLS.out.version.first().ifEmpty(null),
+            UCSC_BEDRAPHTOBIGWIG.out.version.first().ifEmpty(null),
+            DEEPTOOLS_COMPUTEMATRIX.out.version.first().ifEmpty(null),
+            MACS2_CALLPEAK.out.version.first().ifEmpty(null),
+            HOMER_ANNOTATEPEAKS.out.version.first().ifEmpty(null),
+            //SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null),
+            //MULTIQC.out.version.first().ifEmpty(null),
+            //echo \$(R --version 2>&1) > v_R.txt
+        )
+        .map { it }
+        .set { versions }
+
     //GET_SOFTWARE_VERSIONS (
     //    params.modules['get_software_versions']
     //)
