@@ -1,3 +1,5 @@
+def VERSION = 4.11
+
 process HOMER_ANNOTATEPEAKS {
     tag "$meta.id"
     label 'process_medium'
@@ -14,7 +16,7 @@ process HOMER_ANNOTATEPEAKS {
     conda (params.conda ? "bioconda::homer=4.11" : null)
 
     input:
-    tuple val(meta), path(bed)
+    tuple val(meta), path(peak)
     path fasta
     path gtf
     val opts
@@ -25,16 +27,15 @@ process HOMER_ANNOTATEPEAKS {
 
     script:
     prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
-
     """
     annotatePeaks.pl \\
-        $opts.args \\
-        $bed \\
+        $peak \\
         $fasta \\
+        $opts.args \\
         -gtf $gtf \\
         -cpu $task.cpus \\
         > ${prefix}.annotatePeaks.txt
 
-    touch homer.version.txt
+    echo $VERSION > homer.version.txt
     """
 }
