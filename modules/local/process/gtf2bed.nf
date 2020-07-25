@@ -10,7 +10,10 @@ process GTF2BED {
                       if (opts.publish_results == "none") null
                       else filename }
 
-    conda (params.conda ? "${baseDir}/environment.yml" : null)
+    container "quay.io/biocontainers/perl:5.26.2"
+    //container "https://depot.galaxyproject.org/singularity/perl:5.26.2"
+
+    conda (params.conda ? "conda-forge::perl=5.26.2" : null)
 
     input:
     path gtf

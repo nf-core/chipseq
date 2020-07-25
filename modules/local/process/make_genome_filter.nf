@@ -9,7 +9,10 @@ process MAKE_GENOME_FILTER {
                       if (opts.publish_results == "none") null
                       else filename }
 
-    conda (params.conda ? "${baseDir}/environment.yml" : null)
+    container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
+    //container "https://depot.galaxyproject.org/singularity/bedtools:2.29.2--hc088bd4_0"
+
+    conda (params.conda ? "bioconda::bedtools=2.29.2" : null)
 
     input:
     path sizes

@@ -357,12 +357,13 @@ workflow {
             params.modules['macs2_callpeak']
         )
 
+        params.modules['homer_annotatepeaks_macs2'].publish_dir += "/$peakType"
         HOMER_ANNOTATEPEAKS (
             MACS2_CALLPEAK.out.peak,
             ch_fasta,
             ch_gtf,
             params.modules['homer_annotatepeaks_macs2']
-          )
+        )
     }
 
     /*
