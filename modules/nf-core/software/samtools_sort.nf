@@ -1,3 +1,5 @@
+def SOFTWARE = 'samtools'
+
 process SAMTOOLS_SORT {
     tag "$meta.id"
     label 'process_medium'
@@ -25,6 +27,6 @@ process SAMTOOLS_SORT {
     prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
     """
     samtools sort $opts.args -@ $task.cpus -o ${prefix}.bam -T $prefix $bam
-    samtools --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > samtools.version.txt
+    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${SOFTWARE}.version.txt
     """
 }

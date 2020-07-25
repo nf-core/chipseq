@@ -1,7 +1,9 @@
+def SOFTWARE = 'subread'
 container "quay.io/biocontainers/subread:2.0.1--hed695b0_0"
 //container "https://depot.galaxyproject.org/singularity/subread:2.0.1--hed695b0_0"
 //echo \$(featureCounts -v 2>&1) > featurecounts.version.txt
 conda (params.conda ? "bioconda::subread=2.0.1" : null)
+//echo \$(featureCounts -v 2>&1) | sed -e "s/featureCounts v//g" > ${SOFTWARE}.version.txt
 
 // /*
 //  * STEP 7.3: Count reads in consensus peaks with featureCounts

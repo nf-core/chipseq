@@ -1,3 +1,5 @@
+def SOFTWARE = 'trimgalore'
+
 process TRIMGALORE {
     tag "$meta.id"
     label 'process_high'
@@ -54,7 +56,7 @@ process TRIMGALORE {
             $c_r1 \\
             $tpc_r1 \\
             ${prefix}.fastq.gz
-        trim_galore --version > trim_galore.version.txt
+        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${SOFTWARE}.version.txt
         """
     } else {
         """
@@ -71,7 +73,7 @@ process TRIMGALORE {
             $tpc_r2 \\
             ${prefix}_1.fastq.gz \\
             ${prefix}_2.fastq.gz
-        trim_galore --version > trim_galore.version.txt
+        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${SOFTWARE}.version.txt
         """
     }
 }

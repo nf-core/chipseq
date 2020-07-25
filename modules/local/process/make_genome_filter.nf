@@ -1,3 +1,5 @@
+def SOFTWARE = 'bedtools'
+
 /*
  * Prepare genome intervals for filtering by removing regions in blacklist file
  */
@@ -20,17 +22,20 @@ process MAKE_GENOME_FILTER {
     val opts
 
     output:
-    path '*.bed'
+    path '*.bed', emit: bed
+    path "*.version.txt", emit: version
 
     script:
     file_out = "${sizes.simpleName}.include_regions.bed"
     if (params.blacklist) {
         """
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out
+        bedtools --version | sed -e "s/bedtools v//g" > ${SOFTWARE}.version.txt
         """
     } else {
         """
         awk '{print \$1, '0' , \$2}' OFS='\t' $sizes > $file_out
+        bedtools --version | sed -e "s/bedtools v//g" > ${SOFTWARE}.version.txt
         """
     }
 }

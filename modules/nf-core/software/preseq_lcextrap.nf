@@ -1,3 +1,5 @@
+def SOFTWARE = 'preseq'
+
 process PRESEQ_LCEXTRAP {
     tag "$meta.id"
     label 'process_medium'
@@ -34,6 +36,7 @@ process PRESEQ_LCEXTRAP {
         -output ${prefix}.ccurve.txt \\
         $bam
     cp .command.err ${prefix}.command.log
-    preseq &> preseq.version.txt
+    
+    echo \$(preseq 2>&1) | sed 's/^.*Version: //; s/Usage:.*\$//' > ${SOFTWARE}.version.txt
     """
 }

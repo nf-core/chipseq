@@ -1,3 +1,5 @@
+def SOFTWARE = 'fastqc'
+
 process FASTQC {
     tag "$meta.id"
     label 'process_medium'
@@ -29,14 +31,14 @@ process FASTQC {
         """
         [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz
         fastqc $opts.args --threads $task.cpus ${prefix}.fastq.gz
-        fastqc --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > fastqc.version.txt
+        fastqc --version | sed -e "s/FastQC v//g" > ${SOFTWARE}.version.txt
         """
     } else {
         """
         [ ! -f  ${prefix}_1.fastq.gz ] && ln -s ${reads[0]} ${prefix}_1.fastq.gz
         [ ! -f  ${prefix}_2.fastq.gz ] && ln -s ${reads[1]} ${prefix}_2.fastq.gz
         fastqc $opts.args --threads $task.cpus ${prefix}_1.fastq.gz ${prefix}_2.fastq.gz
-        fastqc --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > fastqc.version.txt
+        fastqc --version | sed -e "s/FastQC v//g" > ${SOFTWARE}.version.txt
         """
     }
 }

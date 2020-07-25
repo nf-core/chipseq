@@ -1,3 +1,5 @@
+def SOFTWARE = 'bwa'
+
 process BWA_INDEX {
     tag "$fasta"
     label 'process_high'
@@ -24,6 +26,6 @@ process BWA_INDEX {
     script:
     """
     bwa index $opts.args $fasta
-    echo \$(bwa 2>&1) | sed -n "s/.*\\(v.*\$\\)/\\1/p" > bwa.version.txt
+    echo \$(bwa 2>&1) | sed 's/^.*Version: //; s/Contact:.*\$//' > ${SOFTWARE}.version.txt
     """
 }

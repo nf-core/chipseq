@@ -1,3 +1,5 @@
+def SOFTWARE = 'samtools'
+
 process SAMTOOLS_FLAGSTAT {
     tag "$meta.id"
     publishDir "${params.outdir}/${opts.publish_dir}",
@@ -23,6 +25,6 @@ process SAMTOOLS_FLAGSTAT {
     script:
     """
     samtools flagstat $bam > ${bam}.flagstat
-    samtools --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > samtools.version.txt
+    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${SOFTWARE}.version.txt
     """
 }

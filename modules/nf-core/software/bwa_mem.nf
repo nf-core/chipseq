@@ -1,3 +1,5 @@
+def SOFTWARE = 'bwa'
+
 process BWA_MEM {
     tag "$meta.id"
     label 'process_high'
@@ -34,6 +36,7 @@ process BWA_MEM {
         $fasta \\
         $reads \\
         | samtools view $opts.args2 -@ $task.cpus -bS -o ${prefix}.bam -
-    echo \$(bwa 2>&1) | sed -n "s/.*\\(v.*\$\\)/\\1/p" > bwa.version.txt
+    
+    echo \$(bwa 2>&1) | sed 's/^.*Version: //; s/Contact:.*\$//' > ${SOFTWARE}.version.txt
     """
 }

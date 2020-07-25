@@ -1,3 +1,5 @@
+def SOFTWARE = 'samtools'
+
 /*
  * Get chromosome sizes from a fasta file
  */
@@ -21,10 +23,12 @@ process GET_CHROM_SIZES {
     output:
     path '*.sizes', emit: sizes
     path '*.fai', emit: fai
+    path "*.version.txt", emit: version
 
     script:
     """
     samtools faidx $fasta
     cut -f 1,2 ${fasta}.fai > ${fasta}.sizes
+    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${SOFTWARE}.version.txt
     """
 }

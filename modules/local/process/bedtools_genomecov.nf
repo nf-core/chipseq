@@ -1,3 +1,5 @@
+def SOFTWARE = 'bedtools'
+
 process BEDTOOLS_GENOMECOV {
     tag "$meta.id"
     label 'process_medium'
@@ -39,6 +41,6 @@ process BEDTOOLS_GENOMECOV {
         $extend \\
         | sort -T '.' -k1,1 -k2,2n > ${prefix}.bedGraph
 
-    bedtools --version > bedtools.version.txt
+    bedtools --version | sed -e "s/bedtools v//g" > ${SOFTWARE}.version.txt
     """
 }

@@ -1,3 +1,5 @@
+def SOFTWARE = 'macs2'
+
 process MACS2_CALLPEAK {
     tag "$meta.id"
     label 'process_medium'
@@ -40,7 +42,7 @@ process MACS2_CALLPEAK {
         --treatment $ipbam \\
          $control
 
-    echo \$(macs2 --version 2>&1) > macs2.version.txt
+    macs2 --version | sed -e "s/macs2 //g" > ${SOFTWARE}.version.txt
     """
 }
 // cat ${ip}_peaks.${PEAK_TYPE} | wc -l | awk -v OFS='\t' '{ print "${ip}", \$1 }' | cat $peak_count_header - > ${ip}_peaks.count_mqc.tsv

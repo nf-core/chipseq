@@ -1,4 +1,5 @@
-def VERSION = 4.11
+def SOFTWARE = 'homer'
+def VERSION = '4.11'
 
 process HOMER_ANNOTATEPEAKS {
     tag "$meta.id"
@@ -36,6 +37,6 @@ process HOMER_ANNOTATEPEAKS {
         -cpu $task.cpus \\
         > ${prefix}.annotatePeaks.txt
 
-    echo $VERSION > homer.version.txt
+    echo $VERSION > ${SOFTWARE}.version.txt
     """
 }

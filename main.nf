@@ -259,7 +259,7 @@ workflow {
     // Fix getting name sorted BAM here for PE/SE
     CLEAN_BAM (
         MARK_DUPLICATES.out.bam.join(MARK_DUPLICATES.out.bai, by: [0]),
-        MAKE_GENOME_FILTER.out.collect(),
+        MAKE_GENOME_FILTER.out.bed.collect(),
         ch_bamtools_filter_config,
         params.modules['filter_bam'],
         params.modules['remove_bam_orphans'],

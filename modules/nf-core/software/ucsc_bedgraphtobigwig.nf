@@ -1,3 +1,6 @@
+def SOFTWARE = 'ucsc'
+def VERSION = '377'
+
 process UCSC_BEDRAPHTOBIGWIG {
     tag "$meta.id"
     label 'process_medium'
@@ -25,5 +28,6 @@ process UCSC_BEDRAPHTOBIGWIG {
     prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
     """
     bedGraphToBigWig $bedgraph $sizes ${prefix}.bigWig
+    echo $VERSION > ${SOFTWARE}.version.txt
     """
 }

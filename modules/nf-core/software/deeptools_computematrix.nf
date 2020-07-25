@@ -1,3 +1,5 @@
+def SOFTWARE = 'deeptools'
+
 process DEEPTOOLS_COMPUTEMATRIX {
     tag "$meta.id"
     label 'process_high'
@@ -34,6 +36,6 @@ process DEEPTOOLS_COMPUTEMATRIX {
         --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.tab \\
         --numberOfProcessors $task.cpus
 
-    echo \$(computeMatrix --version 2>&1) > deeptools.version.txt || true
+    computeMatrix --version | sed -e "s/computeMatrix //g" > ${SOFTWARE}.version.txt
     """
 }

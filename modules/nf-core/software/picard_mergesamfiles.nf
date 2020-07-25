@@ -1,3 +1,5 @@
+def SOFTWARE = 'picard'
+
 process PICARD_MERGESAMFILES {
     tag "$meta.id"
     label 'process_medium'
@@ -12,7 +14,7 @@ process PICARD_MERGESAMFILES {
     //container "https://depot.galaxyproject.org/singularity/picard:2.23.2--0"
 
     conda (params.conda ? "bioconda::picard=2.23.2" : null)
-    
+
     input:
     tuple val(meta), path(bams)
     val opts
@@ -38,12 +40,12 @@ process PICARD_MERGESAMFILES {
             $opts.args \\
             ${'INPUT='+bam_files.join(' INPUT=')} \\
             OUTPUT=${prefix}.bam
-        picard MergeSamFiles --version &> picard.version.txt || true
+        echo \$(picard MergeSamFiles --version 2>&1) | awk -F' ' '{print \$NF}' > ${SOFTWARE}.version.txt
         """
     } else {
         """
         ln -s ${bam_files[0]} ${prefix}.bam
-        picard MergeSamFiles --version &> picard.version.txt || true
+        echo \$(picard MergeSamFiles --version 2>&1) | awk -F' ' '{print \$NF}' > ${SOFTWARE}.version.txt
         """
     }
 }

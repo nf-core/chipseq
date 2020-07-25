@@ -1,3 +1,5 @@
+def SOFTWARE = 'picard'
+
 process PICARD_COLLECTMULTIPLEMETRICS {
     tag "$meta.id"
     label 'process_medium'
@@ -39,6 +41,7 @@ process PICARD_COLLECTMULTIPLEMETRICS {
         INPUT=$bam \\
         OUTPUT=${prefix}.CollectMultipleMetrics \\
         REFERENCE_SEQUENCE=$fasta
-    picard CollectMultipleMetrics --version &> picard.version.txt || true
+
+    echo \$(picard CollectMultipleMetrics --version 2>&1) | awk -F' ' '{print \$NF}' > ${SOFTWARE}.version.txt
     """
 }

@@ -1,3 +1,5 @@
+def SOFTWARE = 'samtools'
+
 process SAMTOOLS_INDEX {
     tag "$meta.id"
     publishDir "${params.outdir}/${opts.publish_dir}",
@@ -11,7 +13,7 @@ process SAMTOOLS_INDEX {
     //container " https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2"
 
     conda (params.conda ? "bioconda::samtools=1.10" : null)
-    
+
     input:
     tuple val(meta), path(bam)
     val opts
@@ -23,6 +25,6 @@ process SAMTOOLS_INDEX {
     script:
     """
     samtools index $bam
-    samtools --version | sed -n "s/.*\\(v.*\$\\)/\\1/p" > samtools.version.txt
+    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${SOFTWARE}.version.txt
     """
 }

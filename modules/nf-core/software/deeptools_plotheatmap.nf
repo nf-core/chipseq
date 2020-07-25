@@ -1,3 +1,5 @@
+def SOFTWARE = 'deeptools'
+
 process DEEPTOOLS_PLOTHEATMAP {
     tag "$meta.id"
     label 'process_low'
@@ -12,7 +14,7 @@ process DEEPTOOLS_PLOTHEATMAP {
     //container "https://depot.galaxyproject.org/singularity/deeptools:3.4.3--py_0"
 
     conda (params.conda ? "bioconda::deeptools=3.4.3" : null)
-    
+
     input:
     tuple val(meta), path(matrix)
     val opts
@@ -31,6 +33,6 @@ process DEEPTOOLS_PLOTHEATMAP {
         --outFileName ${prefix}.plotHeatmap.pdf \\
         --outFileNameMatrix ${prefix}.plotHeatmap.mat.tab
 
-    echo \$(plotHeatmap --version 2>&1) > deeptools.version.txt || true
+    plotHeatmap --version | sed -e "s/plotHeatmap //g" > ${SOFTWARE}.version.txt
     """
 }

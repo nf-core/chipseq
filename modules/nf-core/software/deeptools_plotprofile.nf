@@ -1,3 +1,5 @@
+def SOFTWARE = 'deeptools'
+
 process DEEPTOOLS_PLOTPROFILE {
     tag "$meta.id"
     label 'process_low'
@@ -12,7 +14,7 @@ process DEEPTOOLS_PLOTPROFILE {
     //container "https://depot.galaxyproject.org/singularity/deeptools:3.4.3--py_0"
 
     conda (params.conda ? "bioconda::deeptools=3.4.3" : null)
-    
+
     input:
     tuple val(meta), path(matrix)
     val opts
@@ -31,6 +33,6 @@ process DEEPTOOLS_PLOTPROFILE {
         --outFileName ${prefix}.plotProfile.pdf \\
         --outFileNameData ${prefix}.plotProfile.tab
 
-    echo \$(plotProfile --version 2>&1) > deeptools.version.txt || true
+    plotProfile --version | sed -e "s/plotProfile //g" > ${SOFTWARE}.version.txt
     """
 }
