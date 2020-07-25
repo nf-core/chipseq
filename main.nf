@@ -379,10 +379,17 @@ workflow {
         params.modules['output_documentation']
     )
 
-    // MULTIQC(
-    //     summary,
-    //     FASTQC.out,
-    //     ch_multiqc_config
+    // /*
+    //  * MultiQC
+    //  */
+    // workflow_summary = Schema.params_mqc_summary(summary)
+    // ch_workflow_summary = Channel.value(workflow_summary)
+    // MULTIQC (
+    //     ch_multiqc_config,
+    //     ch_multiqc_custom_config.collect().ifEmpty([]),
+    //     FASTQC.out.zip.collect().ifEmpty([]),
+    //     //GET_SOFTWARE_VERSIONS.out.yml.collect(),
+    //     ch_workflow_summary
     // )
 }
 
