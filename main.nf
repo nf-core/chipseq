@@ -331,9 +331,9 @@ workflow {
     /*
      * Pipeline reporting
      */
-    GET_SOFTWARE_VERSIONS (
-        params.modules['get_software_versions']
-    )
+    //GET_SOFTWARE_VERSIONS (
+    //    params.modules['get_software_versions']
+    //)
 
     OUTPUT_DOCUMENTATION (
         ch_output_docs,
