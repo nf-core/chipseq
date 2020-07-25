@@ -1,3 +1,5 @@
+def SOFTWARE = 'multiqc'
+
 // Has the run name been specified by the user?
 // this has the bonus effect of catching both -name and --name
 custom_runName = params.name
@@ -5,25 +7,6 @@ if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
     custom_runName = workflow.runName
 }
 
-// Channel.from(summary.collect{ [it.key, it.value] })
-//     .map { k,v -> "<dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }
-//     .reduce { a, b -> return [a, b].join("\n            ") }
-//     .map { x -> """
-//     id: 'nf-core-chipseq-summary'
-//     description: " - this information is collected when the pipeline is started."
-//     section_name: 'nf-core/chipseq Workflow Summary'
-//     section_href: 'https://github.com/nf-core/chipseq'
-//     plot_type: 'html'
-//     data: |
-//         <dl class=\"dl-horizontal\">
-//             $x
-//         </dl>
-//     """.stripIndent() }
-//     .set { ch_workflow_summary }
-
-/*
- * MultiQC
- */
 process MULTIQC {
     publishDir "${params.outdir}/multiqc", mode: params.publish_dir_mode
 
@@ -31,7 +14,7 @@ process MULTIQC {
     //container "https://depot.galaxyproject.org/singularity/multiqc:1.9--pyh9f0ad1d_0"
 
     conda (params.conda ? "bioconda::multiqc=1.9" : null)
-    
+
     input:
     path (multiqc_config) from ch_multiqc_config
     path (mqc_custom_config) from ch_multiqc_custom_config.collect().ifEmpty([])
@@ -52,6 +35,6 @@ process MULTIQC {
     // TODO nf-core: Specify which MultiQC modules to use with -m for a faster run time
     """
     multiqc -f $rtitle $rfilename $custom_config_file .
-    multiqc --version > multiqc.version.txt
+    multiqc --version | sed -e "s/multiqc, version //g" > ${SOFTWARE}.version.txt
     """
 }

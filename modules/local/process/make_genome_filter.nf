@@ -1,3 +1,5 @@
+def SOFTWARE = 'bedtools'
+
 /*
  * Prepare genome intervals for filtering by removing regions in blacklist file
  */
@@ -6,10 +8,13 @@ process MAKE_GENOME_FILTER {
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else filename }
 
-    conda (params.conda ? "${baseDir}/environment.yml" : null)
+    container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
+    //container "https://depot.galaxyproject.org/singularity/bedtools:2.29.2--hc088bd4_0"
+
+    conda (params.conda ? "bioconda::bedtools=2.29.2" : null)
 
     input:
     path sizes
@@ -17,17 +22,20 @@ process MAKE_GENOME_FILTER {
     val opts
 
     output:
-    path '*.bed'
+    path '*.bed', emit: bed
+    path "*.version.txt", emit: version
 
     script:
     file_out = "${sizes.simpleName}.include_regions.bed"
     if (params.blacklist) {
         """
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out
+        bedtools --version | sed -e "s/bedtools v//g" > ${SOFTWARE}.version.txt
         """
     } else {
         """
         awk '{print \$1, '0' , \$2}' OFS='\t' $sizes > $file_out
+        bedtools --version | sed -e "s/bedtools v//g" > ${SOFTWARE}.version.txt
         """
     }
 }

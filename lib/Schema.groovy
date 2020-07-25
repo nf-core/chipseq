@@ -166,4 +166,20 @@ class Schema {
         }
         return summary
     }
+
+    static String params_mqc_summary(summary) {
+        String yaml_file_text  = """
+        id: 'nf-core-chipseq-summary'
+        description: " - this information is collected when the pipeline is started."
+        section_name: 'nf-core/chipseq Workflow Summary'
+        section_href: 'https://github.com/nf-core/chipseq'
+        plot_type: 'html'
+        data: |
+            <dl class=\"dl-horizontal\">
+            ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }.join("\n")}
+            </dl>
+        """.stripIndent()
+
+        return yaml_file_text
+    }
 }

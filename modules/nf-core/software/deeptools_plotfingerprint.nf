@@ -1,18 +1,20 @@
+def SOFTWARE = 'deeptools'
+
 process DEEPTOOLS_PLOTFINGERPRINT {
     tag "$meta.id"
     label 'process_high'
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.version.txt')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
     container "quay.io/biocontainers/deeptools:3.4.3--py_0"
     //container "https://depot.galaxyproject.org/singularity/deeptools:3.4.3--py_0"
 
     conda (params.conda ? "bioconda::deeptools=3.4.3" : null)
-    
+
     input:
     tuple val(meta), path(bams), path(bais)
     val opts
@@ -36,6 +38,6 @@ process DEEPTOOLS_PLOTFINGERPRINT {
         --outQualityMetrics ${prefix}.plotFingerprint.qcmetrics.txt \\
         --numberOfProcessors $task.cpus
 
-    echo \$(plotFingerprint --version 2>&1) > deeptools.version.txt || true
+    plotFingerprint --version | sed -e "s/plotFingerprint //g" > ${SOFTWARE}.version.txt
     """
 }

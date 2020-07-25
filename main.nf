@@ -42,9 +42,6 @@ params.macs_gsize = params.genome ? params.genomes[ params.genome ].macs_gsize ?
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
 params.anno_readme = params.genome ? params.genomes[ params.genome ].readme ?: false : false
 
-// Global variables
-def PEAK_TYPE = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
-
 ////////////////////////////////////////////////////
 /* --          VALIDATE INPUTS                 -- */
 ////////////////////////////////////////////////////
@@ -162,8 +159,8 @@ include { DEEPTOOLS_PLOTPROFILE         } from './modules/nf-core/software/deept
 include { DEEPTOOLS_PLOTHEATMAP         } from './modules/nf-core/software/deeptools_plotheatmap'
 include { DEEPTOOLS_PLOTFINGERPRINT     } from './modules/nf-core/software/deeptools_plotfingerprint'
 include { PHANTOMPEAKQUALTOOLS          } from './modules/nf-core/software/phantompeakqualtools'
-//include { MACSC2_CALLPEAK             } from './modules/nf-core/software/macs2_callpeak'
-//include { HOMER_ANNOTATEPEAKS         } from './modules/nf-core/software/homer_annotatepeaks'
+include { MACS2_CALLPEAK                } from './modules/nf-core/software/macs2_callpeak'
+include { HOMER_ANNOTATEPEAKS           } from './modules/nf-core/software/homer_annotatepeaks'
 //include { SUBREAD_FEATURECOUNTS       } from './modules/nf-core/software/subread_featurecounts'
 include { MULTIQC                       } from './modules/nf-core/software/multiqc'
 
@@ -262,7 +259,7 @@ workflow {
     // Fix getting name sorted BAM here for PE/SE
     CLEAN_BAM (
         MARK_DUPLICATES.out.bam.join(MARK_DUPLICATES.out.bai, by: [0]),
-        MAKE_GENOME_FILTER.out.collect(),
+        MAKE_GENOME_FILTER.out.bed.collect(),
         ch_bamtools_filter_config,
         params.modules['filter_bam'],
         params.modules['remove_bam_orphans'],
@@ -278,10 +275,10 @@ workflow {
         params.modules['picard_collectmultiplemetrics']
     )
 
-    PRESEQ_LCEXTRAP (
-        CLEAN_BAM.out.bam,
-        params.modules['preseq_lcextrap']
-    )
+    // PRESEQ_LCEXTRAP (
+    //     CLEAN_BAM.out.bam,
+    //     params.modules['preseq_lcextrap']
+    // )
 
     PHANTOMPEAKQUALTOOLS (
         CLEAN_BAM.out.bam,
@@ -329,6 +326,47 @@ workflow {
     )
 
     /*
+     * Call peaks
+     */
+    CLEAN_BAM
+        .out
+        .bam
+        .map { meta, bam -> meta.control ? null : [ meta.id, bam ] }
+        .set { ch_control_bam }
+
+    // Create channel: [ val(meta), ip_bam, control_bam ]
+    CLEAN_BAM
+        .out
+        .bam
+        .map { meta, bam -> meta.control ? [ meta.control, meta, bam ] : null }
+        .combine(ch_control_bam, by: 0)
+        .map { it -> [ it[1] , it[2], it[3] ] }
+        .set { ch_control_bam }
+
+    if (params.macs_gsize) {
+        peakType = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
+        broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
+        pileup = params.save_macs_pileup ? '--bdg --SPMR' : ''
+        fdr = params.macs_fdr ? "--qvalue ${params.macs_fdr}" : ''
+        pvalue = params.macs_pvalue ? "--pvalue ${params.macs_pvalue}" : ''
+        params.modules['macs2_callpeak'].publish_dir += "/$peakType"
+        params.modules['macs2_callpeak'].args += " $broad $pileup $fdr $pvalue"
+        MACS2_CALLPEAK (
+            ch_control_bam,
+            params.macs_gsize,
+            params.modules['macs2_callpeak']
+        )
+
+        params.modules['homer_annotatepeaks_macs2'].publish_dir += "/$peakType"
+        HOMER_ANNOTATEPEAKS (
+            MACS2_CALLPEAK.out.peak,
+            ch_fasta,
+            ch_gtf,
+            params.modules['homer_annotatepeaks_macs2']
+        )
+    }
+
+    /*
      * Pipeline reporting
      */
     //GET_SOFTWARE_VERSIONS (
@@ -341,10 +379,17 @@ workflow {
         params.modules['output_documentation']
     )
 
-    // MULTIQC(
-    //     summary,
-    //     FASTQC.out,
-    //     ch_multiqc_config
+    // /*
+    //  * MultiQC
+    //  */
+    // workflow_summary = Schema.params_mqc_summary(summary)
+    // ch_workflow_summary = Channel.value(workflow_summary)
+    // MULTIQC (
+    //     ch_multiqc_config,
+    //     ch_multiqc_custom_config.collect().ifEmpty([]),
+    //     FASTQC.out.zip.collect().ifEmpty([]),
+    //     //GET_SOFTWARE_VERSIONS.out.yml.collect(),
+    //     ch_workflow_summary
     // )
 }
 
@@ -362,116 +407,6 @@ workflow.onComplete {
 /* --                  THE END                 -- */
 ////////////////////////////////////////////////////
 
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                 MERGE LIBRARY PEAK ANALYSIS                         -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// // Create channel linking IP bams with control bams
-// ch_rm_orphan_bam_macs_1
-//     .combine(ch_rm_orphan_bam_macs_2)
-//     .set { ch_rm_orphan_bam_macs_1 }
-//
-// ch_design_controls_csv
-//     .combine(ch_rm_orphan_bam_macs_1)
-//     .filter { it[0] == it[5] && it[1] == it[7] }
-//     .join(ch_rm_orphan_flagstat_macs)
-//     .map { it ->  it[2..-1] }
-//     .into { ch_group_bam_macs;
-//             ch_group_bam_plotfingerprint;
-//             ch_group_bam_counts }
-//
-// /*
-//  * STEP 6.2: Call peaks with MACS2 and calculate FRiP score
-//  */
-// process MACS2 {
-//     tag "${ip} vs ${control}"
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: params.publish_dir_mode,
-//         saveAs: { filename ->
-//                       if (filename.endsWith('.tsv')) "qc/$filename"
-//                       else if (filename.endsWith('.igv.txt')) null
-//                       else filename
-//                 }
-//
-//     when:
-//     params.macs_gsize
-//
-//     input:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), val(ip), path(ipbam), val(control), path(controlbam), path(ipflagstat) from ch_group_bam_macs
-//     path peak_count_header from ch_peak_count_header
-//     path frip_score_header from ch_frip_score_header
-//
-//     output:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), path("*.$PEAK_TYPE") into ch_macs_homer,
-//                                                                                                                      ch_macs_qc,
-//                                                                                                                      ch_macs_consensus
-//     path '*igv.txt' into ch_macs_igv
-//     path '*_mqc.tsv' into ch_macs_mqc
-//     path '*.{bed,xls,gappedPeak,bdg}'
-//
-//     script:
-//     broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
-//     format = params.single_end ? 'BAM' : 'BAMPE'
-//     pileup = params.save_macs_pileup ? '-B --SPMR' : ''
-//     fdr = params.macs_fdr ? "--qvalue ${params.macs_fdr}" : ''
-//     pvalue = params.macs_pvalue ? "--pvalue ${params.macs_pvalue}" : ''
-//     """
-//     macs2 callpeak \\
-//         -t ${ipbam[0]} \\
-//         -c ${controlbam[0]} \\
-//         $broad \\
-//         -f $format \\
-//         -g $params.macs_gsize \\
-//         -n $ip \\
-//         $pileup \\
-//         $fdr \\
-//         $pvalue \\
-//         --keep-dup all
-//
-//     cat ${ip}_peaks.${PEAK_TYPE} | wc -l | awk -v OFS='\t' '{ print "${ip}", \$1 }' | cat $peak_count_header - > ${ip}_peaks.count_mqc.tsv
-//
-//     READS_IN_PEAKS=\$(intersectBed -a ${ipbam[0]} -b ${ip}_peaks.${PEAK_TYPE} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
-//     grep 'mapped (' $ipflagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${ip}", a/\$1}' | cat $frip_score_header - > ${ip}_peaks.FRiP_mqc.tsv
-//
-//     find * -type f -name "*.${PEAK_TYPE}" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/"{}"\\t0,0,178" \\; > ${ip}_peaks.igv.txt
-//     """
-// }
-//
-// /*
-//  * STEP 6.3: Annotate peaks with HOMER
-//  */
-// process MACS2_ANNOTATE {
-//     tag "${ip} vs ${control}"
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: params.publish_dir_mode
-//
-//     when:
-//     params.macs_gsize && !params.skip_peak_annotation
-//
-//     input:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), val(ip), val(control), path(peak) from ch_macs_homer
-//     path fasta from ch_fasta
-//     path gtf from ch_gtf
-//
-//     output:
-//     path '*.txt' into ch_macs_annotate
-//
-//     script:
-//     """
-//     annotatePeaks.pl \\
-//         $peak \\
-//         $fasta \\
-//         -gid \\
-//         -gtf $gtf \\
-//         -cpu $task.cpus \\
-//         > ${ip}_peaks.annotatePeaks.txt
-//     """
-// }
-//
 // /*
 //  * STEP 6.4: Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
 //  */

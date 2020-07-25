@@ -1,14 +1,19 @@
+def SOFTWARE = 'bedtools'
+
 process BEDTOOLS_GENOMECOV {
     tag "$meta.id"
     label 'process_medium'
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.version.txt')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
-    conda (params.conda ? "${baseDir}/environment.yml" : null)
+    container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
+    //container "https://depot.galaxyproject.org/singularity/bedtools:2.29.2--hc088bd4_0"
+
+    conda (params.conda ? "bioconda::bedtools=2.29.2" : null)
 
     input:
     tuple val(meta), path(bam), path(flagstat)
@@ -36,6 +41,6 @@ process BEDTOOLS_GENOMECOV {
         $extend \\
         | sort -T '.' -k1,1 -k2,2n > ${prefix}.bedGraph
 
-    bedtools --version > bedtools.version.txt
+    bedtools --version | sed -e "s/bedtools v//g" > ${SOFTWARE}.version.txt
     """
 }

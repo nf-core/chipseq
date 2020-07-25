@@ -1,3 +1,5 @@
+def SOFTWARE = 'preseq'
+
 process PRESEQ_LCEXTRAP {
     tag "$meta.id"
     label 'process_medium'
@@ -5,9 +7,9 @@ process PRESEQ_LCEXTRAP {
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.version.txt')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
     container "quay.io/biocontainers/preseq:2.0.3--hf53bd2b_3"
     //container "https://depot.galaxyproject.org/singularity/preseq:2.0.3--hf53bd2b_3"
@@ -34,6 +36,7 @@ process PRESEQ_LCEXTRAP {
         -output ${prefix}.ccurve.txt \\
         $bam
     cp .command.err ${prefix}.command.log
-    preseq &> preseq.version.txt
+    
+    echo \$(preseq 2>&1) | sed 's/^.*Version: //; s/Usage:.*\$//' > ${SOFTWARE}.version.txt
     """
 }

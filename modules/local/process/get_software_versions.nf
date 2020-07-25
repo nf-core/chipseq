@@ -5,9 +5,9 @@ process GET_SOFTWARE_VERSIONS {
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.yaml')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.yaml')) null
+                      else filename }
 
     input:
     val opts

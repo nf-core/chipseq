@@ -1,12 +1,14 @@
+def SOFTWARE = 'bwa'
+
 process BWA_MEM {
     tag "$meta.id"
     label 'process_high'
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                    if (opts.publish_results == "none") null
-                    else if (filename.endsWith('.version.txt')) null
-                    else filename }
+                      if (opts.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
     container "quay.io/biocontainers/mulled-v2-fe8faa35dbf6dc65a0f7f5d4ea12e31a79f73e40:eabfac3657eda5818bae4090db989e3d41b01542-0"
     //container "https://depot.galaxyproject.org/singularity/mulled-v2-fe8faa35dbf6dc65a0f7f5d4ea12e31a79f73e40:eabfac3657eda5818bae4090db989e3d41b01542-0"
@@ -34,6 +36,7 @@ process BWA_MEM {
         $fasta \\
         $reads \\
         | samtools view $opts.args2 -@ $task.cpus -bS -o ${prefix}.bam -
-    echo \$(bwa 2>&1) | sed -n "s/.*\\(v.*\$\\)/\\1/p" > bwa.version.txt
+    
+    echo \$(bwa 2>&1) | sed 's/^.*Version: //; s/Contact:.*\$//' > ${SOFTWARE}.version.txt
     """
 }
