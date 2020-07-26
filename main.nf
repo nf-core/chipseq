@@ -200,6 +200,9 @@ workflow {
         ch_blacklist.ifEmpty([]),
         params.modules['make_genome_filter']
     )
+    ch_software_versions = Channel.empty()
+    ch_software_versions
+        .concat(MAKE_GENOME_FILTER.out.version.first().ifEmpty(null))
 
     /*
      * Read QC & trimming
@@ -213,6 +216,10 @@ workflow {
         params.modules['fastqc'],
         params.modules['trimgalore']
     )
+    ch_software_versions
+        .concat(QC_TRIM.out.fastqc_version.first().ifEmpty(null),
+                QC_TRIM.out.trimgalore_version.first().ifEmpty(null))
+        .view()
 
     /*
      * Map reads & BAM QC
@@ -226,6 +233,9 @@ workflow {
         params.modules['bwa_mem'],
         params.modules['samtools_sort_lib']
     )
+    // ch_software_versions
+    //     .concat(MAP_READS.out.bwa_version.first(),
+    //             MAP_READS.out.samtools_version.first().ifEmpty(null))
 
     /*
      * Merge resequenced BAM files
@@ -246,6 +256,8 @@ workflow {
         ch_sort_bam,
         params.modules['picard_mergesamfiles']
     )
+    // ch_software_versions
+    //     .concat(PICARD_MERGESAMFILES.out.version.first().ifEmpty(null))
 
     /*
      * Mark duplicates & filter BAM files
@@ -265,6 +277,8 @@ workflow {
         params.modules['remove_bam_orphans'],
         params.modules['samtools_sort_filter']
     )
+    // ch_software_versions
+    //     .concat(CLEAN_BAM.out.bamtools_version.first().ifEmpty(null))
 
     /*
      * Post alignment QC
@@ -279,11 +293,15 @@ workflow {
         CLEAN_BAM.out.bam,
         params.modules['preseq_lcextrap']
     )
+    // ch_software_versions
+    //     .concat(PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null))
 
     PHANTOMPEAKQUALTOOLS (
         CLEAN_BAM.out.bam,
         params.modules['phantompeakqualtools']
     )
+    // ch_software_versions
+    //     .concat(PHANTOMPEAKQUALTOOLS.out.version.first().ifEmpty(null))
 
     /*
      * Coverage tracks
@@ -298,6 +316,8 @@ workflow {
         GET_CHROM_SIZES.out.sizes,
         params.modules['ucsc_bedgraphtobigwig']
     )
+    // ch_software_versions
+    //     .concat(UCSC_BEDRAPHTOBIGWIG.out.version.first().ifEmpty(null))
 
     /*
      * Coverage plots
@@ -307,6 +327,8 @@ workflow {
         ch_gene_bed,
         params.modules['deeptools_computematrix']
     )
+    // ch_software_versions
+    //     .concat(DEEPTOOLS_COMPUTEMATRIX.out.version.first().ifEmpty(null))
 
     DEEPTOOLS_PLOTPROFILE (
         DEEPTOOLS_COMPUTEMATRIX.out.matrix,
@@ -369,6 +391,8 @@ workflow {
             params.macs_gsize,
             params.modules['macs2_callpeak']
         )
+        // ch_software_versions
+        //     .concat(MACS2_CALLPEAK.out.version.first().ifEmpty(null))
 
         params.modules['homer_annotatepeaks_macs2'].publish_dir += "/$peakType"
         HOMER_ANNOTATEPEAKS (
@@ -377,36 +401,16 @@ workflow {
             ch_gtf,
             params.modules['homer_annotatepeaks_macs2']
         )
+        // ch_software_versions
+        //     .concat(HOMER_ANNOTATEPEAKS.out.version.first().ifEmpty(null))
+
+        // ch_software_versions
+        //     .concat(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
     }
 
     /*
      * Pipeline reporting
      */
-    MAP_READS.out.bwa_version.first()
-        .concat(
-            QC_TRIM.out.fastqc_version.first().ifEmpty(null),
-            QC_TRIM.out.trimgalore_version.first().ifEmpty(null),
-            MAP_READS.out.samtools_version.first().ifEmpty(null),
-            MAKE_GENOME_FILTER.out.version.first().ifEmpty(null),
-            CLEAN_BAM.out.bamtools_version.first().ifEmpty(null),
-            PICARD_MERGESAMFILES.out.version.first().ifEmpty(null),
-            PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null),
-            PHANTOMPEAKQUALTOOLS.out.version.first().ifEmpty(null),
-            UCSC_BEDRAPHTOBIGWIG.out.version.first().ifEmpty(null),
-            DEEPTOOLS_COMPUTEMATRIX.out.version.first().ifEmpty(null),
-            MACS2_CALLPEAK.out.version.first().ifEmpty(null),
-            HOMER_ANNOTATEPEAKS.out.version.first().ifEmpty(null),
-            //SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null),
-            //MULTIQC.out.version.first().ifEmpty(null),
-            //echo \$(R --version 2>&1) > v_R.txt
-        )
-        .map { it }
-        .set { versions }
-
-    //GET_SOFTWARE_VERSIONS (
-    //    params.modules['get_software_versions']
-    //)
-
     OUTPUT_DOCUMENTATION (
         ch_output_docs,
         ch_output_docs_images,
@@ -424,6 +428,14 @@ workflow {
     //     FASTQC.out.zip.collect().ifEmpty([]),
     //     //GET_SOFTWARE_VERSIONS.out.yml.collect(),
     //     ch_workflow_summary
+    // )
+    // ch_software_versions
+    //     .concat(MULTIQC.out.version.first().ifEmpty(null))
+
+    //ch_software_versions.view()
+    // GET_SOFTWARE_VERSIONS (
+    //     ch_software_versions.map { it },
+    //     params.modules['get_software_versions']
     // )
 }
 
