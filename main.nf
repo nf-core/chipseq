@@ -442,7 +442,7 @@ workflow {
     //     ch_multiqc_config,
     //     ch_multiqc_custom_config.collect().ifEmpty([]),
     //     FASTQC.out.zip.collect().ifEmpty([]),
-    //     //GET_SOFTWARE_VERSIONS.out.yml.collect(),
+    //     //GET_SOFTWARE_VERSIONS.out.yaml.collect(),
     //     ch_workflow_summary
     // )
     // ch_software_versions
