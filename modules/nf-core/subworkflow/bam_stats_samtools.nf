@@ -6,7 +6,7 @@ include { SAMTOOLS_STATS    } from '../software/samtools_stats'
 include { SAMTOOLS_IDXSTATS } from '../software/samtools_idxstats'
 include { SAMTOOLS_FLAGSTAT } from '../software/samtools_flagstat'
 
-workflow BAM_STATS {
+workflow BAM_STATS_SAMTOOLS {
     take:
     ch_bam_bai    // channel: [ val(meta), [ bam ], [bai] ]
     samtools_opts //     map: options for SAMTools modules

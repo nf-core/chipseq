@@ -69,10 +69,6 @@ process MULTIQC {
     """
 }
 
-// path ('fastqc/*') from ch_fastqc_reports_mqc.collect().ifEmpty([])
-// path ('trimgalore/*') from ch_trimgalore_results_mqc.collect().ifEmpty([])
-// path ('trimgalore/fastqc/*') from ch_trimgalore_fastqc_reports_mqc.collect().ifEmpty([])
-//
 // path ('alignment/library/*') from ch_sort_bam_flagstat_mqc.collect()
 // path ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
 // path ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}

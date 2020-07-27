@@ -141,9 +141,10 @@ include { MAKE_GENOME_FILTER    } from './modules/local/process/make_genome_filt
 include { BEDTOOLS_GENOMECOV    } from './modules/local/process/bedtools_genomecov'
 include { OUTPUT_DOCUMENTATION  } from './modules/local/process/output_documentation'
 include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions'
+include { MULTIQC               } from './modules/local/process/multiqc'
 
-include { CHECK_INPUT           } from './modules/local/subworkflow/check_input'
-include { CLEAN_BAM             } from './modules/local/subworkflow/clean_bam'
+include { INPUT_CHECK           } from './modules/local/subworkflow/input_check'
+include { BAM_CLEAN             } from './modules/local/subworkflow/bam_clean'
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -162,13 +163,10 @@ include { PHANTOMPEAKQUALTOOLS          } from './modules/nf-core/software/phant
 include { MACS2_CALLPEAK                } from './modules/nf-core/software/macs2_callpeak'
 include { HOMER_ANNOTATEPEAKS           } from './modules/nf-core/software/homer_annotatepeaks'
 //include { SUBREAD_FEATURECOUNTS       } from './modules/nf-core/software/subread_featurecounts'
-include { MULTIQC                       } from './modules/nf-core/software/multiqc'
 
-include { QC_TRIM                       } from './modules/nf-core/subworkflow/qc_trim'
-include { BAM_STATS                     } from './modules/nf-core/subworkflow/bam_stats'
-include { SORT_BAM                      } from './modules/nf-core/subworkflow/sort_bam'
-include { MAP_READS                     } from './modules/nf-core/subworkflow/map_reads'
-include { MARK_DUPLICATES               } from './modules/nf-core/subworkflow/mark_duplicates'
+include { FASTQC_TRIMGALORE             } from './modules/nf-core/subworkflow/fastqc_trimgalore'
+include { MAP_BWA_MEM                   } from './modules/nf-core/subworkflow/map_bwa_mem'
+include { MARK_DUPLICATES_PICARD        } from './modules/nf-core/subworkflow/mark_duplicates_picard'
 
 ////////////////////////////////////////////////////
 /* --           RUN MAIN WORKFLOW              -- */
@@ -179,10 +177,10 @@ workflow {
     /*
      * Read in samplesheet, validate and stage input files
      */
-    CHECK_INPUT (
+    INPUT_CHECK (
         ch_input,
         params.seq_center,
-        params.modules['check_samplesheet']
+        params.modules['samplesheet_check']
     )
 
     /*
@@ -208,35 +206,35 @@ workflow {
      */
     nextseq = params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ''
     params.modules['trimgalore'].args += nextseq
-    QC_TRIM (
-        CHECK_INPUT.out.reads,
+    FASTQC_TRIMGALORE (
+        INPUT_CHECK.out.reads,
         params.skip_fastqc,
         params.skip_trimming,
         params.modules['fastqc'],
         params.modules['trimgalore']
     )
-    ch_software_versions = ch_software_versions.mix(QC_TRIM.out.fastqc_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(QC_TRIM.out.trimgalore_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
 
     /*
      * Map reads & BAM QC
      */
     score = params.bwa_min_score ? " -T ${params.bwa_min_score}" : ''
     params.modules['bwa_mem'].args += score
-    MAP_READS (
-        QC_TRIM.out.reads,
+    MAP_BWA_MEM (
+        FASTQC_TRIMGALORE.out.reads,
         ch_index,
         ch_fasta,
         params.modules['bwa_mem'],
         params.modules['samtools_sort_lib']
     )
-    ch_software_versions = ch_software_versions.mix(MAP_READS.out.bwa_version.first())
-    ch_software_versions = ch_software_versions.mix(MAP_READS.out.samtools_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.bwa_version.first())
+    ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.samtools_version.first().ifEmpty(null))
 
     /*
      * Merge resequenced BAM files
      */
-    MAP_READS
+    MAP_BWA_MEM
         .out
         .bam
         .map {
@@ -257,40 +255,40 @@ workflow {
     /*
      * Mark duplicates & filter BAM files
      */
-    MARK_DUPLICATES (
+    MARK_DUPLICATES_PICARD (
         PICARD_MERGESAMFILES.out.bam,
         params.modules['picard_markduplicates'],
         params.modules['samtools_sort_merged_lib']
     )
 
     // Fix getting name sorted BAM here for PE/SE
-    CLEAN_BAM (
-        MARK_DUPLICATES.out.bam.join(MARK_DUPLICATES.out.bai, by: [0]),
+    BAM_CLEAN (
+        MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
         MAKE_GENOME_FILTER.out.bed.collect(),
         ch_bamtools_filter_config,
-        params.modules['filter_bam'],
-        params.modules['remove_bam_orphans'],
+        params.modules['bam_filter'],
+        params.modules['bam_remove_orphans'],
         params.modules['samtools_sort_filter']
     )
-    ch_software_versions = ch_software_versions.mix(CLEAN_BAM.out.bamtools_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(BAM_CLEAN.out.bamtools_version.first().ifEmpty(null))
 
     /*
      * Post alignment QC
      */
     PICARD_COLLECTMULTIPLEMETRICS (
-        CLEAN_BAM.out.bam,
+        BAM_CLEAN.out.bam,
         ch_fasta,
         params.modules['picard_collectmultiplemetrics']
     )
 
-    PRESEQ_LCEXTRAP (
-        CLEAN_BAM.out.bam,
-        params.modules['preseq_lcextrap']
-    )
-    ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null))
+    // PRESEQ_LCEXTRAP (
+    //     BAM_CLEAN.out.bam,
+    //     params.modules['preseq_lcextrap']
+    // )
+    // ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null))
 
     PHANTOMPEAKQUALTOOLS (
-        CLEAN_BAM.out.bam,
+        BAM_CLEAN.out.bam,
         params.modules['phantompeakqualtools']
     )
     ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.version.first().ifEmpty(null))
@@ -299,7 +297,7 @@ workflow {
      * Coverage tracks
      */
     BEDTOOLS_GENOMECOV (
-        CLEAN_BAM.out.bam.join(CLEAN_BAM.out.flagstat, by: [0]),
+        BAM_CLEAN.out.bam.join(BAM_CLEAN.out.flagstat, by: [0]),
         params.modules['bedtools_genomecov']
     )
 
@@ -333,17 +331,17 @@ workflow {
     /*
      * Refactor channels: [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
      */
-    CLEAN_BAM
+    BAM_CLEAN
         .out
         .bam
-        .join ( CLEAN_BAM.out.bai, by: [0] )
+        .join ( BAM_CLEAN.out.bai, by: [0] )
         .map { meta, bam, bai -> meta.control ? null : [ meta.id, [ bam ] , [ bai ] ] }
         .set { ch_ip_control_bam }
 
-    CLEAN_BAM
+    BAM_CLEAN
         .out
         .bam
-        .join ( CLEAN_BAM.out.bai, by: [0] )
+        .join ( BAM_CLEAN.out.bai, by: [0] )
         .map { meta, bam, bai -> meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null }
         .combine(ch_ip_control_bam, by: 0)
         .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
@@ -412,42 +410,42 @@ workflow {
     /*
      * MultiQC
      */
-    // workflow_summary = Schema.params_mqc_summary(summary)
-    // ch_workflow_summary = Channel.value(workflow_summary)
-    // params.modules['multiqc'].publish_dir += "/$peakType"
-    // MULTIQC (
-    //     ch_multiqc_config,
-    //     ch_multiqc_custom_config.collect().ifEmpty([]),
-    //     GET_SOFTWARE_VERSIONS.out.yaml.collect(),
-    //     ch_workflow_summary,
-    //
-    //     QC_TRIM.out.fastqc_zip.collect { it[1] }.ifEmpty([]),
-    //     QC_TRIM.out.trim_log.collect   { it[1] }.ifEmpty([]),
-    //     QC_TRIM.out.trim_zip.collect   { it[1] }.ifEmpty([]),
-    //
-    //     // MAP_READS.out.stats.collect    { it[1] },
-    //     // MAP_READS.out.flagstat.collect { it[1] },
-    //     // MAP_READS.out.idxstats.collect { it[1] },
-    //
-    //     // path ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
-    //     // path ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}
-    //     // path ('alignment/mergedLibrary/*') from ch_rm_orphan_stats_mqc.collect()
-    //     // path ('alignment/mergedLibrary/picard_metrics/*') from ch_merge_bam_metrics_mqc.collect()
-    //     // path ('alignment/mergedLibrary/picard_metrics/*') from ch_collectmetrics_mqc.collect()
-    //     //
-    //     // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
-    //     // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
-    //     // path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
-    //     // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
-    //     //
-    //     // path ('preseq/*') from ch_preseq_mqc.collect().ifEmpty([])
-    //     // path ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
-    //     // path ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
-    //     // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
-    //     // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
-    //
-    //     params.modules['multiqc']
-    // )
+    workflow_summary = Schema.params_mqc_summary(summary)
+    ch_workflow_summary = Channel.value(workflow_summary)
+    params.modules['multiqc'].publish_dir += "/$peakType"
+    MULTIQC (
+        ch_multiqc_config,
+        ch_multiqc_custom_config.collect().ifEmpty([]),
+        GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+        ch_workflow_summary,
+
+        FASTQC_TRIMGALORE.out.fastqc_zip.collect { it[1] }.ifEmpty([]),
+        FASTQC_TRIMGALORE.out.trim_log.collect   { it[1] }.ifEmpty([]),
+        FASTQC_TRIMGALORE.out.trim_zip.collect   { it[1] }.ifEmpty([]),
+
+        // MAP_BWA_MEM.out.stats.collect    { it[1] },
+        // MAP_BWA_MEM.out.flagstat.collect { it[1] },
+        // MAP_BWA_MEM.out.idxstats.collect { it[1] },
+
+        // path ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
+        // path ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}
+        // path ('alignment/mergedLibrary/*') from ch_rm_orphan_stats_mqc.collect()
+        // path ('alignment/mergedLibrary/picard_metrics/*') from ch_merge_bam_metrics_mqc.collect()
+        // path ('alignment/mergedLibrary/picard_metrics/*') from ch_collectmetrics_mqc.collect()
+        //
+        // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
+        // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
+        // path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
+        // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
+        //
+        // path ('preseq/*') from ch_preseq_mqc.collect().ifEmpty([])
+        // path ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
+        // path ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
+        // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
+        // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
+
+        params.modules['multiqc']
+    )
 }
 
 ////////////////////////////////////////////////////
