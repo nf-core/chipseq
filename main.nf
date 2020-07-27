@@ -281,11 +281,11 @@ workflow {
         params.modules['picard_collectmultiplemetrics']
     )
 
-    // PRESEQ_LCEXTRAP (
-    //     BAM_CLEAN.out.bam,
-    //     params.modules['preseq_lcextrap']
-    // )
-    // ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null))
+    PRESEQ_LCEXTRAP (
+        BAM_CLEAN.out.bam,
+        params.modules['preseq_lcextrap']
+    )
+    ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null))
 
     PHANTOMPEAKQUALTOOLS (
         BAM_CLEAN.out.bam,
@@ -417,32 +417,36 @@ workflow {
         ch_multiqc_config,
         ch_multiqc_custom_config.collect().ifEmpty([]),
         GET_SOFTWARE_VERSIONS.out.yaml.collect(),
-        ch_workflow_summary,
+        ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
 
         FASTQC_TRIMGALORE.out.fastqc_zip.collect { it[1] }.ifEmpty([]),
         FASTQC_TRIMGALORE.out.trim_log.collect   { it[1] }.ifEmpty([]),
         FASTQC_TRIMGALORE.out.trim_zip.collect   { it[1] }.ifEmpty([]),
 
-        // MAP_BWA_MEM.out.stats.collect    { it[1] },
-        // MAP_BWA_MEM.out.flagstat.collect { it[1] },
-        // MAP_BWA_MEM.out.idxstats.collect { it[1] },
+        MAP_BWA_MEM.out.stats.collect    { it[1] },
+        MAP_BWA_MEM.out.flagstat.collect { it[1] },
+        MAP_BWA_MEM.out.idxstats.collect { it[1] },
 
-        // path ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
-        // path ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}
-        // path ('alignment/mergedLibrary/*') from ch_rm_orphan_stats_mqc.collect()
-        // path ('alignment/mergedLibrary/picard_metrics/*') from ch_merge_bam_metrics_mqc.collect()
-        // path ('alignment/mergedLibrary/picard_metrics/*') from ch_collectmetrics_mqc.collect()
-        //
+        MARK_DUPLICATES_PICARD.out.stats.collect    { it[1] }.ifEmpty([]),
+        MARK_DUPLICATES_PICARD.out.flagstat.collect { it[1] }.ifEmpty([]),
+        MARK_DUPLICATES_PICARD.out.idxstats.collect { it[1] }.ifEmpty([]),
+        MARK_DUPLICATES_PICARD.out.metrics.collect  { it[1] }.ifEmpty([]),
+
+        BAM_CLEAN.out.stats .collect                      { it[1] }.ifEmpty([]),
+        BAM_CLEAN.out.flagstat.collect                    { it[1] }.ifEmpty([]),
+        BAM_CLEAN.out.idxstats.collect                    { it[1] }.ifEmpty([]),
+        PICARD_COLLECTMULTIPLEMETRICS.out.metrics.collect { it[1] }.ifEmpty([]),
+
+        PRESEQ_LCEXTRAP.out.ccurve.collect           { it[1] }.ifEmpty([]),
+        DEEPTOOLS_PLOTPROFILE.out.table.collect      { it[1] }.ifEmpty([]),
+        DEEPTOOLS_PLOTFINGERPRINT.out.matrix.collect { it[1] }.ifEmpty([]),
+        // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
+        // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
+
         // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
         // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
         // path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
         // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
-        //
-        // path ('preseq/*') from ch_preseq_mqc.collect().ifEmpty([])
-        // path ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
-        // path ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
-        // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
-        // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
 
         params.modules['multiqc']
     )

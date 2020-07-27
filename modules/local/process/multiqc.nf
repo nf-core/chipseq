@@ -24,32 +24,36 @@ process MULTIQC {
     path multiqc_config
     path mqc_custom_config
     path software_versions
-    val workflow_summary
+    path workflow_summary
 
     path ('fastqc/*')
     path ('trimgalore/*')
     path ('trimgalore/fastqc/*')
 
-    // path ('alignment/library/*')
-    // path ('alignment/library/*')
-    // path ('alignment/library/*')
+    path ('alignment/library/*')
+    path ('alignment/library/*')
+    path ('alignment/library/*')
 
-    // path ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
-    // path ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}
-    // path ('alignment/mergedLibrary/*') from ch_rm_orphan_stats_mqc.collect()
-    // path ('alignment/mergedLibrary/picard_metrics/*') from ch_merge_bam_metrics_mqc.collect()
-    // path ('alignment/mergedLibrary/picard_metrics/*') from ch_collectmetrics_mqc.collect()
-    //
+    path ('alignment/mergedLibrary/unfiltered/*')
+    path ('alignment/mergedLibrary/unfiltered/*')
+    path ('alignment/mergedLibrary/unfiltered/*')
+    path ('alignment/mergedLibrary/unfiltered/picard_metrics/*')
+
+    path ('alignment/mergedLibrary/filtered/*')
+    path ('alignment/mergedLibrary/filtered/*')
+    path ('alignment/mergedLibrary/filtered/*')
+    path ('alignment/mergedLibrary/filtered/picard_metrics/*')
+
+    path ('preseq/*')
+    path ('deeptools/*')
+    path ('deeptools/*')
+    // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
+    // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
+    
     // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
     // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
     // path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
     // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
-    //
-    // path ('preseq/*') from ch_preseq_mqc.collect().ifEmpty([])
-    // path ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
-    // path ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
-    // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
-    // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
 
     val opts
 
@@ -61,28 +65,7 @@ process MULTIQC {
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
-    // TODO nf-core: Specify which MultiQC modules to use with -m for a faster run time
     """
-    echo '$workflow_summary' > workflow_summary_mqc.yaml
     multiqc -f $opts.args $rtitle $rfilename $custom_config_file .
-    multiqc --version | sed -e "s/multiqc, version //g" > ${SOFTWARE}.version.txt
     """
 }
-
-// path ('alignment/library/*') from ch_sort_bam_flagstat_mqc.collect()
-// path ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
-// path ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}
-// path ('alignment/mergedLibrary/*') from ch_rm_orphan_stats_mqc.collect()
-// path ('alignment/mergedLibrary/picard_metrics/*') from ch_merge_bam_metrics_mqc.collect()
-// path ('alignment/mergedLibrary/picard_metrics/*') from ch_collectmetrics_mqc.collect()
-//
-// path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
-// path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
-// path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
-// path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
-//
-// path ('preseq/*') from ch_preseq_mqc.collect().ifEmpty([])
-// path ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
-// path ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
-// path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
-// path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])

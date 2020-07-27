@@ -42,7 +42,12 @@ module_order:
         name: 'MERGED LIB: SAMTools (unfiltered)'
         info: 'This section of the report shows SAMTools results after merging libraries and before filtering.'
         path_filters:
-            - './alignment/mergedLibrary/*.mLb.mkD.sorted.bam*'
+            - './alignment/mergedLibrary/unfiltered/*.mLb.mkD.sorted.bam*'
+    - picard:
+        name: 'MERGED LIB: Picard (unfiltered)'
+        info: 'This section of the report shows picard results after merging libraries and before filtering.'
+        path_filters:
+            - './alignment/mergedLibrary/unfiltered/picard_metrics/*'
     - preseq:
         name: 'MERGED LIB: Preseq (unfiltered)'
         info: 'This section of the report shows Preseq results after merging libraries and before filtering.'
@@ -50,12 +55,12 @@ module_order:
         name: 'MERGED LIB: SAMTools (filtered)'
         info: 'This section of the report shows SAMTools results after merging libraries and after filtering.'
         path_filters:
-            - './alignment/mergedLibrary/*.mLb.clN.sorted.bam*'
+            - './alignment/mergedLibrary/filtered/*.mLb.clN.sorted.bam*'
     - picard:
-        name: 'MERGED LIB: Picard'
+        name: 'MERGED LIB: Picard (filtered)'
         info: 'This section of the report shows picard results after merging libraries and after filtering.'
         path_filters:
-            - './alignment/mergedLibrary/picard_metrics/*'
+            - './alignment/mergedLibrary/filtered/picard_metrics/*'
     - deeptools:
         name: 'MERGED LIB: deepTools'
         anchor: 'mlib_deeptools'

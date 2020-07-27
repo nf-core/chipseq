@@ -21,7 +21,7 @@ process PICARD_MARKDUPLICATES {
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
-    path "*.metrics.txt", emit: metrics
+    tuple val(meta), path("*.metrics.txt"), emit: metrics
     path "*.version.txt", emit: version
 
     script:
