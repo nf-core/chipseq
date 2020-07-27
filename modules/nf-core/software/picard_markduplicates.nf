@@ -30,7 +30,7 @@ process PICARD_MARKDUPLICATES {
     if (!task.memory) {
         log.info '[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
     } else {
-        avail_mem = task.memory.toGiga()
+        avail_mem = task.memory.giga
     }
     """
     picard \\
