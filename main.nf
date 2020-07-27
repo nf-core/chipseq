@@ -201,9 +201,7 @@ workflow {
         params.modules['make_genome_filter']
     )
     ch_software_versions = Channel.empty()
-    ch_software_versions
-        .concat(MAKE_GENOME_FILTER.out.version.first().ifEmpty(null))
-        .set { ch_software_versions }
+    ch_software_versions = ch_software_versions.mix(MAKE_GENOME_FILTER.out.version.first().ifEmpty(null))
 
     /*
      * Read QC & trimming
@@ -217,10 +215,8 @@ workflow {
         params.modules['fastqc'],
         params.modules['trimgalore']
     )
-    ch_software_versions
-        .concat(QC_TRIM.out.fastqc_version.first().ifEmpty(null),
-                QC_TRIM.out.trimgalore_version.first().ifEmpty(null))
-        .set { ch_software_versions }
+    ch_software_versions = ch_software_versions.mix(QC_TRIM.out.fastqc_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(QC_TRIM.out.trimgalore_version.first().ifEmpty(null))
 
     /*
      * Map reads & BAM QC
@@ -234,10 +230,8 @@ workflow {
         params.modules['bwa_mem'],
         params.modules['samtools_sort_lib']
     )
-    ch_software_versions
-        .concat(MAP_READS.out.bwa_version.first(),
-                MAP_READS.out.samtools_version.first().ifEmpty(null))
-        .set { ch_software_versions }
+    ch_software_versions = ch_software_versions.mix(MAP_READS.out.bwa_version.first())
+    ch_software_versions = ch_software_versions.mix(MAP_READS.out.samtools_version.first().ifEmpty(null))
 
     /*
      * Merge resequenced BAM files
@@ -258,9 +252,7 @@ workflow {
         ch_sort_bam,
         params.modules['picard_mergesamfiles']
     )
-    ch_software_versions
-        .concat(PICARD_MERGESAMFILES.out.version.first().ifEmpty(null))
-        .set { ch_software_versions }
+    ch_software_versions = ch_software_versions.mix(PICARD_MERGESAMFILES.out.version.first().ifEmpty(null))
 
     /*
      * Mark duplicates & filter BAM files
@@ -280,9 +272,7 @@ workflow {
         params.modules['remove_bam_orphans'],
         params.modules['samtools_sort_filter']
     )
-    ch_software_versions
-        .concat(CLEAN_BAM.out.bamtools_version.first().ifEmpty(null))
-        .set { ch_software_versions }
+    ch_software_versions = ch_software_versions.mix(CLEAN_BAM.out.bamtools_version.first().ifEmpty(null))
 
     /*
      * Post alignment QC
@@ -297,17 +287,13 @@ workflow {
         CLEAN_BAM.out.bam,
         params.modules['preseq_lcextrap']
     )
-    ch_software_versions
-        .concat(PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null))
-        .set { ch_software_versions }
+    ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null))
 
     PHANTOMPEAKQUALTOOLS (
         CLEAN_BAM.out.bam,
         params.modules['phantompeakqualtools']
     )
-    ch_software_versions
-        .concat(PHANTOMPEAKQUALTOOLS.out.version.first().ifEmpty(null))
-        .set { ch_software_versions }
+    ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.version.first().ifEmpty(null))
 
     /*
      * Coverage tracks
@@ -322,9 +308,7 @@ workflow {
         GET_CHROM_SIZES.out.sizes,
         params.modules['ucsc_bedgraphtobigwig']
     )
-    ch_software_versions
-        .concat(UCSC_BEDRAPHTOBIGWIG.out.version.first().ifEmpty(null))
-        .set { ch_software_versions }
+    ch_software_versions = ch_software_versions.mix(UCSC_BEDRAPHTOBIGWIG.out.version.first().ifEmpty(null))
 
     /*
      * Coverage plots
@@ -334,9 +318,7 @@ workflow {
         ch_gene_bed,
         params.modules['deeptools_computematrix']
     )
-    ch_software_versions
-        .concat(DEEPTOOLS_COMPUTEMATRIX.out.version.first().ifEmpty(null))
-        .set { ch_software_versions }
+    ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.version.first().ifEmpty(null))
 
     DEEPTOOLS_PLOTPROFILE (
         DEEPTOOLS_COMPUTEMATRIX.out.matrix,
@@ -399,9 +381,7 @@ workflow {
             params.macs_gsize,
             params.modules['macs2_callpeak']
         )
-        ch_software_versions
-            .concat(MACS2_CALLPEAK.out.version.first().ifEmpty(null))
-            .set { ch_software_versions }
+        ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.version.first().ifEmpty(null))
 
         params.modules['homer_annotatepeaks_macs2'].publish_dir += "/$peakType"
         HOMER_ANNOTATEPEAKS (
@@ -410,13 +390,9 @@ workflow {
             ch_gtf,
             params.modules['homer_annotatepeaks_macs2']
         )
-        ch_software_versions
-            .concat(HOMER_ANNOTATEPEAKS.out.version.first().ifEmpty(null))
-            .set { ch_software_versions }
+        ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS.out.version.first().ifEmpty(null))
 
-        // ch_software_versions
-        //     .concat(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
-        //     .set { ch_software_versions }
+        //ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
     }
 
     /*
@@ -433,21 +409,45 @@ workflow {
         params.modules['output_documentation']
     )
 
-    // /*
-    //  * MultiQC
-    //  */
+    /*
+     * MultiQC
+     */
     // workflow_summary = Schema.params_mqc_summary(summary)
     // ch_workflow_summary = Channel.value(workflow_summary)
+    // params.modules['multiqc'].publish_dir += "/$peakType"
     // MULTIQC (
     //     ch_multiqc_config,
     //     ch_multiqc_custom_config.collect().ifEmpty([]),
-    //     FASTQC.out.zip.collect().ifEmpty([]),
-    //     //GET_SOFTWARE_VERSIONS.out.yaml.collect(),
-    //     ch_workflow_summary
+    //     GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+    //     ch_workflow_summary,
+    //
+    //     QC_TRIM.out.fastqc_zip.collect { it[1] }.ifEmpty([]),
+    //     QC_TRIM.out.trim_log.collect   { it[1] }.ifEmpty([]),
+    //     QC_TRIM.out.trim_zip.collect   { it[1] }.ifEmpty([]),
+    //
+    //     // MAP_READS.out.stats.collect    { it[1] },
+    //     // MAP_READS.out.flagstat.collect { it[1] },
+    //     // MAP_READS.out.idxstats.collect { it[1] },
+    //
+    //     // path ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
+    //     // path ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}
+    //     // path ('alignment/mergedLibrary/*') from ch_rm_orphan_stats_mqc.collect()
+    //     // path ('alignment/mergedLibrary/picard_metrics/*') from ch_merge_bam_metrics_mqc.collect()
+    //     // path ('alignment/mergedLibrary/picard_metrics/*') from ch_collectmetrics_mqc.collect()
+    //     //
+    //     // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
+    //     // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
+    //     // path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
+    //     // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
+    //     //
+    //     // path ('preseq/*') from ch_preseq_mqc.collect().ifEmpty([])
+    //     // path ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
+    //     // path ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
+    //     // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
+    //     // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
+    //
+    //     params.modules['multiqc']
     // )
-    // ch_software_versions
-    //     .concat(MULTIQC.out.version.first().ifEmpty(null))
-    //     .set { ch_software_versions }
 }
 
 ////////////////////////////////////////////////////
@@ -735,82 +735,7 @@ workflow.onComplete {
 //     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
 //     """
 // }
-//
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                          MULTIQC                                    -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// Channel.from(summary.collect{ [it.key, it.value] })
-//     .map { k,v -> "<dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }
-//     .reduce { a, b -> return [a, b].join("\n            ") }
-//     .map { x -> """
-//     id: 'nf-core-chipseq-summary'
-//     description: " - this information is collected when the pipeline is started."
-//     section_name: 'nf-core/chipseq Workflow Summary'
-//     section_href: 'https://github.com/nf-core/chipseq'
-//     plot_type: 'html'
-//     data: |
-//         <dl class=\"dl-horizontal\">
-//             $x
-//         </dl>
-//     """.stripIndent() }
-//     .set { ch_workflow_summary }
-//
-// /*
-//  * STEP 9: MultiQC
-//  */
-// process MULTIQC {
-//     publishDir "${params.outdir}/multiqc/${PEAK_TYPE}", mode: params.publish_dir_mode
-//
-//     when:
-//     !params.skip_multiqc
-//
-//     input:
-//     path (multiqc_config) from ch_multiqc_config
-//     path (mqc_custom_config) from ch_multiqc_custom_config.collect().ifEmpty([])
-//
-//     path ('software_versions/*') from ch_software_versions_mqc.collect()
-//     path workflow_summary from ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml')
-//
-//     path ('fastqc/*') from ch_fastqc_reports_mqc.collect().ifEmpty([])
-//     path ('trimgalore/*') from ch_trimgalore_results_mqc.collect().ifEmpty([])
-//     path ('trimgalore/fastqc/*') from ch_trimgalore_fastqc_reports_mqc.collect().ifEmpty([])
-//
-//     path ('alignment/library/*') from ch_sort_bam_flagstat_mqc.collect()
-//     path ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
-//     path ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}
-//     path ('alignment/mergedLibrary/*') from ch_rm_orphan_stats_mqc.collect()
-//     path ('alignment/mergedLibrary/picard_metrics/*') from ch_merge_bam_metrics_mqc.collect()
-//     path ('alignment/mergedLibrary/picard_metrics/*') from ch_collectmetrics_mqc.collect()
-//
-//     path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
-//     path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
-//     path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
-//     path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
-//
-//     path ('preseq/*') from ch_preseq_mqc.collect().ifEmpty([])
-//     path ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
-//     path ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
-//     path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
-//     path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
-//
-//     output:
-//     path '*multiqc_report.html' into ch_multiqc_report
-//     path '*_data'
-//
-//     script:
-//     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-//     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-//     custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
-//     """
-//     multiqc . -f $rtitle $rfilename $custom_config_file
-//     """
-// }
-//
+
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 /* --                                                                     -- */
