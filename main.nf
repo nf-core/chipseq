@@ -419,27 +419,27 @@ workflow {
         GET_SOFTWARE_VERSIONS.out.yaml.collect(),
         ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
 
-        FASTQC_TRIMGALORE.out.fastqc_zip.collect { it[1] }.ifEmpty([]),
-        FASTQC_TRIMGALORE.out.trim_log.collect   { it[1] }.ifEmpty([]),
-        FASTQC_TRIMGALORE.out.trim_zip.collect   { it[1] }.ifEmpty([]),
+        FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+        FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+        FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
 
-        MAP_BWA_MEM.out.stats.collect    { it[1] },
-        MAP_BWA_MEM.out.flagstat.collect { it[1] },
-        MAP_BWA_MEM.out.idxstats.collect { it[1] },
+        MAP_BWA_MEM.out.stats.collect{it[1]},
+        MAP_BWA_MEM.out.flagstat.collect{it[1]},
+        MAP_BWA_MEM.out.idxstats.collect{it[1]},
 
-        MARK_DUPLICATES_PICARD.out.stats.collect    { it[1] }.ifEmpty([]),
-        MARK_DUPLICATES_PICARD.out.flagstat.collect { it[1] }.ifEmpty([]),
-        MARK_DUPLICATES_PICARD.out.idxstats.collect { it[1] }.ifEmpty([]),
-        MARK_DUPLICATES_PICARD.out.metrics.collect  { it[1] }.ifEmpty([]),
+        MARK_DUPLICATES_PICARD.out.stats.collect{it[1]}.ifEmpty([]),
+        MARK_DUPLICATES_PICARD.out.flagstat.collect{it[1]}.ifEmpty([]),
+        MARK_DUPLICATES_PICARD.out.idxstats.collect{it[1]}.ifEmpty([]),
+        MARK_DUPLICATES_PICARD.out.metrics.collect{it[1]}.ifEmpty([]),
 
-        BAM_CLEAN.out.stats .collect                      { it[1] }.ifEmpty([]),
-        BAM_CLEAN.out.flagstat.collect                    { it[1] }.ifEmpty([]),
-        BAM_CLEAN.out.idxstats.collect                    { it[1] }.ifEmpty([]),
-        PICARD_COLLECTMULTIPLEMETRICS.out.metrics.collect { it[1] }.ifEmpty([]),
+        BAM_CLEAN.out.stats.collect{it[1]}.ifEmpty([]),
+        BAM_CLEAN.out.flagstat.collect{it[1]}.ifEmpty([]),
+        BAM_CLEAN.out.idxstats.collect{it[1]}.ifEmpty([]),
+        PICARD_COLLECTMULTIPLEMETRICS.out.metrics.collect{it[1]}.ifEmpty([]),
 
-        PRESEQ_LCEXTRAP.out.ccurve.collect           { it[1] }.ifEmpty([]),
-        DEEPTOOLS_PLOTPROFILE.out.table.collect      { it[1] }.ifEmpty([]),
-        DEEPTOOLS_PLOTFINGERPRINT.out.matrix.collect { it[1] }.ifEmpty([]),
+        PRESEQ_LCEXTRAP.out.ccurve.collect{it[1]}.ifEmpty([]),
+        DEEPTOOLS_PLOTPROFILE.out.table.collect{it[1]}.ifEmpty([]),
+        DEEPTOOLS_PLOTFINGERPRINT.out.matrix.collect{it[1]}.ifEmpty([]),
         // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
         // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
 
