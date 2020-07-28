@@ -3,6 +3,10 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2020-07-29
+
+* [#171](https://github.com/nf-core/chipseq/issues/171) - Minor patch release to update pipeline schema
+
 ## [1.2.0] - 2020-07-02
 
 ### `Added`
