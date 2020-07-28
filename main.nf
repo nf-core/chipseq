@@ -135,16 +135,18 @@ log.info "-\033[2m----------------------------------------------------\033[0m-"
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
 ////////////////////////////////////////////////////
 
-include { GTF2BED               } from './modules/local/process/gtf2bed'
-include { GET_CHROM_SIZES       } from './modules/local/process/get_chrom_sizes'
-include { MAKE_GENOME_FILTER    } from './modules/local/process/make_genome_filter'
-include { BEDTOOLS_GENOMECOV    } from './modules/local/process/bedtools_genomecov'
-include { OUTPUT_DOCUMENTATION  } from './modules/local/process/output_documentation'
-include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions'
-include { MULTIQC               } from './modules/local/process/multiqc'
+include { GTF2BED                  } from './modules/local/process/gtf2bed'
+include { GET_CHROM_SIZES          } from './modules/local/process/get_chrom_sizes'
+include { MAKE_GENOME_FILTER       } from './modules/local/process/make_genome_filter'
+include { BEDTOOLS_GENOMECOV       } from './modules/local/process/bedtools_genomecov'
+include { PLOT_HOMER_ANNOTATEPEAKS } from './modules/local/process/plot_homer_annotatepeaks'
+include { PLOT_MACS2_QC            } from './modules/local/process/plot_macs2_qc'
+include { OUTPUT_DOCUMENTATION     } from './modules/local/process/output_documentation'
+include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'
+include { MULTIQC                  } from './modules/local/process/multiqc'
 
-include { INPUT_CHECK           } from './modules/local/subworkflow/input_check'
-include { BAM_CLEAN             } from './modules/local/subworkflow/bam_clean'
+include { INPUT_CHECK              } from './modules/local/subworkflow/input_check'
+include { BAM_CLEAN                } from './modules/local/subworkflow/bam_clean'
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -381,6 +383,13 @@ workflow {
         )
         ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.version.first().ifEmpty(null))
 
+        params.modules['plot_macs2_qc'].publish_dir += "/$peakType/qc"
+        PLOT_MACS2_QC (
+            MACS2_CALLPEAK.out.peak.collect{it[1]},
+            peakType,
+            params.modules['plot_macs2_qc']
+        )
+
         params.modules['homer_annotatepeaks_macs2'].publish_dir += "/$peakType"
         HOMER_ANNOTATEPEAKS (
             MACS2_CALLPEAK.out.peak,
@@ -390,8 +399,16 @@ workflow {
         )
         ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS.out.version.first().ifEmpty(null))
 
+        params.modules['plot_homer_annotatepeaks'].publish_dir += "/$peakType/qc"
+        PLOT_HOMER_ANNOTATEPEAKS (
+            HOMER_ANNOTATEPEAKS.out.txt.collect{it[1]},
+            "_peaks.annotatePeaks.txt",
+            params.modules['plot_homer_annotatepeaks']
+        )
+
         //ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
     }
+
 
     /*
      * Pipeline reporting
@@ -466,43 +483,6 @@ workflow.onComplete {
 /* --                  THE END                 -- */
 ////////////////////////////////////////////////////
 
-// /*
-//  * STEP 6.4: Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
-//  */
-// process MACS2_QC {
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/qc", mode: params.publish_dir_mode
-//
-//     when:
-//     params.macs_gsize && !params.skip_peak_annotation && !params.skip_peak_qc
-//
-//     input:
-//     path peaks from ch_macs_qc.collect{ it[-1] }
-//     path annos from ch_macs_annotate.collect()
-//     path peak_annotation_header from ch_peak_annotation_header
-//
-//     output:
-//     path '*.tsv' into ch_macs_qc_mqc
-//     path '*.{txt,pdf}'
-//
-//     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-//     """
-//     plot_macs_qc.r \\
-//         -i ${peaks.join(',')} \\
-//         -s ${peaks.join(',').replaceAll("_peaks.${PEAK_TYPE}","")} \\
-//         -o ./ \\
-//         -p macs_peak
-//
-//     plot_homer_annotatepeaks.r \\
-//         -i ${annos.join(',')} \\
-//         -s ${annos.join(',').replaceAll("_peaks.annotatePeaks.txt","")} \\
-//         -o ./ \\
-//         -p macs_annotatePeaks
-//
-//     cat $peak_annotation_header macs_annotatePeaks.summary.txt > macs_annotatePeaks.summary_mqc.tsv
-//     """
-// }
-//
 // ///////////////////////////////////////////////////////////////////////////////
 // ///////////////////////////////////////////////////////////////////////////////
 // /* --                                                                     -- */

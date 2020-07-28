@@ -23,7 +23,7 @@ process HOMER_ANNOTATEPEAKS {
     val opts
 
     output:
-    tuple val(meta), path("*.txt"), emit: txt
+    tuple val(meta), path("*annotatePeaks.txt"), emit: txt
     path "*.version.txt", emit: version
 
     script:
