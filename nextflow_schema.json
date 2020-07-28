@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/atacseq/master/nextflow_schema.json",
-    "title": "nf-core/atacseq pipeline parameters",
-    "description": "ATACSeq peak-calling and differential analysis pipeline.",
+    "$id": "https://raw.githubusercontent.com/nf-core/chipseq/master/nextflow_schema.json",
+    "title": "nf-core/chipseq pipeline parameters",
+    "description": "ChIP-seq peak-calling and differential analysis pipeline.",
     "type": "object",
     "definitions": {
         "input_output_options": {
@@ -12,7 +12,7 @@
                 "input": {
                     "type": "string",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row. See [usage docs](https://nf-co.re/atacseq/docs/usage#--input).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row. See [usage docs](https://nf-co.re/chipseq/docs/usage#--input).",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "single_end": {
