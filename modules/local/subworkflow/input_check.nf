@@ -2,17 +2,17 @@
  * Check input samplesheet and get read channels
  */
 
-include { CHECK_SAMPLESHEET;
-          get_samplesheet_paths } from '../process/check_samplesheet'
+include { SAMPLESHEET_CHECK;
+          get_samplesheet_paths } from '../process/samplesheet_check'
 
-workflow CHECK_INPUT {
+workflow INPUT_CHECK {
     take:
     ch_input               //   file: /path/to/samplesheet.csv
     seq_center             // string: sequencing center for read group
-    check_samplesheet_opts //    map: options for check_samplesheet module
+    samplesheet_check_opts //    map: options for check_samplesheet module
 
     main:
-    CHECK_SAMPLESHEET (ch_input, check_samplesheet_opts)
+    SAMPLESHEET_CHECK (ch_input, samplesheet_check_opts)
         .splitCsv(header:true, sep:',')
         .map { get_samplesheet_paths(it, seq_center) }
         .set { ch_reads }

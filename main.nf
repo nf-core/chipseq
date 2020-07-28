@@ -141,9 +141,10 @@ include { MAKE_GENOME_FILTER    } from './modules/local/process/make_genome_filt
 include { BEDTOOLS_GENOMECOV    } from './modules/local/process/bedtools_genomecov'
 include { OUTPUT_DOCUMENTATION  } from './modules/local/process/output_documentation'
 include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions'
+include { MULTIQC               } from './modules/local/process/multiqc'
 
-include { CHECK_INPUT           } from './modules/local/subworkflow/check_input'
-include { CLEAN_BAM             } from './modules/local/subworkflow/clean_bam'
+include { INPUT_CHECK           } from './modules/local/subworkflow/input_check'
+include { BAM_CLEAN             } from './modules/local/subworkflow/bam_clean'
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -162,13 +163,10 @@ include { PHANTOMPEAKQUALTOOLS          } from './modules/nf-core/software/phant
 include { MACS2_CALLPEAK                } from './modules/nf-core/software/macs2_callpeak'
 include { HOMER_ANNOTATEPEAKS           } from './modules/nf-core/software/homer_annotatepeaks'
 //include { SUBREAD_FEATURECOUNTS       } from './modules/nf-core/software/subread_featurecounts'
-include { MULTIQC                       } from './modules/nf-core/software/multiqc'
 
-include { QC_TRIM                       } from './modules/nf-core/subworkflow/qc_trim'
-include { BAM_STATS                     } from './modules/nf-core/subworkflow/bam_stats'
-include { SORT_BAM                      } from './modules/nf-core/subworkflow/sort_bam'
-include { MAP_READS                     } from './modules/nf-core/subworkflow/map_reads'
-include { MARK_DUPLICATES               } from './modules/nf-core/subworkflow/mark_duplicates'
+include { FASTQC_TRIMGALORE             } from './modules/nf-core/subworkflow/fastqc_trimgalore'
+include { MAP_BWA_MEM                   } from './modules/nf-core/subworkflow/map_bwa_mem'
+include { MARK_DUPLICATES_PICARD        } from './modules/nf-core/subworkflow/mark_duplicates_picard'
 
 ////////////////////////////////////////////////////
 /* --           RUN MAIN WORKFLOW              -- */
@@ -179,10 +177,10 @@ workflow {
     /*
      * Read in samplesheet, validate and stage input files
      */
-    CHECK_INPUT (
+    INPUT_CHECK (
         ch_input,
         params.seq_center,
-        params.modules['check_samplesheet']
+        params.modules['samplesheet_check']
     )
 
     /*
@@ -200,37 +198,43 @@ workflow {
         ch_blacklist.ifEmpty([]),
         params.modules['make_genome_filter']
     )
+    ch_software_versions = Channel.empty()
+    ch_software_versions = ch_software_versions.mix(MAKE_GENOME_FILTER.out.version.first().ifEmpty(null))
 
     /*
      * Read QC & trimming
      */
     nextseq = params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ''
     params.modules['trimgalore'].args += nextseq
-    QC_TRIM (
-        CHECK_INPUT.out.reads,
+    FASTQC_TRIMGALORE (
+        INPUT_CHECK.out.reads,
         params.skip_fastqc,
         params.skip_trimming,
         params.modules['fastqc'],
         params.modules['trimgalore']
     )
+    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
 
     /*
      * Map reads & BAM QC
      */
     score = params.bwa_min_score ? " -T ${params.bwa_min_score}" : ''
     params.modules['bwa_mem'].args += score
-    MAP_READS (
-        QC_TRIM.out.reads,
+    MAP_BWA_MEM (
+        FASTQC_TRIMGALORE.out.reads,
         ch_index,
         ch_fasta,
         params.modules['bwa_mem'],
         params.modules['samtools_sort_lib']
     )
+    ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.bwa_version.first())
+    ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.samtools_version.first().ifEmpty(null))
 
     /*
      * Merge resequenced BAM files
      */
-    MAP_READS
+    MAP_BWA_MEM
         .out
         .bam
         .map {
@@ -246,50 +250,54 @@ workflow {
         ch_sort_bam,
         params.modules['picard_mergesamfiles']
     )
+    ch_software_versions = ch_software_versions.mix(PICARD_MERGESAMFILES.out.version.first().ifEmpty(null))
 
     /*
      * Mark duplicates & filter BAM files
      */
-    MARK_DUPLICATES (
+    MARK_DUPLICATES_PICARD (
         PICARD_MERGESAMFILES.out.bam,
         params.modules['picard_markduplicates'],
         params.modules['samtools_sort_merged_lib']
     )
 
     // Fix getting name sorted BAM here for PE/SE
-    CLEAN_BAM (
-        MARK_DUPLICATES.out.bam.join(MARK_DUPLICATES.out.bai, by: [0]),
+    BAM_CLEAN (
+        MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
         MAKE_GENOME_FILTER.out.bed.collect(),
         ch_bamtools_filter_config,
-        params.modules['filter_bam'],
-        params.modules['remove_bam_orphans'],
+        params.modules['bam_filter'],
+        params.modules['bam_remove_orphans'],
         params.modules['samtools_sort_filter']
     )
+    ch_software_versions = ch_software_versions.mix(BAM_CLEAN.out.bamtools_version.first().ifEmpty(null))
 
     /*
      * Post alignment QC
      */
     PICARD_COLLECTMULTIPLEMETRICS (
-        CLEAN_BAM.out.bam,
+        BAM_CLEAN.out.bam,
         ch_fasta,
         params.modules['picard_collectmultiplemetrics']
     )
 
-    // PRESEQ_LCEXTRAP (
-    //     CLEAN_BAM.out.bam,
-    //     params.modules['preseq_lcextrap']
-    // )
+    PRESEQ_LCEXTRAP (
+        BAM_CLEAN.out.bam,
+        params.modules['preseq_lcextrap']
+    )
+    ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null))
 
     PHANTOMPEAKQUALTOOLS (
-        CLEAN_BAM.out.bam,
+        BAM_CLEAN.out.bam,
         params.modules['phantompeakqualtools']
     )
+    ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.version.first().ifEmpty(null))
 
     /*
      * Coverage tracks
      */
     BEDTOOLS_GENOMECOV (
-        CLEAN_BAM.out.bam.join(CLEAN_BAM.out.flagstat, by: [0]),
+        BAM_CLEAN.out.bam.join(BAM_CLEAN.out.flagstat, by: [0]),
         params.modules['bedtools_genomecov']
     )
 
@@ -298,6 +306,7 @@ workflow {
         GET_CHROM_SIZES.out.sizes,
         params.modules['ucsc_bedgraphtobigwig']
     )
+    ch_software_versions = ch_software_versions.mix(UCSC_BEDRAPHTOBIGWIG.out.version.first().ifEmpty(null))
 
     /*
      * Coverage plots
@@ -307,6 +316,7 @@ workflow {
         ch_gene_bed,
         params.modules['deeptools_computematrix']
     )
+    ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.version.first().ifEmpty(null))
 
     DEEPTOOLS_PLOTPROFILE (
         DEEPTOOLS_COMPUTEMATRIX.out.matrix,
@@ -318,32 +328,39 @@ workflow {
         params.modules['deeptools_plotheatmap']
     )
 
-    // Join control BAM here too to generate plots with IP and CONTROL together
+    /*
+     * Refactor channels: [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
+     */
+    BAM_CLEAN
+        .out
+        .bam
+        .join ( BAM_CLEAN.out.bai, by: [0] )
+        .map { meta, bam, bai -> meta.control ? null : [ meta.id, [ bam ] , [ bai ] ] }
+        .set { ch_ip_control_bam }
+
+    BAM_CLEAN
+        .out
+        .bam
+        .join ( BAM_CLEAN.out.bai, by: [0] )
+        .map { meta, bam, bai -> meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null }
+        .combine(ch_ip_control_bam, by: 0)
+        .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
+        .set { ch_ip_control_bam }
+
+    /*
+     * plotFingerprint for IP and control together
+     */
     params.modules['deeptools_plotfingerprint'].args += " --numberOfSamples $params.fingerprint_bins"
     DEEPTOOLS_PLOTFINGERPRINT (
-        CLEAN_BAM.out.bam.join(CLEAN_BAM.out.bai, by: [0]),
+        ch_ip_control_bam,
         params.modules['deeptools_plotfingerprint']
     )
 
-    /*
-     * Call peaks
-     */
-    CLEAN_BAM
-        .out
-        .bam
-        .map { meta, bam -> meta.control ? null : [ meta.id, bam ] }
-        .set { ch_control_bam }
-
-    // Create channel: [ val(meta), ip_bam, control_bam ]
-    CLEAN_BAM
-        .out
-        .bam
-        .map { meta, bam -> meta.control ? [ meta.control, meta, bam ] : null }
-        .combine(ch_control_bam, by: 0)
-        .map { it -> [ it[1] , it[2], it[3] ] }
-        .set { ch_control_bam }
-
     if (params.macs_gsize) {
+
+        /*
+         * Call peaks
+         */
         peakType = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
         broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
         pileup = params.save_macs_pileup ? '--bdg --SPMR' : ''
@@ -351,11 +368,18 @@ workflow {
         pvalue = params.macs_pvalue ? "--pvalue ${params.macs_pvalue}" : ''
         params.modules['macs2_callpeak'].publish_dir += "/$peakType"
         params.modules['macs2_callpeak'].args += " $broad $pileup $fdr $pvalue"
+
+        // Create channel: [ val(meta), ip_bam, control_bam ]
+        ch_ip_control_bam
+            .map { it -> [ it[0] , it[1][0], it[1][1] ] }
+            .set { ch_ip_control_bam }
+
         MACS2_CALLPEAK (
-            ch_control_bam,
+            ch_ip_control_bam,
             params.macs_gsize,
             params.modules['macs2_callpeak']
         )
+        ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.version.first().ifEmpty(null))
 
         params.modules['homer_annotatepeaks_macs2'].publish_dir += "/$peakType"
         HOMER_ANNOTATEPEAKS (
@@ -364,14 +388,18 @@ workflow {
             ch_gtf,
             params.modules['homer_annotatepeaks_macs2']
         )
+        ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS.out.version.first().ifEmpty(null))
+
+        //ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
     }
 
     /*
      * Pipeline reporting
      */
-    //GET_SOFTWARE_VERSIONS (
-    //    params.modules['get_software_versions']
-    //)
+    GET_SOFTWARE_VERSIONS (
+        ch_software_versions.map { it }.collect(),
+        params.modules['get_software_versions']
+    )
 
     OUTPUT_DOCUMENTATION (
         ch_output_docs,
@@ -379,18 +407,49 @@ workflow {
         params.modules['output_documentation']
     )
 
-    // /*
-    //  * MultiQC
-    //  */
-    // workflow_summary = Schema.params_mqc_summary(summary)
-    // ch_workflow_summary = Channel.value(workflow_summary)
-    // MULTIQC (
-    //     ch_multiqc_config,
-    //     ch_multiqc_custom_config.collect().ifEmpty([]),
-    //     FASTQC.out.zip.collect().ifEmpty([]),
-    //     //GET_SOFTWARE_VERSIONS.out.yml.collect(),
-    //     ch_workflow_summary
-    // )
+    /*
+     * MultiQC
+     */
+    workflow_summary = Schema.params_mqc_summary(summary)
+    ch_workflow_summary = Channel.value(workflow_summary)
+    params.modules['multiqc'].publish_dir += "/$peakType"
+    MULTIQC (
+        ch_multiqc_config,
+        ch_multiqc_custom_config.collect().ifEmpty([]),
+        GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+        ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+
+        FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+        FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+        FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+
+        MAP_BWA_MEM.out.stats.collect{it[1]},
+        MAP_BWA_MEM.out.flagstat.collect{it[1]},
+        MAP_BWA_MEM.out.idxstats.collect{it[1]},
+
+        MARK_DUPLICATES_PICARD.out.stats.collect{it[1]}.ifEmpty([]),
+        MARK_DUPLICATES_PICARD.out.flagstat.collect{it[1]}.ifEmpty([]),
+        MARK_DUPLICATES_PICARD.out.idxstats.collect{it[1]}.ifEmpty([]),
+        MARK_DUPLICATES_PICARD.out.metrics.collect{it[1]}.ifEmpty([]),
+
+        BAM_CLEAN.out.stats.collect{it[1]}.ifEmpty([]),
+        BAM_CLEAN.out.flagstat.collect{it[1]}.ifEmpty([]),
+        BAM_CLEAN.out.idxstats.collect{it[1]}.ifEmpty([]),
+        PICARD_COLLECTMULTIPLEMETRICS.out.metrics.collect{it[1]}.ifEmpty([]),
+
+        PRESEQ_LCEXTRAP.out.ccurve.collect{it[1]}.ifEmpty([]),
+        DEEPTOOLS_PLOTPROFILE.out.table.collect{it[1]}.ifEmpty([]),
+        DEEPTOOLS_PLOTFINGERPRINT.out.matrix.collect{it[1]}.ifEmpty([]),
+        // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
+        // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
+
+        // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
+        // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
+        // path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
+        // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
+
+        params.modules['multiqc']
+    )
 }
 
 ////////////////////////////////////////////////////
@@ -678,82 +737,7 @@ workflow.onComplete {
 //     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
 //     """
 // }
-//
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                          MULTIQC                                    -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// Channel.from(summary.collect{ [it.key, it.value] })
-//     .map { k,v -> "<dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }
-//     .reduce { a, b -> return [a, b].join("\n            ") }
-//     .map { x -> """
-//     id: 'nf-core-chipseq-summary'
-//     description: " - this information is collected when the pipeline is started."
-//     section_name: 'nf-core/chipseq Workflow Summary'
-//     section_href: 'https://github.com/nf-core/chipseq'
-//     plot_type: 'html'
-//     data: |
-//         <dl class=\"dl-horizontal\">
-//             $x
-//         </dl>
-//     """.stripIndent() }
-//     .set { ch_workflow_summary }
-//
-// /*
-//  * STEP 9: MultiQC
-//  */
-// process MULTIQC {
-//     publishDir "${params.outdir}/multiqc/${PEAK_TYPE}", mode: params.publish_dir_mode
-//
-//     when:
-//     !params.skip_multiqc
-//
-//     input:
-//     path (multiqc_config) from ch_multiqc_config
-//     path (mqc_custom_config) from ch_multiqc_custom_config.collect().ifEmpty([])
-//
-//     path ('software_versions/*') from ch_software_versions_mqc.collect()
-//     path workflow_summary from ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml')
-//
-//     path ('fastqc/*') from ch_fastqc_reports_mqc.collect().ifEmpty([])
-//     path ('trimgalore/*') from ch_trimgalore_results_mqc.collect().ifEmpty([])
-//     path ('trimgalore/fastqc/*') from ch_trimgalore_fastqc_reports_mqc.collect().ifEmpty([])
-//
-//     path ('alignment/library/*') from ch_sort_bam_flagstat_mqc.collect()
-//     path ('alignment/mergedLibrary/*') from ch_merge_bam_stats_mqc.collect()
-//     path ('alignment/mergedLibrary/*') from ch_rm_orphan_flagstat_mqc.collect{it[1]}
-//     path ('alignment/mergedLibrary/*') from ch_rm_orphan_stats_mqc.collect()
-//     path ('alignment/mergedLibrary/picard_metrics/*') from ch_merge_bam_metrics_mqc.collect()
-//     path ('alignment/mergedLibrary/picard_metrics/*') from ch_collectmetrics_mqc.collect()
-//
-//     path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
-//     path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
-//     path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
-//     path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
-//
-//     path ('preseq/*') from ch_preseq_mqc.collect().ifEmpty([])
-//     path ('deeptools/*') from ch_plotfingerprint_mqc.collect().ifEmpty([])
-//     path ('deeptools/*') from ch_plotprofile_mqc.collect().ifEmpty([])
-//     path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
-//     path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
-//
-//     output:
-//     path '*multiqc_report.html' into ch_multiqc_report
-//     path '*_data'
-//
-//     script:
-//     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-//     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-//     custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
-//     """
-//     multiqc . -f $rtitle $rfilename $custom_config_file
-//     """
-// }
-//
+
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 /* --                                                                     -- */

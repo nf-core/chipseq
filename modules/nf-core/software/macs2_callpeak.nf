@@ -22,10 +22,10 @@ process MACS2_CALLPEAK {
 
     output:
     tuple val(meta), path("*.{narrowPeak,broadPeak}"), emit: peak
-    path '*.xls', emit: xls
-    path '*.gappedPeak', emit: gapped optional true
-    path '*.bed', emit: bed optional true
-    path '*.bdg', emit: bdg optional true
+    tuple val(meta), path("*.xls"), emit: xls
+    tuple val(meta), path("*.gappedPeak"), emit: gapped optional true
+    tuple val(meta), path("*.bed"), emit: bed optional true
+    tuple val(meta), path("*.bdg"), emit: bdg optional true
     path "*.version.txt", emit: version
 
     script:

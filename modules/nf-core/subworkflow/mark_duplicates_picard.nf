@@ -4,9 +4,9 @@
 
 include { PICARD_MARKDUPLICATES } from '../software/picard_markduplicates'
 include { SAMTOOLS_INDEX        } from '../software/samtools_index'
-include { BAM_STATS             } from './bam_stats'
+include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'
 
-workflow MARK_DUPLICATES {
+workflow MARK_DUPLICATES_PICARD {
     take:
     ch_bam              // channel: [ val(meta), [ bam ] ]
     markduplicates_opts //     map: options for picard MarkDuplicates module
@@ -15,15 +15,15 @@ workflow MARK_DUPLICATES {
     main:
     PICARD_MARKDUPLICATES(ch_bam, markduplicates_opts)
     SAMTOOLS_INDEX(PICARD_MARKDUPLICATES.out.bam, samtools_opts)
-    BAM_STATS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_opts)
+    BAM_STATS_SAMTOOLS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_opts)
 
     emit:
     bam = PICARD_MARKDUPLICATES.out.bam                // channel: [ val(meta), [ bam ] ]
     metrics = PICARD_MARKDUPLICATES.out.metrics        // channel: [ val(meta), [ metrics ] ]
     bai = SAMTOOLS_INDEX.out.bai                       // channel: [ val(meta), [ bai ] ]
-    stats = BAM_STATS.out.stats                        // channel: [ val(meta), [ stats ] ]
-    flagstat = BAM_STATS.out.flagstat                  // channel: [ val(meta), [ flagstat ] ]
-    idxstats = BAM_STATS.out.idxstats                  // channel: [ val(meta), [ idxstats ] ]
+    stats = BAM_STATS_SAMTOOLS.out.stats               // channel: [ val(meta), [ stats ] ]
+    flagstat = BAM_STATS_SAMTOOLS.out.flagstat         // channel: [ val(meta), [ flagstat ] ]
+    idxstats = BAM_STATS_SAMTOOLS.out.idxstats         // channel: [ val(meta), [ idxstats ] ]
     picard_version = PICARD_MARKDUPLICATES.out.version //    path: *.version.txt
     samtools_version = SAMTOOLS_INDEX.out.version      //    path: *.version.txt
 }

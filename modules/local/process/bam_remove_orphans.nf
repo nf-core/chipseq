@@ -1,7 +1,7 @@
 /*
  * Remove orphan reads from paired-end BAM file
  */
-process REMOVE_BAM_ORPHANS {
+process BAM_REMOVE_ORPHANS {
     tag "$meta.id"
     label 'process_medium'
     publishDir "${params.outdir}/${opts.publish_dir}",

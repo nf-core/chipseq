@@ -1,7 +1,7 @@
 /*
  * Filter BAM file
  */
-process FILTER_BAM {
+process BAM_FILTER {
     tag "$meta.id"
     label 'process_medium'
     publishDir "${params.outdir}/${opts.publish_dir}",
@@ -12,7 +12,7 @@ process FILTER_BAM {
                       else filename }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
-    
+
     input:
     tuple val(meta), path(bam), path(bai)
     path bed
@@ -39,6 +39,6 @@ process FILTER_BAM {
         | bamtools filter \\
             -out ${prefix}.bam \\
             -script $config
-    echo \$(bamtools --version 2>&1) > bamtools.version.txt
+    echo \$(bamtools --version 2>&1) | sed 's/^.*bamtools //; s/Part .*\$//' > bamtools.version.txt
     """
 }

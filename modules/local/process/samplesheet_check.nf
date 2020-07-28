@@ -1,7 +1,7 @@
 /*
  * Reformat design file, check validitiy and create IP vs control mappings
  */
-process CHECK_SAMPLESHEET {
+process SAMPLESHEET_CHECK {
     tag "$samplesheet"
     publishDir "${params.outdir}/${opts.publish_dir}",
         mode: params.publish_dir_mode,
