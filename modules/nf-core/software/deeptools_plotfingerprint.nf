@@ -3,10 +3,10 @@ def SOFTWARE = 'deeptools'
 process DEEPTOOLS_PLOTFINGERPRINT {
     tag "$meta.id"
     label 'process_high'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -17,7 +17,7 @@ process DEEPTOOLS_PLOTFINGERPRINT {
 
     input:
     tuple val(meta), path(bams), path(bais)
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.pdf"), emit: pdf
@@ -26,11 +26,11 @@ process DEEPTOOLS_PLOTFINGERPRINT {
     path "*.version.txt", emit: version
 
     script:
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     extend = (meta.single_end && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
     """
     plotFingerprint \\
-        $opts.args \\
+        $options.args \\
         $extend \\
         --bamfiles ${bams.join(' ')} \\
         --plotFile ${prefix}.plotFingerprint.pdf \\

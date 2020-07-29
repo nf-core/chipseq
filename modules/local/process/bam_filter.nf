@@ -4,10 +4,10 @@
 process BAM_FILTER {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -16,19 +16,21 @@ process BAM_FILTER {
     input:
     tuple val(meta), path(bam), path(bai)
     path bed
-    path config
-    val opts
+    path bamtools_filter_se_config
+    path bamtools_filter_pe_config
+    val options
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
     path "*.version.txt", emit: version
 
     script:
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     filter_params = meta.single_end ? '-F 0x004' : '-F 0x004 -F 0x0008 -f 0x001'
     dup_params = params.keep_dups ? '' : '-F 0x0400'
     multimap_params = params.keep_multi_map ? '' : '-q 1'
     blacklist_params = params.blacklist ? "-L $bed" : ''
+    config = meta.single_end ? bamtools_filter_se_config : bamtools_filter_pe_config
     """
     samtools view \\
         $filter_params \\

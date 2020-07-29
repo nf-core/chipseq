@@ -3,10 +3,10 @@ def SOFTWARE = 'trimgalore'
 process TRIMGALORE {
     tag "$meta.id"
     label 'process_high'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -17,7 +17,7 @@ process TRIMGALORE {
 
     input:
     tuple val(meta), path(reads)
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.fq.gz"), emit: reads
@@ -45,12 +45,12 @@ process TRIMGALORE {
     tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
 
     // Added soft-links to original fastqs for consistent naming in MultiQC
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     if (meta.single_end) {
         """
         [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz
         trim_galore \\
-            $opts.args \\
+            $options.args \\
             --cores $cores \\
             --gzip \\
             $c_r1 \\
@@ -63,7 +63,7 @@ process TRIMGALORE {
         [ ! -f  ${prefix}_1.fastq.gz ] && ln -s ${reads[0]} ${prefix}_1.fastq.gz
         [ ! -f  ${prefix}_2.fastq.gz ] && ln -s ${reads[1]} ${prefix}_2.fastq.gz
         trim_galore \\
-            $opts.args \\
+            $options.args \\
             --cores $cores \\
             --paired \\
             --gzip \\

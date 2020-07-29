@@ -11,7 +11,6 @@
     * [`-profile`](#-profile)
     * [`--input`](#--input)
 * [Generic arguments](#generic-arguments)
-    * [`--single_end`](#--single_end)
     * [`--seq_center`](#--seq_center)
     * [`--fragment_size`](#--fragment_size)
     * [`--fingerprint_bins`](#--fingerprint_bins)
@@ -233,12 +232,6 @@ NAIVE_INPUT,3,BLA203A49_S1_L006_R1_001.fastq.gz,,,
 Example design files have been provided with the pipeline for [paired-end](../assets/design_pe.csv) and [single-end](../assets/design_se.csv) data.
 
 ## Generic arguments
-
-### `--single_end`
-
-By default, the pipeline expects paired-end data. If you have single-end data, specify `--single_end` on the command line when you launch the pipeline.
-
-It is not possible to run a mixture of single-end and paired-end files in one run.
 
 ### `--seq_center`
 

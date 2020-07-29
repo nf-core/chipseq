@@ -8,14 +8,14 @@ include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'
 
 workflow MARK_DUPLICATES_PICARD {
     take:
-    ch_bam              // channel: [ val(meta), [ bam ] ]
-    markduplicates_opts //     map: options for picard MarkDuplicates module
-    samtools_opts       //     map: options for SAMTools modules
+    ch_bam                 // channel: [ val(meta), [ bam ] ]
+    markduplicates_options //     map: options for picard MarkDuplicates module
+    samtools_options       //     map: options for SAMTools modules
 
     main:
-    PICARD_MARKDUPLICATES(ch_bam, markduplicates_opts)
-    SAMTOOLS_INDEX(PICARD_MARKDUPLICATES.out.bam, samtools_opts)
-    BAM_STATS_SAMTOOLS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_opts)
+    PICARD_MARKDUPLICATES(ch_bam, markduplicates_options)
+    SAMTOOLS_INDEX(PICARD_MARKDUPLICATES.out.bam, samtools_options)
+    BAM_STATS_SAMTOOLS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_options)
 
     emit:
     bam = PICARD_MARKDUPLICATES.out.bam                // channel: [ val(meta), [ bam ] ]

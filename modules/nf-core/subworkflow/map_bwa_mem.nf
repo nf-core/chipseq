@@ -7,15 +7,15 @@ include { BAM_SORT_SAMTOOLS } from './bam_sort_samtools'
 
 workflow MAP_BWA_MEM {
     take:
-    ch_reads      // channel: [ val(meta), [ reads ] ]
-    ch_index      //    path: /path/to/index
-    ch_fasta      //    path: /path/to/genome.fasta
-    bwa_mem_opts  //     map: options for BWA MEM module
-    samtools_opts //     map: options for SAMTools modules
+    ch_reads         // channel: [ val(meta), [ reads ] ]
+    ch_index         //    path: /path/to/index
+    ch_fasta         //    path: /path/to/genome.fasta
+    bwa_mem_options  //     map: options for BWA MEM module
+    samtools_options //     map: options for SAMTools modules
 
     main:
-    BWA_MEM(ch_reads, ch_index, ch_fasta, bwa_mem_opts)
-    BAM_SORT_SAMTOOLS(BWA_MEM.out.bam, samtools_opts)
+    BWA_MEM(ch_reads, ch_index, ch_fasta, bwa_mem_options)
+    BAM_SORT_SAMTOOLS(BWA_MEM.out.bam, samtools_options)
 
     emit:
     bam = BAM_SORT_SAMTOOLS.out.bam                           // channel: [ val(meta), [ bam ] ]

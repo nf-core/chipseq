@@ -2,10 +2,10 @@ def SOFTWARE = 'samtools'
 
 process SAMTOOLS_FLAGSTAT {
     tag "$meta.id"
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -16,7 +16,7 @@ process SAMTOOLS_FLAGSTAT {
 
     input:
     tuple val(meta), path(bam), path(bai)
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.flagstat"), emit: flagstat

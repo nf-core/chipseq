@@ -96,7 +96,6 @@ class Schema {
         def Map summary = [:]
         if (workflow.revision) summary['Pipeline Release'] = workflow.revision
         summary['Run Name']         = run_name ?: workflow.runName
-        summary['Data Type']              = params.single_end ? 'Single-End' : 'Paired-End'
         summary['Design File']            = params.input
         summary['Genome']                 = params.genome ?: 'Not supplied'
         summary['Fasta File']             = params.fasta
@@ -121,7 +120,7 @@ class Schema {
             summary['NextSeq Trim']       = "$params.trim_nextseq bp"
         }
         if (params.seq_center)            summary['Sequencing Center'] = params.seq_center
-        if (params.single_end)            summary['Fragment Size'] = "$params.fragment_size bp"
+        summary['Fragment Size']          = "$params.fragment_size bp"
         summary['Fingerprint Bins']       = params.fingerprint_bins
         if (params.keep_dups)             summary['Keep Duplicates'] = 'Yes'
         if (params.keep_multi_map)        summary['Keep Multi-mapped'] = 'Yes'

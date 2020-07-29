@@ -3,10 +3,10 @@ def SOFTWARE = 'bwa'
 process BWA_INDEX {
     tag "$fasta"
     label 'process_high'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -17,7 +17,7 @@ process BWA_INDEX {
 
     input:
     path fasta
-    val opts
+    val options
 
     output:
     path "${fasta}.*", emit: index
@@ -25,7 +25,7 @@ process BWA_INDEX {
 
     script:
     """
-    bwa index $opts.args $fasta
+    bwa index $options.args $fasta
     echo \$(bwa 2>&1) | sed 's/^.*Version: //; s/Contact:.*\$//' > ${SOFTWARE}.version.txt
     """
 }

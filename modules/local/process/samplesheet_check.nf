@@ -3,17 +3,17 @@
  */
 process SAMPLESHEET_CHECK {
     tag "$samplesheet"
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else filename }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
     input:
     path samplesheet
-    val opts
+    val options
 
     output:
     path '*.csv'

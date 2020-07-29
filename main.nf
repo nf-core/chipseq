@@ -97,11 +97,9 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
 ch_output_docs_images = file("$baseDir/docs/images/", checkIfExists: true)
 
 // JSON files required by BAMTools for alignment filtering
-if (params.single_end) {
-    ch_bamtools_filter_config = file(params.bamtools_filter_se_config, checkIfExists: true)
-} else {
-    ch_bamtools_filter_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
-}
+ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
+ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
+//ch_bamtools_filter_config
 
 // Header files for MultiQC
 ch_peak_count_header = file("$baseDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
@@ -135,16 +133,20 @@ log.info "-\033[2m----------------------------------------------------\033[0m-"
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
 ////////////////////////////////////////////////////
 
-include { GTF2BED               } from './modules/local/process/gtf2bed'
-include { GET_CHROM_SIZES       } from './modules/local/process/get_chrom_sizes'
-include { MAKE_GENOME_FILTER    } from './modules/local/process/make_genome_filter'
-include { BEDTOOLS_GENOMECOV    } from './modules/local/process/bedtools_genomecov'
-include { OUTPUT_DOCUMENTATION  } from './modules/local/process/output_documentation'
-include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions'
-include { MULTIQC               } from './modules/local/process/multiqc'
+include { GTF2BED                  } from './modules/local/process/gtf2bed'
+include { GET_CHROM_SIZES          } from './modules/local/process/get_chrom_sizes'
+include { MAKE_GENOME_FILTER       } from './modules/local/process/make_genome_filter'
+include { BEDTOOLS_GENOMECOV       } from './modules/local/process/bedtools_genomecov'
+include { PLOT_HOMER_ANNOTATEPEAKS } from './modules/local/process/plot_homer_annotatepeaks'
+include { PLOT_MACS2_QC            } from './modules/local/process/plot_macs2_qc'
+include { MACS2_CONSENSUS          } from './modules/local/process/macs2_consensus'
+// include { FRIP_SCORE               } from './modules/local/process/frip_score'
+include { OUTPUT_DOCUMENTATION     } from './modules/local/process/output_documentation'
+include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'
+include { MULTIQC                  } from './modules/local/process/multiqc'
 
-include { INPUT_CHECK           } from './modules/local/subworkflow/input_check'
-include { BAM_CLEAN             } from './modules/local/subworkflow/bam_clean'
+include { INPUT_CHECK              } from './modules/local/subworkflow/input_check'
+include { BAM_CLEAN                } from './modules/local/subworkflow/bam_clean'
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -161,7 +163,8 @@ include { DEEPTOOLS_PLOTHEATMAP         } from './modules/nf-core/software/deept
 include { DEEPTOOLS_PLOTFINGERPRINT     } from './modules/nf-core/software/deeptools_plotfingerprint'
 include { PHANTOMPEAKQUALTOOLS          } from './modules/nf-core/software/phantompeakqualtools'
 include { MACS2_CALLPEAK                } from './modules/nf-core/software/macs2_callpeak'
-include { HOMER_ANNOTATEPEAKS           } from './modules/nf-core/software/homer_annotatepeaks'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2
+          HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from './modules/nf-core/software/homer_annotatepeaks'
 //include { SUBREAD_FEATURECOUNTS       } from './modules/nf-core/software/subread_featurecounts'
 
 include { FASTQC_TRIMGALORE             } from './modules/nf-core/subworkflow/fastqc_trimgalore'
@@ -191,10 +194,7 @@ workflow {
     if (makeBED) { ch_gene_bed = GTF2BED ( ch_gtf, params.modules['gtf2bed'] ) }
 
     MAKE_GENOME_FILTER (
-        GET_CHROM_SIZES (
-            ch_fasta,
-            params.modules['get_chrom_sizes']
-        ).sizes,
+        GET_CHROM_SIZES ( ch_fasta, params.modules['get_chrom_sizes'] ).sizes,
         ch_blacklist.ifEmpty([]),
         params.modules['make_genome_filter']
     )
@@ -265,7 +265,8 @@ workflow {
     BAM_CLEAN (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
         MAKE_GENOME_FILTER.out.bed.collect(),
-        ch_bamtools_filter_config,
+        ch_bamtools_filter_se_config,
+        ch_bamtools_filter_pe_config,
         params.modules['bam_filter'],
         params.modules['bam_remove_orphans'],
         params.modules['samtools_sort_filter']
@@ -381,14 +382,64 @@ workflow {
         )
         ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.version.first().ifEmpty(null))
 
+        params.modules['plot_macs2_qc'].publish_dir += "/$peakType/qc"
+        PLOT_MACS2_QC (
+            MACS2_CALLPEAK.out.peak.collect{it[1]},
+            params.modules['plot_macs2_qc']
+        )
+
         params.modules['homer_annotatepeaks_macs2'].publish_dir += "/$peakType"
-        HOMER_ANNOTATEPEAKS (
+        HOMER_ANNOTATEPEAKS_MACS2 (
             MACS2_CALLPEAK.out.peak,
             ch_fasta,
             ch_gtf,
             params.modules['homer_annotatepeaks_macs2']
         )
-        ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS.out.version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.version.first().ifEmpty(null))
+
+        params.modules['plot_homer_annotatepeaks'].publish_dir += "/$peakType/qc"
+        PLOT_HOMER_ANNOTATEPEAKS (
+            HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
+            "_peaks.annotatePeaks.txt",
+            params.modules['plot_homer_annotatepeaks']
+        )
+
+        // Create channel: [ meta , [ peaks ] ]
+        // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
+        MACS2_CALLPEAK
+            .out
+            .peak
+            .map { meta, peak -> [ meta.antibody , meta.id.split('_')[0..-2].join('_'), peak ] }
+            .groupTuple()
+            .map {
+                antibody, groups, peaks ->
+                    [ antibody,
+                      groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
+                      peaks ] }
+            .map {
+                antibody, groups, peaks ->
+                    def meta = [:]
+                    meta.id = antibody
+                    meta.multiple_groups = groups.size() > 1
+                    meta.replicates_exist = groups.max { groups.value }.value > 1
+                    [ meta, peaks ] }
+            .set { ch_antibody_peaks }
+
+        params.modules['macs2_consensus'].publish_dir += "/$peakType/consensus"
+        MACS2_CONSENSUS (
+            ch_antibody_peaks,
+            params.modules['macs2_consensus']
+        )
+
+        params.modules['homer_annotatepeaks_consensus'].publish_dir += "/$peakType/consensus"
+        HOMER_ANNOTATEPEAKS_CONSENSUS (
+            MACS2_CONSENSUS.out.bed,
+            ch_fasta,
+            ch_gtf,
+            params.modules['homer_annotatepeaks_consensus']
+        )
+        // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+        // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
 
         //ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
     }
@@ -466,145 +517,6 @@ workflow.onComplete {
 /* --                  THE END                 -- */
 ////////////////////////////////////////////////////
 
-// /*
-//  * STEP 6.4: Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
-//  */
-// process MACS2_QC {
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/qc", mode: params.publish_dir_mode
-//
-//     when:
-//     params.macs_gsize && !params.skip_peak_annotation && !params.skip_peak_qc
-//
-//     input:
-//     path peaks from ch_macs_qc.collect{ it[-1] }
-//     path annos from ch_macs_annotate.collect()
-//     path peak_annotation_header from ch_peak_annotation_header
-//
-//     output:
-//     path '*.tsv' into ch_macs_qc_mqc
-//     path '*.{txt,pdf}'
-//
-//     script:  // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-//     """
-//     plot_macs_qc.r \\
-//         -i ${peaks.join(',')} \\
-//         -s ${peaks.join(',').replaceAll("_peaks.${PEAK_TYPE}","")} \\
-//         -o ./ \\
-//         -p macs_peak
-//
-//     plot_homer_annotatepeaks.r \\
-//         -i ${annos.join(',')} \\
-//         -s ${annos.join(',').replaceAll("_peaks.annotatePeaks.txt","")} \\
-//         -o ./ \\
-//         -p macs_annotatePeaks
-//
-//     cat $peak_annotation_header macs_annotatePeaks.summary.txt > macs_annotatePeaks.summary_mqc.tsv
-//     """
-// }
-//
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                 CONSENSUS PEAKS ANALYSIS                            -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// // Group by ip from this point and carry forward boolean variables
-// ch_macs_consensus
-//     .map { it ->  [ it[0], it[1], it[2], it[-1] ] }
-//     .groupTuple()
-//     .map { it ->  [ it[0], it[1][0], it[2][0], it[3].sort() ] }
-//     .set { ch_macs_consensus }
-//
-// /*
-//  * STEP 7.1: Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts and UpSetR plot for intersection
-//  */
-// process CONSENSUS_PEAKS {
-//     tag "${antibody}"
-//     label 'process_long'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: params.publish_dir_mode,
-//         saveAs: { filename ->
-//                       if (filename.endsWith('.igv.txt')) null
-//                       else filename
-//                 }
-//
-//     when:
-//     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
-//
-//     input:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), path(peaks) from ch_macs_consensus
-//
-//     output:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), path('*.bed') into ch_macs_consensus_bed
-//     tuple val(antibody), path('*.saf') into ch_macs_consensus_saf
-//     path '*.boolean.txt' into ch_macs_consensus_bool
-//     path '*igv.txt' into ch_macs_consensus_igv
-//     path '*.intersect.{txt,plot.pdf}'
-//
-//     script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
-//     prefix = "${antibody}.consensus_peaks"
-//     mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
-//     collapsecols = params.narrow_peak ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
-//     expandparam = params.narrow_peak ? '--is_narrow_peak' : ''
-//     """
-//     sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
-//         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
-//
-//     macs2_merged_expand.py ${prefix}.txt \\
-//         ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${PEAK_TYPE}","")} \\
-//         ${prefix}.boolean.txt \\
-//         --min_replicates $params.min_reps_consensus \\
-//         $expandparam
-//
-//     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
-//
-//     echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
-//     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
-//
-//     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
-//
-//     find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
-//     """
-// }
-//
-// /*
-//  * STEP 7.2: Annotate consensus peaks with HOMER, and add annotation to boolean output file
-//  */
-// process CONSENSUS_PEAKS_ANNOTATE {
-//     tag "${antibody}"
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: params.publish_dir_mode
-//
-//     when:
-//     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks && !params.skip_peak_annotation
-//
-//     input:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), path(bed) from ch_macs_consensus_bed
-//     path bool from ch_macs_consensus_bool
-//     path fasta from ch_fasta
-//     path gtf from ch_gtf
-//
-//     output:
-//     path '*.annotatePeaks.txt'
-//
-//     script:
-//     prefix = "${antibody}.consensus_peaks"
-//     """
-//     annotatePeaks.pl \\
-//         $bed \\
-//         $fasta \\
-//         -gid \\
-//         -gtf $gtf \\
-//         -cpu $task.cpus \\
-//         > ${prefix}.annotatePeaks.txt
-//
-//     cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-//     paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
-//     """
-// }
-//
 // // Get BAM and SAF files for each ip
 // ch_group_bam_counts
 //     .map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
@@ -704,14 +616,6 @@ workflow.onComplete {
 //     """
 // }
 //
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                             IGV                                     -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
 // /*
 //  * STEP 8: Create IGV session file
 //  */
@@ -737,11 +641,3 @@ workflow.onComplete {
 //     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
 //     """
 // }
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                        END OF PIPELINE                              -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////

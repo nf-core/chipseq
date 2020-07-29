@@ -3,10 +3,10 @@ def SOFTWARE = 'deeptools'
 process DEEPTOOLS_COMPUTEMATRIX {
     tag "$meta.id"
     label 'process_high'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -18,7 +18,7 @@ process DEEPTOOLS_COMPUTEMATRIX {
     input:
     tuple val(meta), path(bigwig)
     path bed
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.mat.gz"), emit: matrix
@@ -26,10 +26,10 @@ process DEEPTOOLS_COMPUTEMATRIX {
     path "*.version.txt", emit: version
 
     script:
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     computeMatrix \\
-        $opts.args \\
+        $options.args \\
         --regionsFileName $bed \\
         --scoreFileName $bigwig \\
         --outFileName ${prefix}.computeMatrix.mat.gz \\

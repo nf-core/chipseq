@@ -3,10 +3,10 @@ def SOFTWARE = 'bedtools'
 process BEDTOOLS_GENOMECOV {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -17,7 +17,7 @@ process BEDTOOLS_GENOMECOV {
 
     input:
     tuple val(meta), path(bam), path(flagstat)
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.bedGraph"), emit: bedgraph
@@ -25,9 +25,9 @@ process BEDTOOLS_GENOMECOV {
     path "*.version.txt", emit: version
 
     script:
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     pe = meta.single_end ? '' : '-pc'
-    extend = (params.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
+    extend = (meta.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
     """
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
