@@ -438,6 +438,8 @@ workflow {
             ch_gtf,
             params.modules['homer_annotatepeaks_consensus']
         )
+        // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+        // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
 
         //ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
     }
@@ -516,43 +518,6 @@ workflow.onComplete {
 /* --                  THE END                 -- */
 ////////////////////////////////////////////////////
 
-//
-// /*
-//  * STEP 7.2: Annotate consensus peaks with HOMER, and add annotation to boolean output file
-//  */
-// process CONSENSUS_PEAKS_ANNOTATE {
-//     tag "${antibody}"
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: params.publish_dir_mode
-//
-//     when:
-//     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks && !params.skip_peak_annotation
-//
-//     input:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), path(bed) from ch_macs_consensus_bed
-//     path bool from ch_macs_consensus_bool
-//     path fasta from ch_fasta
-//     path gtf from ch_gtf
-//
-//     output:
-//     path '*.annotatePeaks.txt'
-//
-//     script:
-//     prefix = "${antibody}.consensus_peaks"
-//     """
-//     annotatePeaks.pl \\
-//         $bed \\
-//         $fasta \\
-//         -gid \\
-//         -gtf $gtf \\
-//         -cpu $task.cpus \\
-//         > ${prefix}.annotatePeaks.txt
-//
-//     cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-//     paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
-//     """
-// }
-//
 // // Get BAM and SAF files for each ip
 // ch_group_bam_counts
 //     .map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
