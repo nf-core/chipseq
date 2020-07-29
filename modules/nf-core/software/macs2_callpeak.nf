@@ -3,10 +3,10 @@ def SOFTWARE = 'macs2'
 process MACS2_CALLPEAK {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -18,7 +18,7 @@ process MACS2_CALLPEAK {
     input:
     tuple val(meta), path(ipbam), path(controlbam)
     val macs2_gsize
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.{narrowPeak,broadPeak}"), emit: peak
@@ -29,13 +29,13 @@ process MACS2_CALLPEAK {
     path "*.version.txt", emit: version
 
     script:
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     format = meta.single_end ? 'BAM' : 'BAMPE'
     control = controlbam ? "--control $controlbam" : ''
     """
     macs2 \\
         callpeak \\
-        $opts.args \\
+        $options.args \\
         --gsize $macs2_gsize \\
         --format $format \\
         --name $prefix \\

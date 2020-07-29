@@ -2,10 +2,10 @@ def SOFTWARE = 'samtools'
 
 process SAMTOOLS_IDXSTATS {
     tag "$meta.id"
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -16,7 +16,7 @@ process SAMTOOLS_IDXSTATS {
 
     input:
     tuple val(meta), path(bam), path(bai)
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.idxstats"), emit: idxstats

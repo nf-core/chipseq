@@ -3,10 +3,10 @@ def SOFTWARE = 'deeptools'
 process DEEPTOOLS_PLOTHEATMAP {
     tag "$meta.id"
     label 'process_low'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -17,7 +17,7 @@ process DEEPTOOLS_PLOTHEATMAP {
 
     input:
     tuple val(meta), path(matrix)
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.pdf"), emit: pdf
@@ -25,10 +25,10 @@ process DEEPTOOLS_PLOTHEATMAP {
     path "*.version.txt", emit: version
 
     script:
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     plotHeatmap \\
-        $opts.args \\
+        $options.args \\
         --matrixFile $matrix \\
         --outFileName ${prefix}.plotHeatmap.pdf \\
         --outFileNameMatrix ${prefix}.plotHeatmap.mat.tab

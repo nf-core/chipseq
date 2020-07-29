@@ -4,10 +4,10 @@ def VERSION = '377'
 process UCSC_BEDRAPHTOBIGWIG {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -19,14 +19,14 @@ process UCSC_BEDRAPHTOBIGWIG {
     input:
     tuple val(meta), path(bedgraph)
     path sizes
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.bigWig"), emit: bigwig
     path "*.version.txt", emit: version
 
     script:
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     bedGraphToBigWig $bedgraph $sizes ${prefix}.bigWig
     echo $VERSION > ${SOFTWARE}.version.txt

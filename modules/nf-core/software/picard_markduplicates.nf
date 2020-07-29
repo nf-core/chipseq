@@ -3,10 +3,10 @@ def SOFTWARE = 'picard'
 process PICARD_MARKDUPLICATES {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -17,7 +17,7 @@ process PICARD_MARKDUPLICATES {
 
     input:
     tuple val(meta), path(bam)
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
@@ -25,7 +25,7 @@ process PICARD_MARKDUPLICATES {
     path "*.version.txt", emit: version
 
     script:
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     def avail_mem = 3
     if (!task.memory) {
         log.info '[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
@@ -36,7 +36,7 @@ process PICARD_MARKDUPLICATES {
     picard \\
         -Xmx${avail_mem}g \\
         MarkDuplicates \\
-        $opts.args \\
+        $options.args \\
         INPUT=$bam \\
         OUTPUT=${prefix}.bam \\
         METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt

@@ -3,10 +3,10 @@ def SOFTWARE = 'bwa'
 process BWA_MEM {
     tag "$meta.id"
     label 'process_high'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -19,24 +19,24 @@ process BWA_MEM {
     tuple val(meta), path(reads)
     path index
     path fasta
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
     path "*.version.txt", emit: version
 
     script:
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     rg = meta.read_group ? "-R ${meta.read_group}" : ""
     """
     bwa mem \\
-        $opts.args \\
+        $options.args \\
         $rg \\
         -t $task.cpus \\
         $fasta \\
         $reads \\
-        | samtools view $opts.args2 -@ $task.cpus -bS -o ${prefix}.bam -
-    
+        | samtools view $options.args2 -@ $task.cpus -bS -o ${prefix}.bam -
+
     echo \$(bwa 2>&1) | sed 's/^.*Version: //; s/Contact:.*\$//' > ${SOFTWARE}.version.txt
     """
 }

@@ -3,10 +3,10 @@ def SOFTWARE = 'samtools'
 process SAMTOOLS_SORT {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else if (filename.endsWith('.version.txt')) null
                       else filename }
 
@@ -17,16 +17,16 @@ process SAMTOOLS_SORT {
 
     input:
     tuple val(meta), path(bam)
-    val opts
+    val options
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
     path "*.version.txt", emit: version
 
     script:
-    prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    samtools sort $opts.args -@ $task.cpus -o ${prefix}.bam -T $prefix $bam
+    samtools sort $options.args -@ $task.cpus -o ${prefix}.bam -T $prefix $bam
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${SOFTWARE}.version.txt
     """
 }

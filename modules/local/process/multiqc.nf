@@ -9,10 +9,10 @@ if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
 
 process MULTIQC {
     label 'process_medium'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else filename }
 
     container "quay.io/biocontainers/multiqc:1.9--pyh9f0ad1d_0"
@@ -49,13 +49,13 @@ process MULTIQC {
     path ('deeptools/*')
     // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
     // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
-    
+
     // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
     // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
     // path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
     // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
-    val opts
+    val options
 
     output:
     path "*multiqc_report.html", emit: report
@@ -66,6 +66,6 @@ process MULTIQC {
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
     """
-    multiqc -f $opts.args $rtitle $rfilename $custom_config_file .
+    multiqc -f $options.args $rtitle $rfilename $custom_config_file .
     """
 }

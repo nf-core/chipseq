@@ -3,17 +3,17 @@
  */
 process PLOT_MACS2_QC {
     label 'process_medium'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else filename }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
     input:
     path peaks
-    val opts
+    val options
 
     output:
     path '*.txt', emit: txt
@@ -25,6 +25,6 @@ process PLOT_MACS2_QC {
     plot_macs2_qc.r \\
         -i ${peaks.join(',')} \\
         -s ${peaks.join(',').replaceAll("_peaks.${peak_type}","")} \\
-        $opts.args
+        $options.args
     """
 }

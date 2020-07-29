@@ -3,10 +3,10 @@
  */
 process PLOT_HOMER_ANNOTATEPEAKS {
     label 'process_medium'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else filename }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
@@ -14,7 +14,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     input:
     path annos
     val suffix
-    val opts
+    val options
 
     output:
     path '*.txt', emit: txt
@@ -25,6 +25,6 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     plot_homer_annotatepeaks.r \\
         -i ${annos.join(',')} \\
         -s ${annos.join(',').replaceAll("${suffix}","")} \\
-        $opts.args
+        $options.args
     """
 }

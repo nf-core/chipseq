@@ -5,10 +5,10 @@ def SOFTWARE = 'samtools'
  */
 process GET_CHROM_SIZES {
     tag "$fasta"
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else filename }
 
     container "quay.io/biocontainers/samtools:1.10--h9402c20_2"
@@ -18,7 +18,7 @@ process GET_CHROM_SIZES {
 
     input:
     path fasta
-    val opts
+    val options
 
     output:
     path '*.sizes', emit: sizes

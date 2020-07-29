@@ -4,10 +4,10 @@
 process GTF2BED {
     tag "$gtf"
     label 'process_low'
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else filename }
 
     container "quay.io/biocontainers/perl:5.26.2"
@@ -17,7 +17,7 @@ process GTF2BED {
 
     input:
     path gtf
-    val opts
+    val options
 
     output:
     path '*.bed'

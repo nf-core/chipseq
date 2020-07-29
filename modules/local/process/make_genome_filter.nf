@@ -5,10 +5,10 @@ def SOFTWARE = 'bedtools'
  */
 process MAKE_GENOME_FILTER {
     tag "$sizes"
-    publishDir "${params.outdir}/${opts.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
-                      if (opts.publish_results == "none") null
+                      if (options.publish_results == "none") null
                       else filename }
 
     container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
@@ -19,7 +19,7 @@ process MAKE_GENOME_FILTER {
     input:
     path sizes
     path blacklist
-    val opts
+    val options
 
     output:
     path '*.bed', emit: bed
