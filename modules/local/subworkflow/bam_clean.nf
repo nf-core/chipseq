@@ -8,15 +8,16 @@ include { BAM_SORT_SAMTOOLS  } from '../../nf-core/subworkflow/bam_sort_samtools
 
 workflow BAM_CLEAN {
     take:
-    ch_bam_bai              // channel: [ val(meta), [ bam ], [bai] ]
-    ch_bed                  // channel: [ bed ]
-    config                  //    file: BAMtools filter JSON config file
-    bam_filter_opts         //     map: options for bam_filter module
-    bam_remove_orphans_opts //     map: options for bam_remove_orphans module
-    samtools_opts           //     map: options for SAMTools modules
+    ch_bam_bai                 // channel: [ val(meta), [ bam ], [bai] ]
+    ch_bed                     // channel: [ bed ]
+    bamtools_filter_se_config  //    file: BAMtools filter JSON config file for SE data
+    bamtools_filter_pe_config  //    file: BAMtools filter JSON config file for PE data
+    bam_filter_opts            //     map: options for bam_filter module
+    bam_remove_orphans_opts    //     map: options for bam_remove_orphans module
+    samtools_opts              //     map: options for SAMTools modules
 
     main:
-    BAM_FILTER(ch_bam_bai, ch_bed, config, bam_filter_opts)
+    BAM_FILTER(ch_bam_bai, ch_bed, bamtools_filter_se_config, bamtools_filter_pe_config, bam_filter_opts)
     BAM_REMOVE_ORPHANS(BAM_FILTER.out.bam, bam_remove_orphans_opts)
     BAM_SORT_SAMTOOLS(BAM_REMOVE_ORPHANS.out.bam, samtools_opts)
 

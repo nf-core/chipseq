@@ -13,7 +13,6 @@ process PLOT_MACS2_QC {
 
     input:
     path peaks
-    val peak_type
     val opts
 
     output:
@@ -21,6 +20,7 @@ process PLOT_MACS2_QC {
     path '*.pdf', emit: pdf
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
     """
     plot_macs2_qc.r \\
         -i ${peaks.join(',')} \\

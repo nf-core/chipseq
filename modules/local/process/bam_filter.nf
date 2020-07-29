@@ -16,7 +16,8 @@ process BAM_FILTER {
     input:
     tuple val(meta), path(bam), path(bai)
     path bed
-    path config
+    path bamtools_filter_se_config
+    path bamtools_filter_pe_config
     val opts
 
     output:
@@ -29,6 +30,7 @@ process BAM_FILTER {
     dup_params = params.keep_dups ? '' : '-F 0x0400'
     multimap_params = params.keep_multi_map ? '' : '-q 1'
     blacklist_params = params.blacklist ? "-L $bed" : ''
+    config = meta.single_end ? bamtools_filter_se_config : bamtools_filter_pe_config
     """
     samtools view \\
         $filter_params \\

@@ -27,7 +27,7 @@ process BEDTOOLS_GENOMECOV {
     script:
     prefix = opts.suffix ? "${meta.id}${opts.suffix}" : "${meta.id}"
     pe = meta.single_end ? '' : '-pc'
-    extend = (params.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
+    extend = (meta.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
     """
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt

@@ -12,9 +12,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Fixed`
 
+### `Removed`
+
+* `--single_end` parameter in favour of auto-detecting from input samplesheeet.
+
 ### `Dependencies`
 
 * Update Nextflow `19.10.0` -> `20.07.1`
+
 
 ## [1.2.0] - 2020-07-02
 

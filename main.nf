@@ -97,11 +97,9 @@ ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
 ch_output_docs_images = file("$baseDir/docs/images/", checkIfExists: true)
 
 // JSON files required by BAMTools for alignment filtering
-if (params.single_end) {
-    ch_bamtools_filter_config = file(params.bamtools_filter_se_config, checkIfExists: true)
-} else {
-    ch_bamtools_filter_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
-}
+ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
+ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
+//ch_bamtools_filter_config
 
 // Header files for MultiQC
 ch_peak_count_header = file("$baseDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
@@ -141,6 +139,8 @@ include { MAKE_GENOME_FILTER       } from './modules/local/process/make_genome_f
 include { BEDTOOLS_GENOMECOV       } from './modules/local/process/bedtools_genomecov'
 include { PLOT_HOMER_ANNOTATEPEAKS } from './modules/local/process/plot_homer_annotatepeaks'
 include { PLOT_MACS2_QC            } from './modules/local/process/plot_macs2_qc'
+include { MACS2_CONSENSUS          } from './modules/local/process/macs2_consensus'
+// include { FRIP_SCORE               } from './modules/local/process/frip_score'
 include { OUTPUT_DOCUMENTATION     } from './modules/local/process/output_documentation'
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'
 include { MULTIQC                  } from './modules/local/process/multiqc'
@@ -193,10 +193,7 @@ workflow {
     if (makeBED) { ch_gene_bed = GTF2BED ( ch_gtf, params.modules['gtf2bed'] ) }
 
     MAKE_GENOME_FILTER (
-        GET_CHROM_SIZES (
-            ch_fasta,
-            params.modules['get_chrom_sizes']
-        ).sizes,
+        GET_CHROM_SIZES ( ch_fasta, params.modules['get_chrom_sizes'] ).sizes,
         ch_blacklist.ifEmpty([]),
         params.modules['make_genome_filter']
     )
@@ -267,7 +264,8 @@ workflow {
     BAM_CLEAN (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
         MAKE_GENOME_FILTER.out.bed.collect(),
-        ch_bamtools_filter_config,
+        ch_bamtools_filter_se_config,
+        ch_bamtools_filter_pe_config,
         params.modules['bam_filter'],
         params.modules['bam_remove_orphans'],
         params.modules['samtools_sort_filter']
@@ -386,7 +384,6 @@ workflow {
         params.modules['plot_macs2_qc'].publish_dir += "/$peakType/qc"
         PLOT_MACS2_QC (
             MACS2_CALLPEAK.out.peak.collect{it[1]},
-            peakType,
             params.modules['plot_macs2_qc']
         )
 
@@ -404,6 +401,33 @@ workflow {
             HOMER_ANNOTATEPEAKS.out.txt.collect{it[1]},
             "_peaks.annotatePeaks.txt",
             params.modules['plot_homer_annotatepeaks']
+        )
+
+        // Create channel: [ meta , [ peaks ] ]
+        // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
+        MACS2_CALLPEAK
+            .out
+            .peak
+            .map { meta, peak -> [ meta.antibody , meta.id.split('_')[0..-2].join('_'), peak ] }
+            .groupTuple()
+            .map {
+                antibody, groups, peaks ->
+                    [ antibody,
+                      groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
+                      peaks ] }
+            .map {
+                antibody, groups, peaks ->
+                    def meta = [:]
+                    meta.id = antibody
+                    meta.multiple_groups = groups.size() > 1
+                    meta.replicates_exist = groups.max { groups.value }.value > 1
+                    [ meta, peaks ] }
+            .set { ch_antibody_peaks }
+
+        params.modules['macs2_consensus'].publish_dir += "/$peakType/consensus"
+        MACS2_CONSENSUS (
+            ch_antibody_peaks,
+            params.modules['macs2_consensus']
         )
 
         //ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
@@ -483,71 +507,6 @@ workflow.onComplete {
 /* --                  THE END                 -- */
 ////////////////////////////////////////////////////
 
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-// /* --                                                                     -- */
-// /* --                 CONSENSUS PEAKS ANALYSIS                            -- */
-// /* --                                                                     -- */
-// ///////////////////////////////////////////////////////////////////////////////
-// ///////////////////////////////////////////////////////////////////////////////
-//
-// // Group by ip from this point and carry forward boolean variables
-// ch_macs_consensus
-//     .map { it ->  [ it[0], it[1], it[2], it[-1] ] }
-//     .groupTuple()
-//     .map { it ->  [ it[0], it[1][0], it[2][0], it[3].sort() ] }
-//     .set { ch_macs_consensus }
-//
-// /*
-//  * STEP 7.1: Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts and UpSetR plot for intersection
-//  */
-// process CONSENSUS_PEAKS {
-//     tag "${antibody}"
-//     label 'process_long'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: params.publish_dir_mode,
-//         saveAs: { filename ->
-//                       if (filename.endsWith('.igv.txt')) null
-//                       else filename
-//                 }
-//
-//     when:
-//     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
-//
-//     input:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), path(peaks) from ch_macs_consensus
-//
-//     output:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), path('*.bed') into ch_macs_consensus_bed
-//     tuple val(antibody), path('*.saf') into ch_macs_consensus_saf
-//     path '*.boolean.txt' into ch_macs_consensus_bool
-//     path '*igv.txt' into ch_macs_consensus_igv
-//     path '*.intersect.{txt,plot.pdf}'
-//
-//     script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
-//     prefix = "${antibody}.consensus_peaks"
-//     mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
-//     collapsecols = params.narrow_peak ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
-//     expandparam = params.narrow_peak ? '--is_narrow_peak' : ''
-//     """
-//     sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
-//         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
-//
-//     macs2_merged_expand.py ${prefix}.txt \\
-//         ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${PEAK_TYPE}","")} \\
-//         ${prefix}.boolean.txt \\
-//         --min_replicates $params.min_reps_consensus \\
-//         $expandparam
-//
-//     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
-//
-//     echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
-//     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
-//
-//     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
-//
-//     find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
-//     """
-// }
 //
 // /*
 //  * STEP 7.2: Annotate consensus peaks with HOMER, and add annotation to boolean output file
