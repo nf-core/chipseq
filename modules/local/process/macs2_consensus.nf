@@ -4,7 +4,7 @@
 process MACS2_CONSENSUS {
     tag "$meta.id"
     label 'process_long'
-    publishDir "${params.outdir}/${options.publish_dir}/${meta.id}",
+    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
                       if (options.publish_results == "none") null

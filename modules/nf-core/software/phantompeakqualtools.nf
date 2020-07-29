@@ -4,7 +4,7 @@ def VERSION = '1.2.2'
 process PHANTOMPEAKQUALTOOLS {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}",
+    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
                       if (options.publish_results == "none") null
