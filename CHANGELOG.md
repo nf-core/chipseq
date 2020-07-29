@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 * Update Nextflow `19.10.0` -> `20.07.1`
 
+## [1.2.1] - 2020-07-29
+
+* [#171](https://github.com/nf-core/chipseq/issues/171) - Minor patch release to update pipeline schema
 
 ## [1.2.0] - 2020-07-02
 
