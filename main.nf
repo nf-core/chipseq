@@ -163,7 +163,8 @@ include { DEEPTOOLS_PLOTHEATMAP         } from './modules/nf-core/software/deept
 include { DEEPTOOLS_PLOTFINGERPRINT     } from './modules/nf-core/software/deeptools_plotfingerprint'
 include { PHANTOMPEAKQUALTOOLS          } from './modules/nf-core/software/phantompeakqualtools'
 include { MACS2_CALLPEAK                } from './modules/nf-core/software/macs2_callpeak'
-include { HOMER_ANNOTATEPEAKS           } from './modules/nf-core/software/homer_annotatepeaks'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2
+          HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from './modules/nf-core/software/homer_annotatepeaks'
 //include { SUBREAD_FEATURECOUNTS       } from './modules/nf-core/software/subread_featurecounts'
 
 include { FASTQC_TRIMGALORE             } from './modules/nf-core/subworkflow/fastqc_trimgalore'
@@ -388,17 +389,17 @@ workflow {
         )
 
         params.modules['homer_annotatepeaks_macs2'].publish_dir += "/$peakType"
-        HOMER_ANNOTATEPEAKS (
+        HOMER_ANNOTATEPEAKS_MACS2 (
             MACS2_CALLPEAK.out.peak,
             ch_fasta,
             ch_gtf,
             params.modules['homer_annotatepeaks_macs2']
         )
-        ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS.out.version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.version.first().ifEmpty(null))
 
         params.modules['plot_homer_annotatepeaks'].publish_dir += "/$peakType/qc"
         PLOT_HOMER_ANNOTATEPEAKS (
-            HOMER_ANNOTATEPEAKS.out.txt.collect{it[1]},
+            HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
             "_peaks.annotatePeaks.txt",
             params.modules['plot_homer_annotatepeaks']
         )
@@ -428,6 +429,14 @@ workflow {
         MACS2_CONSENSUS (
             ch_antibody_peaks,
             params.modules['macs2_consensus']
+        )
+
+        params.modules['homer_annotatepeaks_consensus'].publish_dir += "/$peakType/consensus"
+        HOMER_ANNOTATEPEAKS_CONSENSUS (
+            MACS2_CONSENSUS.out.bed,
+            ch_fasta,
+            ch_gtf,
+            params.modules['homer_annotatepeaks_consensus']
         )
 
         //ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
