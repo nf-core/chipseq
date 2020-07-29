@@ -1,5 +1,5 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
+    "$schema": "https://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/nf-core/chipseq/master/nextflow_schema.json",
     "title": "nf-core/chipseq pipeline parameters",
     "description": "ChIP-seq peak-calling and differential analysis pipeline.",
