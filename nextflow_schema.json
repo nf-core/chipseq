@@ -1,17 +1,18 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/atacseq/master/nextflow_schema.json",
-    "title": "nf-core/atacseq pipeline parameters",
-    "description": "ATACSeq peak-calling and differential analysis pipeline.",
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://raw.githubusercontent.com/nf-core/chipseq/master/nextflow_schema.json",
+    "title": "nf-core/chipseq pipeline parameters",
+    "description": "ChIP-seq peak-calling and differential analysis pipeline.",
     "type": "object",
-    "properties": {
-        "Input/output options": {
+    "definitions": {
+        "input_output_options": {
+            "title": "Input/output options",
             "type": "object",
             "properties": {
                 "input": {
                     "type": "string",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row. See [usage docs](https://nf-co.re/atacseq/docs/usage#--input).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row. See [usage docs](https://nf-co.re/chipseq/docs/usage#--input).",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "single_end": {
@@ -53,7 +54,8 @@
             ],
             "fa_icon": "fas fa-terminal"
         },
-        "Reference genome options": {
+        "reference_genome_options": {
+            "title": "Reference genome options",
             "type": "object",
             "properties": {
                 "genome": {
@@ -124,7 +126,8 @@
             },
             "fa_icon": "fas fa-dna"
         },
-        "Adapter trimming options": {
+        "adapter_trimming_options": {
+            "title": "Adapter trimming options",
             "type": "object",
             "properties": {
                 "clip_r1": {
@@ -165,7 +168,7 @@
                     "default": false,
                     "description": "Skip the adapter trimming step.",
                     "help_text": "Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "save_trimmed": {
                     "type": "boolean",
@@ -177,7 +180,8 @@
             },
             "fa_icon": "fas fa-cut"
         },
-        "Alignment options": {
+        "alignment_options": {
+            "title": "Alignment options",
             "type": "object",
             "properties": {
                 "keep_dups": {
@@ -223,7 +227,8 @@
             },
             "fa_icon": "fas fa-map-signs"
         },
-        "Peak calling options": {
+        "peak_calling_options": {
+            "title": "Peak calling options",
             "type": "object",
             "properties": {
                 "narrow_peak": {
@@ -265,13 +270,13 @@
                 },
                 "skip_peak_qc": {
                     "type": "boolean",
-                    "fa_icon": "fas fa-forward",
+                    "fa_icon": "fas fa-fast-forward",
                     "description": "Skip MACS2 peak QC plot generation.",
                     "default": false
                 },
                 "skip_peak_annotation": {
                     "type": "boolean",
-                    "fa_icon": "fas fa-forward",
+                    "fa_icon": "fas fa-fast-forward",
                     "description": "Skip annotation of MACS2 and consensus peaks with HOMER.",
                     "default": false
                 },
@@ -279,13 +284,14 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Skip consensus peak generation, annotation and counting.",
-                    "fa_icon": "fas fa-forward",
+                    "fa_icon": "fas fa-fast-forward",
                     "help_text": ""
                 }
             },
             "fa_icon": "fas fa-chart-area"
         },
-        "Differential analysis options": {
+        "differential_analysis_options": {
+            "title": "Differential analysis options",
             "type": "object",
             "properties": {
                 "deseq2_vst": {
@@ -299,67 +305,69 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Skip differential accessibility analysis.",
-                    "fa_icon": "fas fa-forward",
+                    "fa_icon": "fas fa-fast-forward",
                     "help_text": ""
                 }
             },
             "fa_icon": "fas fa-not-equal"
         },
-        "Process skipping options": {
+        "process_skipping_options": {
+            "title": "Process skipping options",
             "type": "object",
             "properties": {
                 "skip_fastqc": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip FastQC.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_picard_metrics": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip Picard CollectMultipleMetrics.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_preseq": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip Preseq.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_plot_profile": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip deepTools plotProfile.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_plot_fingerprint": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip deepTools plotFingerprint.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_spp": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip Phantompeakqualtools.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_igv": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip IGV.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_multiqc": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip MultiQC.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 }
             },
-            "fa_icon": "fas fa-forward"
+            "fa_icon": "fas fa-fast-forward"
         },
-        "Institutional config options": {
+        "institutional_config_options": {
+            "title": "Institutional config options",
             "type": "object",
             "properties": {
                 "custom_config_version": {
@@ -409,7 +417,8 @@
             },
             "fa_icon": "fas fa-university"
         },
-        "Max job request options": {
+        "max_job_request_options": {
+            "title": "Max job request options",
             "type": "object",
             "properties": {
                 "max_cpus": {
@@ -439,7 +448,8 @@
             },
             "fa_icon": "fab fa-acquisitions-incorporated"
         },
-        "Generic options": {
+        "generic_options": {
+            "title": "Generic options",
             "type": "object",
             "properties": {
                 "help": {
@@ -536,5 +546,37 @@
             },
             "fa_icon": "fas fa-file-import"
         }
-    }
+    },
+    "allOf": [
+        {
+            "$ref": "#/definitions/input_output_options"
+        },
+        {
+            "$ref": "#/definitions/reference_genome_options"
+        },
+        {
+            "$ref": "#/definitions/adapter_trimming_options"
+        },
+        {
+            "$ref": "#/definitions/alignment_options"
+        },
+        {
+            "$ref": "#/definitions/peak_calling_options"
+        },
+        {
+            "$ref": "#/definitions/differential_analysis_options"
+        },
+        {
+            "$ref": "#/definitions/process_skipping_options"
+        },
+        {
+            "$ref": "#/definitions/institutional_config_options"
+        },
+        {
+            "$ref": "#/definitions/max_job_request_options"
+        },
+        {
+            "$ref": "#/definitions/generic_options"
+        }
+    ]
 }
