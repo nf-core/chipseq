@@ -140,7 +140,9 @@ include { BEDTOOLS_GENOMECOV       } from './modules/local/process/bedtools_geno
 include { PLOT_HOMER_ANNOTATEPEAKS } from './modules/local/process/plot_homer_annotatepeaks'
 include { PLOT_MACS2_QC            } from './modules/local/process/plot_macs2_qc'
 include { MACS2_CONSENSUS          } from './modules/local/process/macs2_consensus'
-// include { FRIP_SCORE               } from './modules/local/process/frip_score'
+//include { FRIP_SCORE               } from './modules/local/process/frip_score'
+//include { DESEQ2_FEATURECOUNTS     } from './modules/local/process/deseq2_featurecounts'
+//include { IGV                      } from './modules/local/process/igv'
 include { OUTPUT_DOCUMENTATION     } from './modules/local/process/output_documentation'
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'
 include { MULTIQC                  } from './modules/local/process/multiqc'
@@ -165,7 +167,7 @@ include { PHANTOMPEAKQUALTOOLS          } from './modules/nf-core/software/phant
 include { MACS2_CALLPEAK                } from './modules/nf-core/software/macs2_callpeak'
 include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2
           HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from './modules/nf-core/software/homer_annotatepeaks'
-//include { SUBREAD_FEATURECOUNTS       } from './modules/nf-core/software/subread_featurecounts'
+include { SUBREAD_FEATURECOUNTS         } from './modules/nf-core/software/subread_featurecounts'
 
 include { FASTQC_TRIMGALORE             } from './modules/nf-core/subworkflow/fastqc_trimgalore'
 include { MAP_BWA_MEM                   } from './modules/nf-core/subworkflow/map_bwa_mem'
@@ -337,23 +339,23 @@ workflow {
         .bam
         .join ( BAM_CLEAN.out.bai, by: [0] )
         .map { meta, bam, bai -> meta.control ? null : [ meta.id, [ bam ] , [ bai ] ] }
-        .set { ch_ip_control_bam }
+        .set { ch_control_bam_bai }
 
     BAM_CLEAN
         .out
         .bam
         .join ( BAM_CLEAN.out.bai, by: [0] )
         .map { meta, bam, bai -> meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null }
-        .combine(ch_ip_control_bam, by: 0)
+        .combine(ch_control_bam_bai, by: 0)
         .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
-        .set { ch_ip_control_bam }
+        .set { ch_ip_control_bam_bai }
 
     /*
      * plotFingerprint for IP and control together
      */
     params.modules['deeptools_plotfingerprint'].args += " --numberOfSamples $params.fingerprint_bins"
     DEEPTOOLS_PLOTFINGERPRINT (
-        ch_ip_control_bam,
+        ch_ip_control_bam_bai,
         params.modules['deeptools_plotfingerprint']
     )
 
@@ -371,8 +373,8 @@ workflow {
         params.modules['macs2_callpeak'].args += " $broad $pileup $fdr $pvalue"
 
         // Create channel: [ val(meta), ip_bam, control_bam ]
-        ch_ip_control_bam
-            .map { it -> [ it[0] , it[1][0], it[1][1] ] }
+        ch_ip_control_bam_bai
+            .map { meta, bams, bais -> [ meta , bams[0], bams[1] ] }
             .set { ch_ip_control_bam }
 
         MACS2_CALLPEAK (
@@ -409,7 +411,7 @@ workflow {
         MACS2_CALLPEAK
             .out
             .peak
-            .map { meta, peak -> [ meta.antibody , meta.id.split('_')[0..-2].join('_'), peak ] }
+            .map { meta, peak -> [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] }
             .groupTuple()
             .map {
                 antibody, groups, peaks ->
@@ -441,8 +443,47 @@ workflow {
         // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
         // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
 
-        //ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
+        // Create channel: [ val(meta), ip_bam ]
+        MACS2_CONSENSUS
+            .out
+            .saf
+            .map { meta, saf -> [ meta.id, meta, saf ] }
+            .set { ch_ip_saf }
+
+        ch_ip_control_bam
+            .map { meta, ip_bam, control_bam -> [ meta.antibody, meta, ip_bam ] }
+            .combine(ch_ip_saf)
+            .map {
+                it ->
+                    fmeta = it[1]
+                    fmeta['replicates_exist'] = it[4]['replicates_exist']
+                    fmeta['multiple_groups'] = it[4]['multiple_groups']
+                    [ fmeta, it[2], it[5] ] }
+            .set { ch_ip_bam }
+
+        params.modules['subread_featurecounts'].publish_dir += "/$peakType/consensus"
+        SUBREAD_FEATURECOUNTS (
+            ch_ip_bam,
+            params.modules['subread_featurecounts']
+        )
+        ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
+
+        // FRIP_SCORE (
+        //     params.modules['frip_score']
+        // )
+        //
+        // DESEQ2_FEATURECOUNTS (
+        //     params.modules['deseq2_featurecounts']
+        // )
+
     }
+
+    // /*
+    //  * Create IGV session
+    //  */
+    // IGV (
+    //     params.modules['igv']
+    // )
 
     /*
      * Pipeline reporting
@@ -496,7 +537,7 @@ workflow {
 
         // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
         // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
-        // path ('macs/consensus/*') from ch_macs_consensus_counts_mqc.collect().ifEmpty([])
+        SUBREAD_FEATURECOUNTS.out.summary.collect{it[1]}.ifEmpty([]),
         // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
         params.modules['multiqc']
@@ -516,128 +557,3 @@ workflow.onComplete {
 ////////////////////////////////////////////////////
 /* --                  THE END                 -- */
 ////////////////////////////////////////////////////
-
-// // Get BAM and SAF files for each ip
-// ch_group_bam_counts
-//     .map { it -> [ it[3], [ it[0], it[1], it[2] ] ] }
-//     .join(ch_rm_orphan_name_bam_counts)
-//     .map { it -> [ it[1][0], it[1][1], it[1][2], it[2] ] }
-//     .groupTuple()
-//     .map { it -> [ it[0], it[1][0], it[2][0], it[3].flatten().sort() ] }
-//     .join(ch_macs_consensus_saf)
-//     .set { ch_group_bam_counts }
-//
-// /*
-//  * STEP 7.3: Count reads in consensus peaks with featureCounts
-//  */
-// process CONSENSUS_PEAKS_COUNTS {
-//     tag "${antibody}"
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}", mode: params.publish_dir_mode
-//
-//     when:
-//     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
-//
-//     input:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), path(bams), path(saf) from ch_group_bam_counts
-//
-//     output:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), path('*featureCounts.txt') into ch_macs_consensus_counts
-//     path '*featureCounts.txt.summary' into ch_macs_consensus_counts_mqc
-//
-//     script:
-//     prefix = "${antibody}.consensus_peaks"
-//     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-//     pe_params = params.single_end ? '' : '-p --donotsort'
-//     """
-//     featureCounts \\
-//         -F SAF \\
-//         -O \\
-//         --fracOverlap 0.2 \\
-//         -T $task.cpus \\
-//         $pe_params \\
-//         -a $saf \\
-//         -o ${prefix}.featureCounts.txt \\
-//         ${bam_files.join(' ')}
-//     """
-// }
-//
-// /*
-//  * STEP 7.4: Differential analysis with DESeq2
-//  */
-// process CONSENSUS_PEAKS_DESEQ2 {
-//     tag "${antibody}"
-//     label 'process_medium'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}/deseq2", mode: params.publish_dir_mode,
-//         saveAs: { filename ->
-//                       if (filename.endsWith('.igv.txt')) null
-//                       else filename
-//                 }
-//
-//     when:
-//     params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks && !params.skip_diff_analysis
-//
-//     input:
-//     tuple val(antibody), val(replicatesExist), val(multipleGroups), path(counts) from ch_macs_consensus_counts
-//     path deseq2_pca_header from ch_deseq2_pca_header
-//     path deseq2_clustering_header from ch_deseq2_clustering_header
-//
-//     output:
-//     path '*.tsv' into ch_macs_consensus_deseq_mqc
-//     path '*igv.txt' into ch_macs_consensus_deseq_comp_igv
-//     path '*.{RData,results.txt,pdf,log}'
-//     path 'sizeFactors'
-//     path '*vs*/*.{pdf,txt}'
-//     path '*vs*/*.bed'
-//
-//     script:
-//     prefix = "${antibody}.consensus_peaks"
-//     bam_ext = params.single_end ? '.mLb.clN.sorted.bam' : '.mLb.clN.bam'
-//     vst = params.deseq2_vst ? '--vst TRUE' : ''
-//     """
-//     featurecounts_deseq2.r \\
-//         --featurecount_file $counts \\
-//         --bam_suffix '$bam_ext' \\
-//         --outdir ./ \\
-//         --outprefix $prefix \\
-//         --outsuffix '' \\
-//         --cores $task.cpus \\
-//         $vst
-//
-//     sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
-//     sed -i -e 's/DESeq2 /${antibody} DESeq2 /g' tmp.txt
-//     cat tmp.txt ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
-//
-//     sed 's/deseq2_clustering/deseq2_clustering_${task.index}/g' <$deseq2_clustering_header >tmp.txt
-//     sed -i -e 's/DESeq2 /${antibody} DESeq2 /g' tmp.txt
-//     cat tmp.txt ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
-//
-//     find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
-//     """
-// }
-//
-// /*
-//  * STEP 8: Create IGV session file
-//  */
-// process IGV {
-//     publishDir "${params.outdir}/igv/${PEAK_TYPE}", mode: params.publish_dir_mode
-//
-//     when:
-//     !params.skip_igv
-//
-//     input:
-//     path fasta from ch_fasta
-//     path bigwigs from ch_bigwig_igv.collect().ifEmpty([])
-//     path peaks from ch_macs_igv.collect().ifEmpty([])
-//     path consensus_peaks from ch_macs_consensus_igv.collect().ifEmpty([])
-//     path differential_peaks from ch_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
-//
-//     output:
-//     path '*.{txt,xml}'
-//
-//     script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
-//     """
-//     cat *.txt > igv_files.txt
-//     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
-//     """
-// }
