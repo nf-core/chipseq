@@ -139,6 +139,7 @@ include { BEDTOOLS_GENOMECOV                  } from './modules/local/process/be
 include { PLOT_HOMER_ANNOTATEPEAKS            } from './modules/local/process/plot_homer_annotatepeaks'
 include { PLOT_MACS2_QC                       } from './modules/local/process/plot_macs2_qc'
 include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from './modules/local/process/multiqc_custom_phantompeakqualtools'
+include { MULTIQC_CUSTOM_PEAKS                } from './modules/local/process/multiqc_custom_peaks'
 include { MACS2_CONSENSUS                     } from './modules/local/process/macs2_consensus'
 include { FRIP_SCORE                          } from './modules/local/process/frip_score'
 //include { DESEQ2_FEATURECOUNTS                } from './modules/local/process/deseq2_featurecounts'
@@ -392,7 +393,6 @@ workflow {
         )
         ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.version.first().ifEmpty(null))
 
-
         ch_ip_control_bam
             .join(MACS2_CALLPEAK.out.peak, by: [0])
             .map { it -> [ it[0], it[1], it[3] ] }
@@ -401,15 +401,23 @@ workflow {
             ch_ip_peak,
             params.modules['frip_score']
         )
-        //| cat $frip_score_header - > ${ip}_peaks.FRiP_mqc.tsv
+
+        ch_ip_peak
+            .join(FRIP_SCORE.out.txt, by: [0])
+            .map { it -> [ it[0], it[2], it[3] ] }
+            .set { ch_ip_peak_frip }
+        MULTIQC_CUSTOM_PEAKS (
+            ch_ip_peak_frip,
+            ch_peak_count_header,
+            ch_frip_score_header,
+            params.modules['multiqc_custom_peaks']
+        )
 
         params.modules['plot_macs2_qc'].publish_dir += "/$peakType/qc"
         PLOT_MACS2_QC (
             MACS2_CALLPEAK.out.peak.collect{it[1]},
             params.modules['plot_macs2_qc']
         )
-        // ch_peak_count_header = file("$baseDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
-        // ch_frip_score_header = file("$baseDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
 
         params.modules['homer_annotatepeaks_macs2'].publish_dir += "/$peakType"
         HOMER_ANNOTATEPEAKS_MACS2 (
@@ -426,6 +434,7 @@ workflow {
             "_peaks.annotatePeaks.txt",
             params.modules['plot_homer_annotatepeaks']
         )
+        //cat $peak_annotation_header macs_annotatePeaks.summary.txt > macs_annotatePeaks.summary_mqc.tsv
         //ch_peak_annotation_header = file("$baseDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
 
         // Create channel: [ meta , [ peaks ] ]
@@ -565,7 +574,8 @@ workflow {
         MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
         MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation.collect{it[1]}.ifEmpty([]),
 
-        // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
+        MULTIQC_CUSTOM_PEAKS.out.count.collect{it[1]}.ifEmpty([]),
+        MULTIQC_CUSTOM_PEAKS.out.frip.collect{it[1]}.ifEmpty([]),
         // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
         SUBREAD_FEATURECOUNTS.out.summary.collect{it[1]}.ifEmpty([]),
         // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])

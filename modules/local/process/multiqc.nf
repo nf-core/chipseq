@@ -51,9 +51,10 @@ process MULTIQC {
     path ('phantompeakqualtools/*')
     path ('phantompeakqualtools/*')
     path ('phantompeakqualtools/*')
-    
-    // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
-    // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
+
+    path ('macs2/peaks/*')
+    path ('macs2/peaks/*')
+    // path ('macs2/annotation*') from ch_macs_qc_mqc.collect().ifEmpty([])
     path ('featurecounts/*')
     // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
