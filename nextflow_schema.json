@@ -22,7 +22,6 @@
                 },
                 "fragment_size": {
                     "type": "integer",
-                    "default": 0,
                     "description": "Estimated fragment size used to extend single-end reads.",
                     "fa_icon": "fas fa-chart-area"
                 },
@@ -50,7 +49,7 @@
             "title": "Reference genome options",
             "type": "object",
             "fa_icon": "fas fa-dna",
-            "description": "Options for the reference genome indices used to align reads.",
+            "description": "Reference genome related files and options required for the workflow.",
             "properties": {
                 "genome": {
                     "type": "string",
@@ -121,31 +120,26 @@
             "properties": {
                 "clip_r1": {
                     "type": "integer",
-                    "default": 0,
                     "description": "Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads).",
                     "fa_icon": "fas fa-cut"
                 },
                 "clip_r2": {
                     "type": "integer",
-                    "default": 0,
                     "description": "Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only).",
                     "fa_icon": "fas fa-cut"
                 },
                 "three_prime_clip_r1": {
                     "type": "integer",
-                    "default": 0,
                     "description": "Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed.",
                     "fa_icon": "fas fa-cut"
                 },
                 "three_prime_clip_r2": {
                     "type": "integer",
-                    "default": 0,
                     "description": "Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed.",
                     "fa_icon": "fas fa-cut"
                 },
                 "trim_nextseq": {
                     "type": "integer",
-                    "default": 0,
                     "description": "Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails.",
                     "help_text": "This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases.",
                     "fa_icon": "fas fa-cut"
@@ -162,7 +156,8 @@
                     "help_text": "By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.",
                     "fa_icon": "fas fa-save"
                 }
-            }
+            },
+            "description": "Options to adjust adapter trimming criteria."
         },
         "alignment_options": {
             "title": "Alignment options",
@@ -204,7 +199,8 @@
                     "description": "BAMTools JSON file with custom filters for single-end data.",
                     "fa_icon": "fas fa-cog"
                 }
-            }
+            },
+            "description": "Options to adjust parameters and filtering criteria for read alignments."
         },
         "peak_calling_options": {
             "title": "Peak calling options",
@@ -253,15 +249,15 @@
                 "skip_peak_annotation": {
                     "type": "boolean",
                     "fa_icon": "fas fa-fast-forward",
-                    "description": "Skip annotation of MACS2 and consensus peaks with HOMER.",
-                    "default": false
+                    "description": "Skip annotation of MACS2 and consensus peaks with HOMER."
                 },
                 "skip_consensus_peaks": {
                     "type": "boolean",
                     "description": "Skip consensus peak generation, annotation and counting.",
                     "fa_icon": "fas fa-fast-forward"
                 }
-            }
+            },
+            "description": "Options to adjust peak calling criteria."
         },
         "differential_analysis_options": {
             "title": "Differential analysis options",
@@ -279,7 +275,8 @@
                     "description": "Skip differential accessibility analysis.",
                     "fa_icon": "fas fa-fast-forward"
                 }
-            }
+            },
+            "description": "Options to adjust differential analysis criteria."
         },
         "process_skipping_options": {
             "title": "Process skipping options",
@@ -326,7 +323,8 @@
                     "description": "Skip MultiQC.",
                     "fa_icon": "fas fa-fast-forward"
                 }
-            }
+            },
+            "description": "Options to skip various steps within the workflow."
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -496,6 +494,17 @@
                     "type": "string",
                     "description": "Arguments passed to Nextflow clusterOptions.",
                     "fa_icon": "fas fa-network-wired",
+                    "hidden": true
+                },
+                "conda": {
+                    "type": "boolean",
+                    "description": "Run this workflow with Conda.",
+                    "hidden": true
+                },
+                "modules": {
+                    "type": "string",
+                    "default": "[samplesheet_check:[args:'', args2:'', publish_dir:'pipeline_info', publish_results:'', publish_by_id:false, suffix:''], fastqc:[args:'--quiet', args2:'', publish_dir:'fastqc', publish_results:'', publish_by_id:false, suffix:''], trimgalore:[args:'--fastqc', args2:'', publish_dir:'trimgalore', publish_results:'', publish_by_id:false, suffix:''], bwa_index:[args:'-a bwtsw', args2:'', publish_dir:'genome/bwa_index', publish_results:'', publish_by_id:false, suffix:''], gtf2bed:[args:'', args2:'', publish_dir:'genome', publish_results:'', publish_by_id:false, suffix:''], make_genome_filter:[args:'', args2:'', publish_dir:'genome', publish_results:'', publish_by_id:false, suffix:''], get_chrom_sizes:[args:'', args2:'', publish_dir:'genome', publish_results:'', publish_by_id:false, suffix:''], bwa_mem:[args:'-M', args2:'-h -F 0x0100 -O BAM', publish_dir:'bwa/library', publish_results:'', publish_by_id:false, suffix:'.Lb'], samtools_sort_lib:[args:'', args2:'', publish_dir:'bwa/library', publish_results:'', publish_by_id:false, suffix:'.Lb.sorted'], picard_mergesamfiles:[args:'SORT_ORDER=coordinate VALIDATION_STRINGENCY=LENIENT TMP_DIR=tmp', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.sorted'], picard_markduplicates:[args:'ASSUME_SORTED=true REMOVE_DUPLICATES=false VALIDATION_STRINGENCY=LENIENT TMP_DIR=tmp', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.mkD.sorted'], samtools_sort_merged_lib:[args:'', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.mkD.sorted'], bam_filter:[args:'', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.flT.sorted'], bam_remove_orphans:[args:'--only_fr_pairs', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], samtools_sort_filter:[args:'', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.clN.sorted'], picard_collectmultiplemetrics:[args:'VALIDATION_STRINGENCY=LENIENT TMP_DIR=tmp', args2:'', publish_dir:'bwa/mergedLibrary/picard_metrics', publish_results:'', publish_by_id:false, suffix:'.mLb.clN.sorted'], preseq_lcextrap:[args:'-verbose -bam -seed 1', args2:'', publish_dir:'bwa/mergedLibrary/preseq', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], phantompeakqualtools:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/phantompeakqualtools', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], bedtools_genomecov:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/bigwig', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], ucsc_bedgraphtobigwig:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/bigwig', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], deeptools_computematrix:[args:'scale-regions --regionBodyLength 1000 --beforeRegionStartLength 3000 --afterRegionStartLength 3000 --skipZeros --smartLabels', args2:'', publish_dir:'bwa/mergedLibrary/deeptools', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], deeptools_plotprofile:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/deeptools', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], deeptools_plotheatmap:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/deeptools', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], deeptools_plotfingerprint:[args:'--skipZeros', args2:'', publish_dir:'bwa/mergedLibrary/deeptools', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], macs2_callpeak:[args:'--keep-dup all', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], plot_macs2_qc:[args:'-o ./ -p macs2_peak', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], homer_annotatepeaks_macs2:[args:'-gid', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:'_peaks'], plot_homer_annotatepeaks:[args:'-o ./ -p macs2_annotatePeaks', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], macs2_consensus:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], homer_annotatepeaks_consensus:[args:'-gid', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:true, suffix:'.consensus_peaks'], subread_featurecounts:[args:'-F SAF -O --fracOverlap 0.2', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], deseq2_featurecounts:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], igv:[args:'', args2:'', publish_dir:'igv', publish_results:'', publish_by_id:false, suffix:''], get_software_versions:[args:'', args2:'', publish_dir:'pipeline_info', publish_results:'', publish_by_id:false, suffix:''], output_documentation:[args:'', args2:'', publish_dir:'pipeline_info', publish_results:'', publish_by_id:false, suffix:''], multiqc:[args:'', args2:'', publish_dir:'multiqc', publish_results:'', publish_by_id:false, suffix:'']]",
+                    "description": "Parameter used to supply options to nf-core/modules files. Won't need to be provided on the command-line.",
                     "hidden": true
                 }
             }
