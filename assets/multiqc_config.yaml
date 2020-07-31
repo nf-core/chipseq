@@ -167,3 +167,5 @@ sp:
         fn: '*plotFingerprint*'
     deeptools/plotProfile:
         fn: '*plotProfile*'
+    phantompeakqualtools/out:
+        fn: '*.spp.out'

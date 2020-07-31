@@ -23,6 +23,7 @@ process PHANTOMPEAKQUALTOOLS {
     output:
     tuple val(meta), path("*.out"), emit: spp
     tuple val(meta), path("*.pdf"), emit: pdf
+    tuple val(meta), path("*.Rdata"), emit: rdata
     path "*.version.txt", emit: version
 
     script:
@@ -30,8 +31,6 @@ process PHANTOMPEAKQUALTOOLS {
     """
     RUN_SPP=`which run_spp.R`
     Rscript -e "library(caTools); source(\\"\$RUN_SPP\\")" -c="$bam" -savp="${prefix}.spp.pdf" -savd="${prefix}.spp.Rdata" -out="${prefix}.spp.out" -p=$task.cpus
-    Rscript -e "load('${prefix}.spp.Rdata'); write.table(crosscorr\\\$cross.correlation, file=\\"${prefix}_spp_correlation_mqc.tsv\\", sep=",", quote=FALSE, row.names=FALSE, col.names=FALSE,append=TRUE)"
-
     echo $VERSION > ${SOFTWARE}.version.txt
     """
 }

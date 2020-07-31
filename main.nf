@@ -99,17 +99,16 @@ ch_output_docs_images = file("$baseDir/docs/images/", checkIfExists: true)
 // JSON files required by BAMTools for alignment filtering
 ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
 ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
-//ch_bamtools_filter_config
 
 // Header files for MultiQC
+ch_spp_nsc_header = file("$baseDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
+ch_spp_rsc_header = file("$baseDir/assets/multiqc/spp_rsc_header.txt", checkIfExists: true)
+ch_spp_correlation_header = file("$baseDir/assets/multiqc/spp_correlation_header.txt", checkIfExists: true)
 ch_peak_count_header = file("$baseDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
 ch_frip_score_header = file("$baseDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
 ch_peak_annotation_header = file("$baseDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
 ch_deseq2_pca_header = file("$baseDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
 ch_deseq2_clustering_header = file("$baseDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
-ch_spp_correlation_header = file("$baseDir/assets/multiqc/spp_correlation_header.txt", checkIfExists: true)
-ch_spp_nsc_header = file("$baseDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
-ch_spp_rsc_header = file("$baseDir/assets/multiqc/spp_rsc_header.txt", checkIfExists: true)
 
 ////////////////////////////////////////////////////
 /* --          PARAMETER SUMMARY               -- */
@@ -133,22 +132,23 @@ log.info "-\033[2m----------------------------------------------------\033[0m-"
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
 ////////////////////////////////////////////////////
 
-include { GTF2BED                  } from './modules/local/process/gtf2bed'
-include { GET_CHROM_SIZES          } from './modules/local/process/get_chrom_sizes'
-include { MAKE_GENOME_FILTER       } from './modules/local/process/make_genome_filter'
-include { BEDTOOLS_GENOMECOV       } from './modules/local/process/bedtools_genomecov'
-include { PLOT_HOMER_ANNOTATEPEAKS } from './modules/local/process/plot_homer_annotatepeaks'
-include { PLOT_MACS2_QC            } from './modules/local/process/plot_macs2_qc'
-include { MACS2_CONSENSUS          } from './modules/local/process/macs2_consensus'
-//include { FRIP_SCORE               } from './modules/local/process/frip_score'
-//include { DESEQ2_FEATURECOUNTS     } from './modules/local/process/deseq2_featurecounts'
-include { IGV                      } from './modules/local/process/igv'
-include { OUTPUT_DOCUMENTATION     } from './modules/local/process/output_documentation'
-include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'
-include { MULTIQC                  } from './modules/local/process/multiqc'
+include { GTF2BED                             } from './modules/local/process/gtf2bed'
+include { GET_CHROM_SIZES                     } from './modules/local/process/get_chrom_sizes'
+include { MAKE_GENOME_FILTER                  } from './modules/local/process/make_genome_filter'
+include { BEDTOOLS_GENOMECOV                  } from './modules/local/process/bedtools_genomecov'
+include { PLOT_HOMER_ANNOTATEPEAKS            } from './modules/local/process/plot_homer_annotatepeaks'
+include { PLOT_MACS2_QC                       } from './modules/local/process/plot_macs2_qc'
+include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from './modules/local/process/multiqc_custom_phantompeakqualtools'
+include { MACS2_CONSENSUS                     } from './modules/local/process/macs2_consensus'
+include { FRIP_SCORE                          } from './modules/local/process/frip_score'
+//include { DESEQ2_FEATURECOUNTS                } from './modules/local/process/deseq2_featurecounts'
+include { IGV                                 } from './modules/local/process/igv'
+include { OUTPUT_DOCUMENTATION                } from './modules/local/process/output_documentation'
+include { GET_SOFTWARE_VERSIONS               } from './modules/local/process/get_software_versions'
+include { MULTIQC                             } from './modules/local/process/multiqc'
 
-include { INPUT_CHECK              } from './modules/local/subworkflow/input_check'
-include { BAM_CLEAN                } from './modules/local/subworkflow/bam_clean'
+include { INPUT_CHECK                         } from './modules/local/subworkflow/input_check'
+include { BAM_CLEAN                           } from './modules/local/subworkflow/bam_clean'
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -296,6 +296,14 @@ workflow {
     )
     ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.version.first().ifEmpty(null))
 
+    MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
+        PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
+        ch_spp_nsc_header,
+        ch_spp_rsc_header,
+        ch_spp_correlation_header,
+        params.modules['multiqc_custom_phantompeakqualtools']
+    )
+
     /*
      * Coverage tracks
      */
@@ -384,11 +392,24 @@ workflow {
         )
         ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.version.first().ifEmpty(null))
 
+
+        ch_ip_control_bam
+            .join(MACS2_CALLPEAK.out.peak, by: [0])
+            .map { it -> [ it[0], it[1], it[3] ] }
+            .set { ch_ip_peak }
+        FRIP_SCORE (
+            ch_ip_peak,
+            params.modules['frip_score']
+        )
+        //| cat $frip_score_header - > ${ip}_peaks.FRiP_mqc.tsv
+
         params.modules['plot_macs2_qc'].publish_dir += "/$peakType/qc"
         PLOT_MACS2_QC (
             MACS2_CALLPEAK.out.peak.collect{it[1]},
             params.modules['plot_macs2_qc']
         )
+        // ch_peak_count_header = file("$baseDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
+        // ch_frip_score_header = file("$baseDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
 
         params.modules['homer_annotatepeaks_macs2'].publish_dir += "/$peakType"
         HOMER_ANNOTATEPEAKS_MACS2 (
@@ -405,6 +426,7 @@ workflow {
             "_peaks.annotatePeaks.txt",
             params.modules['plot_homer_annotatepeaks']
         )
+        //ch_peak_annotation_header = file("$baseDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
 
         // Create channel: [ meta , [ peaks ] ]
         // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
@@ -468,13 +490,12 @@ workflow {
         )
         ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
 
-        // FRIP_SCORE (
-        //     params.modules['frip_score']
-        // )
         //
         // DESEQ2_FEATURECOUNTS (
         //     params.modules['deseq2_featurecounts']
         // )
+        // ch_deseq2_pca_header = file("$baseDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
+        // ch_deseq2_clustering_header = file("$baseDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
 
     }
 
@@ -540,7 +561,9 @@ workflow {
         DEEPTOOLS_PLOTPROFILE.out.table.collect{it[1]}.ifEmpty([]),
         DEEPTOOLS_PLOTFINGERPRINT.out.matrix.collect{it[1]}.ifEmpty([]),
         PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
-        // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
+        MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc.collect{it[1]}.ifEmpty([]),
+        MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
+        MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation.collect{it[1]}.ifEmpty([]),
 
         // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
         // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])

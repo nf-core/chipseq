@@ -1,4 +1,28 @@
-conda (params.conda ? "${baseDir}/environment.yml" : null)
+process FRIP_SCORE {
+    tag "$meta.id"
+    label 'process_medium'
+    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+        mode: params.publish_dir_mode,
+        saveAs: { filename ->
+                      if (options.publish_results == "none") null
+                      else if (filename.endsWith('.version.txt')) null
+                      else filename }
 
-READS_IN_PEAKS=\$(intersectBed -a ${ipbam[0]} -b ${ip}_peaks.${PEAK_TYPE} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
-grep 'mapped (' $ipflagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${ip}", a/\$1}' | cat $frip_score_header - > ${ip}_peaks.FRiP_mqc.tsv
+    conda (params.conda ? "${baseDir}/environment.yml" : null)
+
+    input:
+    tuple val(meta), path(bam), path(peak)
+    val options
+
+    output:
+    tuple val(meta), path("*.txt"), emit: txt
+
+    script:
+    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+
+    """
+    READS_IN_PEAKS=\$(intersectBed -a $bam -b $peak $options.args | awk -F '\t' '{sum += \$NF} END {print sum}')
+    samtools flagstat $bam > ${bam}.flagstat
+    grep 'mapped (' ${bam}.flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${prefix}", a/\$1}' > ${prefix}.FRiP.txt
+    """
+}
