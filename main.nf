@@ -142,7 +142,7 @@ include { PLOT_MACS2_QC            } from './modules/local/process/plot_macs2_qc
 include { MACS2_CONSENSUS          } from './modules/local/process/macs2_consensus'
 //include { FRIP_SCORE               } from './modules/local/process/frip_score'
 //include { DESEQ2_FEATURECOUNTS     } from './modules/local/process/deseq2_featurecounts'
-//include { IGV                      } from './modules/local/process/igv'
+include { IGV                      } from './modules/local/process/igv'
 include { OUTPUT_DOCUMENTATION     } from './modules/local/process/output_documentation'
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'
 include { MULTIQC                  } from './modules/local/process/multiqc'
@@ -359,12 +359,12 @@ workflow {
         params.modules['deeptools_plotfingerprint']
     )
 
+    peakType = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
     if (params.macs_gsize) {
 
         /*
          * Call peaks
          */
-        peakType = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
         broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
         pileup = params.save_macs_pileup ? '--bdg --SPMR' : ''
         fdr = params.macs_fdr ? "--qvalue ${params.macs_fdr}" : ''
@@ -478,12 +478,19 @@ workflow {
 
     }
 
-    // /*
-    //  * Create IGV session
-    //  */
-    // IGV (
-    //     params.modules['igv']
-    // )
+    /*
+     * Create IGV session
+     */
+    IGV (
+        ch_fasta,
+        UCSC_BEDRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
+        MACS2_CALLPEAK.out.peak.collect{it[1]}.ifEmpty([]),
+        MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
+        params.modules['ucsc_bedgraphtobigwig'],
+        params.modules['macs2_callpeak'],
+        params.modules['macs2_consensus'],
+        params.modules['igv']
+    )
 
     /*
      * Pipeline reporting
