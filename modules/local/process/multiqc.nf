@@ -47,11 +47,15 @@ process MULTIQC {
     path ('preseq/*')
     path ('deeptools/*')
     path ('deeptools/*')
-    // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
-    // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
+    path ('phantompeakqualtools/*')
+    path ('phantompeakqualtools/*')
+    path ('phantompeakqualtools/*')
+    path ('phantompeakqualtools/*')
 
-    // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
-    // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
+    path ('macs2/peaks/*')
+    path ('macs2/peaks/*')
+    path ('macs2/annotation/*')
+
     path ('featurecounts/*')
     // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 

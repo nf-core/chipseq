@@ -1,6 +1,5 @@
-process FRIP_SCORE {
+process MULTIQC_CUSTOM_PEAKS {
     tag "$meta.id"
-    label 'process_medium'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
         saveAs: { filename ->
@@ -11,18 +10,19 @@ process FRIP_SCORE {
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
     input:
-    tuple val(meta), path(bam), path(peak)
+    tuple val(meta), path(peak), path(frip)
+    path peak_count_header
+    path frip_score_header
     val options
 
     output:
-    tuple val(meta), path("*.txt"), emit: txt
+    tuple val(meta), path("*.peak_count_mqc.tsv"), emit: count
+    tuple val(meta), path("*.FRiP_mqc.tsv"), emit: frip
 
     script:
     prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
-
     """
-    READS_IN_PEAKS=\$(intersectBed -a $bam -b $peak $options.args | awk -F '\t' '{sum += \$NF} END {print sum}')
-    samtools flagstat $bam > ${bam}.flagstat
-    grep 'mapped (' ${bam}.flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${prefix}", a/\$1}' > ${prefix}.FRiP.txt
+    cat $peak | wc -l | awk -v OFS='\t' '{ print "${prefix}", \$1 }' | cat $peak_count_header - > ${prefix}.peak_count_mqc.tsv
+    cat $frip_score_header $frip > ${prefix}.FRiP_mqc.tsv
     """
 }
