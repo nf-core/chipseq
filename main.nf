@@ -431,11 +431,10 @@ workflow {
         params.modules['plot_homer_annotatepeaks'].publish_dir += "/$peakType/qc"
         PLOT_HOMER_ANNOTATEPEAKS (
             HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
+            ch_peak_annotation_header,
             "_peaks.annotatePeaks.txt",
             params.modules['plot_homer_annotatepeaks']
         )
-        //cat $peak_annotation_header macs_annotatePeaks.summary.txt > macs_annotatePeaks.summary_mqc.tsv
-        //ch_peak_annotation_header = file("$baseDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
 
         // Create channel: [ meta , [ peaks ] ]
         // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
@@ -576,8 +575,8 @@ workflow {
 
         MULTIQC_CUSTOM_PEAKS.out.count.collect{it[1]}.ifEmpty([]),
         MULTIQC_CUSTOM_PEAKS.out.frip.collect{it[1]}.ifEmpty([]),
-        // path ('macs/*') from ch_macs_qc_mqc.collect().ifEmpty([])
-        SUBREAD_FEATURECOUNTS.out.summary.collect{it[1]}.ifEmpty([]),
+        PLOT_HOMER_ANNOTATEPEAKS.out.tsv.collect{it[1]}.ifEmpty([]),
+        SUBREAD_FEATURECOUNTS.out.summary.collect().ifEmpty([]),
         // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
         params.modules['multiqc']

@@ -149,6 +149,8 @@ extra_fn_clean_exts:
     - 'clN'
     - 'mLb'
     - '_peaks'
+    - '.FRiP'
+    - '.peak'
     - '_spp'
     - '.spp'
     - 'ccurve'

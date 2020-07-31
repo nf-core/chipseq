@@ -13,12 +13,14 @@ process PLOT_HOMER_ANNOTATEPEAKS {
 
     input:
     path annos
+    path mqc_header
     val suffix
     val options
 
     output:
     path '*.txt', emit: txt
     path '*.pdf', emit: pdf
+    path '*.tsv', emit: tsv
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     """
@@ -26,5 +28,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
         -i ${annos.join(',')} \\
         -s ${annos.join(',').replaceAll("${suffix}","")} \\
         $options.args
+
+    find ./ -type f -name "*.txt" -exec cat {} \\; | cat $mqc_header - > annotatepeaks.summary_mqc.tsv
     """
 }
