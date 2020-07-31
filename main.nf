@@ -40,7 +40,7 @@ params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : fals
 params.gene_bed = params.genome ? params.genomes[ params.genome ].bed12 ?: false : false
 params.macs_gsize = params.genome ? params.genomes[ params.genome ].macs_gsize ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
-params.anno_readme = params.genome ? params.genomes[ params.genome ].readme ?: false : false
+anno_readme = params.genome ? params.genomes[ params.genome ].readme ?: false : false
 
 ////////////////////////////////////////////////////
 /* --          VALIDATE INPUTS                 -- */
@@ -61,9 +61,9 @@ if (params.fasta) {
 }
 
 // Save AWS IGenomes file containing annotation version
-if (params.anno_readme && file(params.anno_readme).exists()) {
+if (anno_readme && file(anno_readme).exists()) {
     file("${params.outdir}/genome/").mkdirs()
-    file(params.anno_readme).copyTo("${params.outdir}/genome/")
+    file(anno_readme).copyTo("${params.outdir}/genome/")
 }
 
 // If --gtf is supplied along with --genome
@@ -557,4 +557,3 @@ workflow.onComplete {
 ////////////////////////////////////////////////////
 /* --                  THE END                 -- */
 ////////////////////////////////////////////////////
-
