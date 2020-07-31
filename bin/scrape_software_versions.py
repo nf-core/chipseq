@@ -15,8 +15,7 @@ for version_file in version_files:
     results[software] = version
 
 # Dump to YAML
-print(
-    """
+print ('''
 id: 'software_versions'
 section_name: 'nf-core/chipseq Software Versions'
 section_href: 'https://github.com/nf-core/chipseq'
