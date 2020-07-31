@@ -117,6 +117,7 @@
             "title": "Adapter trimming options",
             "type": "object",
             "fa_icon": "fas fa-cut",
+            "description": "Options to adjust adapter trimming criteria.",
             "properties": {
                 "clip_r1": {
                     "type": "integer",
@@ -156,13 +157,13 @@
                     "help_text": "By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.",
                     "fa_icon": "fas fa-save"
                 }
-            },
-            "description": "Options to adjust adapter trimming criteria."
+            }
         },
         "alignment_options": {
             "title": "Alignment options",
             "type": "object",
             "fa_icon": "fas fa-map-signs",
+            "description": "Options to adjust parameters and filtering criteria for read alignments.",
             "properties": {
                 "keep_dups": {
                     "type": "boolean",
@@ -199,13 +200,13 @@
                     "description": "BAMTools JSON file with custom filters for single-end data.",
                     "fa_icon": "fas fa-cog"
                 }
-            },
-            "description": "Options to adjust parameters and filtering criteria for read alignments."
+            }
         },
         "peak_calling_options": {
             "title": "Peak calling options",
             "type": "object",
             "fa_icon": "fas fa-chart-area",
+            "description": "Options to adjust peak calling criteria.",
             "properties": {
                 "narrow_peak": {
                     "type": "boolean",
@@ -256,13 +257,13 @@
                     "description": "Skip consensus peak generation, annotation and counting.",
                     "fa_icon": "fas fa-fast-forward"
                 }
-            },
-            "description": "Options to adjust peak calling criteria."
+            }
         },
         "differential_analysis_options": {
             "title": "Differential analysis options",
             "type": "object",
             "fa_icon": "fas fa-not-equal",
+            "description": "Options to adjust differential analysis criteria.",
             "properties": {
                 "deseq2_vst": {
                     "type": "boolean",
@@ -275,13 +276,13 @@
                     "description": "Skip differential accessibility analysis.",
                     "fa_icon": "fas fa-fast-forward"
                 }
-            },
-            "description": "Options to adjust differential analysis criteria."
+            }
         },
         "process_skipping_options": {
             "title": "Process skipping options",
             "type": "object",
             "fa_icon": "fas fa-fast-forward",
+            "description": "Options to skip various steps within the workflow.",
             "properties": {
                 "skip_fastqc": {
                     "type": "boolean",
@@ -323,8 +324,7 @@
                     "description": "Skip MultiQC.",
                     "fa_icon": "fas fa-fast-forward"
                 }
-            },
-            "description": "Options to skip various steps within the workflow."
+            }
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -503,7 +503,7 @@
                 },
                 "modules": {
                     "type": "string",
-                    "default": "[samplesheet_check:[args:'', args2:'', publish_dir:'pipeline_info', publish_results:'', publish_by_id:false, suffix:''], fastqc:[args:'--quiet', args2:'', publish_dir:'fastqc', publish_results:'', publish_by_id:false, suffix:''], trimgalore:[args:'--fastqc', args2:'', publish_dir:'trimgalore', publish_results:'', publish_by_id:false, suffix:''], bwa_index:[args:'-a bwtsw', args2:'', publish_dir:'genome/bwa_index', publish_results:'', publish_by_id:false, suffix:''], gtf2bed:[args:'', args2:'', publish_dir:'genome', publish_results:'', publish_by_id:false, suffix:''], make_genome_filter:[args:'', args2:'', publish_dir:'genome', publish_results:'', publish_by_id:false, suffix:''], get_chrom_sizes:[args:'', args2:'', publish_dir:'genome', publish_results:'', publish_by_id:false, suffix:''], bwa_mem:[args:'-M', args2:'-h -F 0x0100 -O BAM', publish_dir:'bwa/library', publish_results:'', publish_by_id:false, suffix:'.Lb'], samtools_sort_lib:[args:'', args2:'', publish_dir:'bwa/library', publish_results:'', publish_by_id:false, suffix:'.Lb.sorted'], picard_mergesamfiles:[args:'SORT_ORDER=coordinate VALIDATION_STRINGENCY=LENIENT TMP_DIR=tmp', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.sorted'], picard_markduplicates:[args:'ASSUME_SORTED=true REMOVE_DUPLICATES=false VALIDATION_STRINGENCY=LENIENT TMP_DIR=tmp', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.mkD.sorted'], samtools_sort_merged_lib:[args:'', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.mkD.sorted'], bam_filter:[args:'', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.flT.sorted'], bam_remove_orphans:[args:'--only_fr_pairs', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], samtools_sort_filter:[args:'', args2:'', publish_dir:'bwa/mergedLibrary', publish_results:'', publish_by_id:false, suffix:'.mLb.clN.sorted'], picard_collectmultiplemetrics:[args:'VALIDATION_STRINGENCY=LENIENT TMP_DIR=tmp', args2:'', publish_dir:'bwa/mergedLibrary/picard_metrics', publish_results:'', publish_by_id:false, suffix:'.mLb.clN.sorted'], preseq_lcextrap:[args:'-verbose -bam -seed 1', args2:'', publish_dir:'bwa/mergedLibrary/preseq', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], phantompeakqualtools:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/phantompeakqualtools', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], bedtools_genomecov:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/bigwig', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], ucsc_bedgraphtobigwig:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/bigwig', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], deeptools_computematrix:[args:'scale-regions --regionBodyLength 1000 --beforeRegionStartLength 3000 --afterRegionStartLength 3000 --skipZeros --smartLabels', args2:'', publish_dir:'bwa/mergedLibrary/deeptools', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], deeptools_plotprofile:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/deeptools', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], deeptools_plotheatmap:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/deeptools', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], deeptools_plotfingerprint:[args:'--skipZeros', args2:'', publish_dir:'bwa/mergedLibrary/deeptools', publish_results:'', publish_by_id:false, suffix:'.mLb.clN'], macs2_callpeak:[args:'--keep-dup all', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], plot_macs2_qc:[args:'-o ./ -p macs2_peak', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], homer_annotatepeaks_macs2:[args:'-gid', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:'_peaks'], plot_homer_annotatepeaks:[args:'-o ./ -p macs2_annotatePeaks', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], macs2_consensus:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], homer_annotatepeaks_consensus:[args:'-gid', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:true, suffix:'.consensus_peaks'], subread_featurecounts:[args:'-F SAF -O --fracOverlap 0.2', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], deseq2_featurecounts:[args:'', args2:'', publish_dir:'bwa/mergedLibrary/macs2', publish_results:'', publish_by_id:false, suffix:''], igv:[args:'', args2:'', publish_dir:'igv', publish_results:'', publish_by_id:false, suffix:''], get_software_versions:[args:'', args2:'', publish_dir:'pipeline_info', publish_results:'', publish_by_id:false, suffix:''], output_documentation:[args:'', args2:'', publish_dir:'pipeline_info', publish_results:'', publish_by_id:false, suffix:''], multiqc:[args:'', args2:'', publish_dir:'multiqc', publish_results:'', publish_by_id:false, suffix:'']]",
+                    "default": "",
                     "description": "Parameter used to supply options to nf-core/modules files. Won't need to be provided on the command-line.",
                     "hidden": true
                 }
