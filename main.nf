@@ -539,7 +539,7 @@ workflow {
         PRESEQ_LCEXTRAP.out.ccurve.collect{it[1]}.ifEmpty([]),
         DEEPTOOLS_PLOTPROFILE.out.table.collect{it[1]}.ifEmpty([]),
         DEEPTOOLS_PLOTFINGERPRINT.out.matrix.collect{it[1]}.ifEmpty([]),
-        // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
+        PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
         // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
 
         // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])

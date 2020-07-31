@@ -47,7 +47,7 @@ process MULTIQC {
     path ('preseq/*')
     path ('deeptools/*')
     path ('deeptools/*')
-    // path ('phantompeakqualtools/*') from ch_spp_out_mqc.collect().ifEmpty([])
+    path ('phantompeakqualtools/*')
     // path ('phantompeakqualtools/*') from ch_spp_csv_mqc.collect().ifEmpty([])
 
     // path ('macs/*') from ch_macs_mqc.collect().ifEmpty([])
