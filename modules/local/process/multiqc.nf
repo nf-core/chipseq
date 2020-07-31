@@ -54,8 +54,8 @@ process MULTIQC {
 
     path ('macs2/peaks/*')
     path ('macs2/peaks/*')
-    path ('macs2/annotation*')
-    
+    path ('macs2/annotation/*')
+
     path ('featurecounts/*')
     // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 

@@ -575,8 +575,8 @@ workflow {
 
         MULTIQC_CUSTOM_PEAKS.out.count.collect{it[1]}.ifEmpty([]),
         MULTIQC_CUSTOM_PEAKS.out.frip.collect{it[1]}.ifEmpty([]),
-        PLOT_HOMER_ANNOTATEPEAKS.out.tsv.collect{it[1]}.ifEmpty([]),
-        SUBREAD_FEATURECOUNTS.out.summary.collect().ifEmpty([]),
+        PLOT_HOMER_ANNOTATEPEAKS.out.tsv.collect().ifEmpty([]),
+        SUBREAD_FEATURECOUNTS.out.summary.collect{it[1]}.ifEmpty([]),
         // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
         params.modules['multiqc']
