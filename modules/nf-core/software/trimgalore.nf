@@ -1,3 +1,6 @@
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
+
 def SOFTWARE = 'trimgalore'
 
 process TRIMGALORE {
@@ -5,10 +8,7 @@ process TRIMGALORE {
     label 'process_high'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
 
     container "quay.io/biocontainers/trim-galore:0.6.5--0"
     //container "https://depot.galaxyproject.org/singularity/trim-galore:0.6.5--0"
@@ -45,12 +45,13 @@ process TRIMGALORE {
     tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
 
     // Added soft-links to original fastqs for consistent naming in MultiQC
-    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def ioptions = initOptions(options, SOFTWARE)
+    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     if (meta.single_end) {
         """
         [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz
         trim_galore \\
-            $options.args \\
+            $ioptions.args \\
             --cores $cores \\
             --gzip \\
             $c_r1 \\
@@ -63,7 +64,7 @@ process TRIMGALORE {
         [ ! -f  ${prefix}_1.fastq.gz ] && ln -s ${reads[0]} ${prefix}_1.fastq.gz
         [ ! -f  ${prefix}_2.fastq.gz ] && ln -s ${reads[1]} ${prefix}_2.fastq.gz
         trim_galore \\
-            $options.args \\
+            $ioptions.args \\
             --cores $cores \\
             --paired \\
             --gzip \\

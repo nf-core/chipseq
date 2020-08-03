@@ -1,3 +1,6 @@
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
+
 def SOFTWARE = 'deeptools'
 
 process DEEPTOOLS_PLOTPROFILE {
@@ -5,10 +8,7 @@ process DEEPTOOLS_PLOTPROFILE {
     label 'process_low'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
 
     container "quay.io/biocontainers/deeptools:3.4.3--py_0"
     //container "https://depot.galaxyproject.org/singularity/deeptools:3.4.3--py_0"
@@ -25,10 +25,11 @@ process DEEPTOOLS_PLOTPROFILE {
     path "*.version.txt", emit: version
 
     script:
-    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def ioptions = initOptions(options, SOFTWARE)
+    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     plotProfile \\
-        $options.args \\
+        $ioptions.args \\
         --matrixFile $matrix \\
         --outFileName ${prefix}.plotProfile.pdf \\
         --outFileNameData ${prefix}.plotProfile.tab

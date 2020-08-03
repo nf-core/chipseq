@@ -1,3 +1,6 @@
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
+
 def SOFTWARE = 'preseq'
 
 process PRESEQ_LCEXTRAP {
@@ -6,10 +9,7 @@ process PRESEQ_LCEXTRAP {
     label 'error_ignore'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
 
     container "quay.io/biocontainers/preseq:2.0.3--hf53bd2b_3"
     //container "https://depot.galaxyproject.org/singularity/preseq:2.0.3--hf53bd2b_3"

@@ -1,3 +1,6 @@
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
+
 def SOFTWARE = 'samtools'
 
 process SAMTOOLS_SORT {
@@ -5,10 +8,7 @@ process SAMTOOLS_SORT {
     label 'process_medium'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
 
     container "quay.io/biocontainers/samtools:1.10--h9402c20_2"
     //container " https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2"
@@ -24,9 +24,10 @@ process SAMTOOLS_SORT {
     path "*.version.txt", emit: version
 
     script:
-    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def ioptions = initOptions(options, SOFTWARE)
+    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
-    samtools sort $options.args -@ $task.cpus -o ${prefix}.bam -T $prefix $bam
+    samtools sort $ioptions.args -@ $task.cpus -o ${prefix}.bam -T $prefix $bam
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${SOFTWARE}.version.txt
     """
 }

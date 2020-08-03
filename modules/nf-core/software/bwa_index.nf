@@ -24,9 +24,9 @@ process BWA_INDEX {
     path "*.version.txt", emit: version
 
     script:
-    def module_options = initOptions(options, SOFTWARE)
+    def ioptions = initOptions(options, SOFTWARE)
     """
-    bwa index $module_options.args $fasta
+    bwa index $ioptions.args $fasta
     echo \$(bwa 2>&1) | sed 's/^.*Version: //; s/Contact:.*\$//' > ${SOFTWARE}.version.txt
     """
 }

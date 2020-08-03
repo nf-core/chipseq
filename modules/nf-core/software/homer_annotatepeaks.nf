@@ -1,3 +1,6 @@
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
+
 def SOFTWARE = 'homer'
 def VERSION = '4.11'
 
@@ -6,10 +9,7 @@ process HOMER_ANNOTATEPEAKS {
     label 'process_medium'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
 
     container "quay.io/biocontainers/homer:4.11--pl526h9a982cc_2"
     //container "https://depot.galaxyproject.org/singularity/homer:4.11--pl526h9a982cc_2"
@@ -27,12 +27,13 @@ process HOMER_ANNOTATEPEAKS {
     path "*.version.txt", emit: version
 
     script:
-    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def ioptions = initOptions(options, SOFTWARE)
+    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     annotatePeaks.pl \\
         $peak \\
         $fasta \\
-        $options.args \\
+        $ioptions.args \\
         -gtf $gtf \\
         -cpu $task.cpus \\
         > ${prefix}.annotatePeaks.txt
