@@ -1,4 +1,5 @@
-def SOFTWARE = 'multiqc'
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
 
 // Has the run name been specified by the user?
 // this has the bonus effect of catching both -name and --name
@@ -11,9 +12,7 @@ process MULTIQC {
     label 'process_medium'
     publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename, options, task.process.toLowerCase()) }
 
     container "quay.io/biocontainers/multiqc:1.9--pyh9f0ad1d_0"
     //container "https://depot.galaxyproject.org/singularity/multiqc:1.9--pyh9f0ad1d_0"
@@ -66,10 +65,12 @@ process MULTIQC {
     path "*_data", emit: data
 
     script:
+    def software = task.process.toLowerCase()
+    def ioptions = initOptions(options, software)
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
     """
-    multiqc -f $options.args $rtitle $rfilename $custom_config_file .
+    multiqc -f $ioptions.args $rtitle $rfilename $custom_config_file .
     """
 }

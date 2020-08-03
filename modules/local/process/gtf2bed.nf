@@ -1,3 +1,6 @@
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
+
 /*
  * Convert GTF file to BED format
  */
@@ -6,9 +9,7 @@ process GTF2BED {
     label 'process_low'
     publishDir "${params.outdir}/${options.publish_dir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename, options, "genome") }
 
     container "quay.io/biocontainers/perl:5.26.2"
     //container "https://depot.galaxyproject.org/singularity/perl:5.26.2"

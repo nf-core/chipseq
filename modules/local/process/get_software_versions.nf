@@ -1,13 +1,13 @@
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
+
 /*
  * Parse software version numbers
  */
 process GET_SOFTWARE_VERSIONS {
-  publishDir "${params.outdir}/${options.publish_dir}",
-      mode: params.publish_dir_mode,
-      saveAs: { filename ->
-                    if (options.publish_results == "none") null
-                    else if (filename.endsWith('.yaml')) null
-                    else filename }
+    publishDir "${params.outdir}/${options.publish_dir}",
+        mode: params.publish_dir_mode,
+        saveAs: { filename -> saveFiles(filename, options, "pipeline_info") }
 
     input:
     path versions
