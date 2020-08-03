@@ -1,14 +1,12 @@
 // Import generic module functions
 include { initOptions; saveFiles } from './functions'
 
-def SOFTWARE = 'macs2'
-
 process MACS2_CALLPEAK {
     tag "$meta.id"
     label 'process_medium'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
+        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[0].toLowerCase()) }
 
     container "quay.io/biocontainers/macs2:2.2.7.1--py37h516909a_0"
     //container "https://depot.galaxyproject.org/singularity/macs2:2.2.7.1--py37h516909a_0"
@@ -29,7 +27,8 @@ process MACS2_CALLPEAK {
     path "*.version.txt", emit: version
 
     script:
-    def ioptions = initOptions(options, SOFTWARE)
+    def software = task.process.tokenize('_')[0].toLowerCase()
+    def ioptions = initOptions(options, software)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     format = meta.single_end ? 'BAM' : 'BAMPE'
     control = controlbam ? "--control $controlbam" : ''
@@ -43,6 +42,6 @@ process MACS2_CALLPEAK {
         --treatment $ipbam \\
          $control
 
-    macs2 --version | sed -e "s/macs2 //g" > ${SOFTWARE}.version.txt
+    macs2 --version | sed -e "s/macs2 //g" > ${software}.version.txt
     """
 }

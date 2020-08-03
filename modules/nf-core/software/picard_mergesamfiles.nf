@@ -1,14 +1,12 @@
 // Import generic module functions
 include { initOptions; saveFiles } from './functions'
 
-def SOFTWARE = 'picard'
-
 process PICARD_MERGESAMFILES {
     tag "$meta.id"
     label 'process_medium'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
+        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[0].toLowerCase()) }
 
     container "quay.io/biocontainers/picard:2.23.2--0"
     //container "https://depot.galaxyproject.org/singularity/picard:2.23.2--0"
@@ -24,7 +22,8 @@ process PICARD_MERGESAMFILES {
     path "*.version.txt", emit: version
 
     script:
-    def ioptions = initOptions(options, SOFTWARE)
+    def software = task.process.tokenize('_')[0].toLowerCase()
+    def ioptions = initOptions(options, software)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     bam_files = bams.sort()
     def avail_mem = 3
@@ -41,12 +40,12 @@ process PICARD_MERGESAMFILES {
             $ioptions.args \\
             ${'INPUT='+bam_files.join(' INPUT=')} \\
             OUTPUT=${prefix}.bam
-        echo \$(picard MergeSamFiles --version 2>&1) | awk -F' ' '{print \$NF}' > ${SOFTWARE}.version.txt
+        echo \$(picard MergeSamFiles --version 2>&1) | awk -F' ' '{print \$NF}' > ${software}.version.txt
         """
     } else {
         """
         ln -s ${bam_files[0]} ${prefix}.bam
-        echo \$(picard MergeSamFiles --version 2>&1) | awk -F' ' '{print \$NF}' > ${SOFTWARE}.version.txt
+        echo \$(picard MergeSamFiles --version 2>&1) | awk -F' ' '{print \$NF}' > ${software}.version.txt
         """
     }
 }

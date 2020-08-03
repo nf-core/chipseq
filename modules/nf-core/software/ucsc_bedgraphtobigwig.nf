@@ -1,7 +1,6 @@
 // Import generic module functions
 include { initOptions; saveFiles } from './functions'
 
-def SOFTWARE = 'ucsc'
 def VERSION = '377'
 
 process UCSC_BEDRAPHTOBIGWIG {
@@ -9,7 +8,7 @@ process UCSC_BEDRAPHTOBIGWIG {
     label 'process_medium'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
+        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[0].toLowerCase()) }
 
     container "quay.io/biocontainers/ucsc-bedgraphtobigwig:377--h446ed27_1"
     //container "https://depot.galaxyproject.org/singularity/ucsc-bedgraphtobigwig:377--h446ed27_1"
@@ -26,10 +25,11 @@ process UCSC_BEDRAPHTOBIGWIG {
     path "*.version.txt", emit: version
 
     script:
-    def ioptions = initOptions(options, SOFTWARE)
+    def software = task.process.tokenize('_')[0].toLowerCase()
+    def ioptions = initOptions(options, software)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     bedGraphToBigWig $bedgraph $sizes ${prefix}.bigWig
-    echo $VERSION > ${SOFTWARE}.version.txt
+    echo $VERSION > ${software}.version.txt
     """
 }

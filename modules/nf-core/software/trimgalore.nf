@@ -1,14 +1,12 @@
 // Import generic module functions
 include { initOptions; saveFiles } from './functions'
 
-def SOFTWARE = 'trimgalore'
-
 process TRIMGALORE {
     tag "$meta.id"
     label 'process_high'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
+        saveAs: { filename -> saveFiles(filename, options, task.process.toLowerCase()) }
 
     container "quay.io/biocontainers/trim-galore:0.6.5--0"
     //container "https://depot.galaxyproject.org/singularity/trim-galore:0.6.5--0"
@@ -45,7 +43,8 @@ process TRIMGALORE {
     tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
 
     // Added soft-links to original fastqs for consistent naming in MultiQC
-    def ioptions = initOptions(options, SOFTWARE)
+    def software = task.process.toLowerCase()
+    def ioptions = initOptions(options, software)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     if (meta.single_end) {
         """
@@ -57,7 +56,7 @@ process TRIMGALORE {
             $c_r1 \\
             $tpc_r1 \\
             ${prefix}.fastq.gz
-        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${SOFTWARE}.version.txt
+        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${software}.version.txt
         """
     } else {
         """
@@ -74,7 +73,7 @@ process TRIMGALORE {
             $tpc_r2 \\
             ${prefix}_1.fastq.gz \\
             ${prefix}_2.fastq.gz
-        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${SOFTWARE}.version.txt
+        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${software}.version.txt
         """
     }
 }

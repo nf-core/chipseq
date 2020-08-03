@@ -1,14 +1,12 @@
 // Import generic module functions
 include { initOptions; saveFiles } from './functions'
 
-def SOFTWARE = 'deeptools'
-
 process DEEPTOOLS_COMPUTEMATRIX {
     tag "$meta.id"
     label 'process_high'
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
+        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[0].toLowerCase()) }
 
     container "quay.io/biocontainers/deeptools:3.4.3--py_0"
     //container "https://depot.galaxyproject.org/singularity/deeptools:3.4.3--py_0"
@@ -26,7 +24,8 @@ process DEEPTOOLS_COMPUTEMATRIX {
     path "*.version.txt", emit: version
 
     script:
-    def ioptions = initOptions(options, SOFTWARE)
+    def software = task.process.tokenize('_')[0].toLowerCase()
+    def ioptions = initOptions(options, software)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     computeMatrix \\
@@ -37,6 +36,6 @@ process DEEPTOOLS_COMPUTEMATRIX {
         --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.tab \\
         --numberOfProcessors $task.cpus
 
-    computeMatrix --version | sed -e "s/computeMatrix //g" > ${SOFTWARE}.version.txt
+    computeMatrix --version | sed -e "s/computeMatrix //g" > ${software}.version.txt
     """
 }

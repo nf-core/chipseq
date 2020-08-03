@@ -1,13 +1,11 @@
 // Import generic module functions
 include { initOptions; saveFiles } from './functions'
 
-def SOFTWARE = 'samtools'
-
 process SAMTOOLS_FLAGSTAT {
     tag "$meta.id"
     publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, SOFTWARE) }
+        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[0].toLowerCase()) }
 
     container "quay.io/biocontainers/samtools:1.10--h9402c20_2"
     //container " https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2"
@@ -23,8 +21,9 @@ process SAMTOOLS_FLAGSTAT {
     path "*.version.txt", emit: version
 
     script:
+    def software = task.process.tokenize('_')[0].toLowerCase()
     """
     samtools flagstat $bam > ${bam}.flagstat
-    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${SOFTWARE}.version.txt
+    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }
