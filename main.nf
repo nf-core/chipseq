@@ -192,15 +192,7 @@ workflow {
     /*
      * Prepare genome files
      */
-    //ch_index = params.bwa_index ? Channel.value(file(params.bwa_index)) : BWA_INDEX ( ch_fasta, params.modules['bwa_index'] ).index
-
-    //BWA_INDEX ( ch_fasta, { args : "-a bwtsw", publish_dir: "genome/bwa_index" } )
-    def file_map = [ann:'', bwt:'test']
-    //println(file_map)
-    //println(file_map ?: null)
-    def index_options = [args: "-a bwtsw", publish_dir: "genome/bwa_index", publish_files: file_map]
-    //def index_options = [args: "-a bwtsw", publish_dir: "genome/bwa_index", publish_files: "test"]
-    BWA_INDEX ( ch_fasta, index_options )
+    ch_index = params.bwa_index ? Channel.value(file(params.bwa_index)) : BWA_INDEX ( ch_fasta, params.modules['bwa_index'] ).index
 
     // if (makeBED) { ch_gene_bed = GTF2BED ( ch_gtf, params.modules['gtf2bed'] ) }
     //
