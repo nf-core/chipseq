@@ -29,31 +29,31 @@ def initOptions(Map args) {
  * Tidy up and join elements of a list to return a path string
  */
 def getPathFromList(path_list) {
-  def paths = path_list.findAll { item -> !item?.trim().isEmpty() }  // Remove empty entries
-  paths = paths.collect { it.trim().replaceAll("^[/]+|[/]+\$", "") } // Trim whitespace and trailing slashes
-  return paths.join('/')
+    def paths = path_list.findAll { item -> !item?.trim().isEmpty() }  // Remove empty entries
+    paths = paths.collect { it.trim().replaceAll("^[/]+|[/]+\$", "") } // Trim whitespace and trailing slashes
+    return paths.join('/')
 }
 
 /*
  * Function to save/publish module results
  */
-def saveFiles(filename, options, publish_dir='', publish_id='') {
-    if (!filename.endsWith('.version.txt')) {
-        def ioptions = initOptions(options)
-        def path_list = [ ioptions.publish_dir ?: publish_dir ]
+def saveFiles(Map args) {
+    if (!args.filename.endsWith('.version.txt')) {
+        def ioptions = initOptions(args.options)
+        def path_list = [ ioptions.publish_dir ?: args.publish_dir ]
         if (ioptions.publish_by_id) {
-            path_list.add(publish_id)
+            path_list.add(args.publish_id)
         }
         if (ioptions.publish_files instanceof Map) {
             for (ext in ioptions.publish_files) {
-                if (filename.endsWith(ext.key)) {
+                if (args.filename.endsWith(ext.key)) {
                     def ext_list = path_list.collect()
                     ext_list.add(ext.value)
-                    return "${getPathFromList(ext_list)}/$filename"
+                    return "${getPathFromList(ext_list)}/$args.filename"
                 }
             }
         } else {
-            return "${getPathFromList(path_list)}/$filename"
+            return "${getPathFromList(path_list)}/$args.filename"
         }
     }
 }

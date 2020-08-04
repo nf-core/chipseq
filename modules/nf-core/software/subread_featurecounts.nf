@@ -6,7 +6,7 @@ process SUBREAD_FEATURECOUNTS {
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
     container "quay.io/biocontainers/subread:2.0.1--hed695b0_0"
     //container "https://depot.galaxyproject.org/singularity/subread:2.0.1--hed695b0_0"
