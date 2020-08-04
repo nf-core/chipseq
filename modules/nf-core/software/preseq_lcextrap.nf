@@ -1,15 +1,13 @@
-def SOFTWARE = 'preseq'
+// Import generic module functions
+include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 process PRESEQ_LCEXTRAP {
     tag "$meta.id"
     label 'process_medium'
     label 'error_ignore'
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
 
     container "quay.io/biocontainers/preseq:2.0.3--hf53bd2b_3"
     //container "https://depot.galaxyproject.org/singularity/preseq:2.0.3--hf53bd2b_3"
@@ -26,17 +24,19 @@ process PRESEQ_LCEXTRAP {
     path "*.version.txt", emit: version
 
     script:
-    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
+    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     pe = meta.single_end ? '' : '-pe'
     """
     preseq \\
         lc_extrap \\
-        $options.args \\
+        $ioptions.args \\
         $pe \\
         -output ${prefix}.ccurve.txt \\
         $bam
     cp .command.err ${prefix}.command.log
 
-    echo \$(preseq 2>&1) | sed 's/^.*Version: //; s/Usage:.*\$//' > ${SOFTWARE}.version.txt
+    echo \$(preseq 2>&1) | sed 's/^.*Version: //; s/Usage:.*\$//' > ${software}.version.txt
     """
 }

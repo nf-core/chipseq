@@ -1,15 +1,15 @@
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
+
 /*
  * Filter BAM file
  */
 process BAM_FILTER {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id=meta.id) }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -25,7 +25,8 @@ process BAM_FILTER {
     path "*.version.txt", emit: version
 
     script:
-    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def ioptions = initOptions(options)
+    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     filter_params = meta.single_end ? '-F 0x004' : '-F 0x004 -F 0x0008 -f 0x001'
     dup_params = params.keep_dups ? '' : '-F 0x0400'
     multimap_params = params.keep_multi_map ? '' : '-q 1'

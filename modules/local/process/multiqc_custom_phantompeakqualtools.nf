@@ -1,11 +1,11 @@
+// Import generic module functions
+include { initOptions; saveFiles; getSoftwareName } from './functions'
+
 process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
     tag "$meta.id"
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -22,7 +22,9 @@ process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
     tuple val(meta), path("*.spp_correlation_mqc.tsv"), emit: correlation
 
     script:
-    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
+    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     cp $correlation_header ${prefix}.spp_correlation_mqc.tsv
     Rscript -e "load('$rdata'); write.table(crosscorr\\\$cross.correlation, file=\\"${prefix}.spp_correlation_mqc.tsv\\", sep=",", quote=FALSE, row.names=FALSE, col.names=FALSE,append=TRUE)"

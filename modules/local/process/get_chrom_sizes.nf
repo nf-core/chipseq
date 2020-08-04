@@ -1,15 +1,14 @@
-def SOFTWARE = 'samtools'
+// Import generic module functions
+include { saveFiles } from './functions'
 
 /*
  * Get chromosome sizes from a fasta file
  */
 process GET_CHROM_SIZES {
     tag "$fasta"
-    publishDir "${params.outdir}/${options.publish_dir}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir="genome", publish_id='') }
 
     container "quay.io/biocontainers/samtools:1.10--h9402c20_2"
     //container " https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2"
@@ -26,9 +25,10 @@ process GET_CHROM_SIZES {
     path "*.version.txt", emit: version
 
     script:
+    def software = 'samtools'
     """
     samtools faidx $fasta
     cut -f 1,2 ${fasta}.fai > ${fasta}.sizes
-    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${SOFTWARE}.version.txt
+    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }

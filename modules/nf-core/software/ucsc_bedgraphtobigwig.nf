@@ -1,15 +1,14 @@
-def SOFTWARE = 'ucsc'
+// Import generic module functions
+include { initOptions; saveFiles; getSoftwareName } from './functions'
+
 def VERSION = '377'
 
 process UCSC_BEDRAPHTOBIGWIG {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
 
     container "quay.io/biocontainers/ucsc-bedgraphtobigwig:377--h446ed27_1"
     //container "https://depot.galaxyproject.org/singularity/ucsc-bedgraphtobigwig:377--h446ed27_1"
@@ -26,9 +25,11 @@ process UCSC_BEDRAPHTOBIGWIG {
     path "*.version.txt", emit: version
 
     script:
-    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
+    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     bedGraphToBigWig $bedgraph $sizes ${prefix}.bigWig
-    echo $VERSION > ${SOFTWARE}.version.txt
+    echo $VERSION > ${software}.version.txt
     """
 }

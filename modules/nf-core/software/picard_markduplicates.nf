@@ -1,14 +1,12 @@
-def SOFTWARE = 'picard'
+// Import generic module functions
+include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 process PICARD_MARKDUPLICATES {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
 
     container "quay.io/biocontainers/picard:2.23.2--0"
     //container "https://depot.galaxyproject.org/singularity/picard:2.23.2--0"
@@ -25,7 +23,9 @@ process PICARD_MARKDUPLICATES {
     path "*.version.txt", emit: version
 
     script:
-    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
+    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     def avail_mem = 3
     if (!task.memory) {
         log.info '[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
@@ -36,11 +36,11 @@ process PICARD_MARKDUPLICATES {
     picard \\
         -Xmx${avail_mem}g \\
         MarkDuplicates \\
-        $options.args \\
+        $ioptions.args \\
         INPUT=$bam \\
         OUTPUT=${prefix}.bam \\
         METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt
 
-    echo \$(picard MarkDuplicates --version 2>&1) | awk -F' ' '{print \$NF}' > ${SOFTWARE}.version.txt
+    echo \$(picard MarkDuplicates --version 2>&1) | awk -F' ' '{print \$NF}' > ${software}.version.txt
     """
 }

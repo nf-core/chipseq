@@ -1,14 +1,12 @@
-def SOFTWARE = 'trimgalore'
+// Import generic module functions
+include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 process TRIMGALORE {
     tag "$meta.id"
     label 'process_high'
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else if (filename.endsWith('.version.txt')) null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
 
     container "quay.io/biocontainers/trim-galore:0.6.5--0"
     //container "https://depot.galaxyproject.org/singularity/trim-galore:0.6.5--0"
@@ -45,25 +43,27 @@ process TRIMGALORE {
     tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
 
     // Added soft-links to original fastqs for consistent naming in MultiQC
-    prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
+    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     if (meta.single_end) {
         """
         [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz
         trim_galore \\
-            $options.args \\
+            $ioptions.args \\
             --cores $cores \\
             --gzip \\
             $c_r1 \\
             $tpc_r1 \\
             ${prefix}.fastq.gz
-        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${SOFTWARE}.version.txt
+        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${software}.version.txt
         """
     } else {
         """
         [ ! -f  ${prefix}_1.fastq.gz ] && ln -s ${reads[0]} ${prefix}_1.fastq.gz
         [ ! -f  ${prefix}_2.fastq.gz ] && ln -s ${reads[1]} ${prefix}_2.fastq.gz
         trim_galore \\
-            $options.args \\
+            $ioptions.args \\
             --cores $cores \\
             --paired \\
             --gzip \\
@@ -73,7 +73,7 @@ process TRIMGALORE {
             $tpc_r2 \\
             ${prefix}_1.fastq.gz \\
             ${prefix}_2.fastq.gz
-        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${SOFTWARE}.version.txt
+        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${software}.version.txt
         """
     }
 }

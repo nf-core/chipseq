@@ -1,13 +1,14 @@
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
+
 /*
  * Aggregated QC plots for peaks
  */
 process PLOT_MACS2_QC {
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id='') }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -20,11 +21,12 @@ process PLOT_MACS2_QC {
     path '*.pdf', emit: pdf
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    def ioptions = initOptions(options)
     peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
     """
     plot_macs2_qc.r \\
         -i ${peaks.join(',')} \\
         -s ${peaks.join(',').replaceAll("_peaks.${peak_type}","")} \\
-        $options.args
+        $ioptions.args
     """
 }

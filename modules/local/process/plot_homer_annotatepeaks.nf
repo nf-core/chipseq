@@ -1,14 +1,15 @@
+// Import generic module functions
+include { initOptions; saveFiles } from './functions'
+
 /*
  * Aggregated QC plots for peak-to-gene annotation
  */
 process PLOT_HOMER_ANNOTATEPEAKS {
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else filename }
-
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id='') }
+        
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
     input:
@@ -23,11 +24,12 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     path '*.tsv', emit: tsv
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    def ioptions = initOptions(options)
     """
     plot_homer_annotatepeaks.r \\
         -i ${annos.join(',')} \\
         -s ${annos.join(',').replaceAll("${suffix}","")} \\
-        $options.args
+        $ioptions.args
 
     find ./ -type f -name "*.txt" -exec cat {} \\; | cat $mqc_header - > annotatepeaks.summary_mqc.tsv
     """

@@ -1,13 +1,14 @@
+// Import generic module functions
+include { saveFiles } from './functions'
+
 /*
  * Reformat design file, check validitiy and create IP vs control mappings
  */
 process SAMPLESHEET_CHECK {
     tag "$samplesheet"
-    publishDir "${params.outdir}/${options.publish_dir}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (options.publish_results == "none") null
-                      else filename }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir="pipeline_info", publish_id='') }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
