@@ -186,7 +186,7 @@ workflow {
     INPUT_CHECK (
         ch_input,
         params.seq_center,
-        params.modules['samplesheet_check']
+        [:]
     )
 
     /*
@@ -194,12 +194,12 @@ workflow {
      */
     ch_index = params.bwa_index ? Channel.value(file(params.bwa_index)) : BWA_INDEX ( ch_fasta, params.modules['bwa_index'] ).index
 
-    if (makeBED) { ch_gene_bed = GTF2BED ( ch_gtf, params.modules['gtf2bed'] ) }
+    if (makeBED) { ch_gene_bed = GTF2BED ( ch_gtf, [:] ) }
 
     MAKE_GENOME_FILTER (
-        GET_CHROM_SIZES ( ch_fasta, params.modules['get_chrom_sizes'] ).sizes,
+        GET_CHROM_SIZES ( ch_fasta, [:] ).sizes,
         ch_blacklist.ifEmpty([]),
-        params.modules['make_genome_filter']
+        [:]
     )
     ch_software_versions = Channel.empty()
     ch_software_versions = ch_software_versions.mix(MAKE_GENOME_FILTER.out.version.first().ifEmpty(null))
@@ -518,7 +518,7 @@ workflow {
         params.modules['ucsc_bedgraphtobigwig'],
         params.modules['macs2_callpeak'],
         params.modules['macs2_consensus'],
-        params.modules['igv']
+        [:]
     )
 
     /*
@@ -532,7 +532,7 @@ workflow {
     OUTPUT_DOCUMENTATION (
         ch_output_docs,
         ch_output_docs_images,
-        params.modules['output_documentation']
+        [:]
     )
 
     /*
