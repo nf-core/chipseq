@@ -7,7 +7,7 @@ process FASTQC {
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
-        
+
     container "quay.io/biocontainers/fastqc:0.11.9--0"
     //container "https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0"
 
@@ -22,12 +22,10 @@ process FASTQC {
     tuple val(meta), path("*.zip"), emit: zip
     path "*.version.txt", emit: version
 
-    echo true
-
     script:
     // Add soft-links to original FastQs for consistent naming in pipeline
     def software = getSoftwareName(task.process)
-    def ioptions = initOptions(options, software)
+    def ioptions = initOptions(options)
     prefix = ioptions.suffix ? "${meta.id}.${ioptions.suffix}" : "${meta.id}"
     if (meta.single_end) {
         """

@@ -7,7 +7,7 @@ process DEEPTOOLS_PLOTHEATMAP {
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
-        
+
     container "quay.io/biocontainers/deeptools:3.4.3--py_0"
     //container "https://depot.galaxyproject.org/singularity/deeptools:3.4.3--py_0"
 
@@ -23,8 +23,8 @@ process DEEPTOOLS_PLOTHEATMAP {
     path "*.version.txt", emit: version
 
     script:
-    def software = task.process.tokenize('_')[0].toLowerCase()
-    def ioptions = initOptions(options, software)
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     plotHeatmap \\

@@ -9,7 +9,7 @@ process UCSC_BEDRAPHTOBIGWIG {
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
-        
+
     container "quay.io/biocontainers/ucsc-bedgraphtobigwig:377--h446ed27_1"
     //container "https://depot.galaxyproject.org/singularity/ucsc-bedgraphtobigwig:377--h446ed27_1"
 
@@ -25,8 +25,8 @@ process UCSC_BEDRAPHTOBIGWIG {
     path "*.version.txt", emit: version
 
     script:
-    def software = task.process.tokenize('_')[0].toLowerCase()
-    def ioptions = initOptions(options, software)
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     bedGraphToBigWig $bedgraph $sizes ${prefix}.bigWig

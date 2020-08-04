@@ -26,8 +26,8 @@ process PHANTOMPEAKQUALTOOLS {
     path "*.version.txt", emit: version
 
     script:
-    def software = task.process.toLowerCase()
-    def ioptions = initOptions(options, software)
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     RUN_SPP=`which run_spp.R`

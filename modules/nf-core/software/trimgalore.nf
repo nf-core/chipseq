@@ -7,7 +7,7 @@ process TRIMGALORE {
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
-        
+
     container "quay.io/biocontainers/trim-galore:0.6.5--0"
     //container "https://depot.galaxyproject.org/singularity/trim-galore:0.6.5--0"
 
@@ -43,8 +43,8 @@ process TRIMGALORE {
     tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
 
     // Added soft-links to original fastqs for consistent naming in MultiQC
-    def software = task.process.toLowerCase()
-    def ioptions = initOptions(options, software)
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     if (meta.single_end) {
         """
