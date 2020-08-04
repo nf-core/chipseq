@@ -1,12 +1,18 @@
 /*
- * Extract name of software from nf-core/modules process name using $task.process
+ * -----------------------------------------------------
+ *  Utility functions used in nf-core DSL2 module files
+ * -----------------------------------------------------
+ */
+
+/*
+ * Extract name of software tool from process name using $task.process
  */
 def getSoftwareName(task_process) {
     return task_process.tokenize(':')[-1].tokenize('_')[0].toLowerCase()
 }
 
 /*
- * Function to initialise default values and to generate a Groovy Map of nf-core module options
+ * Function to initialise default values and to generate a Groovy Map of available options for nf-core modules
  */
 def initOptions(Map args) {
     def Map options = [:]
@@ -30,9 +36,6 @@ def getPathFromList(path_list) {
 
 /*
  * Function to save/publish module results
- *   if publish_files == null           : All files are published
- *   if publish_files == Map [:]        : No files are published
- *   if publish_files == Map [ext:path] : Only files that end with "ext" are published to "path" (appended to output directory)
  */
 def saveFiles(filename, options, publish_dir='', publish_id='') {
     if (!filename.endsWith('.version.txt')) {
