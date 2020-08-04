@@ -1,14 +1,14 @@
 // Import generic module functions
-include { initOptions; saveFiles } from './functions'
+include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 process PRESEQ_LCEXTRAP {
     tag "$meta.id"
     label 'process_medium'
     label 'error_ignore'
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[0].toLowerCase()) }
-
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
+        
     container "quay.io/biocontainers/preseq:2.0.3--hf53bd2b_3"
     //container "https://depot.galaxyproject.org/singularity/preseq:2.0.3--hf53bd2b_3"
 
