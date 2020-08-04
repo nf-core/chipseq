@@ -22,7 +22,7 @@ process BAM_REMOVE_ORPHANS {
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     def ioptions = initOptions(options)
-    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    prefix       = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     if (!meta.single_end) {
         """
         samtools sort -n -@ $task.cpus -o ${prefix}.name.sorted.bam -T ${prefix}.name.sorted $bam
