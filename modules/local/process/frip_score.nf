@@ -6,7 +6,7 @@ process FRIP_SCORE {
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id=meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:task.process.toLowerCase(), publish_id:meta.id) }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -19,7 +19,7 @@ process FRIP_SCORE {
 
     script:
     def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     READS_IN_PEAKS=\$(intersectBed -a $bam -b $peak $ioptions.args | awk -F '\t' '{sum += \$NF} END {print sum}')
     samtools flagstat $bam > ${bam}.flagstat
