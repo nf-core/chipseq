@@ -26,8 +26,8 @@ process BWA_MEM {
     script:
     def software = getSoftwareName(task.process)
     def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
-    rg = meta.read_group ? "-R ${meta.read_group}" : ""
+    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def rg       = meta.read_group ? "-R ${meta.read_group}" : ""
     """
     bwa mem \\
         $ioptions.args \\

@@ -26,7 +26,7 @@ process FASTQC {
     // Add soft-links to original FastQs for consistent naming in pipeline
     def software = getSoftwareName(task.process)
     def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}.${ioptions.suffix}" : "${meta.id}"
+    def prefix   = ioptions.suffix ? "${meta.id}.${ioptions.suffix}" : "${meta.id}"
     if (meta.single_end) {
         """
         [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz

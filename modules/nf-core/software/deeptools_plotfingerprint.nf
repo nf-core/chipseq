@@ -26,8 +26,8 @@ process DEEPTOOLS_PLOTFINGERPRINT {
     script:
     def software = getSoftwareName(task.process)
     def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
-    extend = (meta.single_end && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
+    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def extend   = (meta.single_end && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
     """
     plotFingerprint \\
         $ioptions.args \\

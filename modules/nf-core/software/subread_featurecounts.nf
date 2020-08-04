@@ -25,8 +25,8 @@ process SUBREAD_FEATURECOUNTS {
     script:
     def software = getSoftwareName(task.process)
     def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
-    pe = meta.single_end ? '' : '-p'
+    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def pe       = meta.single_end ? '' : '-p'
     """
     featureCounts \\
         $ioptions.args \\

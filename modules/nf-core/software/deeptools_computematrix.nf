@@ -26,7 +26,7 @@ process DEEPTOOLS_COMPUTEMATRIX {
     script:
     def software = getSoftwareName(task.process)
     def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     computeMatrix \\
         $ioptions.args \\

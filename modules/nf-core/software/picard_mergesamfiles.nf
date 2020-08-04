@@ -22,10 +22,10 @@ process PICARD_MERGESAMFILES {
     path "*.version.txt", emit: version
 
     script:
-    def software = getSoftwareName(task.process)
-    def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
-    bam_files = bams.sort()
+    def software  = getSoftwareName(task.process)
+    def ioptions  = initOptions(options)
+    def prefix    = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def bam_files = bams.sort()
     def avail_mem = 3
     if (!task.memory) {
         log.info '[Picard MergeSamFiles] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'

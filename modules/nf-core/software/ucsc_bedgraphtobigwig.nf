@@ -27,7 +27,7 @@ process UCSC_BEDRAPHTOBIGWIG {
     script:
     def software = getSoftwareName(task.process)
     def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     bedGraphToBigWig $bedgraph $sizes ${prefix}.bigWig
     echo $VERSION > ${software}.version.txt

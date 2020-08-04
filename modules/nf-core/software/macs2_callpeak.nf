@@ -29,9 +29,9 @@ process MACS2_CALLPEAK {
     script:
     def software = getSoftwareName(task.process)
     def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
-    format = meta.single_end ? 'BAM' : 'BAMPE'
-    control = controlbam ? "--control $controlbam" : ''
+    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def format   = meta.single_end ? 'BAM' : 'BAMPE'
+    def control  = controlbam ? "--control $controlbam" : ''
     """
     macs2 \\
         callpeak \\

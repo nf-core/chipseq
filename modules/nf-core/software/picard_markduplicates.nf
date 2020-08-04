@@ -23,9 +23,9 @@ process PICARD_MARKDUPLICATES {
     path "*.version.txt", emit: version
 
     script:
-    def software = getSoftwareName(task.process)
-    def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def software  = getSoftwareName(task.process)
+    def ioptions  = initOptions(options)
+    def prefix    = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     def avail_mem = 3
     if (!task.memory) {
         log.info '[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
