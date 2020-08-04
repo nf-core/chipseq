@@ -6,7 +6,7 @@ def getSoftwareName(task_process) {
 }
 
 /*
- * Function to initialise default values and to generate a Groovy Map of module options
+ * Function to initialise default values and to generate a Groovy Map of nf-core module options
  */
 def initOptions(Map args) {
     def Map options = [:]
