@@ -6,9 +6,9 @@ include { initOptions; saveFiles } from './functions'
  */
 process PLOT_MACS2_QC {
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[1].toLowerCase()) }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id='') }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -21,8 +21,7 @@ process PLOT_MACS2_QC {
     path '*.pdf', emit: pdf
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-    def software = task.process.tokenize('_')[1].toLowerCase()
-    def ioptions = initOptions(options, software)
+    def ioptions = initOptions(options)
     peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
     """
     plot_macs2_qc.r \\

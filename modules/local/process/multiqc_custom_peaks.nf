@@ -1,11 +1,11 @@
 // Import generic module functions
-include { initOptions; saveFiles } from './functions'
+include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 process MULTIQC_CUSTOM_PEAKS {
     tag "$meta.id"
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}  ",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[0].toLowerCase()) }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -20,8 +20,8 @@ process MULTIQC_CUSTOM_PEAKS {
     tuple val(meta), path("*.FRiP_mqc.tsv"), emit: frip
 
     script:
-    def software = task.process.tokenize('_')[0].toLowerCase()
-    def ioptions = initOptions(options, software)
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     cat $peak | wc -l | awk -v OFS='\t' '{ print "${prefix}", \$1 }' | cat $peak_count_header - > ${prefix}.peak_count_mqc.tsv

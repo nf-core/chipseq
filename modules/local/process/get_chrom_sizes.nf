@@ -1,14 +1,14 @@
 // Import generic module functions
-include { initOptions; saveFiles } from './functions'
+include { saveFiles } from './functions'
 
 /*
  * Get chromosome sizes from a fasta file
  */
 process GET_CHROM_SIZES {
     tag "$fasta"
-    publishDir "${params.outdir}/${options.publish_dir}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, "genome") }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir="genome", publish_id='') }
 
     container "quay.io/biocontainers/samtools:1.10--h9402c20_2"
     //container " https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2"

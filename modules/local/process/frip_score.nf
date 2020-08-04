@@ -4,9 +4,9 @@ include { initOptions; saveFiles } from './functions'
 process FRIP_SCORE {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[0].toLowerCase()) }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id=meta.id) }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -18,7 +18,7 @@ process FRIP_SCORE {
     tuple val(meta), path("*.txt"), emit: txt
 
     script:
-    def ioptions = initOptions(options, task.process.tokenize('_')[0].toLowerCase())
+    def ioptions = initOptions(options)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     """
     READS_IN_PEAKS=\$(intersectBed -a $bam -b $peak $ioptions.args | awk -F '\t' '{sum += \$NF} END {print sum}')

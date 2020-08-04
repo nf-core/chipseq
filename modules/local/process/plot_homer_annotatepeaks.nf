@@ -6,10 +6,10 @@ include { initOptions; saveFiles } from './functions'
  */
 process PLOT_HOMER_ANNOTATEPEAKS {
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[1].toLowerCase()) }
-
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id='') }
+        
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
     input:
@@ -24,8 +24,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     path '*.tsv', emit: tsv
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-    def software = task.process.tokenize('_')[1].toLowerCase()
-    def ioptions = initOptions(options, software)
+    def ioptions = initOptions(options)
     """
     plot_homer_annotatepeaks.r \\
         -i ${annos.join(',')} \\

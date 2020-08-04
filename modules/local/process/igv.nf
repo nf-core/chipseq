@@ -1,13 +1,13 @@
 // Import generic module functions
-include { initOptions; saveFiles } from './functions'
+include { saveFiles } from './functions'
 
 /*
  * Create IGV session file
  */
 process IGV {
-    publishDir "${params.outdir}/${options.publish_dir}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, task.process.toLowerCase()) }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id='') }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 

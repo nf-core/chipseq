@@ -1,12 +1,12 @@
 // Import generic module functions
-include { initOptions; saveFiles } from './functions'
+include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 process BEDTOOLS_GENOMECOV {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[0].toLowerCase()) }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
 
     container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
     //container "https://depot.galaxyproject.org/singularity/bedtools:2.29.2--hc088bd4_0"
@@ -23,8 +23,8 @@ process BEDTOOLS_GENOMECOV {
     path "*.version.txt", emit: version
 
     script:
-    def software = task.process.tokenize('_')[0].toLowerCase()
-    def ioptions = initOptions(options, software)
+    def software = getSoftwareName(task.process)
+    def ioptions = initOptions(options)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     pe = meta.single_end ? '' : '-pc'
     extend = (meta.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''

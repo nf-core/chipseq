@@ -7,9 +7,9 @@ include { initOptions; saveFiles } from './functions'
 process BAM_FILTER {
     tag "$meta.id"
     label 'process_medium'
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, task.process.toLowerCase()) }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id=meta.id) }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -25,7 +25,7 @@ process BAM_FILTER {
     path "*.version.txt", emit: version
 
     script:
-    def ioptions = initOptions(options, task.process.toLowerCase())
+    def ioptions = initOptions(options)
     prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     filter_params = meta.single_end ? '-F 0x004' : '-F 0x004 -F 0x0008 -f 0x001'
     dup_params = params.keep_dups ? '' : '-F 0x0400'

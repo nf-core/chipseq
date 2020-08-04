@@ -1,14 +1,14 @@
 // Import generic module functions
-include { initOptions; saveFiles } from './functions'
+include { saveFiles } from './functions'
 
 /*
  * Prepare genome intervals for filtering by removing regions in blacklist file
  */
 process MAKE_GENOME_FILTER {
     tag "$sizes"
-    publishDir "${params.outdir}/${options.publish_dir}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, "genome") }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir="genome", publish_id='') }
 
     container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
     //container "https://depot.galaxyproject.org/singularity/bedtools:2.29.2--hc088bd4_0"

@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles } from './functions'
+include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 /*
  * Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts
@@ -7,9 +7,9 @@ include { initOptions; saveFiles } from './functions'
 process MACS2_CONSENSUS {
     tag "$meta.id"
     label 'process_long'
-    publishDir "${params.outdir}/${options.publish_dir}${options.publish_by_id ? "/${meta.id}" : ''}",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename, options, task.process.tokenize('_')[0].toLowerCase()) }
+        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -26,8 +26,8 @@ process MACS2_CONSENSUS {
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     if (meta.multiple_groups || meta.replicates_exist) {
-        def software = task.process.tokenize('_')[0].toLowerCase()
-        def ioptions = initOptions(options, software)
+        def software = getSoftwareName(task.process)
+        def ioptions = initOptions(options)
         prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}.consensus_peaks" : "${meta.id}.consensus_peaks"
         peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
         mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
