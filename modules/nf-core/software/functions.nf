@@ -46,11 +46,11 @@ def saveFiles(filename, options, publish_dir='', publish_id='') {
                 if (filename.endsWith(ext.key)) {
                     def ext_list = path_list.collect()
                     ext_list.add(ext.value)
-                    return "/${getPathFromList(ext_list)}/$filename"
+                    return "${getPathFromList(ext_list)}/$filename"
                 }
             }
         } else {
-            return "/${getPathFromList(path_list)}/$filename"
+            return "${getPathFromList(path_list)}/$filename"
         }
     }
 }
