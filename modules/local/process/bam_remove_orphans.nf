@@ -9,7 +9,7 @@ process BAM_REMOVE_ORPHANS {
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id=meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:task.process.toLowerCase(), publish_id:meta.id) }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -22,7 +22,7 @@ process BAM_REMOVE_ORPHANS {
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    prefix       = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
     if (!meta.single_end) {
         """
         samtools sort -n -@ $task.cpus -o ${prefix}.name.sorted.bam -T ${prefix}.name.sorted $bam

@@ -9,7 +9,7 @@ process BAM_FILTER {
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=task.process.toLowerCase(), publish_id=meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:task.process.toLowerCase(), publish_id:meta.id) }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -25,13 +25,13 @@ process BAM_FILTER {
     path "*.version.txt", emit: version
 
     script:
-    def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
-    filter_params = meta.single_end ? '-F 0x004' : '-F 0x004 -F 0x0008 -f 0x001'
-    dup_params = params.keep_dups ? '' : '-F 0x0400'
-    multimap_params = params.keep_multi_map ? '' : '-q 1'
-    blacklist_params = params.blacklist ? "-L $bed" : ''
-    config = meta.single_end ? bamtools_filter_se_config : bamtools_filter_pe_config
+    def ioptions         = initOptions(options)
+    def prefix           = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def filter_params    = meta.single_end ? '-F 0x004' : '-F 0x004 -F 0x0008 -f 0x001'
+    def dup_params       = params.keep_dups ? '' : '-F 0x0400'
+    def multimap_params  = params.keep_multi_map ? '' : '-q 1'
+    def blacklist_params = params.blacklist ? "-L $bed" : ''
+    def config           = meta.single_end ? bamtools_filter_se_config : bamtools_filter_pe_config
     """
     samtools view \\
         $filter_params \\

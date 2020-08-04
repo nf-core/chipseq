@@ -8,7 +8,7 @@ process MAKE_GENOME_FILTER {
     tag "$sizes"
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir="genome", publish_id='') }
+        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:"genome", publish_id:'') }
 
     container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
     //container "https://depot.galaxyproject.org/singularity/bedtools:2.29.2--hc088bd4_0"
@@ -26,7 +26,7 @@ process MAKE_GENOME_FILTER {
 
     script:
     def software = 'bedtools'
-    file_out = "${sizes.simpleName}.include_regions.bed"
+    def file_out = "${sizes.simpleName}.include_regions.bed"
     if (params.blacklist) {
         """
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out

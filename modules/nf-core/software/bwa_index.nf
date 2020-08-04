@@ -6,7 +6,7 @@ process BWA_INDEX {
     label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id='') }
+        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
     container "biocontainers/bwa:v0.7.17_cv1"
     //container "https://depot.galaxyproject.org/singularity/bwa:0.7.17--hed695b0_7"

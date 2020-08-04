@@ -6,7 +6,7 @@ process BWA_MEM {
     label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename=filename, options=options, publish_dir=getSoftwareName(task.process), publish_id=meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
     container "quay.io/biocontainers/mulled-v2-fe8faa35dbf6dc65a0f7f5d4ea12e31a79f73e40:eabfac3657eda5818bae4090db989e3d41b01542-0"
     //container "https://depot.galaxyproject.org/singularity/mulled-v2-fe8faa35dbf6dc65a0f7f5d4ea12e31a79f73e40:eabfac3657eda5818bae4090db989e3d41b01542-0"
@@ -26,8 +26,8 @@ process BWA_MEM {
     script:
     def software = getSoftwareName(task.process)
     def ioptions = initOptions(options)
-    prefix = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
-    rg = meta.read_group ? "-R ${meta.read_group}" : ""
+    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def rg       = meta.read_group ? "-R ${meta.read_group}" : ""
     """
     bwa mem \\
         $ioptions.args \\
