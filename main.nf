@@ -155,20 +155,20 @@ include { BAM_CLEAN                           } from './modules/local/subworkflo
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
 ////////////////////////////////////////////////////
 
-include { BWA_INDEX                     } from './modules/nf-core/software/bwa_index'
-include { PICARD_MERGESAMFILES          } from './modules/nf-core/software/picard_mergesamfiles'
-include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/software/picard_collectmultiplemetrics'
-include { PRESEQ_LCEXTRAP               } from './modules/nf-core/software/preseq_lcextrap'
-include { UCSC_BEDRAPHTOBIGWIG          } from './modules/nf-core/software/ucsc_bedgraphtobigwig'
-include { DEEPTOOLS_COMPUTEMATRIX       } from './modules/nf-core/software/deeptools_computematrix'
-include { DEEPTOOLS_PLOTPROFILE         } from './modules/nf-core/software/deeptools_plotprofile'
-include { DEEPTOOLS_PLOTHEATMAP         } from './modules/nf-core/software/deeptools_plotheatmap'
-include { DEEPTOOLS_PLOTFINGERPRINT     } from './modules/nf-core/software/deeptools_plotfingerprint'
+include { BWA_INDEX                     } from './modules/nf-core/software/bwa/index'
+include { PICARD_MERGESAMFILES          } from './modules/nf-core/software/picard/mergesamfiles'
+include { PICARD_COLLECTMULTIPLEMETRICS } from './modules/nf-core/software/picard/collectmultiplemetrics'
+include { PRESEQ_LCEXTRAP               } from './modules/nf-core/software/preseq/lcextrap'
+include { UCSC_BEDRAPHTOBIGWIG          } from './modules/nf-core/software/ucsc/bedgraphtobigwig'
+include { DEEPTOOLS_COMPUTEMATRIX       } from './modules/nf-core/software/deeptools/computematrix'
+include { DEEPTOOLS_PLOTPROFILE         } from './modules/nf-core/software/deeptools/plotprofile'
+include { DEEPTOOLS_PLOTHEATMAP         } from './modules/nf-core/software/deeptools/plotheatmap'
+include { DEEPTOOLS_PLOTFINGERPRINT     } from './modules/nf-core/software/deeptools/plotfingerprint'
 include { PHANTOMPEAKQUALTOOLS          } from './modules/nf-core/software/phantompeakqualtools'
-include { MACS2_CALLPEAK                } from './modules/nf-core/software/macs2_callpeak'
+include { MACS2_CALLPEAK                } from './modules/nf-core/software/macs2/callpeak'
 include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2
-          HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from './modules/nf-core/software/homer_annotatepeaks'
-include { SUBREAD_FEATURECOUNTS         } from './modules/nf-core/software/subread_featurecounts'
+          HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from './modules/nf-core/software/homer/annotatepeaks'
+include { SUBREAD_FEATURECOUNTS         } from './modules/nf-core/software/subread/featurecounts'
 
 include { FASTQC_TRIMGALORE             } from './modules/nf-core/subworkflow/fastqc_trimgalore'
 include { MAP_BWA_MEM                   } from './modules/nf-core/subworkflow/map_bwa_mem'
