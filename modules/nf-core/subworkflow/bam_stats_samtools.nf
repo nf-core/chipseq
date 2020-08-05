@@ -2,9 +2,9 @@
  * Run SAMtools stats, flagstat and idxstats
  */
 
-include { SAMTOOLS_STATS    } from '../software/samtools_stats'
-include { SAMTOOLS_IDXSTATS } from '../software/samtools_idxstats'
-include { SAMTOOLS_FLAGSTAT } from '../software/samtools_flagstat'
+include { SAMTOOLS_STATS    } from '../software/samtools/stats'
+include { SAMTOOLS_IDXSTATS } from '../software/samtools/idxstats'
+include { SAMTOOLS_FLAGSTAT } from '../software/samtools/flagstat'
 
 workflow BAM_STATS_SAMTOOLS {
     take:

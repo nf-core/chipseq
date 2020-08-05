@@ -2,8 +2,8 @@
  * Picard MarkDuplicates, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-include { PICARD_MARKDUPLICATES } from '../software/picard_markduplicates'
-include { SAMTOOLS_INDEX        } from '../software/samtools_index'
+include { PICARD_MARKDUPLICATES } from '../software/picard/markduplicates'
+include { SAMTOOLS_INDEX        } from '../software/samtools/index'
 include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'
 
 workflow MARK_DUPLICATES_PICARD {
