@@ -2,8 +2,8 @@
  * Read QC and trimming
  */
 
-include { FASTQC     } from '../software/fastqc'
-include { TRIMGALORE } from '../software/trimgalore'
+include { FASTQC     } from '../software/fastqc/main'
+include { TRIMGALORE } from '../software/trimgalore/main'
 
 workflow FASTQC_TRIMGALORE {
     take:
