@@ -2,8 +2,8 @@
  * Sort, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-include { SAMTOOLS_SORT      } from '../software/samtools_sort'
-include { SAMTOOLS_INDEX     } from '../software/samtools_index'
+include { SAMTOOLS_SORT      } from '../software/samtools/sort/main'
+include { SAMTOOLS_INDEX     } from '../software/samtools/index/main'
 include { BAM_STATS_SAMTOOLS } from './bam_stats_samtools'
 
 workflow BAM_SORT_SAMTOOLS {
