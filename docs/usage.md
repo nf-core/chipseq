@@ -152,14 +152,6 @@ If `-profile` is not specified, the pipeline will run locally and expect all sof
     * A profile with a complete configuration for automated testing
     * Includes links to test data so needs no other parameters
 
-### `--input`
-
-You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 6 columns, and a header row as shown in the examples below.
-
-```bash
---input '[path to design file]'
-```
-
 ### `-resume`
 
 Specify this when restarting a pipeline. Nextflow will used cached results from any pipeline steps where the inputs are the same, continuing from where it got to previously.
