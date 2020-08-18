@@ -18,12 +18,14 @@
                     "type": "string",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
                     "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 6 columns, and a header row. See [usage docs](https://nf-co.re/chipseq/docs/usage#introduction).",
-                    "fa_icon": "fas fa-file-csv"
+                    "fa_icon": "fas fa-file-csv",
+                    "default": "./design.csv"
                 },
                 "fragment_size": {
                     "type": "integer",
                     "description": "Estimated fragment size used to extend single-end reads.",
-                    "fa_icon": "fas fa-chart-area"
+                    "fa_icon": "fas fa-chart-area",
+                    "default": "200"
                 },
                 "seq_center": {
                     "type": "string",
@@ -234,7 +236,7 @@
                     "type": "integer",
                     "default": 1,
                     "description": "Number of biological replicates required from a given condition for a peak to contribute to a consensus peak.",
-                    "help_text": "If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a \"reproducible\" set of consensus peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded.",
+                    "help_text": "If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a 'reproducible' set of consensus peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded.",
                     "fa_icon": "fas fa-sort-numeric-down"
                 },
                 "save_macs_pileup": {
@@ -439,7 +441,7 @@
                         "link",
                         "copy",
                         "copyNoFollow",
-                        "mov"
+                        "move"
                     ],
                     "hidden": true
                 },
@@ -499,12 +501,6 @@
                 "conda": {
                     "type": "boolean",
                     "description": "Run this workflow with Conda.",
-                    "hidden": true
-                },
-                "modules": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Parameter used to supply options to nf-core/modules files. Won't need to be provided on the command-line.",
                     "hidden": true
                 }
             }
