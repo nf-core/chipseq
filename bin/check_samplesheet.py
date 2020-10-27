@@ -118,7 +118,7 @@ def check_samplesheet(file_in, file_out):
                 if sample_info in sample_run_dict[sample][replicate]:
                     print_error("Samplesheet contains duplicate rows!", 'Line', line)
                 else:
-                    sample_run_dict[sample].append(sample_info)
+                    sample_run_dict[sample][replicate].append(sample_info)
 
     ## Check if antibody and control columns have been specified at least once
     if len(antibody_dict) == 0:
