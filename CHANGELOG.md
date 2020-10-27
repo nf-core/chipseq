@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Move template boilerplate code to Groovy `lib/`
 * Implement pipeline in DSL2
-* Update template to tools `1.10.2`
+* Update pipeline template to nf-core/tools `1.11`
 
 ### `Fixed`
 
