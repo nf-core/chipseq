@@ -190,14 +190,14 @@
                 },
                 "bamtools_filter_pe_config": {
                     "type": "string",
-                    "default": "$baseDir/assets/bamtools_filter_pe.json",
+                    "default": "$projectDir/assets/bamtools_filter_pe.json",
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for paired-end data.",
                     "fa_icon": "fas fa-cog"
                 },
                 "bamtools_filter_se_config": {
                     "type": "string",
-                    "default": "$baseDir/assets/bamtools_filter_se.json",
+                    "default": "$projectDir/assets/bamtools_filter_se.json",
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for single-end data.",
                     "fa_icon": "fas fa-cog"
