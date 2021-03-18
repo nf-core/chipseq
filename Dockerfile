@@ -1,4 +1,4 @@
-FROM nfcore/base:1.12.1
+FROM nfcore/base:1.13
 LABEL authors="Philip Ewels" \
       description="Docker image containing all software requirements for the nf-core/chipseq pipeline"
 
@@ -11,7 +11,3 @@ ENV PATH /opt/conda/envs/nf-core-chipseq-1.3.0dev/bin:$PATH
 
 # Dump the details of the installed packages to a file for posterity
 RUN conda env export --name nf-core-chipseq-1.3.0dev > nf-core-chipseq-1.3.0dev.yml
-
-# Instruct R processes to use these empty files instead of clashing with a local version
-RUN touch .Rprofile
-RUN touch .Renviron
