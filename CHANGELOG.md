@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 * [#206](https://github.com/nf-core/chipseq/issues/206) - Minor patch release to fix Conda environment
 
+### `Dependencies`
+
+* Update r-base `3.6.2` -> `3.6.3`
+* Update r-xfun `0.15` -> `0.20`
+
 ## [1.2.1] - 2020-07-29
 
 * [#171](https://github.com/nf-core/chipseq/issues/171) - Minor patch release to update pipeline schema
