@@ -18,7 +18,7 @@ Please delete this text and anything that's not relevant from the template below
 I have checked the following places for your error:
 
 - [ ] [nf-core website: troubleshooting](https://nf-co.re/usage/troubleshooting)
-- [ ] [nf-core/chipseq pipeline documentation](https://nf-co.re/nf-core/chipseq/usage)
+- [ ] [nf-core/chipseq pipeline documentation](https://nf-co.re/chipseq/usage)
 
 ## Description of the bug
 
@@ -51,13 +51,12 @@ Have you provided the following extra information/files:
 
 ## Nextflow Installation
 
-- Version: <!-- [e.g. 19.10.0] -->
+- Version: <!-- [e.g. 21.04.0] -->
 
 ## Container engine
 
 - Engine: <!-- [e.g. Conda, Docker, Singularity, Podman, Shifter or Charliecloud] -->
 - version: <!-- [e.g. 1.0.0] -->
-- Image tag: <!-- [e.g. nfcore/chipseq:1.0.0] -->
 
 ## Additional context
 
