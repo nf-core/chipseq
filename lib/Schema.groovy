@@ -35,15 +35,15 @@ class Schema {
 
         /* Tree looks like this in nf-core schema
         *  properties <- this is what the first get('properties') gets us
-             group 1
-               properties
-               description
-             group 2
-               properties
-               description
-             group 3
-               properties
-               description
+            group 1
+                properties
+                description
+            group 2
+                properties
+                description
+            group 3
+                properties
+                description
         */
         def params_map = new LinkedHashMap()
         json_params.each { key, val ->
@@ -87,9 +87,9 @@ class Schema {
     }
 
     private static String params_help(path, command) {
-          String output = "Typical pipeline command:\n\n"
-          output += "    ${command}\n\n"
-          output += params_beautify(params_get(path))
+        String output = "Typical pipeline command:\n\n"
+        output += "    ${command}\n\n"
+        output += params_beautify(params_get(path))
     }
 
     private static LinkedHashMap params_summary(workflow, params, run_name) {

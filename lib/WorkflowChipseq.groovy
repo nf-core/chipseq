@@ -65,10 +65,10 @@ class WorkflowChipseq {
         if (!params.macs_gsize) {
             def warnstring = params.genome ? "supported for '${params.genome}'" : 'supplied'
             log.warn "=================================================================\n" +
-                     "  WARNING! MACS genome size parameter not $warnstring.\n" +
-                     "  Peak calling, annotation and differential analysis will be skipped.\n" +
-                     "  Please specify value for '--macs_gsize' to run these steps.\n" +
-                     "======================================================================="
+                "  WARNING! MACS genome size parameter not $warnstring.\n" +
+                "  Peak calling, annotation and differential analysis will be skipped.\n" +
+                "  Please specify value for '--macs_gsize' to run these steps.\n" +
+                "======================================================================="
         }
     }
 }

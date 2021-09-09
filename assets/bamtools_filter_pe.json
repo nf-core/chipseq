@@ -1,15 +1,15 @@
 {
     "filters" : [
         { "id" : "insert_min",
-          "insertSize" : ">=-2000"
+            "insertSize" : ">=-2000"
         },
 
         { "id" : "insert_max",
-          "insertSize" : "<=2000"
+            "insertSize" : "<=2000"
         },
 
         { "id" : "mismatch",
-          "tag" : "NM:<=4"
+            "tag" : "NM:<=4"
         }
     ],
 

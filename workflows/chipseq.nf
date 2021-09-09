@@ -144,8 +144,9 @@ include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/software/deep
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/software/deeptools/plotfingerprint/main'
 include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/software/phantompeakqualtools/main'
 include { MACS2_CALLPEAK                } from '../modules/nf-core/software/macs2/callpeak/main'
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2
-          HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/software/homer/annotatepeaks/main'
+include {
+    HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2
+    HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/software/homer/annotatepeaks/main'
 include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/software/subread/featurecounts/main'
 
 // TODO place correctly the local subworflows
@@ -240,9 +241,9 @@ workflow CHIPSEQ {
                 fmeta = meta.findAll { it.key != 'read_group' }
                 fmeta.id = fmeta.id.split('_')[0..-2].join('_')
                 [ fmeta, bam ] }
-       .groupTuple(by: [0])
-       .map { it ->  [ it[0], it[1].flatten() ] }
-       .set { ch_sort_bam }
+        .groupTuple(by: [0])
+        .map { it ->  [ it[0], it[1].flatten() ] }
+        .set { ch_sort_bam }
 
     PICARD_MERGESAMFILES (
         ch_sort_bam,
@@ -451,9 +452,11 @@ workflow CHIPSEQ {
             .groupTuple()
             .map {
                 antibody, groups, peaks ->
-                    [ antibody,
-                      groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
-                      peaks ] }
+                    [
+                        antibody,
+                        groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
+                        peaks
+                    ] }
             .map {
                 antibody, groups, peaks ->
                     def meta = [:]
