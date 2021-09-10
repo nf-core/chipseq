@@ -3,10 +3,73 @@
     "homePage": "https://github.com/nf-core/chipseq",
     "repos": {
         "nf-core/modules": {
+            "bwa/index": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "bwa/mem": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "deeptools/computematrix": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "deeptools/plotfingerprint": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "deeptools/plotheatmap": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "deeptools/plotprofile": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
             "fastqc": {
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
             },
+            "homer/annotatepeaks": {
+                "git_sha": "669fb5caed78bccbaf0f00746e2eb50644232722"
+            },
+            "macs2/callpeak": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
             "multiqc": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "phantompeakqualtools": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "picard/collectmultiplemetrics": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "picard/markduplicates": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "picard/mergesamfiles": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "preseq/lcextrap": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "samtools/flagstat": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "samtools/idxstats": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "samtools/index": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "samtools/sort": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "samtools/stats": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "subread/featurecounts": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "trimgalore": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "ucsc/bedgraphtobigwig": {
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
             }
         }

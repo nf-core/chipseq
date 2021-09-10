@@ -1,28 +1,33 @@
 // Import generic module functions
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
+params.options = [:]
+options        = initOptions(params.options)
+
 process TRIMGALORE {
     tag "$meta.id"
     label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
-    container "quay.io/biocontainers/trim-galore:0.6.5--0"
-    //container "https://depot.galaxyproject.org/singularity/trim-galore:0.6.5--0"
-
-    conda (params.conda ? "bioconda::trim-galore=0.6.5" : null)
+    conda (params.enable_conda ? 'bioconda::trim-galore=0.6.7' : null)
+    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
+        container "https://depot.galaxyproject.org/singularity/trim-galore:0.6.7--hdfd78af_0"
+    } else {
+        container "quay.io/biocontainers/trim-galore:0.6.7--hdfd78af_0"
+    }
 
     input:
     tuple val(meta), path(reads)
-    val options
 
     output:
-    tuple val(meta), path("*.fq.gz"), emit: reads
-    tuple val(meta), path("*.html"), emit: html optional true
-    tuple val(meta), path("*.zip"), emit: zip optional true
+    tuple val(meta), path("*.fq.gz")    , emit: reads
     tuple val(meta), path("*report.txt"), emit: log
-    path "*.version.txt", emit: version
+    path "*.version.txt"                , emit: version
+
+    tuple val(meta), path("*.html"), emit: html optional true
+    tuple val(meta), path("*.zip") , emit: zip optional true
 
     script:
     // Calculate number of --cores for TrimGalore based on value of task.cpus
@@ -37,20 +42,19 @@ process TRIMGALORE {
     }
 
     // Clipping presets have to be evaluated in the context of SE/PE
-    def c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
-    def c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
+    def c_r1   = params.clip_r1 > 0             ? "--clip_r1 ${params.clip_r1}"                         : ''
+    def c_r2   = params.clip_r2 > 0             ? "--clip_r2 ${params.clip_r2}"                         : ''
     def tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
     def tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
 
     // Added soft-links to original fastqs for consistent naming in MultiQC
     def software = getSoftwareName(task.process)
-    def ioptions = initOptions(options)
-    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     if (meta.single_end) {
         """
         [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz
         trim_galore \\
-            $ioptions.args \\
+            $options.args \\
             --cores $cores \\
             --gzip \\
             $c_r1 \\
@@ -63,7 +67,7 @@ process TRIMGALORE {
         [ ! -f  ${prefix}_1.fastq.gz ] && ln -s ${reads[0]} ${prefix}_1.fastq.gz
         [ ! -f  ${prefix}_2.fastq.gz ] && ln -s ${reads[1]} ${prefix}_2.fastq.gz
         trim_galore \\
-            $ioptions.args \\
+            $options.args \\
             --cores $cores \\
             --paired \\
             --gzip \\

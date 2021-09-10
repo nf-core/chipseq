@@ -1,31 +1,34 @@
 // Import generic module functions
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
+params.options = [:]
+options        = initOptions(params.options)
+
 process PICARD_MARKDUPLICATES {
     tag "$meta.id"
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
-    container "quay.io/biocontainers/picard:2.23.2--0"
-    //container "https://depot.galaxyproject.org/singularity/picard:2.23.2--0"
-
-    conda (params.conda ? "bioconda::picard=2.23.2" : null)
+    conda (params.enable_conda ? 'bioconda::picard=2.25.7' : null)
+    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
+        container "https://depot.galaxyproject.org/singularity/picard:2.25.7--hdfd78af_0"
+    } else {
+        container "quay.io/biocontainers/picard:2.25.7--hdfd78af_0"
+    }
 
     input:
     tuple val(meta), path(bam)
-    val options
 
     output:
-    tuple val(meta), path("*.bam"), emit: bam
+    tuple val(meta), path("*.bam")        , emit: bam
     tuple val(meta), path("*.metrics.txt"), emit: metrics
-    path "*.version.txt", emit: version
+    path  "*.version.txt"                 , emit: version
 
     script:
     def software  = getSoftwareName(task.process)
-    def ioptions  = initOptions(options)
-    def prefix    = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def prefix    = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     def avail_mem = 3
     if (!task.memory) {
         log.info '[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
@@ -36,11 +39,11 @@ process PICARD_MARKDUPLICATES {
     picard \\
         -Xmx${avail_mem}g \\
         MarkDuplicates \\
-        $ioptions.args \\
+        $options.args \\
         INPUT=$bam \\
         OUTPUT=${prefix}.bam \\
         METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt
 
-    echo \$(picard MarkDuplicates --version 2>&1) | awk -F' ' '{print \$NF}' > ${software}.version.txt
+    echo \$(picard MarkDuplicates --version 2>&1) | grep -o 'Version:.*' | cut -f2- -d: > ${software}.version.txt
     """
 }

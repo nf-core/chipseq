@@ -1,11 +1,12 @@
-name: Trim Galore!
+name: trimgalore
 description: Trim FastQ files using Trim Galore!
 keywords:
     - trimming
     - adapters
     - sequencing adapters
+    - fastq
 tools:
-    - fastqc:
+    - trimgalore:
         description: |
             A wrapper tool around Cutadapt and FastQC to consistently apply quality
             and adapter trimming to FastQ files, with some extra functionality for
@@ -13,28 +14,45 @@ tools:
         homepage: https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/
         documentation: https://github.com/FelixKrueger/TrimGalore/blob/master/Docs/Trim_Galore_User_Guide.md
 input:
-    -
-        - sample_id:
-            type: string
-            description: Sample identifier
-        - reads:
-            type: file
-            description: Input FastQ file, or pair of files
+    - meta:
+        type: map
+        description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+    - reads:
+        type: file
+        description: |
+            List of input FastQ files of size 1 and 2 for single-end and paired-end data,
+            respectively.
 output:
-    -
-        - sample_id:
-            type: string
-            description: Sample identifier
-        - trimmed_fastq:
-            type: file
-            description: Trimmed FastQ files
-            pattern: "*fq.gz"
-    -
-        - report:
-            type: file
-            description: Trim Galore! trimming report
-            pattern: "*trimming_report.txt"
-
+    - meta:
+        type: map
+        description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', single_end:false ]
+    - reads:
+        type: file
+        description: |
+            List of input adapter trimmed FastQ files of size 1 and 2 for
+            single-end and paired-end data, respectively.
+        pattern: "*.{fq.gz}"
+    - html:
+        type: file
+        description: FastQC report (optional)
+        pattern: "*_{fastqc.html}"
+    - zip:
+        type: file
+        description: FastQC report archive (optional)
+        pattern: "*_{fastqc.zip}"
+    - log:
+        type: file
+        description: Trim Galore! trimming report
+        pattern: "*_{report.txt}"
+    - version:
+        type: file
+        description: File containing software version
+        pattern: "*.{version.txt}"
 authors:
+    - "@drpatelh"
     - "@ewels"
     - "@FelixKrueger"
