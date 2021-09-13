@@ -1,12 +1,15 @@
 /*
  * Filter BAM file
  */
+params.bam_filter_options         = [:]
+params.bam_remove_orphans_options = [:]
+params.samtools_sort_options      = [:]
+params.samtools_index_options     = [:]
+params.samtools_stats_options     = [:]
 
-// include { BAM_FILTER         } from '../process/bam_filter'
-// include { BAM_REMOVE_ORPHANS } from '../process/bam_remove_orphans'
-include { BAM_FILTER         } from '../../modules/local/bam_filter'
-include { BAM_REMOVE_ORPHANS } from '../../modules/local/bam_remove_orphans'
-include { BAM_SORT_SAMTOOLS  } from '../nf-core/bam_sort_samtools'
+include { BAM_FILTER         } from '../../modules/local/bam_filter'         addParams( options: params.bam_filter_options )
+include { BAM_REMOVE_ORPHANS } from '../../modules/local/bam_remove_orphans' addParams( options: params.bam_remove_orphans_options )
+include { BAM_SORT_SAMTOOLS } from '../nf-core/bam_sort_samtools'            addParams( sort_options: params.samtools_sort_options, index_options: params.samtools_index_options, stats_options: params.samtools_stats_options )
 
 workflow BAM_CLEAN {
     take:
@@ -14,14 +17,11 @@ workflow BAM_CLEAN {
     ch_bed                     // channel: [ bed ]
     bamtools_filter_se_config  //    file: BAMtools filter JSON config file for SE data
     bamtools_filter_pe_config  //    file: BAMtools filter JSON config file for PE data
-    bam_filter_options         //     map: options for bam_filter module
-    bam_remove_orphans_options //     map: options for bam_remove_orphans module
-    samtools_options           //     map: options for SAMTools modules
 
     main:
-    BAM_FILTER(ch_bam_bai, ch_bed, bamtools_filter_se_config, bamtools_filter_pe_config, bam_filter_options)
-    BAM_REMOVE_ORPHANS(BAM_FILTER.out.bam, bam_remove_orphans_options)
-    BAM_SORT_SAMTOOLS(BAM_REMOVE_ORPHANS.out.bam, samtools_options)
+    BAM_FILTER(ch_bam_bai, ch_bed, bamtools_filter_se_config, bamtools_filter_pe_config)
+    BAM_REMOVE_ORPHANS(BAM_FILTER.out.bam)
+    BAM_SORT_SAMTOOLS(BAM_REMOVE_ORPHANS.out.bam)
 
     emit:
     name_bam = BAM_REMOVE_ORPHANS.out.bam     // channel: [ val(meta), [ bam ] ]

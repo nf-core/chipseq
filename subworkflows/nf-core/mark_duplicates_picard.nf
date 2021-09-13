@@ -1,21 +1,22 @@
 /*
  * Picard MarkDuplicates, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
+params.markduplicates_options = [:]
+params.samtools_index_options = [:]
+params.samtools_stats_options = [:]
 
-include { PICARD_MARKDUPLICATES } from '../../modules/nf-core/modules/picard/markduplicates/main'
-include { SAMTOOLS_INDEX        } from '../../modules/nf-core/modules/samtools/index/main'
-include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'
+include { PICARD_MARKDUPLICATES } from '../../modules/nf-core/modules/picard/markduplicates/main' addParams( options: params.markduplicates_options )
+include { SAMTOOLS_INDEX        } from '../../modules/nf-core/modules/samtools/index/main'        addParams( options: params.samtools_index_options )
+include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'                                     addParams( options: params.samtools_stats_options )
 
 workflow MARK_DUPLICATES_PICARD {
     take:
     ch_bam                 // channel: [ val(meta), [ bam ] ]
-    markduplicates_options //     map: options for picard MarkDuplicates module
-    samtools_options       //     map: options for SAMTools modules
 
     main:
-    PICARD_MARKDUPLICATES(ch_bam, markduplicates_options)
-    SAMTOOLS_INDEX(PICARD_MARKDUPLICATES.out.bam, samtools_options)
-    BAM_STATS_SAMTOOLS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]), samtools_options)
+    PICARD_MARKDUPLICATES(ch_bam)
+    SAMTOOLS_INDEX(PICARD_MARKDUPLICATES.out.bam)
+    BAM_STATS_SAMTOOLS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]))
 
     emit:
     bam = PICARD_MARKDUPLICATES.out.bam                // channel: [ val(meta), [ bam ] ]

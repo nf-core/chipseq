@@ -2,23 +2,25 @@
  * Read QC and trimming
  */
 
-include { FASTQC     } from '../../modules/nf-core/modules/fastqc/main'
-include { TRIMGALORE } from '../../modules/nf-core/modules/trimgalore/main'
+
+params.fastqc_options     = [:]
+params.trimgalore_options = [:]
+
+include { FASTQC     } from '../../modules/nf-core/modules/fastqc/main'     addParams( options: params.fastqc_options )
+include { TRIMGALORE } from '../../modules/nf-core/modules/trimgalore/main' addParams( options: params.trimgalore_options )
 
 workflow FASTQC_TRIMGALORE {
     take:
     ch_reads           // channel: [ val(meta), [ reads ] ]
     skip_fastqc        // boolean: true/false
     skip_trimming      // boolean: true/false
-    fastqc_options     //     map: options for FastQC module
-    trimgalore_options //     map: options for TrimGalore! module
 
     main:
     fastqc_html = Channel.empty()
     fastqc_zip = Channel.empty()
     fastqc_version = Channel.empty()
     if (!skip_fastqc) {
-        FASTQC(ch_reads, fastqc_options).html.set { fastqc_html }
+        FASTQC(ch_reads).html.set { fastqc_html }
         fastqc_zip = FASTQC.out.zip
         fastqc_version = FASTQC.out.version
     }
@@ -29,7 +31,7 @@ workflow FASTQC_TRIMGALORE {
     trim_log = Channel.empty()
     trimgalore_version = Channel.empty()
     if (!skip_trimming) {
-        TRIMGALORE(ch_reads, trimgalore_options).reads.set { ch_trim_reads }
+        TRIMGALORE(ch_reads).reads.set { ch_trim_reads }
         trim_html = TRIMGALORE.out.html
         trim_zip = TRIMGALORE.out.zip
         trim_log = TRIMGALORE.out.log
