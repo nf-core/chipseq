@@ -1,5 +1,8 @@
 // Import generic module functions
-include { initOptions; saveFiles } from './functions'
+include { initOptions; saveFiles; getSoftwareName } from './functions'
+
+params.options = [:]
+options        = initOptions(params.options)
 
 /*
  * Filter BAM file
@@ -9,24 +12,22 @@ process BAM_FILTER {
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:task.process.toLowerCase(), publish_id:meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
-    conda (params.conda ? "${baseDir}/environment.yml" : null)
+    conda (params.conda ? "${baseDir}/environment.yml" : null) // TODO update with pointers to singularity and docker container
 
     input:
     tuple val(meta), path(bam), path(bai)
     path bed
     path bamtools_filter_se_config
     path bamtools_filter_pe_config
-    val options
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
     path "*.version.txt", emit: version
 
     script:
-    def ioptions         = initOptions(options)
-    def prefix           = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def prefix           = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     def filter_params    = meta.single_end ? '-F 0x004' : '-F 0x004 -F 0x0008 -f 0x001'
     def dup_params       = params.keep_dups ? '' : '-F 0x0400'
     def multimap_params  = params.keep_multi_map ? '' : '-q 1'

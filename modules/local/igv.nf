@@ -1,5 +1,8 @@
 // Import generic module functions
-include { saveFiles } from './functions'
+include { initOptions; saveFiles; getSoftwareName } from './functions'
+
+params.options = [:]
+options        = initOptions(params.options)
 
 /*
  * Create IGV session file
@@ -7,7 +10,7 @@ include { saveFiles } from './functions'
 process IGV {
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:task.process.toLowerCase(), publish_id:'') }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.conda ? "${baseDir}/environment.yml" : null)
 
@@ -20,7 +23,6 @@ process IGV {
     val peak_options
     val consensus_options
     // path differential_peaks from ch_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
-    val options
 
     output:
     path "*files.txt", emit: txt

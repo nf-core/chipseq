@@ -1,21 +1,25 @@
 // Import generic module functions
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
+params.options = [:]
+options        = initOptions(params.options)
+
 process BEDTOOLS_GENOMECOV {
     tag "$meta.id"
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
-    container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
-    //container "https://depot.galaxyproject.org/singularity/bedtools:2.29.2--hc088bd4_0"
-
-    conda (params.conda ? "bioconda::bedtools=2.29.2" : null)
+    conda (params.enable_conda ? "bioconda::bedtools=2.30.0" : null)
+    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
+        container "https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0"
+    } else {
+        container "quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0"
+    }
 
     input:
     tuple val(meta), path(bam), path(flagstat)
-    val options
 
     output:
     tuple val(meta), path("*.bedGraph"), emit: bedgraph
@@ -24,12 +28,12 @@ process BEDTOOLS_GENOMECOV {
 
     script:
     def software = getSoftwareName(task.process)
-    def ioptions = initOptions(options)
-    def prefix   = ioptions.suffix ? "${meta.id}${ioptions.suffix}" : "${meta.id}"
+    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+
     def pe       = meta.single_end ? '' : '-pc'
     def extend   = (meta.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
     """
-    SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
+    SCALE_FACTOR=\$(grep '[0-9] mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
 
     bedtools \\
