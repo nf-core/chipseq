@@ -1,0 +1,4 @@
+lint:
+  files_unchanged:
+    - assets/multiqc_config.yaml
+  actions_ci: False #get rid of the error "CI is not building the correct docker image. Should be: docker build..."
