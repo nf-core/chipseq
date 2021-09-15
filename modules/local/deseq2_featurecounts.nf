@@ -1,5 +1,10 @@
 conda (params.conda ? "${baseDir}/environment.yml" : null)
 
+process CONSENSUS_PEAKS_DESEQ2 {
+    script:
+    echo "Avoid nf-core lint to crash for process name being commented"
+}
+
 // /*
 //  * STEP 7.4: Differential analysis with DESeq2
 //  */
