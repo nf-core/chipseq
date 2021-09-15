@@ -14,7 +14,12 @@ process BAM_FILTER {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
-    conda (params.conda ? "${baseDir}/environment.yml" : null) // TODO update with pointers to singularity and docker container
+    conda (params.enable_conda ? "bioconda::bamtools=2.4.0 bioconda::samtools=1.4.1" : null) //TODO Create updated mulled container
+    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
+        container "https://depot.galaxyproject.org/singularity/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:fc33176431a4b9ef3213640937e641d731db04f1-0"
+    } else {
+        container "quay.io/biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:fc33176431a4b9ef3213640937e641d731db04f1-0"
+    }
 
     input:
     tuple val(meta), path(bam), path(bai)

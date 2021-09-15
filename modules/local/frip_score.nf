@@ -11,7 +11,12 @@ process FRIP_SCORE {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
-    conda (params.conda ? "${baseDir}/environment.yml" : null) //TODO update with mulled env (bedtools+samtools)
+    conda (params.enable_conda ? "bioconda::bedtools=2.30.0 bioconda::samtools=1.9" : null) //TODO Create updated mulled container
+    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
+        container "https://depot.galaxyproject.org/singularity/mulled-v2-8186960447c5cb2faa697666dc1e6d919ad23f3e:2200fd433290bb814a952b2fd7cc8013499de840-0"
+    } else {
+        container "quay.io/biocontainers/mulled-v2-8186960447c5cb2faa697666dc1e6d919ad23f3e:2200fd433290bb814a952b2fd7cc8013499de840-0"
+    }
 
     input:
     tuple val(meta), path(bam), path(peak)
