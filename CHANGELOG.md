@@ -5,21 +5,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unpublished Version / DEV]
 
-### `Added`
+### Major enhancements
 
+* Pipeline has been re-implemented in [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html)
+* Updated Nextflow version to `v21.04.0` (see [nextflow#572](https://github.com/nextflow-io/nextflow/issues/1964))
 * Move template boilerplate code to Groovy `lib/`
-* Implement pipeline in DSL2
-* Update pipeline template to nf-core/tools `1.12.1`
 
-### `Fixed`
+### Other enhancements & fixes
 
-### `Removed`
+* Update pipeline template to nf-core/tools `2.1`
 
-* `--single_end` parameter in favour of auto-detecting from input samplesheeet.
+### Parameters
 
-### `Dependencies`
+| Old parameter                | New parameter              |
+|------------------------------|----------------------------|
+| `--clusterOptions`           |                            |
+| `--conda`                    | `--enable_conda`           |
+| `--single_end`               |                            |
 
-* Update Nextflow `19.10.0` -> `20.07.1`
+> **NB:** Parameter has been __updated__ if both old and new parameter information is present.
+> **NB:** Parameter has been __added__ if just the new parameter information is present.
+> **NB:** Parameter has been __removed__ if parameter information isn't present.
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+<!---
+TODO: update all new dependencies
+-->
+| Dependency  | Old version | New version |
+|-------------|-------------|-------------|
+| `deeptools` | 3.4.3       | 3.5.1       |
+| `samtools`  | 1.10        | 1.13        |
+
+> **NB:** Dependency has been __updated__ if both old and new version information is present.
+> **NB:** Dependency has been __added__ if just the new version information is present.
+> **NB:** Dependency has been __removed__ if version information isn't present.
 
 ## [1.2.2] - 2021-04-22
 
