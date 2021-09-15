@@ -23,7 +23,6 @@ params.gtf        = WorkflowMain.getGenomeAttribute(params, 'gtf')
 params.gene_bed   = WorkflowMain.getGenomeAttribute(params, 'gene_bed')
 params.macs_gsize = WorkflowMain.getGenomeAttribute(params, 'macs_gsize')
 params.blacklist  = WorkflowMain.getGenomeAttribute(params, 'blacklist')
-params.readme     = WorkflowMain.getGenomeAttribute(params, 'readme')
 
 /*
 ========================================================================================
