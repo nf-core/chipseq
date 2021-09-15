@@ -14,12 +14,13 @@ process BAM_REMOVE_ORPHANS {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
-    conda (params.enable_conda ? "conda-forge::python=3.7.6 bioconda::samtools=1.9" : null) //TODO Create updated mulled container
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/mulled-v2-1a35167f7a491c7086c13835aaa74b39f1f43979:b8bbb1dc1cb75db128173603ca7a050729cdc526-0"
-    } else {
-        container "quay.io/biocontainers/mulled-v2-1a35167f7a491c7086c13835aaa74b39f1f43979:b8bbb1dc1cb75db128173603ca7a050729cdc526-0"
-    }
+    conda (params.conda ? "${baseDir}/environment.yml" : null)
+    // conda (params.enable_conda ? "conda-forge::python=3.7.6 bioconda::samtools=1.9" : null) //TODO Create updated mulled container
+    // if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
+    //     container "https://depot.galaxyproject.org/singularity/mulled-v2-1a35167f7a491c7086c13835aaa74b39f1f43979:b8bbb1dc1cb75db128173603ca7a050729cdc526-0"
+    // } else {
+    //     container "quay.io/biocontainers/mulled-v2-1a35167f7a491c7086c13835aaa74b39f1f43979:b8bbb1dc1cb75db128173603ca7a050729cdc526-0"
+    // } // TODO: Needs pysam library that is not in the mulled container
 
     input:
     tuple val(meta), path(bam)
