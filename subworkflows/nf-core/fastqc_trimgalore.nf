@@ -41,11 +41,11 @@ workflow FASTQC_TRIMGALORE {
     emit:
     fastqc_html           // channel: [ val(meta), [ html ] ]
     fastqc_zip            // channel: [ val(meta), [ zip ] ]
-    fastqc_version        //    path: *.version.txt
+    fastqc_version        //    path: versions.yml
 
     reads = ch_trim_reads // channel: [ val(meta), [ reads ] ]
     trim_html             // channel: [ val(meta), [ html ] ]
     trim_zip              // channel: [ val(meta), [ zip ] ]
     trim_log              // channel: [ val(meta), [ txt ] ]
-    trimgalore_version    //    path: *.version.txt
+    trimgalore_version    //    path: versions.yml
 }

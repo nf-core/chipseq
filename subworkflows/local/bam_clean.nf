@@ -24,11 +24,11 @@ workflow BAM_CLEAN {
     BAM_SORT_SAMTOOLS(BAM_REMOVE_ORPHANS.out.bam)
 
     emit:
-    name_bam = BAM_REMOVE_ORPHANS.out.bam     // channel: [ val(meta), [ bam ] ]
-    bam = BAM_SORT_SAMTOOLS.out.bam           // channel: [ val(meta), [ bam ] ]
-    bai = BAM_SORT_SAMTOOLS.out.bai           // channel: [ val(meta), [ bai ] ]
-    stats = BAM_SORT_SAMTOOLS.out.stats       // channel: [ val(meta), [ stats ] ]
-    flagstat = BAM_SORT_SAMTOOLS.out.flagstat // channel: [ val(meta), [ flagstat ] ]
-    idxstats = BAM_SORT_SAMTOOLS.out.idxstats // channel: [ val(meta), [ idxstats ] ]
-    bamtools_version = BAM_FILTER.out.version //    path: *.version.txt
+    name_bam         = BAM_REMOVE_ORPHANS.out.bam     // channel: [ val(meta), [ bam ] ]
+    bam              = BAM_SORT_SAMTOOLS.out.bam      // channel: [ val(meta), [ bam ] ]
+    bai              = BAM_SORT_SAMTOOLS.out.bai      // channel: [ val(meta), [ bai ] ]
+    stats            = BAM_SORT_SAMTOOLS.out.stats    // channel: [ val(meta), [ stats ] ]
+    flagstat         = BAM_SORT_SAMTOOLS.out.flagstat // channel: [ val(meta), [ flagstat ] ]
+    idxstats         = BAM_SORT_SAMTOOLS.out.idxstats // channel: [ val(meta), [ idxstats ] ]
+    bamtools_version = BAM_FILTER.out.version         //    path: versions.yml
 }
