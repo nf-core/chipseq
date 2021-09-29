@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,6 +23,7 @@ process FRIP_SCORE {
 
     output:
     tuple val(meta), path("*.txt"), emit: txt
+    path "versions.yml"           , emit: version
 
     script:
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
@@ -30,5 +31,11 @@ process FRIP_SCORE {
     READS_IN_PEAKS=\$(intersectBed -a $bam -b $peak $options.args | awk -F '\t' '{sum += \$NF} END {print sum}')
     samtools flagstat $bam > ${bam}.flagstat
     grep 'mapped (' ${bam}.flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${prefix}", a/\$1}' > ${prefix}.FRiP.txt
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
+        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+    END_VERSIONS
     """
 }

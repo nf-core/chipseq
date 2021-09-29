@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -29,7 +29,7 @@ process BAM_FILTER {
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
-    path "*.version.txt", emit: version
+    path "versions.yml"           , emit: version
 
     script:
     def prefix           = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
@@ -48,6 +48,11 @@ process BAM_FILTER {
         | bamtools filter \\
             -out ${prefix}.bam \\
             -script $config
-    echo \$(bamtools --version 2>&1) | sed 's/^.*bamtools //; s/Part .*\$//' > bamtools.version.txt
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+        bamtools: \$(echo \$(bamtools --version 2>&1) | sed 's/^.*bamtools //; s/Part .*\$//')
+    END_VERSIONS
     """
 }

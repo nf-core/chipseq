@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,8 +23,8 @@ process BEDTOOLS_GENOMECOV {
 
     output:
     tuple val(meta), path("*.bedGraph"), emit: bedgraph
-    tuple val(meta), path("*.txt"), emit: scale_factor
-    path "*.version.txt", emit: version
+    tuple val(meta), path("*.txt")     , emit: scale_factor
+    path "versions.yml"                , emit: version
 
     script:
     def software = getSoftwareName(task.process)
@@ -45,6 +45,9 @@ process BEDTOOLS_GENOMECOV {
         $extend \\
         | sort -T '.' -k1,1 -k2,2n > ${prefix}.bedGraph
 
-    bedtools --version | sed -e "s/bedtools v//g" > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(bedtools --version | sed -e "s/bedtools v//g")
+    END_VERSIONS
     """
 }

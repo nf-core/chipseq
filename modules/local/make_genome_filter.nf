@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 
@@ -24,8 +24,8 @@ process MAKE_GENOME_FILTER {
     path blacklist
 
     output:
-    path '*.bed', emit: bed
-    path "*.version.txt", emit: version
+    path '*.bed'       , emit: bed
+    path "versions.yml", emit: version
 
     script:
     def software = 'bedtools'
@@ -33,12 +33,20 @@ process MAKE_GENOME_FILTER {
     if (params.blacklist) {
         """
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out
-        bedtools --version | sed -e "s/bedtools v//g" > ${software}.version.txt
+
+        cat <<-END_VERSIONS > versions.yml
+            ${getProcessName(task.process)}:
+            bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
+        END_VERSIONS
         """
     } else {
         """
         awk '{print \$1, '0' , \$2}' OFS='\t' $sizes > $file_out
-        bedtools --version | sed -e "s/bedtools v//g" > ${software}.version.txt
+
+        cat <<-END_VERSIONS > versions.yml
+        ${getProcessName(task.process)}:
+            bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
+        END_VERSIONS
         """
     }
 }
