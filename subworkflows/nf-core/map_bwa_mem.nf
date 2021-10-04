@@ -20,11 +20,11 @@ workflow MAP_BWA_MEM {
     BAM_SORT_SAMTOOLS(BWA_MEM.out.bam)
 
     emit:
-    bam              = BAM_SORT_SAMTOOLS.out.bam              // channel: [ val(meta), [ bam ] ]
-    bai              = BAM_SORT_SAMTOOLS.out.bai              // channel: [ val(meta), [ bai ] ]
-    stats            = BAM_SORT_SAMTOOLS.out.stats            // channel: [ val(meta), [ stats ] ]
-    flagstat         = BAM_SORT_SAMTOOLS.out.flagstat         // channel: [ val(meta), [ flagstat ] ]
-    idxstats         = BAM_SORT_SAMTOOLS.out.idxstats         // channel: [ val(meta), [ idxstats ] ]
-    bwa_version      = BWA_MEM.out.version                    //    path: versions.yml
-    samtools_version = BAM_SORT_SAMTOOLS.out.samtools_version //    path: versions.yml
+    bam               = BAM_SORT_SAMTOOLS.out.bam               // channel: [ val(meta), [ bam ] ]
+    bai               = BAM_SORT_SAMTOOLS.out.bai               // channel: [ val(meta), [ bai ] ]
+    stats             = BAM_SORT_SAMTOOLS.out.stats             // channel: [ val(meta), [ stats ] ]
+    flagstat          = BAM_SORT_SAMTOOLS.out.flagstat          // channel: [ val(meta), [ flagstat ] ]
+    idxstats          = BAM_SORT_SAMTOOLS.out.idxstats          // channel: [ val(meta), [ idxstats ] ]
+    bwa_versions      = BWA_MEM.out.versions                    //    path: versions.yml
+    samtools_versions = BAM_SORT_SAMTOOLS.out.samtools_versions //    path: versions.yml
 }

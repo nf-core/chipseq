@@ -13,7 +13,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
-    conda (params.conda ? "${baseDir}/environment.yml" : null) //TODO Create mulled biocontainer
+    conda (params.enable_conda ? "${baseDir}/environment.yml" : null) //TODO Create mulled biocontainer
 
     input:
     path annos

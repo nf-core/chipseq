@@ -215,7 +215,7 @@ workflow CHIPSEQ {
     // FASTQC (
     //     INPUT_CHECK.out.reads
     // )
-    // ch_software_versions = ch_software_versions.mix(FASTQC.out.version.first().ifEmpty(null))
+    // ch_software_versions = ch_software_versions.mix(FASTQC.out.versions.first().ifEmpty(null))
 
     //
     // SUBWORKFLOW: Prepare genome files
@@ -229,7 +229,7 @@ workflow CHIPSEQ {
         ch_blacklist.ifEmpty([])
     )
     ch_software_versions = Channel.empty()
-    ch_software_versions = ch_software_versions.mix(MAKE_GENOME_FILTER.out.version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(MAKE_GENOME_FILTER.out.versions.first().ifEmpty(null))
 
     //
     // SUBWORKFLOW: Read QC & trimming
@@ -253,8 +253,8 @@ workflow CHIPSEQ {
         FASTQC_TRIMGALORE.out.reads,
         ch_index
     )
-    ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.bwa_version.first())
-    ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.samtools_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.bwa_versions.first())
+    ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.samtools_versions.first().ifEmpty(null))
 
     //
     // SUBWORKFLOW: Merge resequenced BAM files
@@ -274,7 +274,7 @@ workflow CHIPSEQ {
     PICARD_MERGESAMFILES (
         ch_sort_bam
     )
-    ch_software_versions = ch_software_versions.mix(PICARD_MERGESAMFILES.out.version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PICARD_MERGESAMFILES.out.versions.first().ifEmpty(null))
 
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files
@@ -308,7 +308,7 @@ workflow CHIPSEQ {
     PRESEQ_LCEXTRAP (
         BAM_CLEAN.out.bam
     )
-    ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.versions.first().ifEmpty(null))
 
     //
     // MODULE: Strand cross-correlation
@@ -316,7 +316,7 @@ workflow CHIPSEQ {
     PHANTOMPEAKQUALTOOLS (
         BAM_CLEAN.out.bam
     )
-    ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first().ifEmpty(null))
 
     MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
         PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
@@ -339,7 +339,7 @@ workflow CHIPSEQ {
         BEDTOOLS_GENOMECOV.out.bedgraph,
         GET_CHROM_SIZES.out.sizes
     )
-    ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first().ifEmpty(null))
 
     //
     // MODULE: Coverage plots
@@ -348,7 +348,7 @@ workflow CHIPSEQ {
         UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
         ch_gene_bed
     )
-    ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first().ifEmpty(null))
 
     DEEPTOOLS_PLOTPROFILE (
         DEEPTOOLS_COMPUTEMATRIX.out.matrix
@@ -399,7 +399,7 @@ workflow CHIPSEQ {
             ch_ip_control_bam,
             params.macs_gsize
         )
-        ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions.first().ifEmpty(null))
 
         ch_ip_control_bam
             .join(MACS2_CALLPEAK.out.peak, by: [0])
@@ -428,7 +428,7 @@ workflow CHIPSEQ {
             ch_fasta,
             ch_gtf
         )
-        ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first().ifEmpty(null))
 
         PLOT_HOMER_ANNOTATEPEAKS (
             HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
@@ -492,7 +492,7 @@ workflow CHIPSEQ {
         SUBREAD_FEATURECOUNTS (
             ch_ip_bam
         )
-        ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first().ifEmpty(null))
 
         //
         // DESEQ2_FEATURECOUNTS (

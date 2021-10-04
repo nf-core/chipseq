@@ -11,7 +11,7 @@ process SAMPLESHEET_CHECK {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:options, publish_dir:"pipeline_info", publish_id:'') }
 
-    conda (params.conda ? "${baseDir}/environment.yml" : null)
+    conda (params.enable_conda ? "${baseDir}/environment.yml" : null)
 
     input:
     path samplesheet

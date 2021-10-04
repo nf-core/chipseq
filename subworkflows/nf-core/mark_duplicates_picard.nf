@@ -19,12 +19,12 @@ workflow MARK_DUPLICATES_PICARD {
     BAM_STATS_SAMTOOLS(PICARD_MARKDUPLICATES.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]))
 
     emit:
-    bam              = PICARD_MARKDUPLICATES.out.bam     // channel: [ val(meta), [ bam ] ]
-    metrics          = PICARD_MARKDUPLICATES.out.metrics // channel: [ val(meta), [ metrics ] ]
-    bai              = SAMTOOLS_INDEX.out.bai            // channel: [ val(meta), [ bai ] ]
-    stats            = BAM_STATS_SAMTOOLS.out.stats      // channel: [ val(meta), [ stats ] ]
-    flagstat         = BAM_STATS_SAMTOOLS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
-    idxstats         = BAM_STATS_SAMTOOLS.out.idxstats   // channel: [ val(meta), [ idxstats ] ]
-    picard_version   = PICARD_MARKDUPLICATES.out.version //    path: versions.yml
-    samtools_version = SAMTOOLS_INDEX.out.version        //    path: versions.yml
+    bam               = PICARD_MARKDUPLICATES.out.bam      // channel: [ val(meta), [ bam ] ]
+    metrics           = PICARD_MARKDUPLICATES.out.metrics  // channel: [ val(meta), [ metrics ] ]
+    bai               = SAMTOOLS_INDEX.out.bai             // channel: [ val(meta), [ bai ] ]
+    stats             = BAM_STATS_SAMTOOLS.out.stats       // channel: [ val(meta), [ stats ] ]
+    flagstat          = BAM_STATS_SAMTOOLS.out.flagstat    // channel: [ val(meta), [ flagstat ] ]
+    idxstats          = BAM_STATS_SAMTOOLS.out.idxstats    // channel: [ val(meta), [ idxstats ] ]
+    picard_versions   = PICARD_MARKDUPLICATES.out.versions //    path: versions.yml
+    samtools_versions = SAMTOOLS_INDEX.out.versions        //    path: versions.yml
 }

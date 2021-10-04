@@ -1,4 +1,4 @@
-conda (params.conda ? "${baseDir}/environment.yml" : null)
+conda (params.enable_conda ? "${baseDir}/environment.yml" : null)
 
 process CONSENSUS_PEAKS_DESEQ2 {
     script:
