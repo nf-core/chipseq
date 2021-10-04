@@ -4,73 +4,73 @@
     "repos": {
         "nf-core/modules": {
             "bwa/index": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "bwa/mem": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "deeptools/computematrix": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "deeptools/plotfingerprint": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "deeptools/plotheatmap": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "deeptools/plotprofile": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "fastqc": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "homer/annotatepeaks": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "macs2/callpeak": {
                 "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
             },
             "multiqc": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "phantompeakqualtools": {
                 "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
             },
             "picard/collectmultiplemetrics": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "picard/markduplicates": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "picard/mergesamfiles": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "preseq/lcextrap": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/flagstat": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/idxstats": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/index": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/sort": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/stats": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "subread/featurecounts": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "trimgalore": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "ucsc/bedgraphtobigwig": {
-                "git_sha": "7b3315591a149609e27914965f858c9a7e071564"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             }
         }
     }
