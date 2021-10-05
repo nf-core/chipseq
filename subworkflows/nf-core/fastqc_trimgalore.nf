@@ -23,6 +23,7 @@ workflow FASTQC_TRIMGALORE {
     if (!skip_fastqc) {
         FASTQC(ch_reads).html.set { fastqc_html }
         fastqc_zip      = FASTQC.out.zip
+        ch_versions = ch_versions.mix(FASTQC.out.versions.first())
     }
 
     ch_trim_reads       = ch_reads
@@ -34,10 +35,8 @@ workflow FASTQC_TRIMGALORE {
         trim_html           = TRIMGALORE.out.html
         trim_zip            = TRIMGALORE.out.zip
         trim_log            = TRIMGALORE.out.log
+        ch_versions = ch_versions.mix(TRIMGALORE.out.versions.first())
     }
-
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first(),
-                    TRIMGALORE.out.versions.first())
 
     emit:
     fastqc_html            // channel: [ val(meta), [ html ] ]
