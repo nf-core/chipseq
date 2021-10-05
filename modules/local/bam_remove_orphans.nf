@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -27,6 +27,7 @@ process BAM_REMOVE_ORPHANS {
 
     output:
     tuple val(meta), path("${prefix}.bam"), emit: bam
+    path "versions.yml"                   , emit: versions
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     prefix       = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
@@ -34,10 +35,20 @@ process BAM_REMOVE_ORPHANS {
         """
         samtools sort -n -@ $task.cpus -o ${prefix}.name.sorted.bam -T ${prefix}.name.sorted $bam
         bampe_rm_orphan.py ${prefix}.name.sorted.bam ${prefix}.bam $options.args
+
+        cat <<-END_VERSIONS > versions.yml
+        ${getProcessName(task.process)}:
+            samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+        END_VERSIONS
         """
     } else {
         """
         ln -s $bam ${prefix}.bam
+
+        cat <<-END_VERSIONS > versions.yml
+        ${getProcessName(task.process)}:
+            samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+        END_VERSIONS
         """
     }
 }

@@ -16,8 +16,14 @@ workflow MAP_BWA_MEM {
     ch_index         //    path: /path/to/index
 
     main:
+
+    ch_versions = Channel.empty()
+
     BWA_MEM(ch_reads, ch_index)
     BAM_SORT_SAMTOOLS(BWA_MEM.out.bam)
+
+    ch_versions = ch_versions.mix(BWA_MEM.out.versions.first(),
+                    BAM_SORT_SAMTOOLS.out.versions)
 
     emit:
     bam               = BAM_SORT_SAMTOOLS.out.bam               // channel: [ val(meta), [ bam ] ]
@@ -25,6 +31,6 @@ workflow MAP_BWA_MEM {
     stats             = BAM_SORT_SAMTOOLS.out.stats             // channel: [ val(meta), [ stats ] ]
     flagstat          = BAM_SORT_SAMTOOLS.out.flagstat          // channel: [ val(meta), [ flagstat ] ]
     idxstats          = BAM_SORT_SAMTOOLS.out.idxstats          // channel: [ val(meta), [ idxstats ] ]
-    bwa_versions      = BWA_MEM.out.versions                    //    path: versions.yml
-    samtools_versions = BAM_SORT_SAMTOOLS.out.samtools_versions //    path: versions.yml
+
+    versions          = ch_versions                             //    path: versions.yml
 }

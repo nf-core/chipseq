@@ -1,5 +1,5 @@
 // Import generic module functions
-include { saveFiles } from './functions'
+include { saveFiles; getProcessName } from './functions'
 
 params.options = [:]
 
@@ -28,6 +28,13 @@ process GTF2BED {
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     """
-    gtf2bed $gtf > ${gtf.baseName}.bed
+    gtf2bed \\
+        $gtf \\
+        > ${gtf.baseName}.bed
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        perl: \$(echo \$(perl --version 2>&1) | sed 's/.*v\\(.*\\)) built.*/\\1/')
+    END_VERSIONS
     """
 }

@@ -16,36 +16,37 @@ workflow FASTQC_TRIMGALORE {
     skip_trimming      // boolean: true/false
 
     main:
-    fastqc_html = Channel.empty()
-    fastqc_zip = Channel.empty()
-    fastqc_version = Channel.empty()
+
+    ch_versions     = Channel.empty()
+    fastqc_html     = Channel.empty()
+    fastqc_zip      = Channel.empty()
     if (!skip_fastqc) {
         FASTQC(ch_reads).html.set { fastqc_html }
         fastqc_zip      = FASTQC.out.zip
-        fastqc_versions = FASTQC.out.versions
     }
 
-    ch_trim_reads = ch_reads
-    trim_html = Channel.empty()
-    trim_zip = Channel.empty()
-    trim_log = Channel.empty()
-    trimgalore_version = Channel.empty()
+    ch_trim_reads       = ch_reads
+    trim_html           = Channel.empty()
+    trim_zip            = Channel.empty()
+    trim_log            = Channel.empty()
     if (!skip_trimming) {
         TRIMGALORE(ch_reads).reads.set { ch_trim_reads }
         trim_html           = TRIMGALORE.out.html
         trim_zip            = TRIMGALORE.out.zip
         trim_log            = TRIMGALORE.out.log
-        trimgalore_versions = TRIMGALORE.out.versions
     }
 
-    emit:
-    fastqc_html           // channel: [ val(meta), [ html ] ]
-    fastqc_zip            // channel: [ val(meta), [ zip ] ]
-    fastqc_version        //    path: versions.yml
+    ch_versions = ch_versions.mix(FASTQC.out.versions.first(),
+                    TRIMGALORE.out.versions.first())
 
-    reads = ch_trim_reads // channel: [ val(meta), [ reads ] ]
-    trim_html             // channel: [ val(meta), [ html ] ]
-    trim_zip              // channel: [ val(meta), [ zip ] ]
-    trim_log              // channel: [ val(meta), [ txt ] ]
-    trimgalore_version    //    path: versions.yml
+    emit:
+    fastqc_html            // channel: [ val(meta), [ html ] ]
+    fastqc_zip             // channel: [ val(meta), [ zip ] ]
+
+    reads = ch_trim_reads  // channel: [ val(meta), [ reads ] ]
+    trim_html              // channel: [ val(meta), [ html ] ]
+    trim_zip               // channel: [ val(meta), [ zip ] ]
+    trim_log               // channel: [ val(meta), [ txt ] ]
+
+    versions = ch_versions //    path: versions.yml
 }

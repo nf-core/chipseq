@@ -25,7 +25,7 @@ process GET_CHROM_SIZES {
     output:
     path '*.sizes'     , emit: sizes
     path '*.fai'       , emit: fai
-    path "versions.yml", emit: version
+    path "versions.yml", emit: versions
 
     script:
     def software = 'samtools'

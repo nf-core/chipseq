@@ -118,7 +118,7 @@ include { FRIP_SCORE                          } from '../modules/local/frip_scor
 //include { DESEQ2_FEATURECOUNTS                } from '../modules/local/deseq2_featurecounts'               addParams( options: [:] )
 include { IGV                                 } from '../modules/local/igv'                                  addParams( options: [:] )
 include { OUTPUT_DOCUMENTATION                } from '../modules/local/output_documentation'                 addParams( options: [:] )
-include { GET_SOFTWARE_VERSIONS               } from '../modules/local/get_software_versions'                addParams( options: modules['get_software_versions'] )
+// include { GET_SOFTWARE_VERSIONS               } from '../modules/local/get_software_versions'                addParams( options: modules['get_software_versions'] )
 // TODO template version below to be removed when checked
 // include { GET_SOFTWARE_VERSIONS               } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
 include { MULTIQC                             } from '../modules/local/multiqc'                              addParams( options: multiqc_options )
@@ -176,6 +176,8 @@ include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deept
 include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/modules/phantompeakqualtools/main'          addParams( options: modules['phantompeakqualtools'] )
 include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'                addParams( options: macs2_callpeak_options )
 include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'         addParams( options: subread_featurecounts_options )
+include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] )
+
 include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2 }     from '../modules/nf-core/modules/homer/annotatepeaks/main' addParams( options:homer_annotatepeaks_macs2_options )
 include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/modules/homer/annotatepeaks/main' addParams( options:homer_annotatepeaks_consensus_options )
 
@@ -197,7 +199,7 @@ def multiqc_report = []
 
 workflow CHIPSEQ {
 
-    ch_software_versions = Channel.empty()
+    ch_versions = Channel.empty()
 
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
@@ -228,8 +230,9 @@ workflow CHIPSEQ {
         GET_CHROM_SIZES ( ch_fasta ).sizes,
         ch_blacklist.ifEmpty([])
     )
-    ch_software_versions = Channel.empty()
-    ch_software_versions = ch_software_versions.mix(MAKE_GENOME_FILTER.out.versions.first().ifEmpty(null))
+    // ch_software_versions = Channel.empty()
+    // ch_software_versions = ch_software_versions.mix(MAKE_GENOME_FILTER.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(MAKE_GENOME_FILTER.out.versions)
 
     //
     // SUBWORKFLOW: Read QC & trimming
@@ -241,8 +244,8 @@ workflow CHIPSEQ {
         params.skip_fastqc,
         params.skip_trimming
     )
-    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
+    // ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
 
     //
     // SUBWORKFLOW: Map reads & BAM QC
@@ -253,8 +256,9 @@ workflow CHIPSEQ {
         FASTQC_TRIMGALORE.out.reads,
         ch_index
     )
-    ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.bwa_versions.first())
-    ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.samtools_versions.first().ifEmpty(null))
+    // ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.bwa_versions.first())
+    // ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.samtools_versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(MAP_BWA_MEM.out.versions)
 
     //
     // SUBWORKFLOW: Merge resequenced BAM files
@@ -274,7 +278,8 @@ workflow CHIPSEQ {
     PICARD_MERGESAMFILES (
         ch_sort_bam
     )
-    ch_software_versions = ch_software_versions.mix(PICARD_MERGESAMFILES.out.versions.first().ifEmpty(null))
+    // ch_software_versions = ch_software_versions.mix(PICARD_MERGESAMFILES.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions)
 
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files
@@ -292,7 +297,8 @@ workflow CHIPSEQ {
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_software_versions = ch_software_versions.mix(BAM_CLEAN.out.bamtools_version.first().ifEmpty(null))
+    // ch_software_versions = ch_software_versions.mix(BAM_CLEAN.out.bamtools_versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(BAM_CLEAN.out.versions)
 
     //
     // MODULE: Post alignment QC
@@ -302,13 +308,16 @@ workflow CHIPSEQ {
         ch_fasta
     )
 
+    // TODO Add versions to picard collectmultiplemetrics
+
     //
     // MODULE: Library coverage
     //
     PRESEQ_LCEXTRAP (
         BAM_CLEAN.out.bam
     )
-    ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.versions.first().ifEmpty(null))
+    // ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions)
 
     //
     // MODULE: Strand cross-correlation
@@ -316,7 +325,8 @@ workflow CHIPSEQ {
     PHANTOMPEAKQUALTOOLS (
         BAM_CLEAN.out.bam
     )
-    ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first().ifEmpty(null))
+    // ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions)
 
     MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
         PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
@@ -339,7 +349,8 @@ workflow CHIPSEQ {
         BEDTOOLS_GENOMECOV.out.bedgraph,
         GET_CHROM_SIZES.out.sizes
     )
-    ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first().ifEmpty(null))
+    // ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions)
 
     //
     // MODULE: Coverage plots
@@ -348,7 +359,8 @@ workflow CHIPSEQ {
         UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
         ch_gene_bed
     )
-    ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first().ifEmpty(null))
+    // ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions)
 
     DEEPTOOLS_PLOTPROFILE (
         DEEPTOOLS_COMPUTEMATRIX.out.matrix
@@ -399,7 +411,8 @@ workflow CHIPSEQ {
             ch_ip_control_bam,
             params.macs_gsize
         )
-        ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions.first().ifEmpty(null))
+        // ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions.first().ifEmpty(null))
+        ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions)
 
         ch_ip_control_bam
             .join(MACS2_CALLPEAK.out.peak, by: [0])
@@ -428,7 +441,8 @@ workflow CHIPSEQ {
             ch_fasta,
             ch_gtf
         )
-        ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first().ifEmpty(null))
+        // ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first().ifEmpty(null))
+        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions)
 
         PLOT_HOMER_ANNOTATEPEAKS (
             HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
@@ -492,7 +506,8 @@ workflow CHIPSEQ {
         SUBREAD_FEATURECOUNTS (
             ch_ip_bam
         )
-        ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first().ifEmpty(null))
+        // ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first().ifEmpty(null))
+        ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions)
 
         //
         // DESEQ2_FEATURECOUNTS (
@@ -519,18 +534,22 @@ workflow CHIPSEQ {
     //
     // MODULE: Pipeline reporting
     //
-    ch_software_versions
-        .map { it -> if (it) [ it.baseName, it ] }
-        .groupTuple()
-        .map { it[1][0] }
-        .flatten()
-        .collect()
-        .set { ch_software_versions }
+    // ch_software_versions
+    //     .map { it -> if (it) [ it.baseName, it ] }
+    //     .groupTuple()
+    //     .map { it[1][0] }
+    //     .flatten()
+    //     .collect()
+    //     .set { ch_software_versions }
 
-    GET_SOFTWARE_VERSIONS (
-        ch_software_versions.map { it }.collect()  //,
-        // params.modules['get_software_versions'] // TODO check if its needed, I think that addParams does the trick
+    // GET_SOFTWARE_VERSIONS (
+    //     ch_software_versions.map { it }.collect()  //,
+    //     // params.modules['get_software_versions'] // TODO check if its needed, I think that addParams does the trick
+    // )
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_versions.unique().collectFile()
     )
+
 
     OUTPUT_DOCUMENTATION (
         ch_output_docs,
@@ -554,7 +573,7 @@ workflow CHIPSEQ {
         MULTIQC (
             ch_multiqc_config,
             ch_multiqc_custom_config.collect().ifEmpty([]),
-            GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
             ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
 
             FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
