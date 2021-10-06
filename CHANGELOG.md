@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Pipeline has been re-implemented in [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html)
 * Updated Nextflow version to `v21.04.0` (see [nextflow#572](https://github.com/nextflow-io/nextflow/issues/1964))
 * Move template boilerplate code to Groovy `lib/`
+* Added `python3` shebang to appropriate scripts in `bin/` directory
 
 ### Other enhancements & fixes
 
