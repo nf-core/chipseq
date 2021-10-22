@@ -115,52 +115,52 @@ pdf(PlotFile,height=6,width=3*length(HomerFiles))
 
 ## FEATURE COUNT STACKED BARPLOT
 plot  <- ggplot(plot.feature.dat, aes(x=variable, y=value, group=feature)) +
-         geom_bar(stat="identity", position = "fill", aes(colour=feature,fill=feature), alpha = 0.3) +
-         xlab("") +
-         ylab("% Feature") +
-         ggtitle("Peak Location Relative to Annotation") +
-         scale_y_continuous(labels = percent_format()) +
-         theme(panel.grid.major = element_blank(),
-               panel.grid.minor = element_blank(),
-               panel.background = element_blank(),
-               axis.text.y = element_text(colour="black"),
-               axis.text.x= element_text(colour="black",face="bold"),
-               axis.line.x = element_line(size = 1, colour = "black", linetype = "solid"),
-               axis.line.y = element_line(size = 1, colour = "black", linetype = "solid"))
+            geom_bar(stat="identity", position = "fill", aes(colour=feature,fill=feature), alpha = 0.3) +
+            xlab("") +
+            ylab("% Feature") +
+            ggtitle("Peak Location Relative to Annotation") +
+            scale_y_continuous(labels = percent_format()) +
+            theme(panel.grid.major = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.background = element_blank(),
+                axis.text.y = element_text(colour="black"),
+                axis.text.x= element_text(colour="black",face="bold"),
+                axis.line.x = element_line(size = 1, colour = "black", linetype = "solid"),
+                axis.line.y = element_line(size = 1, colour = "black", linetype = "solid"))
 print(plot)
 
 ## DISTANCE TO CLOSEST GENE ACROSS ALL PEAKS STACKED BARPLOT
 plot  <- ggplot(plot.dist.dat, aes(x=variable, y=value, group=distance)) +
-         geom_bar(stat="identity", position = "fill", aes(colour=distance,fill=distance), alpha = 0.3) +
-         xlab("") +
-         ylab("% Unique genes to closest peak") +
-         ggtitle("Distance of Closest Peak to Gene") +
-         scale_y_continuous(labels = percent_format()) +
-         theme(panel.grid.major = element_blank(),
-               panel.grid.minor = element_blank(),
-               panel.background = element_blank(),
-               axis.text.y = element_text(colour="black"),
-               axis.text.x= element_text(colour="black",face="bold"),
-               axis.line.x = element_line(size = 1, colour = "black", linetype = "solid"),
-               axis.line.y = element_line(size = 1, colour = "black", linetype = "solid"))
+            geom_bar(stat="identity", position = "fill", aes(colour=distance,fill=distance), alpha = 0.3) +
+            xlab("") +
+            ylab("% Unique genes to closest peak") +
+            ggtitle("Distance of Closest Peak to Gene") +
+            scale_y_continuous(labels = percent_format()) +
+            theme(panel.grid.major = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.background = element_blank(),
+                axis.text.y = element_text(colour="black"),
+                axis.text.x= element_text(colour="black",face="bold"),
+                axis.line.x = element_line(size = 1, colour = "black", linetype = "solid"),
+                axis.line.y = element_line(size = 1, colour = "black", linetype = "solid"))
 print(plot)
 
 ## VIOLIN PLOT OF PEAK DISTANCE TO TSS
 plot  <- ggplot(plot.dat, aes(x=name, y=Distance.to.TSS)) +
-         geom_violin(aes(colour=name,fill=name), alpha = 0.3) +
-         geom_boxplot(width=0.1) +
-         xlab("") +
-         ylab(expression(log[10]*" distance to TSS")) +
-         ggtitle("Peak Distribution Relative to TSS") +
-         scale_y_continuous(trans='log10',breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x))) +
-         theme(legend.position="none",
-               panel.grid.major = element_blank(),
-               panel.grid.minor = element_blank(),
-               panel.background = element_blank(),
-               axis.text.y = element_text(colour="black"),
-               axis.text.x= element_text(colour="black",face="bold"),
-               axis.line.x = element_line(size = 1, colour = "black", linetype = "solid"),
-               axis.line.y = element_line(size = 1, colour = "black", linetype = "solid"))
+            geom_violin(aes(colour=name,fill=name), alpha = 0.3) +
+            geom_boxplot(width=0.1) +
+            xlab("") +
+            ylab(expression(log[10]*" distance to TSS")) +
+            ggtitle("Peak Distribution Relative to TSS") +
+            scale_y_continuous(trans='log10',breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x))) +
+            theme(legend.position="none",
+                panel.grid.major = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.background = element_blank(),
+                axis.text.y = element_text(colour="black"),
+                axis.text.x= element_text(colour="black",face="bold"),
+                axis.line.x = element_line(size = 1, colour = "black", linetype = "solid"),
+                axis.line.y = element_line(size = 1, colour = "black", linetype = "solid"))
 print(plot)
 dev.off()
 

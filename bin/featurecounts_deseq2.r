@@ -116,9 +116,9 @@ if (file.exists(PlotFile) == FALSE) {
             xlab(paste0("PC1: ",percentVar[1],"% variance")) +
             ylab(paste0("PC2: ",percentVar[2],"% variance")) +
             theme(panel.grid.major = element_blank(),
-                  panel.grid.minor = element_blank(),
-                  panel.background = element_blank(),
-                  panel.border = element_rect(colour = "black", fill=NA, size=1))
+                panel.grid.minor = element_blank(),
+                panel.background = element_blank(),
+                panel.border = element_rect(colour = "black", fill=NA, size=1))
     print(plot)
 
     ## WRITE PC1 vs PC2 VALUES TO FILE
@@ -262,11 +262,11 @@ if (file.exists(ResultsFile) == FALSE) {
         clabels <- sapply(combs,function(x){paste(x,collapse=' & ')})
         plotdat <- data.frame(x=unlist(lapply(combs, function(x){rld.subset[, x[1] ]})),y=unlist(lapply(combs, function(y){rld.subset[, y[2] ]})),comp=rep(clabels, each=nrow(rld.subset)))
         plot <- xyplot(y~x|comp,plotdat,
-                       panel=function(...){
-                           panel.xyplot(...)
-                           panel.abline(0,1,col="red")
-                       },
-                       par.strip.text=list(cex=0.5))
+                    panel=function(...){
+                        panel.xyplot(...)
+                        panel.abline(0,1,col="red")
+                    },
+                    par.strip.text=list(cex=0.5))
         print(plot)
         dev.off()
 
