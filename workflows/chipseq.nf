@@ -13,32 +13,15 @@ WorkflowChipseq.initialise(params, log)
 def checkPathParamList = [
     params.input, params.multiqc_config,
     params.fasta,
-    params.gtf, params.gene_bed,
+    params.gtf, params.gff, params.gene_bed,
     params.bwa_index,
     params.blacklist,
     params.bamtools_filter_pe_config, params.bamtools_filter_se_config
 ]
-
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
-// Check mandatory parameters
-if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
-
-// Check fasta reference file
-if (params.fasta) { ch_fasta = file(params.fasta, checkIfExists: true) } else { exit 1, 'Fasta file not specified!' }
-
-// Check gtf annotation file
-if (params.gtf) { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, 'GTF annotation file not specified!' }
-
-// Check bed annotation file
-if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
-
-// Check bed blacklist file
-if (params.blacklist) {
-    ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true)
-} else {
-    ch_blacklist = Channel.empty()
-}
+// Check blacklist file
+ch_blacklist = params.blacklist ? file(params.blacklist) : Channel.empty()
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
@@ -68,21 +51,19 @@ def peakType = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
 
 ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
-ch_output_docs           = file("$projectDir/docs/output.md", checkIfExists: true)
-ch_output_docs_images    = file("$projectDir/docs/images/", checkIfExists: true)
 
 // JSON files required by BAMTools for alignment filtering
 ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
 ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
 
 // Header files for MultiQC
-ch_spp_nsc_header = file("$projectDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
-ch_spp_rsc_header = file("$projectDir/assets/multiqc/spp_rsc_header.txt", checkIfExists: true)
-ch_spp_correlation_header = file("$projectDir/assets/multiqc/spp_correlation_header.txt", checkIfExists: true)
-ch_peak_count_header = file("$projectDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
-ch_frip_score_header = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
-ch_peak_annotation_header = file("$projectDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
-ch_deseq2_pca_header = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
+ch_spp_nsc_header           = file("$projectDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
+ch_spp_rsc_header           = file("$projectDir/assets/multiqc/spp_rsc_header.txt", checkIfExists: true)
+ch_spp_correlation_header   = file("$projectDir/assets/multiqc/spp_correlation_header.txt", checkIfExists: true)
+ch_peak_count_header        = file("$projectDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
+ch_frip_score_header        = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
+ch_peak_annotation_header   = file("$projectDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
+ch_deseq2_pca_header        = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
 ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
 
 /*
@@ -115,12 +96,9 @@ include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_home
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'                        addParams( options: plot_macs2_qc_options )
 include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'                     addParams( options: macs2_consensus_options )
 include { FRIP_SCORE                          } from '../modules/local/frip_score'                           addParams( options: modules['frip_score'] )
-//include { DESEQ2_FEATURECOUNTS                } from '../modules/local/deseq2_featurecounts'               addParams( options: [:] )
+//include { DESEQ2_QC  } from '../modules/local/deseq2_qc'                             addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
 include { IGV                                 } from '../modules/local/igv'                                  addParams( options: [:] )
 include { OUTPUT_DOCUMENTATION                } from '../modules/local/output_documentation'                 addParams( options: [:] )
-// include { GET_SOFTWARE_VERSIONS               } from '../modules/local/get_software_versions'                addParams( options: modules['get_software_versions'] )
-// TODO template version below to be removed when checked
-// include { GET_SOFTWARE_VERSIONS               } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
 include { MULTIQC                             } from '../modules/local/multiqc'                              addParams( options: multiqc_options )
 include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'  addParams( options: modules['multiqc_custom_phantompeakqualtools'] )
 include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'                 addParams( options: modules['multiqc_custom_peaks'] )
@@ -205,7 +183,7 @@ workflow CHIPSEQ {
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
     INPUT_CHECK (
-        ch_input,
+        file(params.input),
         params.seq_center,
         [:]
     )

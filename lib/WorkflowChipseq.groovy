@@ -8,12 +8,26 @@ class WorkflowChipseq {
     // Check and validate parameters
     //
     public static void initialise(params, log) {
-        genomeExistsError(params, log)
-        macs2_warn(params, log)
+        if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
+            genomeExistsError(log)
+        }
 
         if (!params.fasta) {
             log.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
             System.exit(1)
+        }
+
+        if (!params.gtf && !params.gff) {
+            log.error "No GTF or GFF3 annotation specified! The pipeline requires at least one of these files."
+            System.exit(1)
+        }
+
+        if (params.gtf && params.gff) {
+            gtfGffWarn(log)
+        }
+
+        if (!params.macs_gsize) {
+            macsGsizeWarn(log)
         }
     }
 
@@ -47,28 +61,34 @@ class WorkflowChipseq {
     //
     // Exit pipeline if incorrect --genome key provided
     //
-    private static void genomeExistsError(params, log) {
-        if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-            log.error "=============================================================================\n" +
-                "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" +
-                "  Currently, the available genome keys are:\n" +
-                "  ${params.genomes.keySet().join(", ")}\n" +
-                "==================================================================================="
-            System.exit(1)
-        }
+    private static void genomeExistsError(log) {
+        log.error "=============================================================================\n" +
+            "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" +
+            "  Currently, the available genome keys are:\n" +
+            "  ${params.genomes.keySet().join(", ")}\n" +
+            "==================================================================================="
+        System.exit(1)
+    }
+
+    //
+    // Print a warning if both GTF and GFF have been provided
+    //
+    private static void gtfGffWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  Both '--gtf' and '--gff' parameters have been provided.\n" +
+            "  Using GTF file as priority.\n" +
+            "==================================================================================="
     }
 
     //
     // Show a big warning message if we're not running MACS
     //
-    private static void macs2_warn(params, log) {
-        if (!params.macs_gsize) {
-            def warnstring = params.genome ? "supported for '${params.genome}'" : 'supplied'
-            log.warn "=================================================================\n" +
-                "  WARNING! MACS genome size parameter not $warnstring.\n" +
-                "  Peak calling, annotation and differential analysis will be skipped.\n" +
-                "  Please specify value for '--macs_gsize' to run these steps.\n" +
-                "======================================================================="
-        }
+    private static void macsGsizeWarn(log) {
+        def warnstring = params.genome ? "supported for '${params.genome}'" : 'supplied'
+        log.warn "=================================================================\n" +
+            "  WARNING! MACS genome size parameter not $warnstring.\n" +
+            "  Peak calling, annotation and differential analysis will be skipped.\n" +
+            "  Please specify value for '--macs_gsize' to run these steps.\n" +
+            "======================================================================="
     }
 }
