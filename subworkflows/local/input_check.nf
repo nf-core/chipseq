@@ -6,44 +6,48 @@ params.options = [:]
 
 include { SAMPLESHEET_CHECK } from '../../modules/local/samplesheet_check' addParams( options: params.options )
 
-/*
- * Check input samplesheet and get read channels
- */
 workflow INPUT_CHECK {
     take:
-    ch_input                  //   file: /path/to/samplesheet.csv
-    seq_center                // string: sequencing center for read group
-    samplesheet_check_options //    map: options for check_samplesheet module
+    samplesheet // file: /path/to/samplesheet.csv
+    seq_center  // string: sequencing center for read group
 
     main:
-    SAMPLESHEET_CHECK (ch_input, samplesheet_check_options)
-        .splitCsv(header:true, sep:',')
-        .map { get_samplesheet_paths(it, seq_center) }
-        .set { ch_reads }
+    SAMPLESHEET_CHECK ( samplesheet )
+        .csv
+        .splitCsv ( header:true, sep:',' )
+        .map { create_fastq_channel(it, seq_center) }
+        .set { reads }
 
     emit:
-    reads = ch_reads // channel: [ val(meta), [ reads ] ]
+    reads                                     // channel: [ val(meta), [ reads ] ]
+    versions = SAMPLESHEET_CHECK.out.versions // channel: [ versions.yml ]
 }
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
-def get_samplesheet_paths(LinkedHashMap row, String seq_center) {
+def create_fastq_channel(LinkedHashMap row, String seq_center) {
     def meta = [:]
-    meta.id = row.sample
+    meta.id         = row.sample
     meta.single_end = row.single_end.toBoolean()
-    meta.antibody = row.antibody
-    meta.control = row.control
+    meta.antibody   = row.antibody
+    meta.control    = row.control
 
-    def rg = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\'"
+    def read_group = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\'"
     if (seq_center) {
-        rg = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\\tCN:${seq_center}\'"
+        read_group = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\\tCN:${seq_center}\'"
     }
-    meta.read_group = rg
+    meta.read_group = read_group
 
     def array = []
+    if (!file(row.fastq_1).exists()) {
+        exit 1, "ERROR: Please check input samplesheet -> Read 1 FastQ file does not exist!\n${row.fastq_1}"
+    }
     if (meta.single_end) {
-        array = [ meta, [ file(row.fastq_1, checkIfExists: true) ] ]
+        array = [ meta, [ file(row.fastq_1) ] ]
     } else {
-        array = [ meta, [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] ]
+        if (!file(row.fastq_2).exists()) {
+            exit 1, "ERROR: Please check input samplesheet -> Read 2 FastQ file does not exist!\n${row.fastq_2}"
+        }
+        array = [ meta, [ file(row.fastq_1), file(row.fastq_2) ] ]
     }
     return array
 }

@@ -7,7 +7,7 @@ import argparse
 
 
 def parse_args(args=None):
-    Description = "Reformat nf-core/rnaseq samplesheet file and check its contents."
+    Description = "Reformat nf-core/chipseq samplesheet file and check its contents."
     Epilog = "Example usage: python check_samplesheet.py <FILE_IN> <FILE_OUT>"
 
     parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
@@ -37,21 +37,22 @@ def check_samplesheet(file_in, file_out):
     """
     This function checks that the samplesheet follows the following structure:
 
-    sample,fastq_1,fastq_2,strandedness
-    SAMPLE_PE,SAMPLE_PE_RUN1_1.fastq.gz,SAMPLE_PE_RUN1_2.fastq.gz,forward
-    SAMPLE_PE,SAMPLE_PE_RUN2_1.fastq.gz,SAMPLE_PE_RUN2_2.fastq.gz,forward
-    SAMPLE_SE,SAMPLE_SE_RUN1_1.fastq.gz,,forward
+    sample,fastq_1,fastq_2,antibody,control
+    SPT5_T0_REP1,SRR1822153_1.fastq.gz,SRR1822153_2.fastq.gz,SPT5,SPT5_INPUT_REP1
+    SPT5_T0_REP2,SRR1822154_1.fastq.gz,SRR1822154_2.fastq.gz,SPT5,SPT5_INPUT_REP2
+    SPT5_INPUT_REP1,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,
+    SPT5_INPUT_REP2,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,
 
     For an example see:
-    https://github.com/nf-core/test-datasets/blob/rnaseq/samplesheet/v3.1/samplesheet_test.csv
+    https://raw.githubusercontent.com/nf-core/test-datasets/chipseq/samplesheet/v2.0/samplesheet_test.csv
     """
 
     sample_mapping_dict = {}
-    with open(file_in, "r", encoding='utf-8-sig') as fin:
+    with open(file_in, "r", encoding="utf-8-sig") as fin:
 
         ## Check header
-        MIN_COLS = 3
-        HEADER = ["sample", "fastq_1", "fastq_2", "strandedness"]
+        MIN_COLS = 2
+        HEADER = ["sample", "fastq_1", "fastq_2", "antibody", "control"]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print(
@@ -80,7 +81,7 @@ def check_samplesheet(file_in, file_out):
                 )
 
             ## Check sample name entries
-            sample, fastq_1, fastq_2, strandedness = lspl[: len(HEADER)]
+            sample, fastq_1, fastq_2, antibody, control = lspl[: len(HEADER)]
             if sample.find(" ") != -1:
                 print(
                     f"WARNING: Spaces have been replaced by underscores for sample: {sample}"
@@ -101,32 +102,42 @@ def check_samplesheet(file_in, file_out):
                             line,
                         )
 
-            ## Check strandedness
-            strandednesses = ["unstranded", "forward", "reverse"]
-            if strandedness:
-                if strandedness not in strandednesses:
+            ## Check antibody and control columns have valid values
+            if antibody:
+                if antibody.find(" ") != -1:
+                    print(
+                        f"WARNING: Spaces have been replaced by underscores for antibody: {antibody}"
+                    )
+                    antibody = antibody.replace(" ", "_")
+                if not control:
                     print_error(
-                        f"Strandedness must be one of '{', '.join(strandednesses)}'!",
+                        "Both antibody and control columns must be specified!",
                         "Line",
                         line,
                     )
-            else:
-                print_error(
-                    f"Strandedness has not been specified! Must be one of {', '.join(strandednesses)}.",
-                    "Line",
-                    line,
-                )
+            if control:
+                if control.find(" ") != -1:
+                    print(
+                        f"WARNING: Spaces have been replaced by underscores for control: {control}"
+                    )
+                    control = control.replace(" ", "_")
+                if not antibody:
+                    print_error(
+                        "Both antibody and control columns must be specified!",
+                        "Line",
+                        line,
+                    )
 
             ## Auto-detect paired-end/single-end
-            sample_info = []  ## [single_end, fastq_1, fastq_2, strandedness]
+            sample_info = []  ## [single_end, fastq_1, fastq_2, antibody, control]
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = ["0", fastq_1, fastq_2, strandedness]
+                sample_info = ["0", fastq_1, fastq_2, antibody, control]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = ["1", fastq_1, fastq_2, strandedness]
+                sample_info = ["1", fastq_1, fastq_2, antibody, control]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
 
-            ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, strandedness ]]}
+            ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, antibody, control ]]}
             if sample not in sample_mapping_dict:
                 sample_mapping_dict[sample] = [sample_info]
             else:
@@ -141,7 +152,16 @@ def check_samplesheet(file_in, file_out):
         make_dir(out_dir)
         with open(file_out, "w") as fout:
             fout.write(
-                ",".join(["sample", "single_end", "fastq_1", "fastq_2", "strandedness"])
+                ",".join(
+                    [
+                        "sample",
+                        "single_end",
+                        "fastq_1",
+                        "fastq_2",
+                        "antibody",
+                        "control",
+                    ]
+                )
                 + "\n"
             )
             for sample in sorted(sample_mapping_dict.keys()):
@@ -157,18 +177,15 @@ def check_samplesheet(file_in, file_out):
                         sample,
                     )
 
-                ## Check that multiple runs of the same sample are of the same strandedness
-                if not all(
-                    x[-1] == sample_mapping_dict[sample][0][-1]
-                    for x in sample_mapping_dict[sample]
-                ):
-                    print_error(
-                        f"Multiple runs of a sample must have the same strandedness!",
-                        "Sample",
-                        sample,
-                    )
-
                 for idx, val in enumerate(sample_mapping_dict[sample]):
+                    control = val[-1]
+                    if control and control not in sample_mapping_dict.keys():
+                        print_error(
+                            f"Control identifier has to match does a provided sample identifier!",
+                            "Control",
+                            control,
+                        )
+
                     fout.write(",".join([f"{sample}_T{idx+1}"] + val) + "\n")
     else:
         print_error(f"No entries to process!", "Samplesheet: {file_in}")

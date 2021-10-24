@@ -9,7 +9,7 @@ class WorkflowChipseq {
     //
     public static void initialise(params, log) {
         if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-            genomeExistsError(log)
+            genomeExistsError(params, log)
         }
 
         if (!params.fasta) {
@@ -27,7 +27,7 @@ class WorkflowChipseq {
         }
 
         if (!params.macs_gsize) {
-            macsGsizeWarn(log)
+            macsGsizeWarn(params, log)
         }
     }
 
@@ -61,7 +61,7 @@ class WorkflowChipseq {
     //
     // Exit pipeline if incorrect --genome key provided
     //
-    private static void genomeExistsError(log) {
+    private static void genomeExistsError(params, log) {
         log.error "=============================================================================\n" +
             "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" +
             "  Currently, the available genome keys are:\n" +
@@ -83,7 +83,7 @@ class WorkflowChipseq {
     //
     // Show a big warning message if we're not running MACS
     //
-    private static void macsGsizeWarn(log) {
+    private static void macsGsizeWarn(params, log) {
         def warnstring = params.genome ? "supported for '${params.genome}'" : 'supplied'
         log.warn "=================================================================\n" +
             "  WARNING! MACS genome size parameter not $warnstring.\n" +
