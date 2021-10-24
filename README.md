@@ -74,7 +74,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
     ```bash
     nextflow run nf-core/chipseq \
-        --input samplsheet.csv \
+        --input samplesheet.csv \
         --genome GRCh37 \
         -profile <docker/singularity/podman/conda/institute>
     ```
