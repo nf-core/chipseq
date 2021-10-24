@@ -10,7 +10,7 @@ params.samtools_stats_options = [:]
 include { BWA_MEM           } from '../../modules/nf-core/modules/bwa/mem/main' addParams( options: params.bwa_mem_options )
 include { BAM_SORT_SAMTOOLS } from './bam_sort_samtools'                        addParams( sort_options: params.samtools_sort_options, index_options: params.samtools_index_options, stats_options: params.samtools_stats_options )
 
-workflow MAP_BWA_MEM {
+workflow ALIGN_BWA_MEM {
     take:
     ch_reads         // channel: [ val(meta), [ reads ] ]
     ch_index         //    path: /path/to/index
