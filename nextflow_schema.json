@@ -73,14 +73,26 @@
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "description": "Path to FASTA genome file.",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
+                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have the appropriate alignment index available this will be generated for you automatically. Combine with `--save_reference` to save alignment index for future runs.",
                     "fa_icon": "far fa-file-code"
                 },
                 "gtf": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gtf(\\.gz)?$",
                     "description": "Path to GTF annotation file.",
-                    "fa_icon": "fas fa-file-invoice",
+                    "fa_icon": "fas fa-code-branch",
                     "help_text": "This parameter is *mandatory* if `--genome` is not specified."
+                },
+                "gff": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gff(\\.gz)?$",
+                    "fa_icon": "fas fa-code-branch",
+                    "description": "Path to GFF3 annotation file.",
+                    "help_text": "This parameter must be specified if `--genome` or `--gtf` are not specified."
                 },
                 "bwa_index": {
                     "type": "string",
@@ -89,8 +101,11 @@
                 },
                 "gene_bed": {
                     "type": "string",
-                    "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified.",
-                    "fa_icon": "fas fa-procedures"
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.bed(\\.gz)?$",
+                    "fa_icon": "fas fa-procedures",
+                    "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
                 },
                 "macs_gsize": {
                     "type": "number",
