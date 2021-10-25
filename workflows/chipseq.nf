@@ -136,7 +136,7 @@ include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams
 // def homer_annotatepeaks_consensus_options            = modules['homer_annotatepeaks_consensus']
 // homer_annotatepeaks_consensus_options['publish_dir'] += "/$peakType/consensus"
 
-// include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picard/mergesamfiles/main'          addParams( options: modules['picard_mergesamfiles'] )
+include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picard/mergesamfiles/main'          addParams( options: modules['picard_mergesamfiles'] )
 // include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main' addParams( options: modules['picard_collectmultiplemetrics'] )
 // include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/preseq/lcextrap/main'               addParams( options: modules['preseq_lcextrap'] )
 // include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'         addParams( options: modules['ucsc_bedgraphtobigwig'] )
@@ -160,9 +160,12 @@ def trimgalore_options    = modules['trimgalore']
 trimgalore_options.args  += params.trim_nextseq > 0 ? Utils.joinModuleArgs(["--nextseq ${params.trim_nextseq}"]) : ''
 if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
 
+
+def picard_markduplicates_samtools   = modules['picard_markduplicates_samtools']
+
 include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
 include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'          addParams( bwa_mem_options: modules['bwa_mem'], samtools_sort_options: modules['samtools_sort_lib'], samtools_index_options:  modules['samtools_sort_lib'], samtools_stats_options:  modules['samtools_sort_lib'] )
-// include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: modules['samtools_sort_merged_lib'] , samtools_stats_options: modules['samtools_sort_merged_lib']  )
+include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: picard_markduplicates_samtools, samtools_stats_options:  picard_markduplicates_samtools )
 
 /*
 ========================================================================================
@@ -213,33 +216,32 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
 
-    // //
-    // // SUBWORKFLOW: Merge resequenced BAM files
-    // //
-    // MAP_BWA_MEM
-    //     .out
-    //     .bam
-    //     .map {
-    //         meta, bam ->
-    //             fmeta = meta.findAll { it.key != 'read_group' }
-    //             fmeta.id = fmeta.id.split('_')[0..-2].join('_')
-    //             [ fmeta, bam ] }
-    //     .groupTuple(by: [0])
-    //     .map { it ->  [ it[0], it[1].flatten() ] }
-    //     .set { ch_sort_bam }
+    //
+    // SUBWORKFLOW: Merge resequenced BAM files
+    //
+    ALIGN_BWA_MEM
+        .out
+        .bam
+        .map {
+            meta, bam ->
+                fmeta = meta.findAll { it.key != 'read_group' }
+                fmeta.id = fmeta.id.split('_')[0..-2].join('_')
+                [ fmeta, bam ] }
+        .groupTuple(by: [0])
+        .map { it ->  [ it[0], it[1].flatten() ] }
+        .set { ch_sort_bam }
 
-    // PICARD_MERGESAMFILES (
-    //     ch_sort_bam
-    // )
-    // // ch_software_versions = ch_software_versions.mix(PICARD_MERGESAMFILES.out.versions.first().ifEmpty(null))
-    // ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions)
+    PICARD_MERGESAMFILES (
+        ch_sort_bam
+    )
+    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions.first().ifEmpty(null))
 
-    // //
-    // // SUBWORKFLOW: Mark duplicates & filter BAM files
-    // //
-    // MARK_DUPLICATES_PICARD (
-    //     PICARD_MERGESAMFILES.out.bam
-    // )
+    //
+    // SUBWORKFLOW: Mark duplicates & filter BAM files
+    //
+    MARK_DUPLICATES_PICARD (
+        PICARD_MERGESAMFILES.out.bam
+    )
 
     // //
     // // SUBWORKFLOW: Fix getting name sorted BAM here for PE/SE
