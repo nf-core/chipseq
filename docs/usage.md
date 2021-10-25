@@ -4,124 +4,63 @@
 
 > _Documentation of pipeline parameters is generated automatically from the pipeline schema and can no longer be found in markdown files._
 
-## Introduction
-
-You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 6 columns, and a header row as shown in the examples below.
-
-```bash
---input '[path to design file]'
-```
-
-### Multiple replicates
-
-The `group` identifier should be identical when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1.
-
-The `antibody` column is required to separate the downstream consensus peak merging and differential analysis for different antibodies. Its not advisable to generate a consensus peak set across different antibodies especially if their binding patterns are inherently different e.g. narrow transcription factors and broad histone marks.
-
-The `control` column should be the `group` identifier for the controls for any given IP. The pipeline will automatically pair the inputs based on replicate identifier (i.e. where you have an equal number of replicates for your IP's and controls), alternatively, the first control sample in that group will be selected.
-
-In the single-end design below there are triplicate samples for the `WT_BCATENIN_IP` group along with triplicate samples for their corresponding `WT_INPUT` samples.
-
-```bash
-group,replicate,fastq_1,fastq_2,antibody,control
-WT_BCATENIN_IP,1,BLA203A1_S27_L006_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_BCATENIN_IP,2,BLA203A25_S16_L002_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_BCATENIN_IP,3,BLA203A49_S40_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_INPUT,1,BLA203A6_S32_L006_R1_001.fastq.gz,,,
-WT_INPUT,2,BLA203A30_S21_L002_R1_001.fastq.gz,,,
-WT_INPUT,3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
-```
-
-### Multiple runs of the same library
-
-Both the `group` and `replicate` identifiers should be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example where the second replicate of the `WT_BCATENIN_IP` and `WT_INPUT` groups has been re-sequenced multiple times:
-
-```bash
-group,replicate,fastq_1,fastq_2,antibody,control
-WT_BCATENIN_IP,1,BLA203A1_S27_L006_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_BCATENIN_IP,2,BLA203A25_S16_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_BCATENIN_IP,2,BLA203A25_S16_L002_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_BCATENIN_IP,2,BLA203A25_S16_L003_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_BCATENIN_IP,3,BLA203A49_S40_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_INPUT,1,BLA203A6_S32_L006_R1_001.fastq.gz,,,
-WT_INPUT,2,BLA203A30_S21_L001_R1_001.fastq.gz,,,
-WT_INPUT,2,BLA203A30_S21_L002_R1_001.fastq.gz,,,
-WT_INPUT,3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
-```
-
-### Full design
-
-A final design file may look something like the one below. This is for two antibodies and associated controls in triplicate, where the second replicate of the `WT_BCATENIN_IP` and `NAIVE_BCATENIN_IP` group has been sequenced twice:
-
-```bash
-group,replicate,fastq_1,fastq_2,antibody,control
-WT_BCATENIN_IP,1,BLA203A1_S27_L006_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_BCATENIN_IP,2,BLA203A25_S16_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_BCATENIN_IP,2,BLA203A25_S16_L002_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-WT_BCATENIN_IP,3,BLA203A49_S40_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
-NAIVE_BCATENIN_IP,1,BLA203A7_S60_L001_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
-NAIVE_BCATENIN_IP,2,BLA203A43_S34_L001_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
-NAIVE_BCATENIN_IP,2,BLA203A43_S34_L002_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
-NAIVE_BCATENIN_IP,3,BLA203A64_S55_L001_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
-WT_TCF4_IP,1,BLA203A3_S29_L006_R1_001.fastq.gz,,TCF4,WT_INPUT
-WT_TCF4_IP,2,BLA203A27_S18_L001_R1_001.fastq.gz,,TCF4,WT_INPUT
-WT_TCF4_IP,3,BLA203A51_S42_L001_R1_001.fastq.gz,,TCF4,WT_INPUT
-NAIVE_TCF4_IP,1,BLA203A9_S62_L001_R1_001.fastq.gz,,TCF4,NAIVE_INPUT
-NAIVE_TCF4_IP,2,BLA203A45_S36_L001_R1_001.fastq.gz,,TCF4,NAIVE_INPUT
-NAIVE_TCF4_IP,3,BLA203A66_S57_L001_R1_001.fastq.gz,,TCF4,NAIVE_INPUT
-WT_INPUT,1,BLA203A6_S32_L006_R1_001.fastq.gz,,,
-WT_INPUT,2,BLA203A30_S21_L001_R1_001.fastq.gz,,,
-WT_INPUT,3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
-NAIVE_INPUT,1,BLA203A12_S3_L001_R1_001.fastq.gz,,,
-NAIVE_INPUT,2,BLA203A48_S39_L001_R1_001.fastq.gz,,,
-NAIVE_INPUT,3,BLA203A49_S1_L006_R1_001.fastq.gz,,,
-```
-
-| Column      | Description                                                                                                                                      |
-|-------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| `group`     | Group/condition identifier for sample. This will be identical for re-sequenced libraries and replicate samples from the same experimental group. |
-| `replicate` | Integer representing replicate number. This will be identical for re-sequenced libraries. Must start from `1..<number of replicates>`.           |
-| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".                                        |
-| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".                                        |
-| `antibody`  | Antibody name. This is required to segregate downstream analysis for different antibodies. Required when `control` is specified.                 |
-| `control`   | Group identifier for control sample. The pipeline will automatically select the control sample with the same replicate identifier as the IP.     |
-
-Example design files have been provided with the pipeline for [paired-end](../assets/design_pe.csv) and [single-end](../assets/design_se.csv) data.
-
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below.
+You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row as shown in the examples below.
 
 ```console
 --input '[path to samplesheet file]'
 ```
 
-### Multiple runs of the same sample
+### Multiple runs of the same library
 
-The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
+The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example where the samples called `WT_BCATENIN_IP_REP2` and `WT_INPUT_REP2` have been re-sequenced multiple times:
 
-```console
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
+```bash
+sample,fastq_1,fastq_2,antibody,control
+WT_BCATENIN_IP_REP1,BLA203A1_S27_L006_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP_REP2,BLA203A25_S16_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP_REP2,BLA203A25_S16_L002_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP_REP2,BLA203A25_S16_L003_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP_REP3,BLA203A49_S40_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_INPUT_REP1,BLA203A6_S32_L006_R1_001.fastq.gz,,,
+WT_INPUT_REP2,BLA203A30_S21_L001_R1_001.fastq.gz,,,
+WT_INPUT_REP2,BLA203A30_S21_L002_R1_001.fastq.gz,,,
+WT_INPUT_REP3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
 ```
 
-### Full samplesheet
+### Full design
 
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
+The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 5 columns to match those defined in the table below.
 
-A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
+The `antibody` column is required to separate the downstream consensus peak merging and differential analysis for different antibodies. Its not advisable to generate a consensus peak set across different antibodies especially if their binding patterns are inherently different e.g. narrow transcription factors and broad histone marks.
 
-```console
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
-TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,
-TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
+The `control` column should be the `sample` identifier for the controls for any given IP.
+
+A final design file may look something like the one below. This is for two antibodies and associated controls, where the `WT_BCATENIN_IP_REP2` and `NAIVE_BCATENIN_IP_REP2` samples have been sequenced twice:
+
+```bash
+sample,fastq_1,fastq_2,antibody,control
+WT_BCATENIN_IP_REP1,BLA203A1_S27_L006_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP_REP2,BLA203A25_S16_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP_REP2,BLA203A25_S16_L002_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+WT_BCATENIN_IP_REP3,BLA203A49_S40_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT
+NAIVE_BCATENIN_IP_REP1,BLA203A7_S60_L001_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
+NAIVE_BCATENIN_IP_REP2,BLA203A43_S34_L001_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
+NAIVE_BCATENIN_IP_REP2,BLA203A43_S34_L002_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
+NAIVE_BCATENIN_IP_REP3,BLA203A64_S55_L001_R1_001.fastq.gz,,BCATENIN,NAIVE_INPUT
+WT_TCF4_IP_REP1,BLA203A3_S29_L006_R1_001.fastq.gz,,TCF4,WT_INPUT
+WT_TCF4_IP_REP2,BLA203A27_S18_L001_R1_001.fastq.gz,,TCF4,WT_INPUT
+WT_TCF4_IP_REP3,BLA203A51_S42_L001_R1_001.fastq.gz,,TCF4,WT_INPUT
+NAIVE_TCF4_IP_REP1,BLA203A9_S62_L001_R1_001.fastq.gz,,TCF4,NAIVE_INPUT
+NAIVE_TCF4_IP_REP2,BLA203A45_S36_L001_R1_001.fastq.gz,,TCF4,NAIVE_INPUT
+NAIVE_TCF4_IP_REP3,BLA203A66_S57_L001_R1_001.fastq.gz,,TCF4,NAIVE_INPUT
+WT_INPUT_REP1,BLA203A6_S32_L006_R1_001.fastq.gz,,,
+WT_INPUT_REP2,BLA203A30_S21_L001_R1_001.fastq.gz,,,
+WT_INPUT_REP3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
+NAIVE_INPUT_REP1,BLA203A12_S3_L001_R1_001.fastq.gz,,,
+NAIVE_INPUT_REP2,BLA203A48_S39_L001_R1_001.fastq.gz,,,
+NAIVE_INPUT_REP3,BLA203A49_S1_L006_R1_001.fastq.gz,,,
 ```
 
 | Column         | Description                                                                                                                                                                            |
@@ -129,15 +68,28 @@ TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
 | `sample`       | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
 | `fastq_1`      | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
 | `fastq_2`      | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+| `antibody`     | Antibody name. This is required to segregate downstream analysis for different antibodies. Required when `control` is specified.                                                       |
+| `control`      | Sample name for control sample.                                                                                                                                                        |
 
-An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+Example design files have been provided with the pipeline for [paired-end](../assets/samplesheet_pe.csv) and [single-end](../assets/samplesheet_se.csv) data.
+
+> **NB:** The `group` and `replicate` columns were replaced with a single `sample` column as of v2.0 of the pipeline. The `sample` column is essentially a concatenation of the `group` and `replicate` columns. If all values of `sample` have the same number of underscores, fields defined by these underscore-separated names may be used in the PCA plots produced by the pipeline, to regain the ability to represent different groupings.
+
+## Reference genome files
+
+The minimum reference genome requirements are a FASTA and GTF file, all other files required to run the pipeline can be generated from these files. However, it is more storage and compute friendly if you are able to re-use reference genome files as efficiently as possible. It is recommended to use the `--save_reference` parameter if you are using the pipeline to build new indices (e.g. those unavailable on [AWS iGenomes](https://nf-co.re/usage/reference_genomes)) so that you can save them somewhere locally. The index building step can be quite a time-consuming process and it permits their reuse for future runs of the pipeline to save disk space. You can then either provide the appropriate reference genome files on the command-line via the appropriate parameters (e.g. `--bwa_index '/path/to/bwa/index/'`) or via a custom config file.
+
+* If `--genome` is provided then the FASTA and GTF files (and existing indices) will be automatically obtained from AWS-iGenomes unless these have already been downloaded locally in the path specified by `--igenomes_base`.
+* If `--gene_bed` is not provided then it will be generated from the GTF file.
+
+> **NB:** Compressed reference files are also supported by the pipeline i.e. standard files with the `.gz` extension and indices folders with the `tar.gz` extension.
 
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run nf-core/chipseq --input design.csv --genome GRCh37 -profile docker
+nextflow run nf-core/chipseq --input samplesheet.csv --genome GRCh37 -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.

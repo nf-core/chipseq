@@ -6,7 +6,7 @@ params.options = [:]
 /*
  * Prepare genome intervals for filtering by removing regions in blacklist file
  */
-process MAKE_GENOME_FILTER {
+process GENOME_BLACKLIST_REGIONS {
     tag "$sizes"
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
@@ -28,14 +28,13 @@ process MAKE_GENOME_FILTER {
     path "versions.yml", emit: versions
 
     script:
-    def software = 'bedtools'
     def file_out = "${sizes.simpleName}.include_regions.bed"
-    if (params.blacklist) {
+    if (blacklist) {
         """
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out
 
         cat <<-END_VERSIONS > versions.yml
-            ${getProcessName(task.process)}:
+        ${getProcessName(task.process)}:
             bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
         END_VERSIONS
         """

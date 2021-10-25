@@ -11,7 +11,7 @@ include { BAM_FILTER         } from '../../modules/local/bam_filter'         add
 include { BAM_REMOVE_ORPHANS } from '../../modules/local/bam_remove_orphans' addParams( options: params.bam_remove_orphans_options )
 include { BAM_SORT_SAMTOOLS } from '../nf-core/bam_sort_samtools'            addParams( sort_options: params.samtools_sort_options, index_options: params.samtools_index_options, stats_options: params.samtools_stats_options )
 
-workflow BAM_CLEAN {
+workflow FILTER_BAM_BAMTOOLS {
     take:
     ch_bam_bai                 // channel: [ val(meta), [ bam ], [bai] ]
     ch_bed                     // channel: [ bed ]
