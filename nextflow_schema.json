@@ -352,6 +352,11 @@
                     "type": "boolean",
                     "description": "Skip MultiQC.",
                     "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_qc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip all QC steps except for MultiQC."
                 }
             }
         },
