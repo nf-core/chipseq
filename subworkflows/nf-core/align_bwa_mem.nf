@@ -12,14 +12,14 @@ include { BAM_SORT_SAMTOOLS } from './bam_sort_samtools'                        
 
 workflow ALIGN_BWA_MEM {
     take:
-    ch_reads         // channel: [ val(meta), [ reads ] ]
-    ch_index         //    path: /path/to/index
+    reads         // channel: [ val(meta), [ reads ] ]
+    index         //    path: /path/to/index
 
     main:
 
     ch_versions = Channel.empty()
 
-    BWA_MEM(ch_reads, ch_index)
+    BWA_MEM(reads, index)
     BAM_SORT_SAMTOOLS(BWA_MEM.out.bam)
 
     ch_versions = ch_versions.mix(BWA_MEM.out.versions.first(),

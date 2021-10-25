@@ -161,7 +161,7 @@ trimgalore_options.args  += params.trim_nextseq > 0 ? Utils.joinModuleArgs(["--n
 if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
 
 include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
-// include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'          addParams( bwa_mem_options: modules['bwa_mem'], samtools_sort_options: modules['samtools_sort_lib'], samtools_index_options:  modules['samtools_sort_lib'], samtools_stats_options:  modules['samtools_sort_lib'] )
+include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'          addParams( bwa_mem_options: modules['bwa_mem'], samtools_sort_options: modules['samtools_sort_lib'], samtools_index_options:  modules['samtools_sort_lib'], samtools_stats_options:  modules['samtools_sort_lib'] )
 // include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: modules['samtools_sort_merged_lib'] , samtools_stats_options: modules['samtools_sort_merged_lib']  )
 
 /*
@@ -202,18 +202,16 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
 
-    // //
-    // // SUBWORKFLOW: Map reads & BAM QC
-    // //
-    // score = params.bwa_min_score ? " -T ${params.bwa_min_score}" : ''
-    // params.modules['bwa_mem'].args += score
-    // MAP_BWA_MEM (
-    //     FASTQC_TRIMGALORE.out.reads,
-    //     ch_index
-    // )
-    // // ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.bwa_versions.first())
-    // // ch_software_versions = ch_software_versions.mix(MAP_BWA_MEM.out.samtools_versions.first().ifEmpty(null))
-    // ch_versions = ch_versions.mix(MAP_BWA_MEM.out.versions)
+    //
+    // SUBWORKFLOW: Map reads & BAM QC
+    //
+    score = params.bwa_min_score ? " -T ${params.bwa_min_score}" : ''
+    params.modules['bwa_mem'].args += score
+    ALIGN_BWA_MEM (
+        FASTQC_TRIMGALORE.out.reads,
+        PREPARE_GENOME.out.bwa_index
+    )
+    ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
 
     // //
     // // SUBWORKFLOW: Merge resequenced BAM files
