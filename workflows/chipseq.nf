@@ -146,7 +146,7 @@ include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picar
 include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main' addParams( options: modules['picard_collectmultiplemetrics'] )
 include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/preseq/lcextrap/main'               addParams( options: modules['preseq_lcextrap'] )
 include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/modules/phantompeakqualtools/main'          addParams( options: modules['phantompeakqualtools'] )
-// include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'         addParams( options: modules['ucsc_bedgraphtobigwig'] )
+include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'         addParams( options: modules['ucsc_bedgraphtobigwig'] )
 // include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'       addParams( options: modules['deeptools_computematrix'] )
 // include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'         addParams( options: modules['deeptools_plotprofile'] )
 // include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'         addParams( options: modules['deeptools_plotheatmap'] )
@@ -284,7 +284,6 @@ workflow CHIPSEQ {
     PHANTOMPEAKQUALTOOLS (
         FILTER_BAM_BAMTOOLS.out.bam
     )
-    // ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first().ifEmpty(null))
     ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
 
     // MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
@@ -302,15 +301,14 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
 
-    // //
-    // // MODULE: Coverage tracks
-    // //
-    // UCSC_BEDGRAPHTOBIGWIG (
-    //     BEDTOOLS_GENOMECOV.out.bedgraph,
-    //     GET_CHROM_SIZES.out.sizes
-    // )
-    // // ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first().ifEmpty(null))
-    // ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions)
+    //
+    // MODULE: Coverage tracks
+    //
+    UCSC_BEDGRAPHTOBIGWIG (
+        BEDTOOLS_GENOMECOV.out.bedgraph,
+        PREPARE_GENOME.out.chrom_sizes
+    )
+    ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first())
 
     // //
     // // MODULE: Coverage plots
