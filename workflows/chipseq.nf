@@ -147,7 +147,7 @@ include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picar
 include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/preseq/lcextrap/main'               addParams( options: modules['preseq_lcextrap'] )
 include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/modules/phantompeakqualtools/main'          addParams( options: modules['phantompeakqualtools'] )
 include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'         addParams( options: modules['ucsc_bedgraphtobigwig'] )
-// include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'       addParams( options: modules['deeptools_computematrix'] )
+include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'       addParams( options: modules['deeptools_computematrix'] )
 // include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'         addParams( options: modules['deeptools_plotprofile'] )
 // include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'         addParams( options: modules['deeptools_plotheatmap'] )
 // include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'     addParams( options: deeptools_plotfingerprint_options )
@@ -310,15 +310,14 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first())
 
-    // //
-    // // MODULE: Coverage plots
-    // //
-    // DEEPTOOLS_COMPUTEMATRIX (
-    //     UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
-    //     ch_gene_bed
-    // )
-    // // ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first().ifEmpty(null))
-    // ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions)
+    //
+    // MODULE: Coverage plots
+    //
+    DEEPTOOLS_COMPUTEMATRIX (
+        UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
+        PREPARE_GENOME.out.gene_bed
+    )
+    ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
     // DEEPTOOLS_PLOTPROFILE (
     //     DEEPTOOLS_COMPUTEMATRIX.out.matrix
