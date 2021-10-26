@@ -61,11 +61,11 @@ ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
+def plot_macs2_qc_options         = modules['plot_macs2_qc']
+plot_macs2_qc_options.publish_dir += "/$peakType/qc"
+
 // def plot_homer_annotatepeaks_options          = modules['plot_homer_annotatepeaks']
 // plot_homer_annotatepeaks_options.publish_dir  += "/$peakType/qc"
-
-// def plot_macs2_qc_options         = modules['plot_macs2_qc']
-// plot_macs2_qc_options.publish_dir += "/$peakType/qc"
 
 // def macs2_consensus_options         = modules['macs2_consensus']
 // macs2_consensus_options.publish_dir += "/$peakType/qc"
@@ -76,9 +76,8 @@ def modules = params.modules.clone()
 
 include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'                   addParams( options: modules['bedtools_genomecov'] )
 include { FRIP_SCORE                          } from '../modules/local/frip_score'                           addParams( options: modules['frip_score'] )
-
+include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'                        addParams( options: plot_macs2_qc_options )
 // include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'             addParams( options: plot_homer_annotatepeaks_options )
-// include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'                        addParams( options: plot_macs2_qc_options )
 // include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'                     addParams( options: macs2_consensus_options )
 // //include { DESEQ2_QC  } from '../modules/local/deseq2_qc'                             addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
 // include { IGV                                 } from '../modules/local/igv'                                  addParams( options: [:] )
@@ -343,7 +342,7 @@ workflow CHIPSEQ {
         }
         .set { ch_control_bam_bai }
 
-     FILTER_BAM_BAMTOOLS
+    FILTER_BAM_BAMTOOLS
         .out
         .bam
         .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
@@ -400,16 +399,16 @@ workflow CHIPSEQ {
     //         ch_frip_score_header
     //     )
 
-    //     PLOT_MACS2_QC (
-    //         MACS2_CALLPEAK.out.peak.collect{it[1]}
-    //     )
+        PLOT_MACS2_QC (
+            MACS2_CALLPEAK.out.peak.collect{it[1]}
+        )
+        ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
 
     //     HOMER_ANNOTATEPEAKS_MACS2 (
     //         MACS2_CALLPEAK.out.peak,
     //         ch_fasta,
     //         ch_gtf
     //     )
-    //     // ch_software_versions = ch_software_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first().ifEmpty(null))
     //     ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions)
 
     //     PLOT_HOMER_ANNOTATEPEAKS (
@@ -417,6 +416,7 @@ workflow CHIPSEQ {
     //         ch_peak_annotation_header,
     //         "_peaks.annotatePeaks.txt"
     //     )
+    //     ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
 
     //     // Create channel: [ meta , [ peaks ] ]
     //     // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
