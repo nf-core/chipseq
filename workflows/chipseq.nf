@@ -67,8 +67,8 @@ plot_macs2_qc_options.publish_dir += "/$peakType/qc"
 def plot_homer_annotatepeaks_options          = modules['plot_homer_annotatepeaks']
 plot_homer_annotatepeaks_options.publish_dir  += "/$peakType/qc"
 
-// def macs2_consensus_options         = modules['macs2_consensus']
-// macs2_consensus_options.publish_dir += "/$peakType/qc"
+def macs2_consensus_options         = modules['macs2_consensus']
+macs2_consensus_options.publish_dir += "/$peakType/qc"
 
 // def multiqc_options         = modules['multiqc']
 // multiqc_options.args        += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
@@ -78,7 +78,7 @@ include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_
 include { FRIP_SCORE                          } from '../modules/local/frip_score'                           addParams( options: modules['frip_score'] )
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'                        addParams( options: plot_macs2_qc_options )
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'             addParams( options: plot_homer_annotatepeaks_options )
-// include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'                     addParams( options: macs2_consensus_options )
+include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'                     addParams( options: macs2_consensus_options )
 // //include { DESEQ2_QC  } from '../modules/local/deseq2_qc'                             addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
 // include { IGV                                 } from '../modules/local/igv'                                  addParams( options: [:] )
 // include { MULTIQC                             } from '../modules/local/multiqc'                              addParams( options: multiqc_options ) // TODO review
@@ -416,34 +416,35 @@ workflow CHIPSEQ {
             ch_peak_annotation_header,
             "_peaks.annotatePeaks.txt"
         )
-        ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions.first())
+        ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
 
-    //     // Create channel: [ meta , [ peaks ] ]
-    //     // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
-    //     MACS2_CALLPEAK
-    //         .out
-    //         .peak
-    //         .map { meta, peak -> [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] }
-    //         .groupTuple()
-    //         .map {
-    //             antibody, groups, peaks ->
-    //                 [
-    //                     antibody,
-    //                     groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
-    //                     peaks
-    //                 ] }
-    //         .map {
-    //             antibody, groups, peaks ->
-    //                 def meta = [:]
-    //                 meta.id = antibody
-    //                 meta.multiple_groups = groups.size() > 1
-    //                 meta.replicates_exist = groups.max { groups.value }.value > 1
-    //                 [ meta, peaks ] }
-    //         .set { ch_antibody_peaks }
+        // Create channel: [ meta , [ peaks ] ]
+        // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
+        MACS2_CALLPEAK
+            .out
+            .peak
+            .map { meta, peak -> [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] }
+            .groupTuple()
+            .map {
+                antibody, groups, peaks ->
+                    [
+                        antibody,
+                        groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
+                        peaks
+                    ] }
+            .map {
+                antibody, groups, peaks ->
+                    def meta = [:]
+                    meta.id = antibody
+                    meta.multiple_groups = groups.size() > 1
+                    meta.replicates_exist = groups.max { groups.value }.value > 1
+                    [ meta, peaks ] }
+            .set { ch_antibody_peaks }
 
-    //     MACS2_CONSENSUS (
-    //         ch_antibody_peaks
-    //     )
+        MACS2_CONSENSUS (
+            ch_antibody_peaks
+        )
+        ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
     //     HOMER_ANNOTATEPEAKS_CONSENSUS (
     //         MACS2_CONSENSUS.out.bed,
