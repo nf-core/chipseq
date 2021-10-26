@@ -66,14 +66,10 @@ process MULTIQC {
     output:
     path "*multiqc_report.html", emit: report
     path "*_data"              , emit: data
+    path "*_plots"             , optional:true, emit: plots
     path "versions.yml"        , emit: versions
-    // TODO add the line below:
-    // path "*_plots"             , optional:true, emit: plots
 
     script:
-    // def software      = getSoftwareName(task.process)
-    // def rtitle        = custom_runName ? "--title \"$custom_runName\"" : ''
-    // def rfilename     = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     def custom_config = params.multiqc_config ? "--config $mqc_custom_config" : ''
     """
     multiqc \\
