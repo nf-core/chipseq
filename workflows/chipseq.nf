@@ -64,8 +64,8 @@ def modules = params.modules.clone()
 def plot_macs2_qc_options         = modules['plot_macs2_qc']
 plot_macs2_qc_options.publish_dir += "/$peakType/qc"
 
-// def plot_homer_annotatepeaks_options          = modules['plot_homer_annotatepeaks']
-// plot_homer_annotatepeaks_options.publish_dir  += "/$peakType/qc"
+def plot_homer_annotatepeaks_options          = modules['plot_homer_annotatepeaks']
+plot_homer_annotatepeaks_options.publish_dir  += "/$peakType/qc"
 
 // def macs2_consensus_options         = modules['macs2_consensus']
 // macs2_consensus_options.publish_dir += "/$peakType/qc"
@@ -77,7 +77,7 @@ plot_macs2_qc_options.publish_dir += "/$peakType/qc"
 include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'                   addParams( options: modules['bedtools_genomecov'] )
 include { FRIP_SCORE                          } from '../modules/local/frip_score'                           addParams( options: modules['frip_score'] )
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'                        addParams( options: plot_macs2_qc_options )
-// include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'             addParams( options: plot_homer_annotatepeaks_options )
+include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'             addParams( options: plot_homer_annotatepeaks_options )
 // include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'                     addParams( options: macs2_consensus_options )
 // //include { DESEQ2_QC  } from '../modules/local/deseq2_qc'                             addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
 // include { IGV                                 } from '../modules/local/igv'                                  addParams( options: [:] )
@@ -411,12 +411,12 @@ workflow CHIPSEQ {
         )
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
-    //     PLOT_HOMER_ANNOTATEPEAKS (
-    //         HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
-    //         ch_peak_annotation_header,
-    //         "_peaks.annotatePeaks.txt"
-    //     )
-    //     ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
+        PLOT_HOMER_ANNOTATEPEAKS (
+            HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
+            ch_peak_annotation_header,
+            "_peaks.annotatePeaks.txt"
+        )
+        ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions.first())
 
     //     // Create channel: [ meta , [ peaks ] ]
     //     // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
