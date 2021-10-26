@@ -143,7 +143,7 @@ include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 // homer_annotatepeaks_consensus_options['publish_dir'] += "/$peakType/consensus"
 
 include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picard/mergesamfiles/main'          addParams( options: modules['picard_mergesamfiles'] )
-// include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main' addParams( options: modules['picard_collectmultiplemetrics'] )
+include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main' addParams( options: modules['picard_collectmultiplemetrics'] )
 // include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/preseq/lcextrap/main'               addParams( options: modules['preseq_lcextrap'] )
 // include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'         addParams( options: modules['ucsc_bedgraphtobigwig'] )
 // include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'       addParams( options: modules['deeptools_computematrix'] )
@@ -261,15 +261,14 @@ workflow CHIPSEQ {
     ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
 
 
-    // //
-    // // MODULE: Post alignment QC
-    // //
-    // PICARD_COLLECTMULTIPLEMETRICS (
-    //     BAM_CLEAN.out.bam,
-    //     ch_fasta
-    // )
-
-    // // TODO Add versions to picard collectmultiplemetrics
+    //
+    // MODULE: Post alignment QC
+    //
+    PICARD_COLLECTMULTIPLEMETRICS (
+        FILTER_BAM_BAMTOOLS.out.bam,
+        PREPARE_GENOME.out.fasta
+    )
+    ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
 
     // //
     // // MODULE: Library coverage
