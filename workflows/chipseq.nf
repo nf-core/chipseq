@@ -81,7 +81,7 @@ include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_home
 include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'                     addParams( options: macs2_consensus_options )
 //include { DESEQ2_QC  } from '../modules/local/deseq2_qc'                             addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
 include { IGV                                 } from '../modules/local/igv'                                  addParams( options: [:] )
-include { MULTIQC                             } from '../modules/local/multiqc'                              addParams( options: multiqc_options ) // TODO review
+include { MULTIQC                             } from '../modules/local/multiqc'                              addParams( options: multiqc_options )
 include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'  addParams( options: modules['multiqc_custom_phantompeakqualtools'] )
 include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'                 addParams( options: modules['multiqc_custom_peaks'] )
 
