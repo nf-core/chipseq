@@ -260,7 +260,6 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
 
-
     //
     // MODULE: Post alignment QC
     //
