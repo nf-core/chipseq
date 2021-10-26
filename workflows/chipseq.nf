@@ -74,7 +74,7 @@ def modules = params.modules.clone()
 // multiqc_options.args        += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
 // multiqc_options.publish_dir += "/$peakType"
 
-// include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'                   addParams( options: modules['bedtools_genomecov'] )
+include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'                   addParams( options: modules['bedtools_genomecov'] )
 // include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'             addParams( options: plot_homer_annotatepeaks_options )
 // include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'                        addParams( options: plot_macs2_qc_options )
 // include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'                     addParams( options: macs2_consensus_options )
@@ -145,12 +145,12 @@ include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picard/mergesamfiles/main'          addParams( options: modules['picard_mergesamfiles'] )
 include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main' addParams( options: modules['picard_collectmultiplemetrics'] )
 include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/preseq/lcextrap/main'               addParams( options: modules['preseq_lcextrap'] )
+include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/modules/phantompeakqualtools/main'          addParams( options: modules['phantompeakqualtools'] )
 // include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'         addParams( options: modules['ucsc_bedgraphtobigwig'] )
 // include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'       addParams( options: modules['deeptools_computematrix'] )
 // include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'         addParams( options: modules['deeptools_plotprofile'] )
 // include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'         addParams( options: modules['deeptools_plotheatmap'] )
 // include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'     addParams( options: deeptools_plotfingerprint_options )
-// include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/modules/phantompeakqualtools/main'          addParams( options: modules['phantompeakqualtools'] )
 // include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'                addParams( options: macs2_callpeak_options )
 // include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'         addParams( options: subread_featurecounts_options )
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] )
@@ -278,14 +278,14 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
 
-    // //
-    // // MODULE: Strand cross-correlation
-    // //
-    // PHANTOMPEAKQUALTOOLS (
-    //     BAM_CLEAN.out.bam
-    // )
-    // // ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first().ifEmpty(null))
-    // ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions)
+    //
+    // MODULE: Strand cross-correlation
+    //
+    PHANTOMPEAKQUALTOOLS (
+        FILTER_BAM_BAMTOOLS.out.bam
+    )
+    // ch_software_versions = ch_software_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
 
     // MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
     //     PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
@@ -294,12 +294,13 @@ workflow CHIPSEQ {
     //     ch_spp_correlation_header
     // )
 
-    // //
-    // // MODULE: Coverage tracks
-    // //
-    // BEDTOOLS_GENOMECOV (
-    //     BAM_CLEAN.out.bam.join(BAM_CLEAN.out.flagstat, by: [0])
-    // )
+    //
+    // MODULE: Coverage tracks
+    //
+    BEDTOOLS_GENOMECOV (
+        FILTER_BAM_BAMTOOLS.out.bam.join(FILTER_BAM_BAMTOOLS.out.flagstat, by: [0])
+    )
+    ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
 
     // //
     // // MODULE: Coverage tracks

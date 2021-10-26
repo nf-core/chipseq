@@ -27,7 +27,6 @@ process BEDTOOLS_GENOMECOV {
     path "versions.yml"                , emit: versions
 
     script:
-    def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
 
     def pe       = meta.single_end ? '' : '-pc'
