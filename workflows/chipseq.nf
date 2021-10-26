@@ -136,11 +136,11 @@ macs2_callpeak_options['publish_dir'] += "/$peakType"
 def homer_annotatepeaks_macs2_options            = modules['homer_annotatepeaks_macs2']
 homer_annotatepeaks_macs2_options['publish_dir'] += "/$peakType"
 
-// def subread_featurecounts_options            = modules['subread_featurecounts']
-// subread_featurecounts_options['publish_dir'] += "/$peakType/consensus"
+def homer_annotatepeaks_consensus_options            = modules['homer_annotatepeaks_consensus']
+homer_annotatepeaks_consensus_options['publish_dir'] += "/$peakType/consensus"
 
-// def homer_annotatepeaks_consensus_options            = modules['homer_annotatepeaks_consensus']
-// homer_annotatepeaks_consensus_options['publish_dir'] += "/$peakType/consensus"
+def subread_featurecounts_options            = modules['subread_featurecounts']
+subread_featurecounts_options['publish_dir'] += "/$peakType/consensus"
 
 include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picard/mergesamfiles/main'          addParams( options: modules['picard_mergesamfiles'] )
 include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main' addParams( options: modules['picard_collectmultiplemetrics'] )
@@ -152,11 +152,11 @@ include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deept
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'         addParams( options: modules['deeptools_plotheatmap'] )
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'     addParams( options: deeptools_plotfingerprint_options )
 include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'                addParams( options: macs2_callpeak_options )
-// include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'         addParams( options: subread_featurecounts_options )
+include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'         addParams( options: subread_featurecounts_options )
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] )
 
 include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/modules/homer/annotatepeaks/main' addParams( options:homer_annotatepeaks_macs2_options )
-// include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/modules/homer/annotatepeaks/main' addParams( options:homer_annotatepeaks_consensus_options )
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/modules/homer/annotatepeaks/main' addParams( options:homer_annotatepeaks_consensus_options )
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -446,39 +446,38 @@ workflow CHIPSEQ {
         )
         ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
-    //     HOMER_ANNOTATEPEAKS_CONSENSUS (
-    //         MACS2_CONSENSUS.out.bed,
-    //         ch_fasta,
-    //         ch_gtf
-    //     )
-    //     // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-    //     // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+        HOMER_ANNOTATEPEAKS_CONSENSUS (
+            MACS2_CONSENSUS.out.bed,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.gtf
+        )
+        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS.out.versions)
+        // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+        // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
 
-    //     // Create channel: [ val(meta), ip_bam ]
-    //     MACS2_CONSENSUS
-    //         .out
-    //         .saf
-    //         .map { meta, saf -> [ meta.id, meta, saf ] }
-    //         .set { ch_ip_saf }
+        // Create channel: [ val(meta), ip_bam ]
+        MACS2_CONSENSUS
+            .out
+            .saf
+            .map { meta, saf -> [ meta.id, meta, saf ] }
+            .set { ch_ip_saf }
 
-    //     ch_ip_control_bam
-    //         .map { meta, ip_bam, control_bam -> [ meta.antibody, meta, ip_bam ] }
-    //         .combine(ch_ip_saf)
-    //         .map {
-    //             it ->
-    //                 fmeta = it[1]
-    //                 fmeta['replicates_exist'] = it[4]['replicates_exist']
-    //                 fmeta['multiple_groups'] = it[4]['multiple_groups']
-    //                 [ fmeta, it[2], it[5] ] }
-    //         .set { ch_ip_bam }
+        ch_ip_control_bam
+            .map { meta, ip_bam, control_bam -> [ meta.antibody, meta, ip_bam ] }
+            .combine(ch_ip_saf)
+            .map {
+                it ->
+                    fmeta = it[1]
+                    fmeta['replicates_exist'] = it[4]['replicates_exist']
+                    fmeta['multiple_groups'] = it[4]['multiple_groups']
+                    [ fmeta, it[2], it[5] ] }
+            .set { ch_ip_bam }
 
-    //     SUBREAD_FEATURECOUNTS (
-    //         ch_ip_bam
-    //     )
-    //     // ch_software_versions = ch_software_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first().ifEmpty(null))
-    //     ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions)
+        SUBREAD_FEATURECOUNTS (
+            ch_ip_bam
+        )
+        ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
 
-    //     //
     //     // DESEQ2_FEATURECOUNTS (
     //     //     params.modules['deseq2_featurecounts']
     //     // )
