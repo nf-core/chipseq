@@ -148,8 +148,8 @@ include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/prese
 include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/modules/phantompeakqualtools/main'          addParams( options: modules['phantompeakqualtools'] )
 include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'         addParams( options: modules['ucsc_bedgraphtobigwig'] )
 include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'       addParams( options: modules['deeptools_computematrix'] )
-// include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'         addParams( options: modules['deeptools_plotprofile'] )
-// include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'         addParams( options: modules['deeptools_plotheatmap'] )
+include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'         addParams( options: modules['deeptools_plotprofile'] )
+include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'         addParams( options: modules['deeptools_plotheatmap'] )
 // include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'     addParams( options: deeptools_plotfingerprint_options )
 // include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'                addParams( options: macs2_callpeak_options )
 // include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'         addParams( options: subread_featurecounts_options )
@@ -319,13 +319,15 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
-    // DEEPTOOLS_PLOTPROFILE (
-    //     DEEPTOOLS_COMPUTEMATRIX.out.matrix
-    // )
+    DEEPTOOLS_PLOTPROFILE (
+        DEEPTOOLS_COMPUTEMATRIX.out.matrix
+    )
+    ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
-    // DEEPTOOLS_PLOTHEATMAP (
-    //     DEEPTOOLS_COMPUTEMATRIX.out.matrix
-    // )
+    DEEPTOOLS_PLOTHEATMAP (
+        DEEPTOOLS_COMPUTEMATRIX.out.matrix
+    )
+    ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
 
     // //
     // // Refactor channels: [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
