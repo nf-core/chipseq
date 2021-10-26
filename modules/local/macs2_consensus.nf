@@ -29,7 +29,6 @@ process MACS2_CONSENSUS {
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     if (meta.multiple_groups || meta.replicates_exist) {
-        // def software     = getSoftwareName(task.process)
         def prefix       = options.suffix ? "${meta.id}${options.suffix}.consensus_peaks" : "${meta.id}.consensus_peaks"
         def peak_type    = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
         def mergecols    = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
