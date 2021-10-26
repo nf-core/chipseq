@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
+include { saveFiles; getProcessName } from './functions'
 
 params.options = [:]
 

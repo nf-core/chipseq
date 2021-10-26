@@ -9,14 +9,14 @@ params.samtools_stats_options     = [:]
 
 include { BAM_FILTER         } from '../../modules/local/bam_filter'         addParams( options: params.bam_filter_options )
 include { BAM_REMOVE_ORPHANS } from '../../modules/local/bam_remove_orphans' addParams( options: params.bam_remove_orphans_options )
-include { BAM_SORT_SAMTOOLS } from '../nf-core/bam_sort_samtools'            addParams( sort_options: params.samtools_sort_options, index_options: params.samtools_index_options, stats_options: params.samtools_stats_options )
+include { BAM_SORT_SAMTOOLS  } from '../nf-core/bam_sort_samtools'           addParams( sort_options: params.samtools_sort_options, index_options: params.samtools_index_options, stats_options: params.samtools_stats_options )
 
 workflow FILTER_BAM_BAMTOOLS {
     take:
-    ch_bam_bai                 // channel: [ val(meta), [ bam ], [bai] ]
-    ch_bed                     // channel: [ bed ]
-    bamtools_filter_se_config  //    file: BAMtools filter JSON config file for SE data
-    bamtools_filter_pe_config  //    file: BAMtools filter JSON config file for PE data
+    ch_bam_bai                // channel: [ val(meta), [ bam ], [bai] ]
+    ch_bed                    // channel: [ bed ]
+    bamtools_filter_se_config //    file: BAMtools filter JSON config file for SE data
+    bamtools_filter_pe_config //    file: BAMtools filter JSON config file for PE data
 
     main:
 

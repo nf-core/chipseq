@@ -67,7 +67,7 @@ workflow PREPARE_GENOME {
             ch_blacklist = GUNZIP_BLACKLIST ( params.blacklist ).gunzip
             ch_versions  = ch_versions.mix(GUNZIP_BLACKLIST.out.versions)
         } else {
-            ch_blacklist = file(params.blacklist)
+            ch_blacklist = Channel.fromPath(file(params.blacklist))
         }
     }
 
@@ -134,7 +134,7 @@ workflow PREPARE_GENOME {
     gtf         = ch_gtf                    //    path: genome.gtf
     gene_bed    = ch_gene_bed               //    path: gene.bed
     chrom_sizes = ch_chrom_sizes            //    path: genome.sizes
-    blacklist   = ch_blacklist              //    path: blaclist.bed
+    blacklist   = ch_blacklist              //    path: blacklist.bed
     bwa_index   = ch_bwa_index              //    path: bbsplit/index/
 
     versions    = ch_versions.ifEmpty(null) // channel: [ versions.yml ]

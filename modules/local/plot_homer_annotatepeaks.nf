@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
+include { saveFiles; initOptions; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -11,7 +11,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:task.process.toLowerCase(), meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "${baseDir}/environment.yml" : null) //TODO Create mulled biocontainer
 
@@ -24,6 +24,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     path '*.txt', emit: txt
     path '*.pdf', emit: pdf
     path '*.tsv', emit: tsv
+    path "versions.yml", emit: versions
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     """
