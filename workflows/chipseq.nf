@@ -123,8 +123,8 @@ include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 // MODULE: Installed directly from nf-core/modules
 //
 
-// def deeptools_plotfingerprint_options = modules['deeptools_plotfingerprint']
-// deeptools_plotfingerprint_options.args += " --numberOfSamples $params.fingerprint_bins"
+def deeptools_plotfingerprint_options  = modules['deeptools_plotfingerprint']
+deeptools_plotfingerprint_options.args += " --numberOfSamples $params.fingerprint_bins"
 
 // def macs2_callpeak_options            = modules['macs2_callpeak']
 // macs2_callpeak_options.args           += params.narrow_peak ? '' : Utils.joinModuleArgs(['--broad', "--broad-cutoff ${params.broad_cutoff}"])
@@ -150,7 +150,7 @@ include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/
 include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'       addParams( options: modules['deeptools_computematrix'] )
 include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'         addParams( options: modules['deeptools_plotprofile'] )
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'         addParams( options: modules['deeptools_plotheatmap'] )
-// include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'     addParams( options: deeptools_plotfingerprint_options )
+include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'     addParams( options: deeptools_plotfingerprint_options )
 // include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'                addParams( options: macs2_callpeak_options )
 // include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'         addParams( options: subread_featurecounts_options )
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] )
@@ -329,31 +329,38 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
 
-    // //
-    // // Refactor channels: [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
-    // //
-    // BAM_CLEAN
-    //     .out
-    //     .bam
-    //     .join ( BAM_CLEAN.out.bai, by: [0] )
-    //     .map { meta, bam, bai -> meta.control ? null : [ meta.id, [ bam ] , [ bai ] ] }
-    //     .set { ch_control_bam_bai }
+    //
+    // Refactor channels: [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
+    //
+    FILTER_BAM_BAMTOOLS
+        .out
+        .bam
+        .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
+        .map {
+            meta, bam, bai ->
+                meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
+        }
+        .set { ch_control_bam_bai }
 
-    // BAM_CLEAN
-    //     .out
-    //     .bam
-    //     .join ( BAM_CLEAN.out.bai, by: [0] )
-    //     .map { meta, bam, bai -> meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null }
-    //     .combine(ch_control_bam_bai, by: 0)
-    //     .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
-    //     .set { ch_ip_control_bam_bai }
+     FILTER_BAM_BAMTOOLS
+        .out
+        .bam
+        .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
+        .map {
+            meta, bam, bai ->
+                meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
+        }
+        .combine(ch_control_bam_bai, by: 0)
+        .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
+        .set { ch_ip_control_bam_bai }
 
-    // //
-    // // plotFingerprint for IP and control together
-    // //
-    // DEEPTOOLS_PLOTFINGERPRINT (
-    //     ch_ip_control_bam_bai
-    // )
+    //
+    // plotFingerprint for IP and control together
+    //
+    DEEPTOOLS_PLOTFINGERPRINT (
+        ch_ip_control_bam_bai
+    )
+    ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
 
     // if (params.macs_gsize) {
 
