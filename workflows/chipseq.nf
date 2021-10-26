@@ -133,11 +133,11 @@ macs2_callpeak_options.args           += params.macs_fdr ? Utils.joinModuleArgs(
 macs2_callpeak_options.args           += params.macs_pvalue ? Utils.joinModuleArgs(["--pvalue ${params.macs_pvalue}"]) : ''
 macs2_callpeak_options['publish_dir'] += "/$peakType"
 
+def homer_annotatepeaks_macs2_options            = modules['homer_annotatepeaks_macs2']
+homer_annotatepeaks_macs2_options['publish_dir'] += "/$peakType"
+
 // def subread_featurecounts_options            = modules['subread_featurecounts']
 // subread_featurecounts_options['publish_dir'] += "/$peakType/consensus"
-
-// def homer_annotatepeaks_macs2_options            = modules['homer_annotatepeaks_macs2']
-// homer_annotatepeaks_macs2_options['publish_dir'] += "/$peakType"
 
 // def homer_annotatepeaks_consensus_options            = modules['homer_annotatepeaks_consensus']
 // homer_annotatepeaks_consensus_options['publish_dir'] += "/$peakType/consensus"
@@ -155,7 +155,7 @@ include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2
 // include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'         addParams( options: subread_featurecounts_options )
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] )
 
-// include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/modules/homer/annotatepeaks/main' addParams( options:homer_annotatepeaks_macs2_options )
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/modules/homer/annotatepeaks/main' addParams( options:homer_annotatepeaks_macs2_options )
 // include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/modules/homer/annotatepeaks/main' addParams( options:homer_annotatepeaks_consensus_options )
 
 //
@@ -404,12 +404,12 @@ workflow CHIPSEQ {
         )
         ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
 
-    //     HOMER_ANNOTATEPEAKS_MACS2 (
-    //         MACS2_CALLPEAK.out.peak,
-    //         ch_fasta,
-    //         ch_gtf
-    //     )
-    //     ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions)
+        HOMER_ANNOTATEPEAKS_MACS2 (
+            MACS2_CALLPEAK.out.peak,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.gtf
+        )
+        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
     //     PLOT_HOMER_ANNOTATEPEAKS (
     //         HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
