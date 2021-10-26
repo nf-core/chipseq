@@ -75,10 +75,11 @@ def modules = params.modules.clone()
 // multiqc_options.publish_dir += "/$peakType"
 
 include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'                   addParams( options: modules['bedtools_genomecov'] )
+include { FRIP_SCORE                          } from '../modules/local/frip_score'                           addParams( options: modules['frip_score'] )
+
 // include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'             addParams( options: plot_homer_annotatepeaks_options )
 // include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'                        addParams( options: plot_macs2_qc_options )
 // include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'                     addParams( options: macs2_consensus_options )
-// include { FRIP_SCORE                          } from '../modules/local/frip_score'                           addParams( options: modules['frip_score'] )
 // //include { DESEQ2_QC  } from '../modules/local/deseq2_qc'                             addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
 // include { IGV                                 } from '../modules/local/igv'                                  addParams( options: [:] )
 // include { MULTIQC                             } from '../modules/local/multiqc'                              addParams( options: multiqc_options ) // TODO review
@@ -126,12 +127,12 @@ include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 def deeptools_plotfingerprint_options  = modules['deeptools_plotfingerprint']
 deeptools_plotfingerprint_options.args += " --numberOfSamples $params.fingerprint_bins"
 
-// def macs2_callpeak_options            = modules['macs2_callpeak']
-// macs2_callpeak_options.args           += params.narrow_peak ? '' : Utils.joinModuleArgs(['--broad', "--broad-cutoff ${params.broad_cutoff}"])
-// macs2_callpeak_options.args           += params.save_macs_pileup ? Utils.joinModuleArgs(['--bdg', '--SPMR']) : ''
-// macs2_callpeak_options.args           += params.macs_fdr ? Utils.joinModuleArgs(["--qvalue ${params.macs_fdr}"]) : ''
-// macs2_callpeak_options.args           += params.macs_pvalue ? Utils.joinModuleArgs(["--pvalue ${params.macs_pvalue}"]) : ''
-// macs2_callpeak_options['publish_dir'] += "/$peakType"
+def macs2_callpeak_options            = modules['macs2_callpeak']
+macs2_callpeak_options.args           += params.narrow_peak ? '' : Utils.joinModuleArgs(['--broad', "--broad-cutoff ${params.broad_cutoff}"])
+macs2_callpeak_options.args           += params.save_macs_pileup ? Utils.joinModuleArgs(['--bdg', '--SPMR']) : ''
+macs2_callpeak_options.args           += params.macs_fdr ? Utils.joinModuleArgs(["--qvalue ${params.macs_fdr}"]) : ''
+macs2_callpeak_options.args           += params.macs_pvalue ? Utils.joinModuleArgs(["--pvalue ${params.macs_pvalue}"]) : ''
+macs2_callpeak_options['publish_dir'] += "/$peakType"
 
 // def subread_featurecounts_options            = modules['subread_featurecounts']
 // subread_featurecounts_options['publish_dir'] += "/$peakType/consensus"
@@ -151,7 +152,7 @@ include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deept
 include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'         addParams( options: modules['deeptools_plotprofile'] )
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'         addParams( options: modules['deeptools_plotheatmap'] )
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'     addParams( options: deeptools_plotfingerprint_options )
-// include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'                addParams( options: macs2_callpeak_options )
+include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'                addParams( options: macs2_callpeak_options )
 // include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'         addParams( options: subread_featurecounts_options )
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] )
 
@@ -362,36 +363,37 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
 
-    // if (params.macs_gsize) {
+    if (params.macs_gsize) {
 
-    //     //
-    //     // Call peaks
-    //     //
+        //
+        // Call peaks
+        //
 
-    //     // Create channel: [ val(meta), ip_bam, control_bam ]
-    //     ch_ip_control_bam_bai
-    //         .map { meta, bams, bais -> [ meta , bams[0], bams[1] ] }
-    //         .set { ch_ip_control_bam }
+        // Create channel: [ val(meta), ip_bam, control_bam ]
+        ch_ip_control_bam_bai
+            .map { meta, bams, bais -> [ meta , bams[0], bams[1] ] }
+            .set { ch_ip_control_bam }
 
-    //     MACS2_CALLPEAK (
-    //         ch_ip_control_bam,
-    //         params.macs_gsize
-    //     )
-    //     // ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions.first().ifEmpty(null))
-    //     ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions)
+        MACS2_CALLPEAK (
+            ch_ip_control_bam,
+            params.macs_gsize
+        )
+        ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
 
-    //     ch_ip_control_bam
-    //         .join(MACS2_CALLPEAK.out.peak, by: [0])
-    //         .map { it -> [ it[0], it[1], it[3] ] }
-    //         .set { ch_ip_peak }
-    //     FRIP_SCORE (
-    //         ch_ip_peak
-    //     )
+        ch_ip_control_bam
+            .join(MACS2_CALLPEAK.out.peak, by: [0])
+            .map { it -> [ it[0], it[1], it[3] ] }
+            .set { ch_ip_peak }
+        FRIP_SCORE (
+            ch_ip_peak
+        )
+        ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
-    //     ch_ip_peak
-    //         .join(FRIP_SCORE.out.txt, by: [0])
-    //         .map { it -> [ it[0], it[2], it[3] ] }
-    //         .set { ch_ip_peak_frip }
+    //    ch_ip_peak
+    //        .join(FRIP_SCORE.out.txt, by: [0])
+    //        .map { it -> [ it[0], it[2], it[3] ] }
+    //        .set { ch_ip_peak_frip }
+
     //     MULTIQC_CUSTOM_PEAKS (
     //         ch_ip_peak_frip,
     //         ch_peak_count_header,
@@ -482,7 +484,7 @@ workflow CHIPSEQ {
     //     // ch_deseq2_pca_header = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
     //     // ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
 
-    // }
+    }
 
     // //
     // // Create IGV session
