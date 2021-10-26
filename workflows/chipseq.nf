@@ -144,7 +144,7 @@ include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 
 include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picard/mergesamfiles/main'          addParams( options: modules['picard_mergesamfiles'] )
 include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main' addParams( options: modules['picard_collectmultiplemetrics'] )
-// include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/preseq/lcextrap/main'               addParams( options: modules['preseq_lcextrap'] )
+include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/preseq/lcextrap/main'               addParams( options: modules['preseq_lcextrap'] )
 // include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'         addParams( options: modules['ucsc_bedgraphtobigwig'] )
 // include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'       addParams( options: modules['deeptools_computematrix'] )
 // include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'         addParams( options: modules['deeptools_plotprofile'] )
@@ -270,14 +270,13 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
 
-    // //
-    // // MODULE: Library coverage
-    // //
-    // PRESEQ_LCEXTRAP (
-    //     BAM_CLEAN.out.bam
-    // )
-    // // ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.versions.first().ifEmpty(null))
-    // ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions)
+    //
+    // MODULE: Library coverage
+    //
+    PRESEQ_LCEXTRAP (
+        FILTER_BAM_BAMTOOLS.out.bam
+    )
+    ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
 
     // //
     // // MODULE: Strand cross-correlation
