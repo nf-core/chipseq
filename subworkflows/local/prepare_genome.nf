@@ -67,7 +67,7 @@ workflow PREPARE_GENOME {
             ch_blacklist = GUNZIP_BLACKLIST ( params.blacklist ).gunzip
             ch_versions  = ch_versions.mix(GUNZIP_BLACKLIST.out.versions)
         } else {
-            ch_blacklist = file(params.blacklist)
+            ch_blacklist = Channel.fromPath(file(params.blacklist))
         }
     }
 

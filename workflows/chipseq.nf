@@ -105,7 +105,13 @@ include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams
     gffread_options   : gffread_options,
     bwa_index_options : bwa_index_options
 )
-// include { FILTER_BAM_BAMTOOLS   } from '../subworkflows/local/filter_bam_bamtools'   addParams( bam_filter_options: modules['bam_filter'], bam_remove_orphans_options: modules['bam_remove_orphans'], samtools_sort_options: modules['samtools_sort_filter'], samtools_index_options:  modules['samtools_sort_filter'], samtools_stats_options:  modules['samtools_sort_filter'] )
+include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools' addParams(
+    bam_filter_options        : modules['bam_filter'],
+    bam_remove_orphans_options: modules['bam_remove_orphans'],
+    samtools_sort_options     : modules['samtools_sort_filter'],
+    samtools_index_options    : modules['samtools_sort_filter'],
+    samtools_stats_options    : modules['samtools_sort_filter']
+)
 
 /*
 ========================================================================================
@@ -237,23 +243,23 @@ workflow CHIPSEQ {
     ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions.first().ifEmpty(null))
 
     //
-    // SUBWORKFLOW: Mark duplicates & filter BAM files
+    // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
     //
     MARK_DUPLICATES_PICARD (
         PICARD_MERGESAMFILES.out.bam
     )
 
-    // //
-    // // SUBWORKFLOW: Fix getting name sorted BAM here for PE/SE
-    // //
-    // BAM_CLEAN (
-    //     MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
-    //     MAKE_GENOME_FILTER.out.bed.collect(),
-    //     ch_bamtools_filter_se_config,
-    //     ch_bamtools_filter_pe_config
-    // )
-    // // ch_software_versions = ch_software_versions.mix(BAM_CLEAN.out.bamtools_versions.first().ifEmpty(null))
-    // ch_versions = ch_versions.mix(BAM_CLEAN.out.versions)
+    //
+    // SUBWORKFLOW: Fix getting name sorted BAM here for PE/SE
+    //
+    FILTER_BAM_BAMTOOLS (
+        MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
+        PREPARE_GENOME.out.blacklist.first(),
+        ch_bamtools_filter_se_config,
+        ch_bamtools_filter_pe_config
+    )
+    ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
+
 
     // //
     // // MODULE: Post alignment QC
