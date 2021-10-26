@@ -31,8 +31,8 @@ process MULTIQC {
     path workflow_summary
 
     path ('fastqc/*')
-    path ('trimgalore/*')
     path ('trimgalore/fastqc/*')
+    path ('trimgalore/*')
 
     path ('alignment/library/*')
     path ('alignment/library/*')

@@ -70,20 +70,20 @@ plot_homer_annotatepeaks_options.publish_dir  += "/$peakType/qc"
 def macs2_consensus_options         = modules['macs2_consensus']
 macs2_consensus_options.publish_dir += "/$peakType/qc"
 
-// def multiqc_options         = modules['multiqc']
-// multiqc_options.args        += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
-// multiqc_options.publish_dir += "/$peakType"
+def multiqc_options         = modules['multiqc']
+multiqc_options.args        += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+multiqc_options.publish_dir += "/$peakType"
 
 include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'                   addParams( options: modules['bedtools_genomecov'] )
 include { FRIP_SCORE                          } from '../modules/local/frip_score'                           addParams( options: modules['frip_score'] )
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'                        addParams( options: plot_macs2_qc_options )
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'             addParams( options: plot_homer_annotatepeaks_options )
 include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'                     addParams( options: macs2_consensus_options )
-// //include { DESEQ2_QC  } from '../modules/local/deseq2_qc'                             addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
-// include { IGV                                 } from '../modules/local/igv'                                  addParams( options: [:] )
-// include { MULTIQC                             } from '../modules/local/multiqc'                              addParams( options: multiqc_options ) // TODO review
-// include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'  addParams( options: modules['multiqc_custom_phantompeakqualtools'] )
-// include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'                 addParams( options: modules['multiqc_custom_peaks'] )
+//include { DESEQ2_QC  } from '../modules/local/deseq2_qc'                             addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
+include { IGV                                 } from '../modules/local/igv'                                  addParams( options: [:] )
+include { MULTIQC                             } from '../modules/local/multiqc'                              addParams( options: multiqc_options ) // TODO review
+include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'  addParams( options: modules['multiqc_custom_phantompeakqualtools'] )
+include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'                 addParams( options: modules['multiqc_custom_peaks'] )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -286,12 +286,12 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
 
-    // MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
-    //     PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
-    //     ch_spp_nsc_header,
-    //     ch_spp_rsc_header,
-    //     ch_spp_correlation_header
-    // )
+    MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
+        PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
+        ch_spp_nsc_header,
+        ch_spp_rsc_header,
+        ch_spp_correlation_header
+    )
 
     //
     // MODULE: Coverage tracks
@@ -388,16 +388,16 @@ workflow CHIPSEQ {
         )
         ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
-    //    ch_ip_peak
-    //        .join(FRIP_SCORE.out.txt, by: [0])
-    //        .map { it -> [ it[0], it[2], it[3] ] }
-    //        .set { ch_ip_peak_frip }
+        ch_ip_peak
+            .join(FRIP_SCORE.out.txt, by: [0])
+            .map { it -> [ it[0], it[2], it[3] ] }
+            .set { ch_ip_peak_frip }
 
-    //     MULTIQC_CUSTOM_PEAKS (
-    //         ch_ip_peak_frip,
-    //         ch_peak_count_header,
-    //         ch_frip_score_header
-    //     )
+        MULTIQC_CUSTOM_PEAKS (
+            ch_ip_peak_frip,
+            ch_peak_count_header,
+            ch_frip_score_header
+        )
 
         PLOT_MACS2_QC (
             MACS2_CALLPEAK.out.peak.collect{it[1]}
@@ -486,18 +486,19 @@ workflow CHIPSEQ {
 
     }
 
-    // //
-    // // Create IGV session
-    // //
-    // IGV (
-    //     ch_fasta,
-    //     UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-    //     MACS2_CALLPEAK.out.peak.collect{it[1]}.ifEmpty([]),
-    //     MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
-    //     params.modules['ucsc_bedgraphtobigwig'],
-    //     params.modules['macs2_callpeak'],
-    //     params.modules['macs2_consensus']
-    // )
+    //
+    // Create IGV session
+    //
+    IGV (
+        PREPARE_GENOME.out.fasta,
+        UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
+        MACS2_CALLPEAK.out.peak.collect{it[1]}.ifEmpty([]),
+        MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
+        params.modules['ucsc_bedgraphtobigwig'],
+        params.modules['macs2_callpeak'],
+        params.modules['macs2_consensus']
+    )
+    ch_versions = ch_versions.mix(IGV.out.versions)
 
     //
     // MODULE: Pipeline reporting
@@ -506,60 +507,53 @@ workflow CHIPSEQ {
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
     )
 
-    // //
-    // // MODULE: MultiQC
-    // //
-    // // ch_multiqc_files = Channel.empty()
-    // // ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
-    // // ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
-    // // ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    // // ch_multiqc_files = ch_multiqc_files.mix(GET_SOFTWARE_VERSIONS.out.yaml.collect())
-    // // ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
+    //
+    // MODULE: MultiQC
+    //
+    if (!params.skip_multiqc) {
+        workflow_summary    = WorkflowChipseq.paramsSummaryMultiqc(workflow, summary_params)
+        ch_workflow_summary = Channel.value(workflow_summary)
 
-    // if (!params.skip_multiqc) {
-    //     workflow_summary    = WorkflowChipseq.paramsSummaryMultiqc(workflow, summary_params)
-    //     ch_workflow_summary = Channel.value(workflow_summary)
+        MULTIQC (
+            ch_multiqc_config,
+            ch_multiqc_custom_config.collect().ifEmpty([]),
+            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
+            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
 
-    //     MULTIQC (
-    //         ch_multiqc_config,
-    //         ch_multiqc_custom_config.collect().ifEmpty([]),
-    //         CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
-    //         ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
 
-    //         FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-    //         FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
-    //         FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            ALIGN_BWA_MEM.out.stats.collect{it[1]},
+            ALIGN_BWA_MEM.out.flagstat.collect{it[1]},
+            ALIGN_BWA_MEM.out.idxstats.collect{it[1]},
 
-    //         MAP_BWA_MEM.out.stats.collect{it[1]},
-    //         MAP_BWA_MEM.out.flagstat.collect{it[1]},
-    //         MAP_BWA_MEM.out.idxstats.collect{it[1]},
+            MARK_DUPLICATES_PICARD.out.stats.collect{it[1]}.ifEmpty([]),
+            MARK_DUPLICATES_PICARD.out.flagstat.collect{it[1]}.ifEmpty([]),
+            MARK_DUPLICATES_PICARD.out.idxstats.collect{it[1]}.ifEmpty([]),
+            MARK_DUPLICATES_PICARD.out.metrics.collect{it[1]}.ifEmpty([]),
 
-    //         MARK_DUPLICATES_PICARD.out.stats.collect{it[1]}.ifEmpty([]),
-    //         MARK_DUPLICATES_PICARD.out.flagstat.collect{it[1]}.ifEmpty([]),
-    //         MARK_DUPLICATES_PICARD.out.idxstats.collect{it[1]}.ifEmpty([]),
-    //         MARK_DUPLICATES_PICARD.out.metrics.collect{it[1]}.ifEmpty([]),
+            FILTER_BAM_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
+            FILTER_BAM_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
+            FILTER_BAM_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
+            PICARD_COLLECTMULTIPLEMETRICS.out.metrics.collect{it[1]}.ifEmpty([]),
 
-    //         BAM_CLEAN.out.stats.collect{it[1]}.ifEmpty([]),
-    //         BAM_CLEAN.out.flagstat.collect{it[1]}.ifEmpty([]),
-    //         BAM_CLEAN.out.idxstats.collect{it[1]}.ifEmpty([]),
-    //         PICARD_COLLECTMULTIPLEMETRICS.out.metrics.collect{it[1]}.ifEmpty([]),
+            PRESEQ_LCEXTRAP.out.ccurve.collect{it[1]}.ifEmpty([]),
+            DEEPTOOLS_PLOTPROFILE.out.table.collect{it[1]}.ifEmpty([]),
+            DEEPTOOLS_PLOTFINGERPRINT.out.matrix.collect{it[1]}.ifEmpty([]),
+            PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
+            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc.collect{it[1]}.ifEmpty([]),
+            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
+            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation.collect{it[1]}.ifEmpty([]),
 
-    //         PRESEQ_LCEXTRAP.out.ccurve.collect{it[1]}.ifEmpty([]),
-    //         DEEPTOOLS_PLOTPROFILE.out.table.collect{it[1]}.ifEmpty([]),
-    //         DEEPTOOLS_PLOTFINGERPRINT.out.matrix.collect{it[1]}.ifEmpty([]),
-    //         PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
-    //         MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc.collect{it[1]}.ifEmpty([]),
-    //         MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
-    //         MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation.collect{it[1]}.ifEmpty([]),
-
-    //         MULTIQC_CUSTOM_PEAKS.out.count.collect{it[1]}.ifEmpty([]),
-    //         MULTIQC_CUSTOM_PEAKS.out.frip.collect{it[1]}.ifEmpty([]),
-    //         PLOT_HOMER_ANNOTATEPEAKS.out.tsv.collect().ifEmpty([]),
-    //         SUBREAD_FEATURECOUNTS.out.summary.collect{it[1]}.ifEmpty([]),
-    //         // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
-    //     )
-    //     multiqc_report       = MULTIQC.out.report.toList()
-    // }
+            MULTIQC_CUSTOM_PEAKS.out.count.collect{it[1]}.ifEmpty([]),
+            MULTIQC_CUSTOM_PEAKS.out.frip.collect{it[1]}.ifEmpty([]),
+            PLOT_HOMER_ANNOTATEPEAKS.out.tsv.collect().ifEmpty([]),
+            SUBREAD_FEATURECOUNTS.out.summary.collect{it[1]}.ifEmpty([]),
+            // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
+        )
+        multiqc_report       = MULTIQC.out.report.toList()
+    }
 }
 
 /*

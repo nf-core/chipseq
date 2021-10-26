@@ -1,8 +1,7 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
+include { saveFiles; getProcessName } from './functions'
 
 params.options = [:]
-options        = initOptions(params.options)
 
 /*
  * Create IGV session file
@@ -10,7 +9,7 @@ options        = initOptions(params.options)
 process IGV {
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:task.process.toLowerCase(), publish_id:'') }
 
     conda (params.enable_conda ? "conda-forge::python=3.8.3" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -30,8 +29,9 @@ process IGV {
     // path differential_peaks from ch_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
 
     output:
-    path "*files.txt", emit: txt
-    path "*.xml", emit: xml
+    path "*files.txt"  , emit: txt
+    path "*.xml"       , emit: xml
+    path "versions.yml", emit: versions
 
     script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
     """
