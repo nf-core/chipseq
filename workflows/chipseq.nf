@@ -254,7 +254,7 @@ workflow CHIPSEQ {
     //
     FILTER_BAM_BAMTOOLS (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
-        PREPARE_GENOME.out.blacklist.first(),
+        PREPARE_GENOME.out.blacklist.ifEmpty([]).first(),
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
