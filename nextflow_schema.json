@@ -28,7 +28,7 @@
                     "type": "integer",
                     "description": "Estimated fragment size used to extend single-end reads.",
                     "fa_icon": "fas fa-chart-area",
-                    "default": "200"
+                    "default": 200
                 },
                 "seq_center": {
                     "type": "string",
