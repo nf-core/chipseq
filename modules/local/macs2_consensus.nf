@@ -18,7 +18,6 @@ process MACS2_CONSENSUS {
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0"
     } else {
-        // container "quay.io/biocontainers/mulled-v2-dc9ae2a680e9de06c4c555847fbdb8d178f465e6:5e559b41071eb9b24eb25e3a763a75e557120b69-0"
         container "quay.io/biocontainers/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0"
     }
 
