@@ -5,7 +5,6 @@ lint:
     - assets/email_template.txt
     - lib/NfcoreTemplate.groovy
     - assets/multiqc_config.yaml
-  actions_ci: False #get rid of the error "CI is not building the correct docker image. Should be: docker build..."
   files_exist:
     - bin/scrape_software_versions.py
     - modules/local/get_software_versions.nf

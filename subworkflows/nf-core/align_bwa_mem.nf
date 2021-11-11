@@ -19,11 +19,17 @@ workflow ALIGN_BWA_MEM {
 
     ch_versions = Channel.empty()
 
+    //
+    // Map reads with BWA
+    //
     BWA_MEM(reads, index)
-    BAM_SORT_SAMTOOLS(BWA_MEM.out.bam)
+    ch_versions = ch_versions.mix(BWA_MEM.out.versions.first())
 
-    ch_versions = ch_versions.mix(BWA_MEM.out.versions.first(),
-                    BAM_SORT_SAMTOOLS.out.versions)
+    //
+    // Sort, index BAM file and run samtools stats, flagstat and idxstats
+    //
+    BAM_SORT_SAMTOOLS(BWA_MEM.out.bam)
+    ch_versions = ch_versions.mix(BAM_SORT_SAMTOOLS.out.versions.first())
 
     emit:
     bam               = BAM_SORT_SAMTOOLS.out.bam               // channel: [ val(meta), [ bam ] ]
