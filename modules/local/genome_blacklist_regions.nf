@@ -1,23 +1,13 @@
-// Import generic module functions
-include { saveFiles; getProcessName } from './functions'
-
-params.options = [:]
-
 /*
  * Prepare genome intervals for filtering by removing regions in blacklist file
  */
 process GENOME_BLACKLIST_REGIONS {
     tag "$sizes"
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:'genome', meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "bioconda::bedtools=2.30.0" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0"
-    } else {
-        container "quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0"
-    }
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0':
+        'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0' }"
 
     input:
     path sizes
@@ -34,7 +24,7 @@ process GENOME_BLACKLIST_REGIONS {
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out
 
         cat <<-END_VERSIONS > versions.yml
-        ${getProcessName(task.process)}:
+        "${task.process}":
             bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
         END_VERSIONS
         """
@@ -43,7 +33,7 @@ process GENOME_BLACKLIST_REGIONS {
         awk '{print \$1, '0' , \$2}' OFS='\t' $sizes > $file_out
 
         cat <<-END_VERSIONS > versions.yml
-        ${getProcessName(task.process)}:
+        "${task.process}":
             bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
         END_VERSIONS
         """

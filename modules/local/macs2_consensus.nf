@@ -1,9 +1,3 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 /*
  * Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts
  */
@@ -15,11 +9,9 @@ process MACS2_CONSENSUS {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "conda-forge::biopython conda-forge::r-optparse=1.7.1 conda-forge::r-upsetr=1.4.0 bioconda::bedtools=2.30.0" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0"
-    } else {
-        container "quay.io/biocontainers/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0"
-    }
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0':
+        'quay.io/biocontainers/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0' }"
 
     input:
     tuple val(meta), path(peaks)
@@ -34,7 +26,7 @@ process MACS2_CONSENSUS {
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     if (meta.multiple_groups || meta.replicates_exist) {
-        def prefix       = options.suffix ? "${meta.id}${options.suffix}.consensus_peaks" : "${meta.id}.consensus_peaks"
+        def prefix       = task.ext.prefix ? "${task.ext.prefix}.consensus_peaks": "${meta.id}.consensus_peaks"
         def peak_type    = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
         def mergecols    = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
         def collapsecols = params.narrow_peak ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
@@ -58,7 +50,7 @@ process MACS2_CONSENSUS {
         plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
 
         cat <<-END_VERSIONS > versions.yml
-        ${getProcessName(task.process)}:
+        "${task.process}":
             python: \$(python --version | sed 's/Python //g')
             r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
         END_VERSIONS
