@@ -1,15 +1,15 @@
 /*
  * Filter BAM file
  */
-params.bam_filter_options         = [:]
-params.bam_remove_orphans_options = [:]
-params.samtools_sort_options      = [:]
-params.samtools_index_options     = [:]
-params.samtools_stats_options     = [:]
+// params.bam_filter_options         = [:]
+// params.bam_remove_orphans_options = [:]
+// params.samtools_sort_options      = [:]
+// params.samtools_index_options     = [:]
+// params.samtools_stats_options     = [:]
 
-include { BAM_FILTER         } from '../../modules/local/bam_filter'         addParams( options: params.bam_filter_options )
-include { BAM_REMOVE_ORPHANS } from '../../modules/local/bam_remove_orphans' addParams( options: params.bam_remove_orphans_options )
-include { BAM_SORT_SAMTOOLS  } from '../nf-core/bam_sort_samtools'           addParams( sort_options: params.samtools_sort_options, index_options: params.samtools_index_options, stats_options: params.samtools_stats_options )
+include { BAM_FILTER         } from '../../modules/local/bam_filter'         //addParams( options: params.bam_filter_options )
+include { BAM_REMOVE_ORPHANS } from '../../modules/local/bam_remove_orphans' //addParams( options: params.bam_remove_orphans_options )
+include { BAM_SORT_SAMTOOLS  } from '../nf-core/bam_sort_samtools'           //addParams( sort_options: params.samtools_sort_options, index_options: params.samtools_index_options, stats_options: params.samtools_stats_options )
 
 workflow FILTER_BAM_BAMTOOLS {
     take:

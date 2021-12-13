@@ -18,8 +18,8 @@ process BAM_REMOVE_ORPHANS {
     path "versions.yml"                   , emit: versions
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-    def args   = task.ext.args?: ''
-    def prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def args = task.ext.args ?: ''
+    prefix   = task.ext.prefix ?: "${meta.id}"
     if (!meta.single_end) {
         """
         samtools sort -n -@ $task.cpus -o ${prefix}.name.sorted.bam -T ${prefix}.name.sorted $bam

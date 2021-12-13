@@ -27,7 +27,7 @@ if (anno_readme && file(anno_readme).exists()) {
     file(anno_readme).copyTo("${params.outdir}/genome/")
 }
 
-def peakType = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
+// def peakType = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
 
 /*
 ========================================================================================
@@ -59,59 +59,59 @@ ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering
 */
 
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
-def modules = params.modules.clone()
+// def modules = params.modules.clone()
 
-def plot_macs2_qc_options         = modules['plot_macs2_qc']
-plot_macs2_qc_options.publish_dir += "/$peakType/qc"
+// def plot_macs2_qc_options         = modules['plot_macs2_qc']
+// plot_macs2_qc_options.publish_dir += "/$peakType/qc"
 
-def plot_homer_annotatepeaks_options          = modules['plot_homer_annotatepeaks']
-plot_homer_annotatepeaks_options.publish_dir  += "/$peakType/qc"
+// def plot_homer_annotatepeaks_options          = modules['plot_homer_annotatepeaks']
+// plot_homer_annotatepeaks_options.publish_dir  += "/$peakType/qc"
 
-def macs2_consensus_options         = modules['macs2_consensus']
-macs2_consensus_options.publish_dir += "/$peakType/qc"
+// def macs2_consensus_options         = modules['macs2_consensus']
+// macs2_consensus_options.publish_dir += "/$peakType/qc"
 
-def multiqc_options         = modules['multiqc']
-multiqc_options.args        += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
-multiqc_options.publish_dir += "/$peakType"
+// def multiqc_options         = modules['multiqc']
+// multiqc_options.args        += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+// multiqc_options.publish_dir += "/$peakType"
 
-include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'                   addParams( options: modules['bedtools_genomecov'] )
-include { FRIP_SCORE                          } from '../modules/local/frip_score'                           addParams( options: modules['frip_score'] )
-include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'                        addParams( options: plot_macs2_qc_options )
-include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'             addParams( options: plot_homer_annotatepeaks_options )
-include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'                     addParams( options: macs2_consensus_options )
-//include { DESEQ2_QC  } from '../modules/local/deseq2_qc'                             addParams( options: deseq2_qc_options, multiqc_label: 'star_salmon'   )
-include { IGV                                 } from '../modules/local/igv'                                  addParams( options: [:] )
-include { MULTIQC                             } from '../modules/local/multiqc'                              addParams( options: multiqc_options )
-include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'  addParams( options: modules['multiqc_custom_phantompeakqualtools'] )
-include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'                 addParams( options: modules['multiqc_custom_peaks'] )
+include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'
+include { FRIP_SCORE                          } from '../modules/local/frip_score'
+include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'
+include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
+include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'
+//include { DESEQ2_QC  } from '../modules/local/deseq2_qc'
+include { IGV                                 } from '../modules/local/igv'                                  //addParams( options: [:] )
+include { MULTIQC                             } from '../modules/local/multiqc'
+include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'
+include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
 
-def publish_genome_options = params.save_reference ? [publish_dir: 'genome']       : [publish_files: false]
-def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
+// def publish_genome_options = params.save_reference ? [publish_dir: 'genome']       : [publish_files: false]
+// def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
 
-def gffread_options         = modules['gffread']
-if (!params.save_reference) { gffread_options['publish_files'] = false }
+// def gffread_options         = modules['gffread']
+// if (!params.save_reference) { gffread_options['publish_files'] = false }
 
-def bwa_index_options        = modules['bwa_index']
-if (!params.save_reference)  { bwa_index_options['publish_files'] = false }
+// def bwa_index_options        = modules['bwa_index']
+// if (!params.save_reference)  { bwa_index_options['publish_files'] = false }
 
-include { INPUT_CHECK    } from '../subworkflows/local/input_check'    addParams( options: [:] )
-include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams(
-    genome_options    : publish_genome_options,
-    index_options     : publish_index_options,
-    gffread_options   : gffread_options,
-    bwa_index_options : bwa_index_options
-)
-include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools' addParams(
-    bam_filter_options        : modules['bam_filter'],
-    bam_remove_orphans_options: modules['bam_remove_orphans'],
-    samtools_sort_options     : modules['samtools_sort_filter'],
-    samtools_index_options    : modules['samtools_sort_filter'],
-    samtools_stats_options    : modules['samtools_sort_filter']
-)
+include { INPUT_CHECK    } from '../subworkflows/local/input_check'    //addParams( options: [:] )
+include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' //addParams(
+//     genome_options    : publish_genome_options,
+//     index_options     : publish_index_options,
+//     gffread_options   : gffread_options,
+//     bwa_index_options : bwa_index_options
+// )
+include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools' //addParams(
+//     bam_filter_options        : modules['bam_filter'],
+//     bam_remove_orphans_options: modules['bam_remove_orphans'],
+//     samtools_sort_options     : modules['samtools_sort_filter'],
+//     samtools_index_options    : modules['samtools_sort_filter'],
+//     samtools_stats_options    : modules['samtools_sort_filter']
+// )
 
 /*
 ========================================================================================
@@ -123,55 +123,55 @@ include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 // MODULE: Installed directly from nf-core/modules
 //
 
-def deeptools_plotfingerprint_options  = modules['deeptools_plotfingerprint']
-deeptools_plotfingerprint_options.args += " --numberOfSamples $params.fingerprint_bins"
+// def deeptools_plotfingerprint_options  = modules['deeptools_plotfingerprint'] // AQUI see here https://github.com/nf-core/rnaseq/blob/492f6e0e678b4a5fcdf26b3a60834efb23265889/conf/modules.config#L83
+// deeptools_plotfingerprint_options.args += " --numberOfSamples $params.fingerprint_bins"
 
-def macs2_callpeak_options            = modules['macs2_callpeak']
-macs2_callpeak_options.args           += params.narrow_peak ? '' : Utils.joinModuleArgs(['--broad', "--broad-cutoff ${params.broad_cutoff}"])
-macs2_callpeak_options.args           += params.save_macs_pileup ? Utils.joinModuleArgs(['--bdg', '--SPMR']) : ''
-macs2_callpeak_options.args           += params.macs_fdr ? Utils.joinModuleArgs(["--qvalue ${params.macs_fdr}"]) : ''
-macs2_callpeak_options.args           += params.macs_pvalue ? Utils.joinModuleArgs(["--pvalue ${params.macs_pvalue}"]) : ''
-macs2_callpeak_options['publish_dir'] += "/$peakType"
+// def macs2_callpeak_options            = modules['macs2_callpeak']
+// macs2_callpeak_options.args           += params.narrow_peak ? '' : Utils.joinModuleArgs(['--broad', "--broad-cutoff ${params.broad_cutoff}"])
+// macs2_callpeak_options.args           += params.save_macs_pileup ? Utils.joinModuleArgs(['--bdg', '--SPMR']) : ''
+// macs2_callpeak_options.args           += params.macs_fdr ? Utils.joinModuleArgs(["--qvalue ${params.macs_fdr}"]) : ''
+// macs2_callpeak_options.args           += params.macs_pvalue ? Utils.joinModuleArgs(["--pvalue ${params.macs_pvalue}"]) : ''
+// macs2_callpeak_options['publish_dir'] += "/$peakType"
 
-def homer_annotatepeaks_macs2_options            = modules['homer_annotatepeaks_macs2']
-homer_annotatepeaks_macs2_options['publish_dir'] += "/$peakType"
+// def homer_annotatepeaks_macs2_options            = modules['homer_annotatepeaks_macs2']
+// homer_annotatepeaks_macs2_options['publish_dir'] += "/$peakType"
 
-def homer_annotatepeaks_consensus_options            = modules['homer_annotatepeaks_consensus']
-homer_annotatepeaks_consensus_options['publish_dir'] += "/$peakType/consensus"
+// def homer_annotatepeaks_consensus_options            = modules['homer_annotatepeaks_consensus']
+// homer_annotatepeaks_consensus_options['publish_dir'] += "/$peakType/consensus"
 
-def subread_featurecounts_options            = modules['subread_featurecounts']
-subread_featurecounts_options['publish_dir'] += "/$peakType/consensus"
+// def subread_featurecounts_options            = modules['subread_featurecounts']
+// subread_featurecounts_options['publish_dir'] += "/$peakType/consensus"
 
-include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picard/mergesamfiles/main'          addParams( options: modules['picard_mergesamfiles'] )
-include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main' addParams( options: modules['picard_collectmultiplemetrics'] )
-include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/preseq/lcextrap/main'               addParams( options: modules['preseq_lcextrap'] )
-include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/modules/phantompeakqualtools/main'          addParams( options: modules['phantompeakqualtools'] )
-include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'         addParams( options: modules['ucsc_bedgraphtobigwig'] )
-include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'       addParams( options: modules['deeptools_computematrix'] )
-include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'         addParams( options: modules['deeptools_plotprofile'] )
-include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'         addParams( options: modules['deeptools_plotheatmap'] )
-include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'     addParams( options: deeptools_plotfingerprint_options )
-include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'                addParams( options: macs2_callpeak_options )
-include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'         addParams( options: subread_featurecounts_options )
-include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] )
+include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picard/mergesamfiles/main'
+include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main'
+include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/preseq/lcextrap/main'
+include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/modules/phantompeakqualtools/main'
+include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
+include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'
+include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'
+include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'
+include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'
+include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'
+include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'
+include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
 
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/modules/homer/annotatepeaks/main' addParams( options:homer_annotatepeaks_macs2_options )
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/modules/homer/annotatepeaks/main' addParams( options:homer_annotatepeaks_consensus_options )
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/modules/homer/annotatepeaks/main'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/modules/homer/annotatepeaks/main'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
 //
 
-def trimgalore_options    = modules['trimgalore']
-trimgalore_options.args  += params.trim_nextseq > 0 ? Utils.joinModuleArgs(["--nextseq ${params.trim_nextseq}"]) : ''
-if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
+// def trimgalore_options    = modules['trimgalore']
+// trimgalore_options.args  += params.trim_nextseq > 0 ? Utils.joinModuleArgs(["--nextseq ${params.trim_nextseq}"]) : ''
+// if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
 
 
-def picard_markduplicates_samtools   = modules['picard_markduplicates_samtools']
+// def picard_markduplicates_samtools   = modules['picard_markduplicates_samtools']
 
-include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
-include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'          addParams( bwa_mem_options: modules['bwa_mem'], samtools_sort_options: modules['samtools_sort_lib'], samtools_index_options:  modules['samtools_sort_lib'], samtools_stats_options:  modules['samtools_sort_lib'] )
-include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: picard_markduplicates_samtools, samtools_stats_options:  picard_markduplicates_samtools )
+include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'      //addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
+include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'          //addParams( bwa_mem_options: modules['bwa_mem'], samtools_sort_options: modules['samtools_sort_lib'], samtools_index_options:  modules['samtools_sort_lib'], samtools_stats_options:  modules['samtools_sort_lib'] )
+include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard' //addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: picard_markduplicates_samtools, samtools_stats_options:  picard_markduplicates_samtools )
 
 /*
 ========================================================================================
@@ -214,8 +214,9 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Map reads & BAM QC
     //
-    score = params.bwa_min_score ? " -T ${params.bwa_min_score}" : ''
-    params.modules['bwa_mem'].args += score
+    // score = params.bwa_min_score ? " -T ${params.bwa_min_score}" : ''
+    // params.modules['bwa_mem'].args += score
+
     ALIGN_BWA_MEM (
         FASTQC_TRIMGALORE.out.reads,
         PREPARE_GENOME.out.bwa_index
@@ -410,6 +411,8 @@ workflow CHIPSEQ {
         )
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
+        // HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]}.view()
+
         PLOT_HOMER_ANNOTATEPEAKS (
             HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
             ch_peak_annotation_header,
@@ -488,16 +491,17 @@ workflow CHIPSEQ {
     //
     // Create IGV session
     //
-    IGV (
-        PREPARE_GENOME.out.fasta,
-        UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-        MACS2_CALLPEAK.out.peak.collect{it[1]}.ifEmpty([]),
-        MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
-        params.modules['ucsc_bedgraphtobigwig'],
-        params.modules['macs2_callpeak'],
-        params.modules['macs2_consensus']
-    )
-    ch_versions = ch_versions.mix(IGV.out.versions)
+    // TODO rethink how files are passed
+    // IGV (
+    //     PREPARE_GENOME.out.fasta,
+    //     UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
+    //     MACS2_CALLPEAK.out.peak.collect{it[1]}.ifEmpty([]),
+    //     MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
+    //     params.modules['ucsc_bedgraphtobigwig'],
+    //     params.modules['macs2_callpeak'],
+    //     params.modules['macs2_consensus']
+    // )
+    // ch_versions = ch_versions.mix(IGV.out.versions)
 
     //
     // MODULE: Pipeline reporting

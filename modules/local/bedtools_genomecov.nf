@@ -34,7 +34,7 @@ process BEDTOOLS_GENOMECOV {
         | sort -T '.' -k1,1 -k2,2n > ${prefix}.bedGraph
 
     cat <<-END_VERSIONS > versions.yml
-   "${task.process}":
+    "${task.process}":
         bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
     END_VERSIONS
     """

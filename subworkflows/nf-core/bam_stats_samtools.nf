@@ -2,11 +2,11 @@
  * Run SAMtools stats, flagstat and idxstats
  */
 
-params.options = [:]
+//params.options = [:]
 
-include { SAMTOOLS_STATS    } from '../../modules/nf-core/modules/samtools/stats/main'    addParams( options: params.options )
-include { SAMTOOLS_IDXSTATS } from '../../modules/nf-core/modules/samtools/idxstats/main' addParams( options: params.options )
-include { SAMTOOLS_FLAGSTAT } from '../../modules/nf-core/modules/samtools/flagstat/main' addParams( options: params.options )
+include { SAMTOOLS_STATS    } from '../../modules/nf-core/modules/samtools/stats/main'    //addParams( options: params.options )
+include { SAMTOOLS_IDXSTATS } from '../../modules/nf-core/modules/samtools/idxstats/main' //addParams( options: params.options )
+include { SAMTOOLS_FLAGSTAT } from '../../modules/nf-core/modules/samtools/flagstat/main' //addParams( options: params.options )
 
 workflow BAM_STATS_SAMTOOLS {
     take:
@@ -16,7 +16,7 @@ workflow BAM_STATS_SAMTOOLS {
 
     ch_versions = Channel.empty()
 
-    SAMTOOLS_STATS ( ch_bam_bai )
+    SAMTOOLS_STATS ( ch_bam_bai, [] )
     ch_versions = ch_versions.mix(SAMTOOLS_STATS.out.versions.first())
 
     SAMTOOLS_FLAGSTAT ( ch_bam_bai )
