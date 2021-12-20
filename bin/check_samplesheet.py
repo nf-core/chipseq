@@ -26,9 +26,11 @@ def make_dir(path):
 
 
 def print_error(error, context="Line", context_str=""):
-    error_str = f"ERROR: Please check samplesheet -> {error}"
+    error_str = "ERROR: Please check samplesheet -> {}".format(error)
     if context != "" and context_str != "":
-        error_str = f"ERROR: Please check samplesheet -> {error}\n{context.strip()}: '{context_str.strip()}'"
+        error_str = "ERROR: Please check samplesheet -> {}\n{}: '{}'".format(
+            error, context.strip(), context_str.strip()
+        )
     print(error_str)
     sys.exit(1)
 
@@ -64,18 +66,17 @@ def check_samplesheet(file_in, file_out):
         for line in fin:
             lspl = [x.strip().strip('"') for x in line.strip().split(",")]
 
-            ## Check valid number of columns per row
+            # Check valid number of columns per row
             if len(lspl) < len(HEADER):
                 print_error(
-                    f"Invalid number of columns (minimum = {len(HEADER)})!",
+                    "Invalid number of columns (minimum = {})!".format(len(HEADER)),
                     "Line",
                     line,
                 )
-
             num_cols = len([x for x in lspl if x])
             if num_cols < MIN_COLS:
                 print_error(
-                    f"Invalid number of populated columns (minimum = {MIN_COLS})!",
+                    "Invalid number of populated columns (minimum = {})!".format(MIN_COLS),
                     "Line",
                     line,
                 )
