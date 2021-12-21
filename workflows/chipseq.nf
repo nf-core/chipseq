@@ -201,19 +201,23 @@ workflow CHIPSEQ {
     //
     // MODULE: Post alignment QC
     //
-    PICARD_COLLECTMULTIPLEMETRICS (
-        FILTER_BAM_BAMTOOLS.out.bam,
-        PREPARE_GENOME.out.fasta
-    )
-    ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
+    if (!params.skip_picard_metrics) {
+        PICARD_COLLECTMULTIPLEMETRICS (
+            FILTER_BAM_BAMTOOLS.out.bam,
+            PREPARE_GENOME.out.fasta
+        )
+        ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
+    }
 
     //
     // MODULE: Library coverage
     //
-    PRESEQ_LCEXTRAP (
-        FILTER_BAM_BAMTOOLS.out.bam
-    )
-    ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
+    if (!params.skip_preseq) {
+        PRESEQ_LCEXTRAP (
+            FILTER_BAM_BAMTOOLS.out.bam
+        )
+        ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
+    }
 
     //
     // MODULE: Strand cross-correlation
@@ -250,21 +254,23 @@ workflow CHIPSEQ {
     //
     // MODULE: Coverage plots
     //
-    DEEPTOOLS_COMPUTEMATRIX (
-        UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
-        PREPARE_GENOME.out.gene_bed
-    )
-    ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
+    if (!params.skip_plot_profile) {
+        DEEPTOOLS_COMPUTEMATRIX (
+            UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
+            PREPARE_GENOME.out.gene_bed
+        )
+        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
-    DEEPTOOLS_PLOTPROFILE (
-        DEEPTOOLS_COMPUTEMATRIX.out.matrix
-    )
-    ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
+        DEEPTOOLS_PLOTPROFILE (
+            DEEPTOOLS_COMPUTEMATRIX.out.matrix
+        )
+        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
-    DEEPTOOLS_PLOTHEATMAP (
-        DEEPTOOLS_COMPUTEMATRIX.out.matrix
-    )
-    ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
+        DEEPTOOLS_PLOTHEATMAP (
+            DEEPTOOLS_COMPUTEMATRIX.out.matrix
+        )
+        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
+    }
 
     //
     // Refactor channels: [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
@@ -294,17 +300,17 @@ workflow CHIPSEQ {
     //
     // plotFingerprint for IP and control together
     //
-    DEEPTOOLS_PLOTFINGERPRINT (
-        ch_ip_control_bam_bai
-    )
-    ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
+    if (!params.skip_plot_fingerprint) {
+        DEEPTOOLS_PLOTFINGERPRINT (
+            ch_ip_control_bam_bai
+        )
+        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
+    }
 
+    //
+    // Call peaks
+    //
     if (params.macs_gsize) {
-
-        //
-        // Call peaks
-        //
-
         // Create channel: [ val(meta), ip_bam, control_bam ]
         ch_ip_control_bam_bai
             .map { meta, bams, bais -> [ meta , bams[0], bams[1] ] }
@@ -335,94 +341,103 @@ workflow CHIPSEQ {
             ch_peak_count_header,
             ch_frip_score_header
         )
+        if (!params.skip_peak_annotation && !params.skip_peak_qc) {
+            PLOT_MACS2_QC ( // plot_macs2_qc.r
+                MACS2_CALLPEAK.out.peak.collect{it[1]}
+            )
+            ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
 
-        PLOT_MACS2_QC (
-            MACS2_CALLPEAK.out.peak.collect{it[1]}
-        )
-        ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
+            HOMER_ANNOTATEPEAKS_MACS2 (
+                MACS2_CALLPEAK.out.peak,
+                PREPARE_GENOME.out.fasta,
+                PREPARE_GENOME.out.gtf
+            )
+            ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
-        HOMER_ANNOTATEPEAKS_MACS2 (
-            MACS2_CALLPEAK.out.peak,
-            PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.gtf
-        )
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
+            // HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]}.view()
 
-        // HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]}.view()
+            PLOT_HOMER_ANNOTATEPEAKS (
+                HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
+                ch_peak_annotation_header,
+                "_peaks.annotatePeaks.txt"
+            )
+            ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
+        }
 
-        PLOT_HOMER_ANNOTATEPEAKS (
-            HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
-            ch_peak_annotation_header,
-            "_peaks.annotatePeaks.txt"
-        )
-        ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
+        //
+        //  Consensus peaks analysis
+        //
+        if (!params.skip_consensus_peaks) {
+            // Create channel: [ meta , [ peaks ] ]
+            // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
+            MACS2_CALLPEAK
+                .out
+                .peak
+                .map { meta, peak -> [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] }
+                .groupTuple()
+                .map {
+                    antibody, groups, peaks ->
+                        [
+                            antibody,
+                            groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
+                            peaks
+                        ] }
+                .map {
+                    antibody, groups, peaks ->
+                        def meta = [:]
+                        meta.id = antibody
+                        meta.multiple_groups = groups.size() > 1
+                        meta.replicates_exist = groups.max { groups.value }.value > 1
+                        [ meta, peaks ] }
+                .set { ch_antibody_peaks }
 
-        // Create channel: [ meta , [ peaks ] ]
-        // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
-        MACS2_CALLPEAK
-            .out
-            .peak
-            .map { meta, peak -> [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] }
-            .groupTuple()
-            .map {
-                antibody, groups, peaks ->
-                    [
-                        antibody,
-                        groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
-                        peaks
-                    ] }
-            .map {
-                antibody, groups, peaks ->
-                    def meta = [:]
-                    meta.id = antibody
-                    meta.multiple_groups = groups.size() > 1
-                    meta.replicates_exist = groups.max { groups.value }.value > 1
-                    [ meta, peaks ] }
-            .set { ch_antibody_peaks }
+            MACS2_CONSENSUS (
+                ch_antibody_peaks
+            )
+            ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
-        MACS2_CONSENSUS (
-            ch_antibody_peaks
-        )
-        ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
+            if (!params.skip_peak_annotation) {
+                HOMER_ANNOTATEPEAKS_CONSENSUS (
+                    MACS2_CONSENSUS.out.bed,
+                    PREPARE_GENOME.out.fasta,
+                    PREPARE_GENOME.out.gtf
+                )
+                ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS.out.versions)
+                // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+                // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+            }
 
-        HOMER_ANNOTATEPEAKS_CONSENSUS (
-            MACS2_CONSENSUS.out.bed,
-            PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.gtf
-        )
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS.out.versions)
-        // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-        // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+            // Create channel: [ val(meta), ip_bam ]
+            MACS2_CONSENSUS
+                .out
+                .saf
+                .map { meta, saf -> [ meta.id, meta, saf ] }
+                .set { ch_ip_saf }
 
-        // Create channel: [ val(meta), ip_bam ]
-        MACS2_CONSENSUS
-            .out
-            .saf
-            .map { meta, saf -> [ meta.id, meta, saf ] }
-            .set { ch_ip_saf }
+            ch_ip_control_bam
+                .map { meta, ip_bam, control_bam -> [ meta.antibody, meta, ip_bam ] }
+                .combine(ch_ip_saf)
+                .map {
+                    it ->
+                        fmeta = it[1]
+                        fmeta['replicates_exist'] = it[4]['replicates_exist']
+                        fmeta['multiple_groups'] = it[4]['multiple_groups']
+                        [ fmeta, it[2], it[5] ] }
+                .set { ch_ip_bam }
 
-        ch_ip_control_bam
-            .map { meta, ip_bam, control_bam -> [ meta.antibody, meta, ip_bam ] }
-            .combine(ch_ip_saf)
-            .map {
-                it ->
-                    fmeta = it[1]
-                    fmeta['replicates_exist'] = it[4]['replicates_exist']
-                    fmeta['multiple_groups'] = it[4]['multiple_groups']
-                    [ fmeta, it[2], it[5] ] }
-            .set { ch_ip_bam }
+            SUBREAD_FEATURECOUNTS (
+                ch_ip_bam
+            )
+            ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
 
-        SUBREAD_FEATURECOUNTS (
-            ch_ip_bam
-        )
-        ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
-
-    //     // DESEQ2_FEATURECOUNTS (
-    //     //     params.modules['deseq2_featurecounts']
-    //     // )
-    //     // ch_deseq2_pca_header = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
-    //     // ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
-
+            // if (!params.skip_diff_analysis) {
+            //     // DESEQ2_FEATURECOUNTS (
+            //     //     params.modules['deseq2_featurecounts']
+            //     // )
+            //     // ch_deseq2_pca_header = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
+            //     // ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
+            // }
+        }
     }
 
     //
