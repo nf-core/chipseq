@@ -61,29 +61,13 @@ ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering
 ========================================================================================
 */
 
-// Don't overwrite global params.modules, create a copy instead and use that within the main script.
-// def modules = params.modules.clone()
-
-// def plot_macs2_qc_options         = modules['plot_macs2_qc']
-// plot_macs2_qc_options.publish_dir += "/$peakType/qc"
-
-// def plot_homer_annotatepeaks_options          = modules['plot_homer_annotatepeaks']
-// plot_homer_annotatepeaks_options.publish_dir  += "/$peakType/qc"
-
-// def macs2_consensus_options         = modules['macs2_consensus']
-// macs2_consensus_options.publish_dir += "/$peakType/qc"
-
-// def multiqc_options         = modules['multiqc']
-// multiqc_options.args        += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
-// multiqc_options.publish_dir += "/$peakType"
-
 include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'
 include { FRIP_SCORE                          } from '../modules/local/frip_score'
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
 include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'
 //include { DESEQ2_QC  } from '../modules/local/deseq2_qc'
-include { IGV                                 } from '../modules/local/igv'                                  //addParams( options: [:] )
+include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'
 include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'
@@ -91,30 +75,9 @@ include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_c
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-
-// def publish_genome_options = params.save_reference ? [publish_dir: 'genome']       : [publish_files: false]
-// def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
-
-// def gffread_options         = modules['gffread']
-// if (!params.save_reference) { gffread_options['publish_files'] = false }
-
-// def bwa_index_options        = modules['bwa_index']
-// if (!params.save_reference)  { bwa_index_options['publish_files'] = false }
-
-include { INPUT_CHECK    } from '../subworkflows/local/input_check'    //addParams( options: [:] )
-include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' //addParams(
-//     genome_options    : publish_genome_options,
-//     index_options     : publish_index_options,
-//     gffread_options   : gffread_options,
-//     bwa_index_options : bwa_index_options
-// )
-include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools' //addParams(
-//     bam_filter_options        : modules['bam_filter'],
-//     bam_remove_orphans_options: modules['bam_remove_orphans'],
-//     samtools_sort_options     : modules['samtools_sort_filter'],
-//     samtools_index_options    : modules['samtools_sort_filter'],
-//     samtools_stats_options    : modules['samtools_sort_filter']
-// )
+include { INPUT_CHECK    } from '../subworkflows/local/input_check'
+include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome'
+include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 
 /*
 ========================================================================================
@@ -125,25 +88,6 @@ include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-
-// def deeptools_plotfingerprint_options  = modules['deeptools_plotfingerprint'] // AQUI see here https://github.com/nf-core/rnaseq/blob/492f6e0e678b4a5fcdf26b3a60834efb23265889/conf/modules.config#L83
-// deeptools_plotfingerprint_options.args += " --numberOfSamples $params.fingerprint_bins"
-
-// def macs2_callpeak_options            = modules['macs2_callpeak']
-// macs2_callpeak_options.args           += params.narrow_peak ? '' : Utils.joinModuleArgs(['--broad', "--broad-cutoff ${params.broad_cutoff}"])
-// macs2_callpeak_options.args           += params.save_macs_pileup ? Utils.joinModuleArgs(['--bdg', '--SPMR']) : ''
-// macs2_callpeak_options.args           += params.macs_fdr ? Utils.joinModuleArgs(["--qvalue ${params.macs_fdr}"]) : ''
-// macs2_callpeak_options.args           += params.macs_pvalue ? Utils.joinModuleArgs(["--pvalue ${params.macs_pvalue}"]) : ''
-// macs2_callpeak_options['publish_dir'] += "/$peakType"
-
-// def homer_annotatepeaks_macs2_options            = modules['homer_annotatepeaks_macs2']
-// homer_annotatepeaks_macs2_options['publish_dir'] += "/$peakType"
-
-// def homer_annotatepeaks_consensus_options            = modules['homer_annotatepeaks_consensus']
-// homer_annotatepeaks_consensus_options['publish_dir'] += "/$peakType/consensus"
-
-// def subread_featurecounts_options            = modules['subread_featurecounts']
-// subread_featurecounts_options['publish_dir'] += "/$peakType/consensus"
 
 include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picard/mergesamfiles/main'
 include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main'
@@ -165,16 +109,9 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../module
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
 //
 
-// def trimgalore_options    = modules['trimgalore']
-// trimgalore_options.args  += params.trim_nextseq > 0 ? Utils.joinModuleArgs(["--nextseq ${params.trim_nextseq}"]) : ''
-// if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
-
-
-// def picard_markduplicates_samtools   = modules['picard_markduplicates_samtools']
-
-include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'      //addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
-include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'          //addParams( bwa_mem_options: modules['bwa_mem'], samtools_sort_options: modules['samtools_sort_lib'], samtools_index_options:  modules['samtools_sort_lib'], samtools_stats_options:  modules['samtools_sort_lib'] )
-include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard' //addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: picard_markduplicates_samtools, samtools_stats_options:  picard_markduplicates_samtools )
+include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
+include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
+include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'
 
 /*
 ========================================================================================
@@ -217,9 +154,6 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Map reads & BAM QC
     //
-    // score = params.bwa_min_score ? " -T ${params.bwa_min_score}" : ''
-    // params.modules['bwa_mem'].args += score
-
     ALIGN_BWA_MEM (
         FASTQC_TRIMGALORE.out.reads,
         PREPARE_GENOME.out.bwa_index
