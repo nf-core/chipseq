@@ -494,17 +494,22 @@ workflow CHIPSEQ {
     //
     // Create IGV session
     //
-    // TODO rethink how files are passed
-    // IGV (
-    //     PREPARE_GENOME.out.fasta,
-    //     UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-    //     MACS2_CALLPEAK.out.peak.collect{it[1]}.ifEmpty([]),
-    //     MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
-    //     params.modules['ucsc_bedgraphtobigwig'],
-    //     params.modules['macs2_callpeak'],
-    //     params.modules['macs2_consensus']
-    // )
-    // ch_versions = ch_versions.mix(IGV.out.versions)
+    if (!params.skip_igv) {
+        IGV (
+            PREPARE_GENOME.out.fasta,
+            UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
+            MACS2_CALLPEAK.out.peak.collect{it[1]}.ifEmpty([]),
+            MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
+            "bwa/mergedLibrary/bigwig",
+            { ["bwa/mergedLibrary/macs2",
+                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                ].join('') },
+            { ["bwa/mergedLibrary/macs2",
+                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                ].join('') }
+        )
+        ch_versions = ch_versions.mix(IGV.out.versions)
+    }
 
     //
     // MODULE: Pipeline reporting

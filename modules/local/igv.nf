@@ -10,12 +10,12 @@ process IGV {
 
     input:
     path fasta
-    path ("${bigwig_options.publish_dir}/*")
-    path ("${peak_options.publish_dir}/*")
-    path ("${consensus_options.publish_dir}/*")
-    val bigwig_options
-    val peak_options
-    val consensus_options
+    path ("${bigwig_publish_dir}/*")
+    path ("${peak_publish_dir}/*")
+    path ("${consensus_publish_dir}/*")
+    val bigwig_publish_dir
+    val peak_publish_dir
+    val consensus_publish_dir
     // path differential_peaks from ch_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
 
     output:
