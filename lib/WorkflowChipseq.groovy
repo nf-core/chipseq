@@ -87,7 +87,7 @@ class WorkflowChipseq {
         log.warn "=============================================================================\n" +
             "  --macs_gsize parameter has not been provided.\n" +
             "  MACS2 peak-calling and differential analysis will be skipped.\n" +
-            "  Provide '--macs_gsize genome_size' to change this behaviour.\n" +
+            "  Provide '--macs_gsize macs2_genome_size' to change this behaviour.\n" +
             "==================================================================================="
     }
 
