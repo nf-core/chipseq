@@ -201,22 +201,26 @@ workflow CHIPSEQ {
     //
     // MODULE: Post alignment QC
     //
+    ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
     if (!params.skip_picard_metrics) {
         PICARD_COLLECTMULTIPLEMETRICS (
             FILTER_BAM_BAMTOOLS.out.bam,
             PREPARE_GENOME.out.fasta
         )
+        ch_picardcollectmultiplemetrics_multiqc = MARK_DUPLICATES_PICARD.out.metrics
         ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
     }
 
     //
     // MODULE: Library coverage
     //
+    ch_preseq_multiqc = Channel.empty()
     if (!params.skip_preseq) {
         PRESEQ_LCEXTRAP (
             FILTER_BAM_BAMTOOLS.out.bam
         )
-        ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
+        ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.ccurve
+        ch_versions       = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
@@ -254,6 +258,7 @@ workflow CHIPSEQ {
     //
     // MODULE: Coverage plots
     //
+    ch_deeptoolsplotprofile_multiqc = Channel.empty()
     if (!params.skip_plot_profile) {
         DEEPTOOLS_COMPUTEMATRIX (
             UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
@@ -264,6 +269,7 @@ workflow CHIPSEQ {
         DEEPTOOLS_PLOTPROFILE (
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
+        ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
         ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
         DEEPTOOLS_PLOTHEATMAP (
@@ -300,21 +306,28 @@ workflow CHIPSEQ {
     //
     // plotFingerprint for IP and control together
     //
+    ch_deeptoolsplotfingerprint_multiqc = Channel.empty()
     if (!params.skip_plot_fingerprint) {
         DEEPTOOLS_PLOTFINGERPRINT (
             ch_ip_control_bam_bai
         )
+        ch_deeptools_plotfingerprintmultiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
         ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
 
     //
     // Call peaks
     //
+    ch_custompeaks_frip_multiqc       = Channel.empty()
+    ch_custompeaks_count_multiqc      = Channel.empty()
+    ch_plothomerannotatepeaks_multiqc = Channel.empty()
+    ch_subreadfeaturecounts_multiqc   = Channel.empty()
     if (params.macs_gsize) {
         // Create channel: [ val(meta), ip_bam, control_bam ]
         ch_ip_control_bam_bai
             .map { meta, bams, bais -> [ meta , bams[0], bams[1] ] }
             .set { ch_ip_control_bam }
+
 
         MACS2_CALLPEAK (
             ch_ip_control_bam,
@@ -341,8 +354,11 @@ workflow CHIPSEQ {
             ch_peak_count_header,
             ch_frip_score_header
         )
+        ch_custompeaks_frip_multiqc  = MULTIQC_CUSTOM_PEAKS.out.frip
+        ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS.out.count
+
         if (!params.skip_peak_annotation && !params.skip_peak_qc) {
-            PLOT_MACS2_QC ( // plot_macs2_qc.r
+            PLOT_MACS2_QC (
                 MACS2_CALLPEAK.out.peak.collect{it[1]}
             )
             ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
@@ -361,6 +377,7 @@ workflow CHIPSEQ {
                 ch_peak_annotation_header,
                 "_peaks.annotatePeaks.txt"
             )
+            ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
             ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
         }
 
@@ -428,6 +445,7 @@ workflow CHIPSEQ {
             SUBREAD_FEATURECOUNTS (
                 ch_ip_bam
             )
+            ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
             ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
 
             // if (!params.skip_diff_analysis) {
@@ -437,27 +455,27 @@ workflow CHIPSEQ {
             //     // ch_deseq2_pca_header = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
             //     // ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
             // }
-        }
-    }
 
-    //
-    // Create IGV session
-    //
-    if (!params.skip_igv) {
-        IGV (
-            PREPARE_GENOME.out.fasta,
-            UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-            MACS2_CALLPEAK.out.peak.collect{it[1]}.ifEmpty([]),
-            MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
-            "bwa/mergedLibrary/bigwig",
-            { ["bwa/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                ].join('') },
-            { ["bwa/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                ].join('') }
-        )
-        ch_versions = ch_versions.mix(IGV.out.versions)
+            //
+            // Create IGV session
+            //
+            if (!params.skip_igv) {
+                IGV (
+                    PREPARE_GENOME.out.fasta,
+                    UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
+                    MACS2_CALLPEAK.out.peak.collect{it[1]}.ifEmpty([]),
+                    MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
+                    "bwa/mergedLibrary/bigwig",
+                    { ["bwa/mergedLibrary/macs2",
+                        params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                        ].join('') },
+                    { ["bwa/mergedLibrary/macs2",
+                        params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                        ].join('') }
+                )
+                ch_versions = ch_versions.mix(IGV.out.versions)
+            }
+        }
     }
 
     //
@@ -496,20 +514,20 @@ workflow CHIPSEQ {
             FILTER_BAM_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
             FILTER_BAM_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
             FILTER_BAM_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
-            PICARD_COLLECTMULTIPLEMETRICS.out.metrics.collect{it[1]}.ifEmpty([]),
+            ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
 
-            PRESEQ_LCEXTRAP.out.ccurve.collect{it[1]}.ifEmpty([]),
-            DEEPTOOLS_PLOTPROFILE.out.table.collect{it[1]}.ifEmpty([]),
-            DEEPTOOLS_PLOTFINGERPRINT.out.matrix.collect{it[1]}.ifEmpty([]),
+            ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
             PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
             MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc.collect{it[1]}.ifEmpty([]),
             MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
             MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation.collect{it[1]}.ifEmpty([]),
 
-            MULTIQC_CUSTOM_PEAKS.out.count.collect{it[1]}.ifEmpty([]),
-            MULTIQC_CUSTOM_PEAKS.out.frip.collect{it[1]}.ifEmpty([]),
-            PLOT_HOMER_ANNOTATEPEAKS.out.tsv.collect().ifEmpty([]),
-            SUBREAD_FEATURECOUNTS.out.summary.collect{it[1]}.ifEmpty([]),
+            ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_plothomerannotatepeaks_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
             // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
         )
         multiqc_report       = MULTIQC.out.report.toList()
