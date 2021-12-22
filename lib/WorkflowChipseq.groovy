@@ -25,7 +25,7 @@ class WorkflowChipseq {
         }
 
         if (!params.macs_gsize) {
-            macsGsizeWarn(params, log)
+            macsGsizeWarn(log)
         }
     }
 
@@ -69,4 +69,26 @@ class WorkflowChipseq {
             System.exit(1)
         }
     }
+
+    //
+    // Print a warning if both GTF and GFF have been provided
+    //
+    private static void gtfGffWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  Both '--gtf' and '--gff' parameters have been provided.\n" +
+            "  Using GTF file as priority.\n" +
+            "==================================================================================="
+    }
+
+    //
+    // Print a warning if macs_gsize parameter has not been provided
+    //
+    private static void macsGsizeWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  --macs_gsize parameter has not been provided.\n" +
+            "  MACS2 peak-calling and differential analysis will be skipped.\n" +
+            "  Provide '--macs_gsize genome_size' to change this behaviour.\n" +
+            "==================================================================================="
+    }
+
 }
