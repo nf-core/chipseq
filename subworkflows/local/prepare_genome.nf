@@ -2,24 +2,19 @@
 // Uncompress and prepare reference genome files
 //
 
-params.genome_options    = [:]
-params.index_options     = [:]
-params.gffread_options   = [:]
-params.bwa_index_options = [:]
-
 include {
     GUNZIP as GUNZIP_FASTA
     GUNZIP as GUNZIP_GTF
     GUNZIP as GUNZIP_GFF
     GUNZIP as GUNZIP_GENE_BED
-    GUNZIP as GUNZIP_BLACKLIST } from '../../modules/nf-core/modules/gunzip/main' addParams( options: params.genome_options    )
-include { UNTAR     } from '../../modules/nf-core/modules/untar/main'             addParams( options: params.index_options     )
-include { GFFREAD   } from '../../modules/nf-core/modules/gffread/main'           addParams( options: params.gffread_options   )
-include { BWA_INDEX } from '../../modules/nf-core/modules/bwa/index/main'         addParams( options: params.bwa_index_options )
+    GUNZIP as GUNZIP_BLACKLIST } from '../../modules/nf-core/modules/gunzip/main'
+include { UNTAR                } from '../../modules/nf-core/modules/untar/main'
+include { GFFREAD              } from '../../modules/nf-core/modules/gffread/main'
+include { CUSTOM_GETCHROMSIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main'
+include { BWA_INDEX            } from '../../modules/nf-core/modules/bwa/index/main'
 
-include { GTF2BED                  } from '../../modules/local/gtf2bed'                  addParams( options: params.genome_options )
-include { GET_CHROM_SIZES          } from '../../modules/local/get_chrom_sizes'          addParams( options: params.genome_options )
-include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions' addParams( options: params.genome_options )
+include { GTF2BED                  } from '../../modules/local/gtf2bed'
+include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions'
 
 workflow PREPARE_GENOME {
 
@@ -101,14 +96,14 @@ workflow PREPARE_GENOME {
     //
     // Create chromosome sizes file
     //
-    ch_chrom_sizes = GET_CHROM_SIZES ( ch_fasta ).sizes
-    ch_versions    = ch_versions.mix(GET_CHROM_SIZES.out.versions)
+    ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( ch_fasta ).sizes
+    ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
 
     //
     // Prepare genome intervals for filtering by removing regions in blacklist file
     //
     GENOME_BLACKLIST_REGIONS (
-        GET_CHROM_SIZES.out.sizes,
+        CUSTOM_GETCHROMSIZES.out.sizes,
         ch_blacklist.ifEmpty([])
     )
     ch_versions = ch_versions.mix(GENOME_BLACKLIST_REGIONS.out.versions)

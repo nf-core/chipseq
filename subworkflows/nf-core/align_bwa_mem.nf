@@ -2,13 +2,8 @@
  * Map reads, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-params.bwa_mem_options  = [:]
-params.samtools_sort_options  = [:]
-params.samtools_index_options = [:]
-params.samtools_stats_options = [:]
-
-include { BWA_MEM           } from '../../modules/nf-core/modules/bwa/mem/main' addParams( options: params.bwa_mem_options )
-include { BAM_SORT_SAMTOOLS } from './bam_sort_samtools'                        addParams( sort_options: params.samtools_sort_options, index_options: params.samtools_index_options, stats_options: params.samtools_stats_options )
+include { BWA_MEM           } from '../../modules/nf-core/modules/bwa/mem/main'
+include { BAM_SORT_SAMTOOLS } from './bam_sort_samtools'
 
 workflow ALIGN_BWA_MEM {
     take:

@@ -1,4 +1,4 @@
-# ![nf-core/chipseq](images/nf-core-chipseq_logo.png)
+# nf-core/chipseq: Output
 
 ## Introduction
 

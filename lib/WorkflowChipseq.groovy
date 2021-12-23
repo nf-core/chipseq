@@ -8,9 +8,7 @@ class WorkflowChipseq {
     // Check and validate parameters
     //
     public static void initialise(params, log) {
-        if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-            genomeExistsError(params, log)
-        }
+        genomeExistsError(params, log)
 
         if (!params.fasta) {
             log.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
@@ -27,7 +25,7 @@ class WorkflowChipseq {
         }
 
         if (!params.macs_gsize) {
-            macsGsizeWarn(params, log)
+            macsGsizeWarn(log)
         }
     }
 
@@ -62,12 +60,14 @@ class WorkflowChipseq {
     // Exit pipeline if incorrect --genome key provided
     //
     private static void genomeExistsError(params, log) {
-        log.error "=============================================================================\n" +
-            "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" +
-            "  Currently, the available genome keys are:\n" +
-            "  ${params.genomes.keySet().join(", ")}\n" +
-            "==================================================================================="
-        System.exit(1)
+        if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
+            log.error "=============================================================================\n" +
+                "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" +
+                "  Currently, the available genome keys are:\n" +
+                "  ${params.genomes.keySet().join(", ")}\n" +
+                "==================================================================================="
+            System.exit(1)
+        }
     }
 
     //
@@ -81,14 +81,14 @@ class WorkflowChipseq {
     }
 
     //
-    // Show a big warning message if we're not running MACS
+    // Print a warning if macs_gsize parameter has not been provided
     //
-    private static void macsGsizeWarn(params, log) {
-        def warnstring = params.genome ? "supported for '${params.genome}'" : 'supplied'
-        log.warn "=================================================================\n" +
-            "  WARNING! MACS genome size parameter not $warnstring.\n" +
-            "  Peak calling, annotation and differential analysis will be skipped.\n" +
-            "  Please specify value for '--macs_gsize' to run these steps.\n" +
-            "======================================================================="
+    private static void macsGsizeWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  --macs_gsize parameter has not been provided.\n" +
+            "  MACS2 peak-calling and differential analysis will be skipped.\n" +
+            "  Provide '--macs_gsize macs2_genome_size' to change this behaviour.\n" +
+            "==================================================================================="
     }
+
 }

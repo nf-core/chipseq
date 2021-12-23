@@ -1,5 +1,5 @@
-process SAMTOOLS_FLAGSTAT {
-    tag "$meta.id"
+process CUSTOM_GETCHROMSIZES {
+    tag "$fasta"
     label 'process_low'
 
     conda (params.enable_conda ? "bioconda::samtools=1.14" : null)
@@ -8,19 +8,22 @@ process SAMTOOLS_FLAGSTAT {
         'quay.io/biocontainers/samtools:1.14--hb421002_0' }"
 
     input:
-    tuple val(meta), path(bam), path(bai)
+    path fasta
 
     output:
-    tuple val(meta), path("*.flagstat"), emit: flagstat
-    path  "versions.yml"               , emit: versions
+    path '*.sizes'      , emit: sizes
+    path '*.fai'        , emit: fai
+    path  "versions.yml", emit: versions
 
     script:
     def args = task.ext.args ?: ''
     """
-    samtools flagstat --threads ${task.cpus-1} $bam > ${bam}.flagstat
+    samtools faidx $fasta
+    cut -f 1,2 ${fasta}.fai > ${fasta}.sizes
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+        custom: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
     END_VERSIONS
     """
 }
