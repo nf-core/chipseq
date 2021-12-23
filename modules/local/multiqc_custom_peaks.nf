@@ -19,5 +19,10 @@ process MULTIQC_CUSTOM_PEAKS {
     """
     cat $peak | wc -l | awk -v OFS='\t' '{ print "${prefix}", \$1 }' | cat $peak_count_header - > ${prefix}.peak_count_mqc.tsv
     cat $frip_score_header $frip > ${prefix}.FRiP_mqc.tsv
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        sed: \$(echo \$(sed --version 2>&1) | sed 's/^.*GNU sed) //; s/ .*\$//')
+    END_VERSIONS
     """
 }
