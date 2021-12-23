@@ -50,12 +50,11 @@ jobs:
     name: Test workflow parameters
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/chipseq') }}
     runs-on: ubuntu-latest
-    env:
-      NXF_VER: '21.10.3'
-      NXF_ANSI_LOG: false
     strategy:
       matrix:
-        parameters: [--skip_trimming, --skip_consensus_peaks]
+        parameters:
+        - "--skip_trimming"
+        - "--skip_consensus_peaks"
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
