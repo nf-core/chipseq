@@ -1,6 +1,3 @@
-/*
- * Aggregated QC plots for peak-to-gene annotation
- */
 process PLOT_HOMER_ANNOTATEPEAKS {
     label 'process_medium'
 
