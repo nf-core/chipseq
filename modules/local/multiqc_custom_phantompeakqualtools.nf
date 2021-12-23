@@ -1,5 +1,4 @@
 process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
-    //TODO substitute with a newest tag (see https://github.com/BioContainers/containers/issues/416)
     conda (params.enable_conda ? "conda-forge::r-base=3.5.1" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-base:3.5.1':
