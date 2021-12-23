@@ -1,6 +1,3 @@
-/*
- * Aggregated QC plots for peaks
- */
 process PLOT_MACS2_QC {
     label 'process_medium'
 
