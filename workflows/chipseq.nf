@@ -4,10 +4,15 @@
 ========================================================================================
 */
 
+def valid_params = [
+    aligners       : [ 'bwa', 'chromap' ]
+]
+
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
 // Validate input parameters
 WorkflowChipseq.initialise(params, log)
+// WorkflowChipseq.initialise(params, log, valid_params)
 
 // Check input path parameters to see if they exist
 def checkPathParamList = [
@@ -23,14 +28,16 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 
+// Check alignment parameters
+def prepareToolIndices  = []
+// if (!params.skip_alignment) { prepareToolIndices << params.aligner        } //DEL
+
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
 if (anno_readme && file(anno_readme).exists()) {
     file("${params.outdir}/genome/").mkdirs()
     file(anno_readme).copyTo("${params.outdir}/genome/")
 }
-
-// def peakType = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
 
 /*
 ========================================================================================
@@ -111,6 +118,7 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../module
 
 include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
 include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
+include { ALIGN_CHROMAP          } from '../subworkflows/nf-core/align_chromap'
 include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'
 
 /*
@@ -129,7 +137,9 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Uncompress and prepare reference genome files
     //
-    PREPARE_GENOME ()
+    PREPARE_GENOME (
+        params.aligner
+    )
     ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
@@ -151,21 +161,47 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
 
+
+
     //
     // SUBWORKFLOW: Map reads & BAM QC
     //
-    ALIGN_BWA_MEM (
-        FASTQC_TRIMGALORE.out.reads,
-        PREPARE_GENOME.out.bwa_index
-    )
-    ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
+    ch_genome_bam        = Channel.empty()
+    ch_genome_bam_index  = Channel.empty()
+    ch_samtools_stats    = Channel.empty()
+    ch_samtools_flagstat = Channel.empty()
+    ch_samtools_idxstats = Channel.empty()
+    if (params.aligner == 'bwa') {
+        ALIGN_BWA_MEM (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.bwa_index
+        )
+        ch_genome_bam        = ALIGN_BWA_MEM.out.bam
+        ch_genome_bam_index  = ALIGN_BWA_MEM.out.bai
+        ch_samtools_stats    = ALIGN_BWA_MEM.out.stats
+        ch_samtools_flagstat = ALIGN_BWA_MEM.out.flagstat
+        ch_samtools_idxstats = ALIGN_BWA_MEM.out.idxstats
+        ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
+    }
+
+    if (params.aligner == 'chromap') {
+        ALIGN_CHROMAP (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.chromap_index,
+            PREPARE_GENOME.out.fasta
+        )
+        ch_genome_bam       = ALIGN_CHROMAP.out.bam
+        ch_genome_bam_index = ALIGN_CHROMAP.out.bai
+        ch_versions = ch_versions.mix(ALIGN_CHROMAP.out.versions.first())
+    }
 
     //
     // SUBWORKFLOW: Merge resequenced BAM files
     //
-    ALIGN_BWA_MEM
-        .out
-        .bam
+    // ALIGN_BWA_MEM //DEL
+    ch_genome_bam
+        // .out //DEL
+        // .bam //DEL
         .map {
             meta, bam ->
                 fmeta = meta.findAll { it.key != 'read_group' }
@@ -502,9 +538,9 @@ workflow CHIPSEQ {
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
 
-            ALIGN_BWA_MEM.out.stats.collect{it[1]},
-            ALIGN_BWA_MEM.out.flagstat.collect{it[1]},
-            ALIGN_BWA_MEM.out.idxstats.collect{it[1]},
+            ch_samtools_stats.collect{it[1]}.ifEmpty([]),
+            ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
+            ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
 
             MARK_DUPLICATES_PICARD.out.stats.collect{it[1]}.ifEmpty([]),
             MARK_DUPLICATES_PICARD.out.flagstat.collect{it[1]}.ifEmpty([]),

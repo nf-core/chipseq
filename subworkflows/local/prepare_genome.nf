@@ -12,11 +12,14 @@ include { UNTAR                } from '../../modules/nf-core/modules/untar/main'
 include { GFFREAD              } from '../../modules/nf-core/modules/gffread/main'
 include { CUSTOM_GETCHROMSIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main'
 include { BWA_INDEX            } from '../../modules/nf-core/modules/bwa/index/main'
+include { CHROMAP_INDEX        } from '../../modules/nf-core/modules/chromap/index/main'
 
 include { GTF2BED                  } from '../../modules/local/gtf2bed'
 include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions'
 
 workflow PREPARE_GENOME {
+    take:
+    prepare_tool_index // string  : tool to prepare index for
 
     main:
 
@@ -112,25 +115,46 @@ workflow PREPARE_GENOME {
     // Uncompress BWA index or generate from scratch if required
     //
     ch_bwa_index = Channel.empty()
-    if (params.bwa_index) {
-        if (params.bwa_index.endsWith('.tar.gz')) {
-            ch_bwa_index = UNTAR ( params.bwa_index ).untar
-            ch_versions  = ch_versions.mix(UNTAR.out.versions)
+    if (prepare_tool_index == 'bwa') {
+        if (params.bwa_index) {
+            if (params.bwa_index.endsWith('.tar.gz')) {
+                ch_bwa_index = UNTAR ( params.bwa_index ).untar
+                ch_versions  = ch_versions.mix(UNTAR.out.versions)
+            } else {
+                ch_bwa_index = file(params.bwa_index)
+            }
         } else {
-            ch_bwa_index = file(params.bwa_index)
+            ch_bwa_index = BWA_INDEX ( ch_fasta ).index
+            ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
         }
-    } else {
-        ch_bwa_index = BWA_INDEX ( ch_fasta ).index
-        ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
+    }
+
+    //
+    // Uncompress CHROMAP index or generate from scratch if required
+    //
+    ch_chromap_index = Channel.empty()
+    if (prepare_tool_index == 'chromap') {
+        if (params.chromap_index) {
+            if (params.chromap_index.endsWith('.tar.gz')) {
+                ch_bwa_index = UNTAR ( params.chromap_index ).untar
+                ch_versions  = ch_versions.mix(UNTAR.out.versions)
+            } else {
+                ch_chromap_index = file(params.chromap_index)
+            }
+        } else {
+            ch_chromap_index = CHROMAP_INDEX ( ch_fasta ).index
+            ch_versions  = ch_versions.mix(CHROMAP_INDEX.out.versions)
+        }
     }
 
     emit:
-    fasta       = ch_fasta                  //    path: genome.fasta
-    gtf         = ch_gtf                    //    path: genome.gtf
-    gene_bed    = ch_gene_bed               //    path: gene.bed
-    chrom_sizes = ch_chrom_sizes            //    path: genome.sizes
-    blacklist   = ch_blacklist              //    path: blacklist.bed
-    bwa_index   = ch_bwa_index              //    path: bbsplit/index/
+    fasta         = ch_fasta                  //    path: genome.fasta
+    gtf           = ch_gtf                    //    path: genome.gtf
+    gene_bed      = ch_gene_bed               //    path: gene.bed
+    chrom_sizes   = ch_chrom_sizes            //    path: genome.sizes
+    blacklist     = ch_blacklist              //    path: blacklist.bed
+    bwa_index     = ch_bwa_index              //    path: bwa/index/
+    chromap_index = ch_chromap_index          //    path: genome.index
 
     versions    = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
 }
