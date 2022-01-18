@@ -5,21 +5,21 @@
 */
 
 def valid_params = [
-    aligners       : [ 'bwa', 'chromap' ]
+    aligners       : [ 'bwa', 'bowtie2', 'chromap' ]
 ]
 
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
 // Validate input parameters
 WorkflowChipseq.initialise(params, log)
-// WorkflowChipseq.initialise(params, log, valid_params)
+// WorkflowChipseq.initialise(params, log, valid_params) //TODO include valid_params
 
 // Check input path parameters to see if they exist
 def checkPathParamList = [
     params.input, params.multiqc_config,
     params.fasta,
     params.gtf, params.gff, params.gene_bed,
-    params.bwa_index,
+    params.bwa_index, //TODO change now more aligners
     params.blacklist,
     params.bamtools_filter_pe_config, params.bamtools_filter_se_config
 ]
@@ -119,6 +119,7 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../module
 include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
 include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
 include { ALIGN_CHROMAP          } from '../subworkflows/nf-core/align_chromap'
+include { ALIGN_BOWTIE2          } from '../subworkflows/nf-core/align_bowtie2'
 include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'
 
 /*
@@ -183,6 +184,20 @@ workflow CHIPSEQ {
         ch_samtools_idxstats = ALIGN_BWA_MEM.out.idxstats
         ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
     }
+    params.save_unaligned = false
+    if (params.aligner == 'bowtie2') {
+        ALIGN_BOWTIE2 (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.bowtie2_index,
+            params.save_unaligned
+        )
+        ch_genome_bam        = ALIGN_BOWTIE2.out.bam
+        ch_genome_bam_index  = ALIGN_BOWTIE2.out.bai
+        ch_samtools_stats    = ALIGN_BOWTIE2.out.stats
+        ch_samtools_flagstat = ALIGN_BOWTIE2.out.flagstat
+        ch_samtools_idxstats = ALIGN_BOWTIE2.out.idxstats
+        ch_versions = ch_versions.mix(ALIGN_BOWTIE2.out.versions.first())
+    }
 
     if (params.aligner == 'chromap') {
         ALIGN_CHROMAP (
@@ -192,6 +207,9 @@ workflow CHIPSEQ {
         )
         ch_genome_bam       = ALIGN_CHROMAP.out.bam
         ch_genome_bam_index = ALIGN_CHROMAP.out.bai
+        // ch_samtools_stats    = ALIGN_CHROMAP.out.stats //TODO
+        // ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
+        // ch_samtools_idxstats = ALIGN_CHROMAP.out.idxstats
         ch_versions = ch_versions.mix(ALIGN_CHROMAP.out.versions.first())
     }
 
