@@ -5,7 +5,7 @@
 */
 
 def valid_params = [
-    aligners       : [ 'bwa', 'bowtie2', 'chromap' ]
+    aligners       : [ 'bwa', 'bowtie2', 'chromap', 'star' ]
 ]
 
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
@@ -120,6 +120,7 @@ include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalo
 include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
 include { ALIGN_CHROMAP          } from '../subworkflows/nf-core/align_chromap'
 include { ALIGN_BOWTIE2          } from '../subworkflows/nf-core/align_bowtie2'
+include { ALIGN_STAR             } from '../subworkflows/nf-core/align_star'
 include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'
 
 /*
@@ -211,6 +212,25 @@ workflow CHIPSEQ {
         // ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
         // ch_samtools_idxstats = ALIGN_CHROMAP.out.idxstats
         ch_versions = ch_versions.mix(ALIGN_CHROMAP.out.versions.first())
+    }
+
+    if (params.aligner == 'star') {
+        ALIGN_STAR (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.star_index,
+            params.save_unaligned
+        )
+        ch_genome_bam        = ALIGN_STAR.out.bam
+        ch_genome_bam_index  = ALIGN_STAR.out.bai
+        ch_transcriptome_bam = ALIGN_STAR.out.bam_transcript
+        ch_samtools_stats    = ALIGN_STAR.out.stats
+        ch_samtools_flagstat = ALIGN_STAR.out.flagstat
+        ch_samtools_idxstats = ALIGN_STAR.out.idxstats
+        ch_star_multiqc      = ALIGN_STAR.out.log_final // TODO for the rest of aligners
+        // if (params.bam_csi_index) {                  //TODO for the rest of aligners
+        //     ch_genome_bam_index = ALIGN_STAR.out.csi
+        // }
+        ch_versions = ch_versions.mix(ALIGN_STAR.out.versions)
     }
 
     //

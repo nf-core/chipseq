@@ -17,6 +17,7 @@ include { CHROMAP_INDEX        } from '../../modules/nf-core/modules/chromap/ind
 
 include { GTF2BED                  } from '../../modules/local/gtf2bed'
 include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions'
+include { STAR_GENOMEGENERATE  } from '../../modules/local/star_genomegenerate'
 
 workflow PREPARE_GENOME {
     take:
@@ -166,6 +167,24 @@ workflow PREPARE_GENOME {
         }
     }
 
+    //
+    // Uncompress STAR index or generate from scratch if required
+    //
+    ch_star_index = Channel.empty()
+    if (prepare_tool_index == 'star') {
+        if (params.star_index) {
+            if (params.star_index.endsWith('.tar.gz')) {
+                ch_star_index = UNTAR_STAR_INDEX ( params.star_index ).untar
+                ch_versions   = ch_versions.mix(UNTAR_STAR_INDEX.out.versions)
+            } else {
+                ch_star_index = file(params.star_index)
+            }
+        } else {
+            ch_star_index = STAR_GENOMEGENERATE ( ch_fasta, ch_gtf ).index
+            ch_versions   = ch_versions.mix(STAR_GENOMEGENERATE.out.versions)
+        }
+    }
+
     emit:
     fasta         = ch_fasta                  //    path: genome.fasta
     gtf           = ch_gtf                    //    path: genome.gtf
@@ -175,6 +194,7 @@ workflow PREPARE_GENOME {
     bwa_index     = ch_bwa_index              //    path: bwa/index/
     bowtie2_index = ch_bowtie2_index          //    path: bowtie2/index/
     chromap_index = ch_chromap_index          //    path: genome.index
+    star_index    = ch_chromap_index          //    path: star/index/
 
     versions    = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
 }
