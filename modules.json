@@ -87,6 +87,9 @@
             "samtools/stats": {
                 "git_sha": "20d8250d9f39ddb05dfb437603aaf99b5c0b2b41"
             },
+            "star/genomegenerate": {
+                "git_sha": "20d8250d9f39ddb05dfb437603aaf99b5c0b2b41"
+            },
             "subread/featurecounts": {
                 "git_sha": "9d0cad583b9a71a6509b754fdf589cbfbed08961"
             },
