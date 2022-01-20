@@ -96,14 +96,14 @@
                 },
                 "bwa_index": {
                     "type": "string",
-                    "description": "Full path to directory containing BWA index including base name. i.e. `/path/to/index/genome.fa`.",
+                    "description": "Path to directory or tar.gz archive for pre-built BWA index.",
                     "fa_icon": "fas fa-bezier-curve"
                 },
                 "bowtie2_index": {
                     "type": "string",
                     "format": "path",
                     "fa_icon": "fas fa-bezier-curve",
-                    "description": "Path to directory or tar.gz archive for pre-built HISAT2 index."
+                    "description": "Path to directory or tar.gz archive for pre-built Bowtie2 index."
                 },
                 "chromap_index": {
                     "type": "string",
