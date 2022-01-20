@@ -11,15 +11,14 @@ def valid_params = [
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
 // Validate input parameters
-WorkflowChipseq.initialise(params, log)
-// WorkflowChipseq.initialise(params, log, valid_params) //TODO include valid_params
+WorkflowChipseq.initialise(params, log, valid_params)
 
 // Check input path parameters to see if they exist
 def checkPathParamList = [
     params.input, params.multiqc_config,
     params.fasta,
     params.gtf, params.gff, params.gene_bed,
-    params.bwa_index, //TODO change now more aligners
+    params.bwa_index, params.bowtie2_index, params.chromap_index, params.star_index,
     params.blacklist,
     params.bamtools_filter_pe_config, params.bamtools_filter_se_config
 ]

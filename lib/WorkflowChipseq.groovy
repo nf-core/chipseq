@@ -7,7 +7,7 @@ class WorkflowChipseq {
     //
     // Check and validate parameters
     //
-    public static void initialise(params, log) {
+    public static void initialise(params, log, valid_params) {
         genomeExistsError(params, log)
 
         if (!params.fasta) {
@@ -26,6 +26,13 @@ class WorkflowChipseq {
 
         if (!params.macs_gsize) {
             macsGsizeWarn(log)
+        }
+
+        if (!params.aligner) {
+            if (!valid_params['aligners'].contains(params.aligner)) {
+                    log.error "Invalid option: '${params.aligner}'. Valid options for '--aligner': ${valid_params['aligners'].join(', ')}."
+                    System.exit(1)
+            }
         }
     }
 
