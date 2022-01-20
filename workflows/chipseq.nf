@@ -184,7 +184,7 @@ workflow CHIPSEQ {
         ch_samtools_idxstats = ALIGN_BWA_MEM.out.idxstats
         ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
     }
-    params.save_unaligned = false
+
     if (params.aligner == 'bowtie2') {
         ALIGN_BOWTIE2 (
             FASTQC_TRIMGALORE.out.reads,
@@ -207,9 +207,9 @@ workflow CHIPSEQ {
         )
         ch_genome_bam       = ALIGN_CHROMAP.out.bam
         ch_genome_bam_index = ALIGN_CHROMAP.out.bai
-        // ch_samtools_stats    = ALIGN_CHROMAP.out.stats //TODO
-        // ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
-        // ch_samtools_idxstats = ALIGN_CHROMAP.out.idxstats
+        ch_samtools_stats    = ALIGN_CHROMAP.out.stats //TODO
+        ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
+        ch_samtools_idxstats = ALIGN_CHROMAP.out.idxstats
         ch_versions = ch_versions.mix(ALIGN_CHROMAP.out.versions.first())
     }
 
