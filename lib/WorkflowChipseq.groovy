@@ -28,7 +28,7 @@ class WorkflowChipseq {
             macsGsizeWarn(log)
         }
 
-        if (!params.aligner) {
+        if (params.aligner) {
             if (!valid_params['aligners'].contains(params.aligner)) {
                     log.error "Invalid option: '${params.aligner}'. Valid options for '--aligner': ${valid_params['aligners'].join(', ')}."
                     System.exit(1)
