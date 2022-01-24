@@ -17,7 +17,7 @@ workflow ALIGN_STAR {
     //
     // Map reads with STAR
     //
-    STAR_ALIGN ( reads, index, gtf )
+    STAR_ALIGN ( reads, index )
     ch_versions = ch_versions.mix(STAR_ALIGN.out.versions.first())
 
     //
