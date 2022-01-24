@@ -17,7 +17,7 @@ include { CHROMAP_INDEX        } from '../../modules/nf-core/modules/chromap/ind
 
 include { GTF2BED                  } from '../../modules/local/gtf2bed'
 include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions'
-include { STAR_GENOMEGENERATE  } from '../../modules/local/star_genomegenerate'
+include { STAR_GENOMEGENERATE      } from '../../modules/local/star_genomegenerate'
 
 workflow PREPARE_GENOME {
     take:
@@ -194,7 +194,7 @@ workflow PREPARE_GENOME {
     bwa_index     = ch_bwa_index              //    path: bwa/index/
     bowtie2_index = ch_bowtie2_index          //    path: bowtie2/index/
     chromap_index = ch_chromap_index          //    path: genome.index
-    star_index    = ch_chromap_index          //    path: star/index/
+    star_index    = ch_star_index             //    path: star/index/
 
     versions    = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
 }
