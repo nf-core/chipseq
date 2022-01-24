@@ -217,7 +217,7 @@ workflow CHIPSEQ {
         ALIGN_STAR (
             FASTQC_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.star_index,
-            params.save_unaligned
+            []
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
         ch_genome_bam_index  = ALIGN_STAR.out.bai

@@ -43,9 +43,7 @@ process STAR_ALIGN {
         $ignore_gtf \\
         $seq_center \\
         $args
-
     $mv_unsorted_bam
-
     if [ -f ${prefix}.Unmapped.out.mate1 ]; then
         mv ${prefix}.Unmapped.out.mate1 ${prefix}.unmapped_1.fastq
         gzip ${prefix}.unmapped_1.fastq
@@ -54,7 +52,6 @@ process STAR_ALIGN {
         mv ${prefix}.Unmapped.out.mate2 ${prefix}.unmapped_2.fastq
         gzip ${prefix}.unmapped_2.fastq
     fi
-
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         star: \$(STAR --version | sed -e "s/STAR_//g")
