@@ -216,8 +216,7 @@ workflow CHIPSEQ {
     if (params.aligner == 'star') {
         ALIGN_STAR (
             FASTQC_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.star_index,
-            []
+            PREPARE_GENOME.out.star_index
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
         ch_genome_bam_index  = ALIGN_STAR.out.bai
