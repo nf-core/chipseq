@@ -9,7 +9,6 @@ workflow ALIGN_STAR {
     take:
     reads // channel: [ val(meta), [ reads ] ]
     index // channel: /path/to/star/index/
-    gtf   // channel: /path/to/genome.gtf
 
     main:
 
