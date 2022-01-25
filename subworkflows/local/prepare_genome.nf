@@ -13,7 +13,6 @@ include { GFFREAD              } from '../../modules/nf-core/modules/gffread/mai
 include { CUSTOM_GETCHROMSIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main'
 include { BWA_INDEX            } from '../../modules/nf-core/modules/bwa/index/main'
 include { BOWTIE2_BUILD        } from '../../modules/nf-core/modules/bowtie2/build/main'
-include { CHROMAP_INDEX        } from '../../modules/nf-core/modules/chromap/index/main'
 
 include { GTF2BED                  } from '../../modules/local/gtf2bed'
 include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions'
@@ -150,24 +149,6 @@ workflow PREPARE_GENOME {
     }
 
     //
-    // Uncompress CHROMAP index or generate from scratch if required
-    //
-    ch_chromap_index = Channel.empty()
-    if (prepare_tool_index == 'chromap') {
-        if (params.chromap_index) {
-            if (params.chromap_index.endsWith('.tar.gz')) {
-                ch_chromap_index = UNTAR ( params.chromap_index ).untar
-                ch_versions  = ch_versions.mix(UNTAR.out.versions)
-            } else {
-                ch_chromap_index = file(params.chromap_index)
-            }
-        } else {
-            ch_chromap_index = CHROMAP_INDEX ( ch_fasta ).index
-            ch_versions  = ch_versions.mix(CHROMAP_INDEX.out.versions)
-        }
-    }
-
-    //
     // Uncompress STAR index or generate from scratch if required
     //
     ch_star_index = Channel.empty()
@@ -193,7 +174,6 @@ workflow PREPARE_GENOME {
     blacklist     = ch_blacklist              //    path: blacklist.bed
     bwa_index     = ch_bwa_index              //    path: bwa/index/
     bowtie2_index = ch_bowtie2_index          //    path: bowtie2/index/
-    chromap_index = ch_chromap_index          //    path: genome.index
     star_index    = ch_star_index             //    path: star/index/
 
     versions    = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
