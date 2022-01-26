@@ -206,6 +206,17 @@
             "fa_icon": "fas fa-map-signs",
             "description": "Options to adjust parameters and filtering criteria for read alignments.",
             "properties": {
+                "aligner": {
+                    "type": "string",
+                    "default": "bwa",
+                    "description": "Specifies the alignment algorithm to use - available options are 'bwa', 'bowtie2' and 'star'.",
+                    "fa_icon": "fas fa-map-signs",
+                    "enum": [
+                        "bwa",
+                        "bowtie2",
+                        "star"
+                    ]
+                },
                 "keep_dups": {
                     "type": "boolean",
                     "description": "Duplicate reads are not filtered from alignments.",
