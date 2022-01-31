@@ -8,7 +8,12 @@ include {
     GUNZIP as GUNZIP_GFF
     GUNZIP as GUNZIP_GENE_BED
     GUNZIP as GUNZIP_BLACKLIST } from '../../modules/nf-core/modules/gunzip/main'
-include { UNTAR                } from '../../modules/nf-core/modules/untar/main'
+
+include {
+    UNTAR as UNTAR_BWA_INDEX
+    UNTAR as UNTAR_BOWTIE2_INDEX
+    UNTAR as UNTAR_STAR_INDEX    } from '../../modules/nf-core/modules/untar/main'
+
 include { GFFREAD              } from '../../modules/nf-core/modules/gffread/main'
 include { CUSTOM_GETCHROMSIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main'
 include { BWA_INDEX            } from '../../modules/nf-core/modules/bwa/index/main'
@@ -119,8 +124,8 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'bwa') {
         if (params.bwa_index) {
             if (params.bwa_index.endsWith('.tar.gz')) {
-                ch_bwa_index = UNTAR ( params.bwa_index ).untar
-                ch_versions  = ch_versions.mix(UNTAR.out.versions)
+                ch_bwa_index = UNTAR_BWA_INDEX ( params.bwa_index ).untar
+                ch_versions  = ch_versions.mix(UNTAR_BWA_INDEX.out.versions)
             } else {
                 ch_bwa_index = file(params.bwa_index)
             }
@@ -137,8 +142,8 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'bowtie2') {
         if (params.bowtie2_index) {
             if (params.bowtie2_index.endsWith('.tar.gz')) {
-                ch_bowtie2_index = UNTAR ( params.bowtie2_index ).untar
-                ch_versions  = ch_versions.mix(UNTAR.out.versions)
+                ch_bowtie2_index = UNTAR_BOWTIE2_INDEX ( params.bowtie2_index ).untar
+                ch_versions  = ch_versions.mix(UNTAR_BOWTIE2_INDEX.out.versions)
             } else {
                 ch_bowtie2_index = file(params.bowtie2_index)
             }
