@@ -210,17 +210,14 @@ workflow CHIPSEQ {
         ch_samtools_flagstat = ALIGN_STAR.out.flagstat
         ch_samtools_idxstats = ALIGN_STAR.out.idxstats
         ch_star_multiqc      = ALIGN_STAR.out.log_final
-        
+
         ch_versions = ch_versions.mix(ALIGN_STAR.out.versions)
     }
 
     //
     // SUBWORKFLOW: Merge resequenced BAM files
     //
-    // ALIGN_BWA_MEM //DEL
     ch_genome_bam
-        // .out //DEL
-        // .bam //DEL
         .map {
             meta, bam ->
                 fmeta = meta.findAll { it.key != 'read_group' }
@@ -238,6 +235,7 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
     //
+    ch_markduplicates_multiqc = Channel.empty()
     MARK_DUPLICATES_PICARD (
         PICARD_MERGESAMFILES.out.bam
     )
@@ -580,7 +578,7 @@ workflow CHIPSEQ {
             ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
             ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
             ch_plothomerannotatepeaks_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([])//,
             // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
         )
         multiqc_report       = MULTIQC.out.report.toList()
