@@ -209,10 +209,8 @@ workflow CHIPSEQ {
         ch_samtools_stats    = ALIGN_STAR.out.stats
         ch_samtools_flagstat = ALIGN_STAR.out.flagstat
         ch_samtools_idxstats = ALIGN_STAR.out.idxstats
-        ch_star_multiqc      = ALIGN_STAR.out.log_final // TODO for the rest of aligners
-        // if (params.bam_csi_index) {                  //TODO for the rest of aligners
-        //     ch_genome_bam_index = ALIGN_STAR.out.csi
-        // }
+        ch_star_multiqc      = ALIGN_STAR.out.log_final
+        
         ch_versions = ch_versions.mix(ALIGN_STAR.out.versions)
     }
 
@@ -426,8 +424,6 @@ workflow CHIPSEQ {
                 PREPARE_GENOME.out.gtf
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
-
-            // HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]}.view()
 
             PLOT_HOMER_ANNOTATEPEAKS (
                 HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
