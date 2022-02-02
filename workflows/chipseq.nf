@@ -504,7 +504,7 @@ workflow CHIPSEQ {
 
             ch_deseq2_pca_header = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
             ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
-            if (!params.skip_diff_analysis) {
+            if (!params.skip_deseq2_qc) {
                 DESEQ2_QC (
                     SUBREAD_FEATURECOUNTS.out.counts,
                     ch_deseq2_pca_header,

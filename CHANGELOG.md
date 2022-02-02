@@ -30,6 +30,7 @@ via the `--aligner` parameter
 |                              | `--skip_qc`                |
 |                              | `--aligner`                |
 |                              | `--save_unaligned`         |
+| `--skip_diff_analysis`       | `--skip_deseq2_qc`         |
 
 > **NB:** Parameter has been __updated__ if both old and new parameter information is present.
 > **NB:** Parameter has been __added__ if just the new parameter information is present.
