@@ -12,10 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Bump minimum Nextflow version from `21.04.0` -> `21.10.3`
 * Updated pipeline template to [nf-core/tools 2.2](https://github.com/nf-core/tools/releases/tag/2.2)
 * Added `python3` shebang to appropriate scripts in `bin/` directory
+* [[#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners,
+via the `--aligner` parameter
 
 ### Other enhancements & fixes
 
 * Update pipeline template to nf-core/tools `2.1`
+* Add `--save_unaligned` parameter (only available for `bowtie2` and `star`)
 
 ### Parameters
 
@@ -25,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | `--conda`                    | `--enable_conda`           |
 | `--single_end`               |                            |
 |                              | `--skip_qc`                |
+|                              | `--aligner`                |
+|                              | `--save_unaligned`         |
 
 > **NB:** Parameter has been __updated__ if both old and new parameter information is present.
 > **NB:** Parameter has been __added__ if just the new parameter information is present.

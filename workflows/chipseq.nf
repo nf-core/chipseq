@@ -4,17 +4,21 @@
 ========================================================================================
 */
 
+def valid_params = [
+    aligners       : [ 'bwa', 'bowtie2', 'star' ]
+]
+
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
 // Validate input parameters
-WorkflowChipseq.initialise(params, log)
+WorkflowChipseq.initialise(params, log, valid_params)
 
 // Check input path parameters to see if they exist
 def checkPathParamList = [
     params.input, params.multiqc_config,
     params.fasta,
     params.gtf, params.gff, params.gene_bed,
-    params.bwa_index,
+    params.bwa_index, params.bowtie2_index, params.star_index,
     params.blacklist,
     params.bamtools_filter_pe_config, params.bamtools_filter_se_config
 ]
@@ -23,14 +27,16 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 
+// Check alignment parameters
+def prepareToolIndices  = []
+// if (!params.skip_alignment) { prepareToolIndices << params.aligner        } //DEL
+
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
 if (anno_readme && file(anno_readme).exists()) {
     file("${params.outdir}/genome/").mkdirs()
     file(anno_readme).copyTo("${params.outdir}/genome/")
 }
-
-// def peakType = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
 
 /*
 ========================================================================================
@@ -111,6 +117,8 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../module
 
 include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
 include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
+include { ALIGN_BOWTIE2          } from '../subworkflows/nf-core/align_bowtie2'
+include { ALIGN_STAR             } from '../subworkflows/nf-core/align_star'
 include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'
 
 /*
@@ -129,7 +137,9 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Uncompress and prepare reference genome files
     //
-    PREPARE_GENOME ()
+    PREPARE_GENOME (
+        params.aligner
+    )
     ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
@@ -151,21 +161,63 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
 
+
+
     //
     // SUBWORKFLOW: Map reads & BAM QC
     //
-    ALIGN_BWA_MEM (
-        FASTQC_TRIMGALORE.out.reads,
-        PREPARE_GENOME.out.bwa_index
-    )
-    ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
+    ch_genome_bam        = Channel.empty()
+    ch_genome_bam_index  = Channel.empty()
+    ch_samtools_stats    = Channel.empty()
+    ch_samtools_flagstat = Channel.empty()
+    ch_samtools_idxstats = Channel.empty()
+    if (params.aligner == 'bwa') {
+        ALIGN_BWA_MEM (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.bwa_index
+        )
+        ch_genome_bam        = ALIGN_BWA_MEM.out.bam
+        ch_genome_bam_index  = ALIGN_BWA_MEM.out.bai
+        ch_samtools_stats    = ALIGN_BWA_MEM.out.stats
+        ch_samtools_flagstat = ALIGN_BWA_MEM.out.flagstat
+        ch_samtools_idxstats = ALIGN_BWA_MEM.out.idxstats
+        ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
+    }
+
+    if (params.aligner == 'bowtie2') {
+        ALIGN_BOWTIE2 (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.bowtie2_index,
+            params.save_unaligned
+        )
+        ch_genome_bam        = ALIGN_BOWTIE2.out.bam
+        ch_genome_bam_index  = ALIGN_BOWTIE2.out.bai
+        ch_samtools_stats    = ALIGN_BOWTIE2.out.stats
+        ch_samtools_flagstat = ALIGN_BOWTIE2.out.flagstat
+        ch_samtools_idxstats = ALIGN_BOWTIE2.out.idxstats
+        ch_versions = ch_versions.mix(ALIGN_BOWTIE2.out.versions.first())
+    }
+
+    if (params.aligner == 'star') {
+        ALIGN_STAR (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.star_index
+        )
+        ch_genome_bam        = ALIGN_STAR.out.bam
+        ch_genome_bam_index  = ALIGN_STAR.out.bai
+        ch_transcriptome_bam = ALIGN_STAR.out.bam_transcript
+        ch_samtools_stats    = ALIGN_STAR.out.stats
+        ch_samtools_flagstat = ALIGN_STAR.out.flagstat
+        ch_samtools_idxstats = ALIGN_STAR.out.idxstats
+        ch_star_multiqc      = ALIGN_STAR.out.log_final
+
+        ch_versions = ch_versions.mix(ALIGN_STAR.out.versions)
+    }
 
     //
     // SUBWORKFLOW: Merge resequenced BAM files
     //
-    ALIGN_BWA_MEM
-        .out
-        .bam
+    ch_genome_bam
         .map {
             meta, bam ->
                 fmeta = meta.findAll { it.key != 'read_group' }
@@ -183,6 +235,7 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
     //
+    ch_markduplicates_multiqc = Channel.empty()
     MARK_DUPLICATES_PICARD (
         PICARD_MERGESAMFILES.out.bam
     )
@@ -370,8 +423,6 @@ workflow CHIPSEQ {
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
-            // HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]}.view()
-
             PLOT_HOMER_ANNOTATEPEAKS (
                 HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
                 ch_peak_annotation_header,
@@ -502,9 +553,9 @@ workflow CHIPSEQ {
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
 
-            ALIGN_BWA_MEM.out.stats.collect{it[1]},
-            ALIGN_BWA_MEM.out.flagstat.collect{it[1]},
-            ALIGN_BWA_MEM.out.idxstats.collect{it[1]},
+            ch_samtools_stats.collect{it[1]}.ifEmpty([]),
+            ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
+            ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
 
             MARK_DUPLICATES_PICARD.out.stats.collect{it[1]}.ifEmpty([]),
             MARK_DUPLICATES_PICARD.out.flagstat.collect{it[1]}.ifEmpty([]),
@@ -527,7 +578,7 @@ workflow CHIPSEQ {
             ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
             ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
             ch_plothomerannotatepeaks_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([])//,
             // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
         )
         multiqc_report       = MULTIQC.out.report.toList()

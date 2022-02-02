@@ -96,8 +96,20 @@
                 },
                 "bwa_index": {
                     "type": "string",
-                    "description": "Full path to directory containing BWA index including base name. i.e. `/path/to/index/genome.fa`.",
+                    "description": "Path to directory or tar.gz archive for pre-built BWA index.",
                     "fa_icon": "fas fa-bezier-curve"
+                },
+                "bowtie2_index": {
+                    "type": "string",
+                    "format": "path",
+                    "fa_icon": "fas fa-bezier-curve",
+                    "description": "Path to directory or tar.gz archive for pre-built Bowtie2 index."
+                },
+                "star_index": {
+                    "type": "string",
+                    "format": "path",
+                    "fa_icon": "fas fa-bezier-curve",
+                    "description": "Path to directory or tar.gz archive for pre-built STAR index."
                 },
                 "gene_bed": {
                     "type": "string",
@@ -194,6 +206,17 @@
             "fa_icon": "fas fa-map-signs",
             "description": "Options to adjust parameters and filtering criteria for read alignments.",
             "properties": {
+                "aligner": {
+                    "type": "string",
+                    "default": "bwa",
+                    "description": "Specifies the alignment algorithm to use - available options are 'bwa', 'bowtie2' and 'star'.",
+                    "fa_icon": "fas fa-map-signs",
+                    "enum": [
+                        "bwa",
+                        "bowtie2",
+                        "star"
+                    ]
+                },
                 "keep_dups": {
                     "type": "boolean",
                     "description": "Duplicate reads are not filtered from alignments.",
@@ -215,6 +238,12 @@
                     "help_text": "By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set this parameter to also save other intermediate BAM files.",
                     "fa_icon": "fas fa-save"
                 },
+                "save_unaligned": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-save",
+                    "description": "Where possible, save unaligned reads from either STAR, HISAT2 or Salmon to the results directory.",
+                    "help_text": "This may either be in the form of FastQ or BAM files depending on the options available for that particular tool."
+                },
                 "bamtools_filter_pe_config": {
                     "type": "string",
                     "default": "$projectDir/assets/bamtools_filter_pe.json",
@@ -229,6 +258,7 @@
                     "description": "BAMTools JSON file with custom filters for single-end data.",
                     "fa_icon": "fas fa-cog"
                 }
+
             }
         },
         "peak_calling_options": {

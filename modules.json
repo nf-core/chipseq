@@ -3,6 +3,12 @@
     "homePage": "https://github.com/nf-core/chipseq",
     "repos": {
         "nf-core/modules": {
+            "bowtie2/align": {
+                "git_sha": "3f9a0285816a2e0ae73a3875fb5ae4b409da5952"
+            },
+            "bowtie2/build": {
+                "git_sha": "e3285528aca2733ff2d544cb5e5fcc34599226f3"
+            },
             "bwa/index": {
                 "git_sha": "20d8250d9f39ddb05dfb437603aaf99b5c0b2b41"
             },

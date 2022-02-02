@@ -17,13 +17,15 @@ nextflow.enable.dsl = 2
 ========================================================================================
 */
 
-params.fasta      = WorkflowMain.getGenomeAttribute(params, 'fasta')
-params.bwa_index  = WorkflowMain.getGenomeAttribute(params, 'bwa')
-params.gtf        = WorkflowMain.getGenomeAttribute(params, 'gtf')
-params.gff        = WorkflowMain.getGenomeAttribute(params, 'gff')
-params.gene_bed   = WorkflowMain.getGenomeAttribute(params, 'gene_bed')
-params.macs_gsize = WorkflowMain.getGenomeAttribute(params, 'macs_gsize')
-params.blacklist  = WorkflowMain.getGenomeAttribute(params, 'blacklist')
+params.fasta         = WorkflowMain.getGenomeAttribute(params, 'fasta')
+params.bwa_index     = WorkflowMain.getGenomeAttribute(params, 'bwa')
+params.bowtie2_index = WorkflowMain.getGenomeAttribute(params, 'bowtie2')
+params.star_index    = WorkflowMain.getGenomeAttribute(params, 'star')
+params.gtf           = WorkflowMain.getGenomeAttribute(params, 'gtf')
+params.gff           = WorkflowMain.getGenomeAttribute(params, 'gff')
+params.gene_bed      = WorkflowMain.getGenomeAttribute(params, 'gene_bed')
+params.macs_gsize    = WorkflowMain.getGenomeAttribute(params, 'macs_gsize')
+params.blacklist     = WorkflowMain.getGenomeAttribute(params, 'blacklist')
 
 /*
 ========================================================================================

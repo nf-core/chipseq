@@ -67,3 +67,25 @@ jobs:
       - name: Run pipeline with various parameters
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker ${{ matrix.parameters }}
+
+  aligners:
+    name: Test available aligners
+    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/chipseq') }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        aligner:
+        - "bowtie2"
+        - "star"
+    steps:
+      - name: Check out pipeline code
+        uses: actions/checkout@v2
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Run pipeline with the different aligners available
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile test,docker --aligner ${{ matrix.aligner }}

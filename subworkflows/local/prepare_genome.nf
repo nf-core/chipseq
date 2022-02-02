@@ -8,15 +8,24 @@ include {
     GUNZIP as GUNZIP_GFF
     GUNZIP as GUNZIP_GENE_BED
     GUNZIP as GUNZIP_BLACKLIST } from '../../modules/nf-core/modules/gunzip/main'
-include { UNTAR                } from '../../modules/nf-core/modules/untar/main'
+
+include {
+    UNTAR as UNTAR_BWA_INDEX
+    UNTAR as UNTAR_BOWTIE2_INDEX
+    UNTAR as UNTAR_STAR_INDEX    } from '../../modules/nf-core/modules/untar/main'
+
 include { GFFREAD              } from '../../modules/nf-core/modules/gffread/main'
 include { CUSTOM_GETCHROMSIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main'
 include { BWA_INDEX            } from '../../modules/nf-core/modules/bwa/index/main'
+include { BOWTIE2_BUILD        } from '../../modules/nf-core/modules/bowtie2/build/main'
 
 include { GTF2BED                  } from '../../modules/local/gtf2bed'
 include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions'
+include { STAR_GENOMEGENERATE      } from '../../modules/local/star_genomegenerate'
 
 workflow PREPARE_GENOME {
+    take:
+    prepare_tool_index // string  : tool to prepare index for
 
     main:
 
@@ -112,25 +121,65 @@ workflow PREPARE_GENOME {
     // Uncompress BWA index or generate from scratch if required
     //
     ch_bwa_index = Channel.empty()
-    if (params.bwa_index) {
-        if (params.bwa_index.endsWith('.tar.gz')) {
-            ch_bwa_index = UNTAR ( params.bwa_index ).untar
-            ch_versions  = ch_versions.mix(UNTAR.out.versions)
+    if (prepare_tool_index == 'bwa') {
+        if (params.bwa_index) {
+            if (params.bwa_index.endsWith('.tar.gz')) {
+                ch_bwa_index = UNTAR_BWA_INDEX ( params.bwa_index ).untar
+                ch_versions  = ch_versions.mix(UNTAR_BWA_INDEX.out.versions)
+            } else {
+                ch_bwa_index = file(params.bwa_index)
+            }
         } else {
-            ch_bwa_index = file(params.bwa_index)
+            ch_bwa_index = BWA_INDEX ( ch_fasta ).index
+            ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
         }
-    } else {
-        ch_bwa_index = BWA_INDEX ( ch_fasta ).index
-        ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
+    }
+
+    //
+    // Uncompress Bowtie2 index or generate from scratch if required
+    //
+    ch_bowtie2_index = Channel.empty()
+    if (prepare_tool_index == 'bowtie2') {
+        if (params.bowtie2_index) {
+            if (params.bowtie2_index.endsWith('.tar.gz')) {
+                ch_bowtie2_index = UNTAR_BOWTIE2_INDEX ( params.bowtie2_index ).untar
+                ch_versions  = ch_versions.mix(UNTAR_BOWTIE2_INDEX.out.versions)
+            } else {
+                ch_bowtie2_index = file(params.bowtie2_index)
+            }
+        } else {
+            ch_bowtie2_index = BOWTIE2_BUILD ( ch_fasta ).index
+            ch_versions      = ch_versions.mix(BOWTIE2_BUILD.out.versions)
+        }
+    }
+
+    //
+    // Uncompress STAR index or generate from scratch if required
+    //
+    ch_star_index = Channel.empty()
+    if (prepare_tool_index == 'star') {
+        if (params.star_index) {
+            if (params.star_index.endsWith('.tar.gz')) {
+                ch_star_index = UNTAR_STAR_INDEX ( params.star_index ).untar
+                ch_versions   = ch_versions.mix(UNTAR_STAR_INDEX.out.versions)
+            } else {
+                ch_star_index = file(params.star_index)
+            }
+        } else {
+            ch_star_index = STAR_GENOMEGENERATE ( ch_fasta, ch_gtf ).index
+            ch_versions   = ch_versions.mix(STAR_GENOMEGENERATE.out.versions)
+        }
     }
 
     emit:
-    fasta       = ch_fasta                  //    path: genome.fasta
-    gtf         = ch_gtf                    //    path: genome.gtf
-    gene_bed    = ch_gene_bed               //    path: gene.bed
-    chrom_sizes = ch_chrom_sizes            //    path: genome.sizes
-    blacklist   = ch_blacklist              //    path: blacklist.bed
-    bwa_index   = ch_bwa_index              //    path: bbsplit/index/
+    fasta         = ch_fasta                  //    path: genome.fasta
+    gtf           = ch_gtf                    //    path: genome.gtf
+    gene_bed      = ch_gene_bed               //    path: gene.bed
+    chrom_sizes   = ch_chrom_sizes            //    path: genome.sizes
+    blacklist     = ch_blacklist              //    path: blacklist.bed
+    bwa_index     = ch_bwa_index              //    path: bwa/index/
+    bowtie2_index = ch_bowtie2_index          //    path: bowtie2/index/
+    star_index    = ch_star_index             //    path: star/index/
 
     versions    = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
 }
