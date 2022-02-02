@@ -318,7 +318,7 @@
                 }
             }
         },
-        "differential_analysis_options": {
+        "deseq_qc_options": {
             "title": "Differential analysis options",
             "type": "object",
             "fa_icon": "fas fa-not-equal",
@@ -330,10 +330,10 @@
                     "help_text": "See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).",
                     "fa_icon": "fas fa-dolly"
                 },
-                "skip_diff_analysis": {
+                "skip_deseq2_qc": {
                     "type": "boolean",
-                    "description": "Skip differential accessibility analysis.",
-                    "fa_icon": "fas fa-fast-forward"
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip DESeq2 PCA and heatmap plotting."
                 }
             }
         },
@@ -574,7 +574,7 @@
             "$ref": "#/definitions/peak_calling_options"
         },
         {
-            "$ref": "#/definitions/differential_analysis_options"
+            "$ref": "#/definitions/deseq_qc_options"
         },
         {
             "$ref": "#/definitions/process_skipping_options"

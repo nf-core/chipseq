@@ -71,8 +71,8 @@ include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_
 include { FRIP_SCORE                          } from '../modules/local/frip_score'
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
-include { MACS2_CONSENSUS                     } from '../modules/local//macs2_consensus'
-//include { DESEQ2_QC  } from '../modules/local/deseq2_qc'
+include { MACS2_CONSENSUS                     } from '../modules/local/macs2_consensus'
+include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
 include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'
@@ -81,8 +81,8 @@ include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_c
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK    } from '../subworkflows/local/input_check'
-include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome'
+include { INPUT_CHECK         } from '../subworkflows/local/input_check'
+include { PREPARE_GENOME      } from '../subworkflows/local/prepare_genome'
 include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 
 /*
@@ -484,13 +484,16 @@ workflow CHIPSEQ {
 
             ch_ip_control_bam
                 .map { meta, ip_bam, control_bam -> [ meta.antibody, meta, ip_bam ] }
-                .combine(ch_ip_saf)
+                .groupTuple()
+                .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+                .join(ch_ip_saf)
                 .map {
                     it ->
                         fmeta = it[1]
-                        fmeta['replicates_exist'] = it[4]['replicates_exist']
-                        fmeta['multiple_groups'] = it[4]['multiple_groups']
-                        [ fmeta, it[2], it[5] ] }
+                        fmeta['id'] = it[3]['id']
+                        fmeta['replicates_exist'] = it[3]['replicates_exist']
+                        fmeta['multiple_groups']  = it[3]['multiple_groups']
+                        [ fmeta, it[2], it[4] ] }
                 .set { ch_ip_bam }
 
             SUBREAD_FEATURECOUNTS (
@@ -499,13 +502,15 @@ workflow CHIPSEQ {
             ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
             ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
 
-            // if (!params.skip_diff_analysis) {
-            //     // DESEQ2_FEATURECOUNTS (
-            //     //     params.modules['deseq2_featurecounts']
-            //     // )
-            //     // ch_deseq2_pca_header = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
-            //     // ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
-            // }
+            ch_deseq2_pca_header = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
+            ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
+            if (!params.skip_deseq2_qc) {
+                DESEQ2_QC (
+                    SUBREAD_FEATURECOUNTS.out.counts,
+                    ch_deseq2_pca_header,
+                    ch_deseq2_clustering_header
+                )
+            }
 
             //
             // Create IGV session
