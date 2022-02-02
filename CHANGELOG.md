@@ -19,6 +19,7 @@ via the `--aligner` parameter
 
 * Update pipeline template to nf-core/tools `2.1`
 * Add `--save_unaligned` parameter (only available for `bowtie2` and `star`)
+* [[228](https://github.com/nf-core/chipseq/issues/228)] - Add new versions of blacklists files
 
 ### Parameters
 
