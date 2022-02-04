@@ -19,6 +19,7 @@ via the `--aligner` parameter
 
 * Update pipeline template to nf-core/tools `2.1`
 * Add `--save_unaligned` parameter (only available for `bowtie2` and `star`)
+* Update `igenomes.config` to fetch whole `BWAIndex/version0.6.0/` folder
 
 ### Parameters
 
