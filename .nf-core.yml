@@ -6,3 +6,4 @@ lint:
     - lib/NfcoreTemplate.groovy
     - assets/multiqc_config.yaml
 
+repository_type: pipeline
