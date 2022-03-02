@@ -156,7 +156,7 @@ TODO: update all new dependencies
 
 ### `Fixed`
 
-* **Change all parameters from `camelCase` to `snake_case` (see [Deprecated](#Deprecated))**
+* Change all parameters from `camelCase` to `snake_case` (see [Deprecated](#Deprecated))
 * [nf-core/atacseq#44](https://github.com/nf-core/atacseq/issues/44) - Output directory missing: macs2/consensus/deseq2
 * [nf-core/atacseq#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?
 * [nf-core/atacseq#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly
