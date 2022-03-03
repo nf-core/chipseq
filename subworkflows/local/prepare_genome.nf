@@ -34,6 +34,7 @@ workflow PREPARE_GENOME {
     //
     // Uncompress genome fasta file if required
     //
+    ch_fasta = Channel.empty()
     if (params.fasta.endsWith('.gz')) {
         ch_fasta    = GUNZIP_FASTA ( params.fasta ).gunzip
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
@@ -111,11 +112,15 @@ workflow PREPARE_GENOME {
     //
     // Prepare genome intervals for filtering by removing regions in blacklist file
     //
+    ch_genome_filtered_bed = Channel.empty()
+
     GENOME_BLACKLIST_REGIONS (
         CUSTOM_GETCHROMSIZES.out.sizes,
         ch_blacklist.ifEmpty([])
     )
+    ch_genome_filtered_bed = GENOME_BLACKLIST_REGIONS.out.bed
     ch_versions = ch_versions.mix(GENOME_BLACKLIST_REGIONS.out.versions)
+
 
     //
     // Uncompress BWA index or generate from scratch if required
@@ -176,7 +181,7 @@ workflow PREPARE_GENOME {
     gtf           = ch_gtf                    //    path: genome.gtf
     gene_bed      = ch_gene_bed               //    path: gene.bed
     chrom_sizes   = ch_chrom_sizes            //    path: genome.sizes
-    blacklist     = ch_blacklist              //    path: blacklist.bed
+    filtered_bed  = ch_genome_filtered_bed    //    path: *.include_regions.bed
     bwa_index     = ch_bwa_index              //    path: bwa/index/
     bowtie2_index = ch_bowtie2_index          //    path: bowtie2/index/
     star_index    = ch_star_index             //    path: star/index/
