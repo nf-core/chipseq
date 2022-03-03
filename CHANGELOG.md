@@ -33,9 +33,9 @@ via the `--aligner` parameter
 |                              | `--save_unaligned`         |
 | `--skip_diff_analysis`       | `--skip_deseq2_qc`         |
 
-> **NB:** Parameter has been __updated__ if both old and new parameter information is present.
-> **NB:** Parameter has been __added__ if just the new parameter information is present.
-> **NB:** Parameter has been __removed__ if parameter information isn't present.
+> __NB:__ Parameter has been __updated__ if both old and new parameter information is present.
+> __NB:__ Parameter has been __added__ if just the new parameter information is present.
+> __NB:__ Parameter has been __removed__ if parameter information isn't present.
 
 ### Software dependencies
 
@@ -49,9 +49,9 @@ TODO: update all new dependencies
 | `deeptools` | 3.4.3       | 3.5.1       |
 | `samtools`  | 1.10        | 1.13        |
 
-> **NB:** Dependency has been __updated__ if both old and new version information is present.
-> **NB:** Dependency has been __added__ if just the new version information is present.
-> **NB:** Dependency has been __removed__ if version information isn't present.
+> __NB:__ Dependency has been __updated__ if both old and new version information is present.
+> __NB:__ Dependency has been __added__ if just the new version information is present.
+> __NB:__ Dependency has been __removed__ if version information isn't present.
 
 ## [1.2.2] - 2021-04-22
 
@@ -156,7 +156,7 @@ TODO: update all new dependencies
 
 ### `Fixed`
 
-* **Change all parameters from `camelCase` to `snake_case` (see [Deprecated](#Deprecated))**
+* Change all parameters from `camelCase` to `snake_case` (see [Deprecated](#Deprecated))
 * [nf-core/atacseq#44](https://github.com/nf-core/atacseq/issues/44) - Output directory missing: macs2/consensus/deseq2
 * [nf-core/atacseq#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?
 * [nf-core/atacseq#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly

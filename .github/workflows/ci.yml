@@ -53,8 +53,8 @@ jobs:
     strategy:
       matrix:
         parameters:
-        - "--skip_trimming"
-        - "--skip_consensus_peaks"
+          - "--skip_trimming"
+          - "--skip_consensus_peaks"
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -75,8 +75,8 @@ jobs:
     strategy:
       matrix:
         aligner:
-        - "bowtie2"
-        - "star"
+          - "bowtie2"
+          - "star"
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
