@@ -12,14 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Bump minimum Nextflow version from `21.04.0` -> `21.10.3`
 * Updated pipeline template to [nf-core/tools 2.2](https://github.com/nf-core/tools/releases/tag/2.2)
 * Added `python3` shebang to appropriate scripts in `bin/` directory
-* [[#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners,
-via the `--aligner` parameter
+* [[#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners, via the `--aligner` parameter
 
 ### Other enhancements & fixes
 
 * Update pipeline template to nf-core/tools `2.1`
 * Add `--save_unaligned` parameter (only available for `bowtie2` and `star`)
 * Update `igenomes.config` to fetch whole `BWAIndex/version0.6.0/` folder
+* [[228](https://github.com/nf-core/chipseq/issues/228)] - Update blacklist bed files.
 
 ### Parameters
 
@@ -27,7 +27,6 @@ via the `--aligner` parameter
 |------------------------------|----------------------------|
 | `--clusterOptions`           |                            |
 | `--conda`                    | `--enable_conda`           |
-| `--single_end`               |                            |
 |                              | `--skip_qc`                |
 |                              | `--aligner`                |
 |                              | `--save_unaligned`         |
@@ -43,11 +42,28 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 
 <!---
 TODO: update all new dependencies
--->
-| Dependency  | Old version | New version |
-|-------------|-------------|-------------|
-| `deeptools` | 3.4.3       | 3.5.1       |
+
+| Dependency    | Old version | New version |
+|---------------|-------------|-------------|
+| `` |  |  |
+| `` |  |  |
+| `` |  |  |
+| `` |  |  |
+| `deeptools`   | 3.4.3       | 3.5.1       |
+| `fastqc`      |  | 0.11.9 |
+| `` |  |  |
+| `trim-galore` |  |  |
+| `samtools` |  |  |
+| `` |  |  |
+| `` |  |  |
+| `` |  |  |
+| `` |  |  |
+| `` |  |  |
+
+| `multiqc`   | 1.10        | 1.13        |
 | `samtools`  | 1.10        | 1.13        |
+
+-->
 
 > __NB:__ Dependency has been __updated__ if both old and new version information is present.
 > __NB:__ Dependency has been __added__ if just the new version information is present.
