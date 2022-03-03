@@ -88,7 +88,7 @@ The minimum reference genome requirements are a FASTA and GTF file, all other fi
 
 The blacklist bed files where obtained using the commands below:
 
-```
+```console
 cd ..
 mkdir -p v1.0
 cd v1.0
@@ -110,10 +110,7 @@ cd v3.0
 wget -L https://www.encodeproject.org/files/ENCFF356LFX/@@download/ENCFF356LFX.bed.gz && gunzip ENCFF356LFX.bed.gz && mv ENCFF356LFX.bed hg38-blacklist.v3.bed
 ```
 
-> **NB:** A detailed description of the different versions of the files can be found [here](https://sites.google.com/site/anshulkundaje/projects/blacklists)
-
-
-> **NB:** Check the [igenomes.config](https://github.com/nf-core/chipseq/blob/master/conf/igenomes.config) to see which blacklist bed files are assigned by default to the respective reference genome.
+> **NB:** A detailed description of the different versions of the files can be found [here](https://sites.google.com/site/anshulkundaje/projects/blacklists). Also, to to see which blacklist bed files are assigned by default to the respective reference genome check the [igenomes.config](https://github.com/nf-core/chipseq/blob/master/conf/igenomes.config).
 
 ## Running the pipeline
 
