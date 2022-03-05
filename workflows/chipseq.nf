@@ -161,10 +161,8 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
 
-
-
     //
-    // SUBWORKFLOW: Map reads & BAM QC
+    // SUBWORKFLOW: Alignment with BWA & BAM QC
     //
     ch_genome_bam        = Channel.empty()
     ch_genome_bam_index  = Channel.empty()
@@ -184,6 +182,9 @@ workflow CHIPSEQ {
         ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
     }
 
+    //
+    // SUBWORKFLOW: Alignment with BOWTIE2 & BAM QC
+    //
     if (params.aligner == 'bowtie2') {
         ALIGN_BOWTIE2 (
             FASTQC_TRIMGALORE.out.reads,
@@ -198,6 +199,9 @@ workflow CHIPSEQ {
         ch_versions = ch_versions.mix(ALIGN_BOWTIE2.out.versions.first())
     }
 
+    //
+    // SUBWORKFLOW: Alignment with STAR & BAM QC
+    //
     if (params.aligner == 'star') {
         ALIGN_STAR (
             FASTQC_TRIMGALORE.out.reads,
@@ -245,7 +249,8 @@ workflow CHIPSEQ {
     //
     FILTER_BAM_BAMTOOLS (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
-        PREPARE_GENOME.out.blacklist.ifEmpty([]).first(),
+        PREPARE_GENOME.out.filtered_bed,
+
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
