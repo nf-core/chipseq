@@ -12,6 +12,10 @@ jobs:
     name: Run AWS full tests
     if: github.repository == 'nf-core/chipseq'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # aligner: ["bwa", "bowtie2", "chromap", "star"] //TODO uncomment when chromap implemented
+        aligner: ["bwa", "bowtie2", "star"]
     steps:
       - name: Launch workflow via tower
         uses: nf-core/tower-action@v3
@@ -19,10 +23,13 @@ jobs:
           workspace_id: ${{ secrets.TOWER_WORKSPACE_ID }}
           access_token: ${{ secrets.TOWER_ACCESS_TOKEN }}
           compute_env: ${{ secrets.TOWER_COMPUTE_ENV }}
+          pipeline: ${{ github.repository }}
+          revision: ${{ github.sha }}
           workdir: s3://${{ secrets.AWS_S3_BUCKET }}/work/chipseq/work-${{ github.sha }}
           parameters: |
             {
               "outdir": "s3://${{ secrets.AWS_S3_BUCKET }}/chipseq/results-${{ github.sha }}"
+              "aligner": "${{ matrix.aligner }}"
             }
           profiles: test_full,aws_tower
           nextflow_config: |

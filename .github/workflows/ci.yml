@@ -14,7 +14,7 @@ env:
 
 jobs:
   test:
-    name: Run workflow tests
+    name: Run pipeline with test data
     # Only run on push if this is the nf-core dev branch (merged PRs)
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/chipseq') }}
     runs-on: ubuntu-latest
@@ -44,7 +44,8 @@ jobs:
 
       - name: Run pipeline with test data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,docker
+          nextflow run ${GITHUB_WORKSPACE} -profile test,docker --outdir ./results
+
 
   parameters:
     name: Test workflow parameters
@@ -66,7 +67,7 @@ jobs:
 
       - name: Run pipeline with various parameters
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,docker ${{ matrix.parameters }}
+          nextflow run ${GITHUB_WORKSPACE} -profile test,docker ${{ matrix.parameters }} --outdir ./results
 
   aligners:
     name: Test available aligners
@@ -76,6 +77,7 @@ jobs:
       matrix:
         aligner:
           - "bowtie2"
+          # - "chromap" #TODO uncomment when implemented
           - "star"
     steps:
       - name: Check out pipeline code
@@ -88,4 +90,4 @@ jobs:
 
       - name: Run pipeline with the different aligners available
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,docker --aligner ${{ matrix.aligner }}
+          nextflow run ${GITHUB_WORKSPACE} -profile test,docker --aligner ${{ matrix.aligner }} --outdir ./results
