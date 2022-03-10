@@ -39,11 +39,11 @@ def check_samplesheet(file_in, file_out):
     """
     This function checks that the samplesheet follows the following structure:
 
-    sample,fastq_1,fastq_2,antibody,control
-    SPT5_T0_REP1,SRR1822153_1.fastq.gz,SRR1822153_2.fastq.gz,SPT5,SPT5_INPUT_REP1
-    SPT5_T0_REP2,SRR1822154_1.fastq.gz,SRR1822154_2.fastq.gz,SPT5,SPT5_INPUT_REP2
-    SPT5_INPUT_REP1,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,
-    SPT5_INPUT_REP2,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,
+    sample,fastq_1,fastq_2,antibody,control,replicate
+    SPT5_T0_REP1,SRR1822153_1.fastq.gz,SRR1822153_2.fastq.gz,SPT5,SPT5_INPUT_REP1,SPT5_T0
+    SPT5_T0_REP2,SRR1822154_1.fastq.gz,SRR1822154_2.fastq.gz,SPT5,SPT5_INPUT_REP2,SPT5_T0
+    SPT5_INPUT_REP1,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,SPT5_INPUT
+    SPT5_INPUT_REP2,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,SPT5_INPUT
 
     For an example see:
     https://raw.githubusercontent.com/nf-core/test-datasets/chipseq/samplesheet/v2.0/samplesheet_test.csv
@@ -54,8 +54,10 @@ def check_samplesheet(file_in, file_out):
 
         ## Check header
         MIN_COLS = 2
-        HEADER = ["sample", "fastq_1", "fastq_2", "antibody", "control"]
+        HEADER = ["sample", "fastq_1", "fastq_2", "antibody", "control", "replicate"]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
+
+        # TODO not working when using additional fields, is this intended
         if header[: len(HEADER)] != HEADER:
             print(
                 f"ERROR: Please check samplesheet header -> {','.join(header)} != {','.join(HEADER)}"
@@ -82,7 +84,7 @@ def check_samplesheet(file_in, file_out):
                 )
 
             ## Check sample name entries
-            sample, fastq_1, fastq_2, antibody, control = lspl[: len(HEADER)]
+            sample, fastq_1, fastq_2, antibody, control, replicate = lspl[: len(HEADER)]
             if sample.find(" ") != -1:
                 print(
                     f"WARNING: Spaces have been replaced by underscores for sample: {sample}"
@@ -129,16 +131,24 @@ def check_samplesheet(file_in, file_out):
                         line,
                     )
 
+            ## Check replicate column is integer
+            if replicate:
+                if replicate.find(" ") != -1:
+                    print(
+                        f"WARNING: Spaces have been replaced by underscores for control: {replicate}"
+                    )
+                    replicate = replicate.replace(" ", "_")
+
             ## Auto-detect paired-end/single-end
-            sample_info = []  ## [single_end, fastq_1, fastq_2, antibody, control]
+            sample_info = []  ## [single_end, fastq_1, fastq_2, antibody, control, replicate]
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = ["0", fastq_1, fastq_2, antibody, control]
+                sample_info = ["0", fastq_1, fastq_2, antibody, control, replicate]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = ["1", fastq_1, fastq_2, antibody, control]
+                sample_info = ["1", fastq_1, fastq_2, antibody, control, replicate]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
 
-            ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, antibody, control ]]}
+            ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, antibody, control, replicate ]]}
             if sample not in sample_mapping_dict:
                 sample_mapping_dict[sample] = [sample_info]
             else:
@@ -161,6 +171,7 @@ def check_samplesheet(file_in, file_out):
                         "fastq_2",
                         "antibody",
                         "control",
+                        "replicate"
                     ]
                 )
                 + "\n"
@@ -179,15 +190,20 @@ def check_samplesheet(file_in, file_out):
                     )
 
                 for idx, val in enumerate(sample_mapping_dict[sample]):
-                    control = val[-1]
-                    if control and control not in sample_mapping_dict.keys():
-                        print_error(
-                            f"Control identifier has to match does a provided sample identifier!",
-                            "Control",
-                            control,
-                        )
+                    replicate = val[-1]
+                    if replicate == "":
+                        replicate = sample
 
-                    fout.write(",".join([f"{sample}_T{idx+1}"] + val) + "\n")
+                    # TODO find a way to check for control when control is set to be merge using replicates column
+                    # control = val[-2]
+                    # if control and control not in sample_mapping_dict.keys():
+                    #     print_error(
+                    #         f"Control identifier has to match does provided as sample identifier!",
+                    #         "Control",
+                    #         control,
+                    #     )
+
+                    fout.write(",".join([f"{sample}_T{idx+1}"] + val[:-1]) + ',' + replicate + "\n") # here this when files have the same sample name to join them
     else:
         print_error(f"No entries to process!", "Samplesheet: {file_in}")
 
