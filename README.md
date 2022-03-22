@@ -75,19 +75,12 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 4. Start running your own analysis!
 
-<<<<<<< HEAD
     ```bash
     nextflow run nf-core/chipseq \
         --input samplesheet.csv \
         --outdir <OUTDIR> \
         --genome GRCh37 \
         -profile <docker/singularity/podman/conda/institute>
-=======
-    <!-- TODO nf-core: Update the example "typical command" below used to run the pipeline -->
-
-    ```console
-    nextflow run nf-core/chipseq --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
->>>>>>> 10573c6d2c8c280bc6de4e6c19cb41d64a98a322
     ```
 
 See [usage docs](https://nf-co.re/chipseq/usage) for all of the available options when running the pipeline.

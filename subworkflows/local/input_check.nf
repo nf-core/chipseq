@@ -13,11 +13,7 @@ workflow INPUT_CHECK {
     SAMPLESHEET_CHECK ( samplesheet )
         .csv
         .splitCsv ( header:true, sep:',' )
-<<<<<<< HEAD
         .map { create_fastq_channel(it, seq_center) }
-=======
-        .map { create_fastq_channel(it) }
->>>>>>> 10573c6d2c8c280bc6de4e6c19cb41d64a98a322
         .set { reads }
 
     emit:
