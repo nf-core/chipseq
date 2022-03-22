@@ -38,13 +38,11 @@ def print_error(error, context="Line", context_str=""):
 def check_samplesheet(file_in, file_out):
     """
     This function checks that the samplesheet follows the following structure:
-
     sample,fastq_1,fastq_2,antibody,control
     SPT5_T0_REP1,SRR1822153_1.fastq.gz,SRR1822153_2.fastq.gz,SPT5,SPT5_INPUT_REP1
     SPT5_T0_REP2,SRR1822154_1.fastq.gz,SRR1822154_2.fastq.gz,SPT5,SPT5_INPUT_REP2
     SPT5_INPUT_REP1,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,
     SPT5_INPUT_REP2,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,
-
     For an example see:
     https://raw.githubusercontent.com/nf-core/test-datasets/chipseq/samplesheet/v2.0/samplesheet_test.csv
     """

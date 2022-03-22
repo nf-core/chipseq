@@ -117,7 +117,11 @@ wget -L https://www.encodeproject.org/files/ENCFF356LFX/@@download/ENCFF356LFX.b
 The typical command for running the pipeline is as follows:
 
 ```console
+<<<<<<< HEAD
 nextflow run nf-core/chipseq --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile docker
+=======
+nextflow run nf-core/chipseq --input samplesheet.csv  --outdir <OUTDIR> --genome GRCh37 -profile docker
+>>>>>>> 10573c6d2c8c280bc6de4e6c19cb41d64a98a322
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
