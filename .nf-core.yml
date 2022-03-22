@@ -12,4 +12,3 @@ lint:
     - .github/workflows/linting_comment.yml
     - .github/workflows/linting.yml
     - bin/check_samplesheet.py
-
