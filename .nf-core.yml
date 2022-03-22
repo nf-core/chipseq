@@ -1,3 +1,4 @@
+repository_type: pipeline
 lint:
   files_unchanged:
     - .markdownlint.yml
@@ -10,6 +11,4 @@ lint:
     - .github/workflows/branch.yml
     - .github/workflows/linting_comment.yml
     - .github/workflows/linting.yml
-    - .github/PULL_REQUEST_TEMPLATE.md
-
-repository_type: pipeline
+    - bin/check_samplesheet.py
