@@ -41,9 +41,6 @@
                 "errorMessage": "Control entry cannot contain spaces"
             }
         },
-        "required": [
-            "sample",
-            "fastq_1"
-        ]
+        "required": ["sample", "fastq_1"]
     }
 }
