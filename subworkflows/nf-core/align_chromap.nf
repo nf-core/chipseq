@@ -7,9 +7,9 @@ include { BAM_SORT_SAMTOOLS } from './bam_sort_samtools'
 
 workflow ALIGN_CHROMAP {
     take:
-    reads         // channel: [ val(meta), [ reads ] ]
-    index         //    path: /path/to/index
-    fasta         //    path: /path/to/fasta
+    reads // channel: [ val(meta), [ reads ] ]
+    index //    path: /path/to/index
+    fasta //    path: /path/to/fasta
 
     main:
 
