@@ -4,6 +4,7 @@ import os
 import sys
 import errno
 import argparse
+import re
 
 
 def parse_args(args=None):
@@ -88,6 +89,13 @@ def check_samplesheet(file_in, file_out):
                 sample = sample.replace(" ", "_")
             if not sample:
                 print_error("Sample entry has not been specified!", "Line", line)
+
+            ## Check replicates from sample name entries
+            replicate = sample.split('_')[-1]
+            replicate_pattern = re.compile(r'REP\d')
+
+            if not re.match(replicate_pattern, replicate):
+                print_error("Sample name contains a not valid replicate string sample_REP1!", "Line", line)
 
             ## Check FastQ file extension
             for fastq in [fastq_1, fastq_2]:

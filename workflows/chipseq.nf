@@ -219,13 +219,14 @@ workflow CHIPSEQ {
     }
 
     //
-    // SUBWORKFLOW: Merge resequenced BAM files
+    // SUBWORKFLOW: Merge resequenced BAM files (technical replicates)
     //
     ch_genome_bam
         .map {
             meta, bam ->
-                fmeta = meta.findAll { it.key != 'read_group' }
-                fmeta.id = fmeta.id.split('_')[0..-2].join('_')
+                fmeta           = meta.findAll { it.key != 'read_group' }
+                fmeta.id        = fmeta.id.split('_')[0..-2].join('_')
+                fmeta.replicate = fmeta.id.split('_')[0..-2].join('_')
                 [ fmeta, bam ] }
         .groupTuple(by: [0])
         .map { it ->  [ it[0], it[1].flatten() ] }
@@ -249,7 +250,7 @@ workflow CHIPSEQ {
     //
     FILTER_BAM_BAMTOOLS (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
-        PREPARE_GENOME.out.filtered_bed,
+        PREPARE_GENOME.out.filtered_bed.first(),
 
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
@@ -446,7 +447,12 @@ workflow CHIPSEQ {
             MACS2_CALLPEAK
                 .out
                 .peak
-                .map { meta, peak -> [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] }
+                .map { meta, peak ->
+                        [
+                            meta.antibody,
+                            meta.id.split('_')[0..-2].join('_'),
+                            peak
+                        ] }
                 .groupTuple()
                 .map {
                     antibody, groups, peaks ->
