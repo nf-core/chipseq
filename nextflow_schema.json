@@ -103,6 +103,12 @@
                     "fa_icon": "fas fa-bezier-curve",
                     "description": "Path to directory or tar.gz archive for pre-built Bowtie2 index."
                 },
+                "chromap_index": {
+                    "type": "string",
+                    "format": "path",
+                    "fa_icon": "fas fa-bezier-curve",
+                    "description": "Path to directory or tar.gz archive for pre-built Chromap index."
+                },
                 "star_index": {
                     "type": "string",
                     "format": "path",

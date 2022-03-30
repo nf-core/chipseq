@@ -5,7 +5,7 @@
 */
 
 def valid_params = [
-    aligners       : [ 'bwa', 'bowtie2', 'star' ]
+    aligners       : [ 'bwa', 'bowtie2', 'chromap', 'star' ]
 ]
 
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
@@ -18,7 +18,7 @@ def checkPathParamList = [
     params.input, params.multiqc_config,
     params.fasta,
     params.gtf, params.gff, params.gene_bed,
-    params.bwa_index, params.bowtie2_index, params.star_index,
+    params.bwa_index, params.bowtie2_index, params.chromap_index, params.star_index,
     params.blacklist,
     params.bamtools_filter_pe_config, params.bamtools_filter_se_config
 ]
@@ -26,10 +26,6 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
-
-// Check alignment parameters
-def prepareToolIndices  = []
-// if (!params.skip_alignment) { prepareToolIndices << params.aligner        } //DEL
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
@@ -118,6 +114,7 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../module
 include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
 include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
 include { ALIGN_BOWTIE2          } from '../subworkflows/nf-core/align_bowtie2'
+include { ALIGN_CHROMAP          } from '../subworkflows/nf-core/align_chromap'
 include { ALIGN_STAR             } from '../subworkflows/nf-core/align_star'
 include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'
 
@@ -197,6 +194,23 @@ workflow CHIPSEQ {
         ch_samtools_flagstat = ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = ALIGN_BOWTIE2.out.idxstats
         ch_versions = ch_versions.mix(ALIGN_BOWTIE2.out.versions.first())
+    }
+
+    //
+    // SUBWORKFLOW: Alignment with CHROMAP & BAM QC
+    //
+    if (params.aligner == 'chromap') {
+        ALIGN_CHROMAP (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.chromap_index,
+            PREPARE_GENOME.out.fasta
+        )
+        ch_genome_bam        = ALIGN_CHROMAP.out.bam
+        ch_genome_bam_index  = ALIGN_CHROMAP.out.bai
+        ch_samtools_stats    = ALIGN_CHROMAP.out.stats
+        ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
+        ch_samtools_idxstats = ALIGN_CHROMAP.out.idxstats
+        ch_versions = ch_versions.mix(ALIGN_CHROMAP.out.versions.first())
     }
 
     //
