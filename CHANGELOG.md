@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
+- [[#233](https://github.com/nf-core/chipseq/issues/233)] - Add `chromap` to the available aligners
 - Update pipeline template to nf-core/tools `2.2`
 - Port pipeline to the updated Nextflow DSL2 syntax adopted on nf-core/modules
   - Removed `--publish_dir_mode` as it is no longer required for the new syntax
