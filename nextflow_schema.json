@@ -215,7 +215,7 @@
                     "default": "bwa",
                     "description": "Specifies the alignment algorithm to use - available options are 'bwa', 'bowtie2' and 'star'.",
                     "fa_icon": "fas fa-map-signs",
-                    "enum": ["bwa", "bowtie2", "star"]
+                    "enum": ["bwa", "bowtie2", "chromap", "star"]
                 },
                 "keep_dups": {
                     "type": "boolean",
