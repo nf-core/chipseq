@@ -15,6 +15,12 @@
             "bwa/mem": {
                 "git_sha": "950700bcdc0e9a2b6883d40d2c51c6fc435cd714"
             },
+            "chromap/chromap": {
+                "git_sha": "dbb46c9b635080b132bab4b8d5b9a14f0d1c22e7"
+            },
+            "chromap/index": {
+                "git_sha": "dbb46c9b635080b132bab4b8d5b9a14f0d1c22e7"
+            },
             "custom/dumpsoftwareversions": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
