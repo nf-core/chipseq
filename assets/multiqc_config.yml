@@ -155,7 +155,7 @@ extra_fn_clean_exts:
   - ".peak"
   - "_spp"
   - ".spp"
-  - "ccurve"
+  - "lc_extrap"
 
 # # Customise the module search patterns to speed up execution time
 # #  - Skip module sub-tools that we are not interested in
@@ -166,7 +166,7 @@ sp:
   cutadapt:
     fn: "*trimming_report.txt"
   preseq:
-    fn: "*.ccurve.txt"
+    fn: "*.lc_extrap.txt"
   deeptools/plotFingerprintOutRawCounts:
     fn: "*plotFingerprint*"
   deeptools/plotProfile:

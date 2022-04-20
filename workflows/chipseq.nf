@@ -291,7 +291,7 @@ workflow CHIPSEQ {
         PRESEQ_LCEXTRAP (
             FILTER_BAM_BAMTOOLS.out.bam
         )
-        ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.ccurve
+        ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
         ch_versions       = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 

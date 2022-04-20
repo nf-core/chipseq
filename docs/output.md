@@ -87,7 +87,7 @@ The library-level alignments associated with the same sample are merged and subs
 - `bwa/mergedLibrary/picard_metrics/pdf/`
   - `*.pdf`: Alignment QC plot files from picard CollectMultipleMetrics.
 - `bwa/mergedLibrary/preseq/`
-  - `*.ccurve.txt`: Preseq expected future yield file.
+  - `*.lc_extrap.txt`: Preseq expected future yield file.
 
 > **NB:** File names in the resulting directory (i.e. `bwa/mergedLibrary/`) will have the '`.mLb.`' suffix.
 
