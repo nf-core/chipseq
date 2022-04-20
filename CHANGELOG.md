@@ -10,14 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#128](https://github.com/nf-core/chipseq/issues/128)] - Filter files with no peaks to avoid errors in downstream processes
 - [[#220](https://github.com/nf-core/chipseq/issues/220)] - Fix `phantompeakqualtools` protection stack overflow error
 - [[#233](https://github.com/nf-core/chipseq/issues/233)] - Add `chromap` to the available aligners
-- Update pipeline template to nf-core/tools `2.2`
+- Updated pipeline template to [nf-core/tools 2.3.2](https://github.com/nf-core/tools/releases/tag/2.3.2)
 - Port pipeline to the updated Nextflow DSL2 syntax adopted on nf-core/modules
-  - Removed `--publish_dir_mode` as it is no longer required for the new syntax
 - Bump minimum Nextflow version from `21.04.0` -> `21.10.3`
-- Updated pipeline template to [nf-core/tools 2.2](https://github.com/nf-core/tools/releases/tag/2.2)
 - Added `python3` shebang to appropriate scripts in `bin/` directory
 - [[#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners, via the `--aligner` parameter
-- Update pipeline template to nf-core/tools `2.1`
 - Add `--save_unaligned` parameter (only available for `bowtie2` and `star`)
 - Update `igenomes.config` to fetch whole `BWAIndex/version0.6.0/` folder
 - [[228](https://github.com/nf-core/chipseq/issues/228)] - Update blacklist bed files.
