@@ -21,36 +21,39 @@ process MACS2_CONSENSUS {
     tuple val(meta), path("*.intersect.txt"), emit: intersect_txt
     path "versions.yml"                     , emit: versions
 
+    when:
+    (meta.multiple_groups || meta.replicates_exist)
+
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-    if (meta.multiple_groups || meta.replicates_exist) {
-        def prefix       = task.ext.prefix    ?: "${meta.id}"
-        def peak_type    = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
-        def mergecols    = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
-        def collapsecols = params.narrow_peak ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
-        def expandparam  = params.narrow_peak ? '--is_narrow_peak' : ''
-        """
-        sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
-            | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
 
-        macs2_merged_expand.py \\
-            ${prefix}.txt \\
-            ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${peak_type}","")} \\
-            ${prefix}.boolean.txt \\
-            --min_replicates $params.min_reps_consensus \\
-            $expandparam
+    def prefix       = task.ext.prefix    ?: "${meta.id}"
+    def peak_type    = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
+    def mergecols    = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
+    def collapsecols = params.narrow_peak ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
+    def expandparam  = params.narrow_peak ? '--is_narrow_peak' : ''
+    """
+    sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
+        | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
 
-        awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
+    macs2_merged_expand.py \\
+        ${prefix}.txt \\
+        ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${peak_type}","")} \\
+        ${prefix}.boolean.txt \\
+        --min_replicates $params.min_reps_consensus \\
+        $expandparam
 
-        echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
-        awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
+    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
 
-        plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
+    echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
+    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            python: \$(python --version | sed 's/Python //g')
-            r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-        END_VERSIONS
-        """
-    }
+    plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        python: \$(python --version | sed 's/Python //g')
+        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
+    END_VERSIONS
+    """
+
 }

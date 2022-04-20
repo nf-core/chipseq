@@ -263,7 +263,7 @@ workflow CHIPSEQ {
     //
     FILTER_BAM_BAMTOOLS (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
-        PREPARE_GENOME.out.filtered_bed,
+        PREPARE_GENOME.out.filtered_bed.first(),
 
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
@@ -400,17 +400,26 @@ workflow CHIPSEQ {
             .map { meta, bams, bais -> [ meta , bams[0], bams[1] ] }
             .set { ch_ip_control_bam }
 
-
         MACS2_CALLPEAK (
             ch_ip_control_bam,
             params.macs_gsize
         )
         ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
 
+        //
+        // Filter for MACS2 files without peaks
+        //
+        MACS2_CALLPEAK
+            .out
+            .peak
+            .filter { meta, peaks -> peaks.size() > 0 }
+            .set { ch_macs2_peaks }
+
         ch_ip_control_bam
-            .join(MACS2_CALLPEAK.out.peak, by: [0])
+            .join(ch_macs2_peaks, by: [0])
             .map { it -> [ it[0], it[1], it[3] ] }
             .set { ch_ip_peak }
+
         FRIP_SCORE (
             ch_ip_peak
         )
@@ -431,12 +440,12 @@ workflow CHIPSEQ {
 
         if (!params.skip_peak_annotation && !params.skip_peak_qc) {
             PLOT_MACS2_QC (
-                MACS2_CALLPEAK.out.peak.collect{it[1]}
+                ch_macs2_peaks.collect{it[1]}
             )
             ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
 
             HOMER_ANNOTATEPEAKS_MACS2 (
-                MACS2_CALLPEAK.out.peak,
+                ch_macs2_peaks,
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf
             )
@@ -457,9 +466,7 @@ workflow CHIPSEQ {
         if (!params.skip_consensus_peaks) {
             // Create channel: [ meta , [ peaks ] ]
             // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
-            MACS2_CALLPEAK
-                .out
-                .peak
+            ch_macs2_peaks
                 .map { meta, peak -> [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] }
                 .groupTuple()
                 .map {
@@ -538,7 +545,7 @@ workflow CHIPSEQ {
                 IGV (
                     PREPARE_GENOME.out.fasta,
                     UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-                    MACS2_CALLPEAK.out.peak.collect{it[1]}.ifEmpty([]),
+                    ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
                     MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
                     "bwa/mergedLibrary/bigwig",
                     { ["bwa/mergedLibrary/macs2",
