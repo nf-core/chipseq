@@ -39,30 +39,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
 
-<!---
-TODO: update all new dependencies
-
-| Dependency    | Old version | New version |
-|---------------|-------------|-------------|
-| `` |  |  |
-| `` |  |  |
-| `` |  |  |
-| `` |  |  |
-| `deeptools`   | 3.4.3       | 3.5.1       |
-| `fastqc`      |  | 0.11.9 |
-| `` |  |  |
-| `trim-galore` |  |  |
-| `samtools` |  |  |
-| `` |  |  |
-| `` |  |  |
-| `` |  |  |
-| `` |  |  |
-| `` |  |  |
-
-| `multiqc`   | 1.10        | 1.13        |
-| `samtools`  | 1.10        | 1.13        |
-
--->
+| Dependency                  | Old version | New version |
+|-----------------------------|-------------|-------------|
+| `samtools`                  | 1.10        | 1.15.1      |
+| `picard`                    | 2.23.1      | 2.26.10     |
+| `picard`                    | 2.23.1      | 2.26.10     |
+| `bamtools`                  | 2.5.1       | 2.5.2       |
+| `pysam`                     | 0.15.3      | 0.16.0.1    |
+| `bedtools`                  | 2.29.2      | 2.30.0      |
+| `ucsc-bedgraphtobigwig`     | 357         | 377         |
+| `deeptools`                 | 3.4.3       | 3.5.1       |
+| `pigz`                      | 2.3.4       | 2.6         |
+| `preseq`                    | 2.0.3       | 3.1.2       |
+| `multiqc`                   | 1.9         | 1.12        |
+| `r-base`                    | 3.6.1       | 4.0.3       |
+| `r-ggplot2`                 | 3.3.2       | 3.3.3       |
+| `bioconductor-deseq2`       | 1.26.0      | 1.28.0      |
+| `r-optparse`                | -           | 1.7.1       |
+| `chromap`                   | -           | 0.2.1       |
+| `bowtie2`                   | -           | 2.4.4       |
+| `star`                      | -           | 2.6.1d      |
+| `r-tidyr`                   | -           | -           |
+| `r-lattice`                 | -           | -           |
+| `r-xfun`                    | -           | -           |
+| `bioconductor-vsn`          | -           | -           |
 
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.
