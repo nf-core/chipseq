@@ -46,7 +46,7 @@
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "gunzip": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
             },
             "homer/annotatepeaks": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
@@ -58,7 +58,7 @@
                 "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
             },
             "phantompeakqualtools": {
-                "git_sha": "5e7daa7b96fa9699a52ac8fa3dcbf4291cc6d050"
+                "git_sha": "b3e56c83c683111d0d3edfa2821454d6132b6b66"
             },
             "picard/collectmultiplemetrics": {
                 "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
@@ -97,7 +97,7 @@
                 "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
             },
             "untar": {
-                "git_sha": "9ae34a01d1747019fd37753ff4cafb05aec35a2b"
+                "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
             }
         }
     }
