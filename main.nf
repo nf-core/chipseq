@@ -8,6 +8,7 @@
  https://github.com/nf-core/chipseq
 ----------------------------------------------------------------------------------------
 */
+nextflow.enable.dsl=1
 
 def helpMessage() {
     log.info nfcoreHeader()
