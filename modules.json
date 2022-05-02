@@ -25,7 +25,7 @@
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "custom/getchromsizes": {
-                "git_sha": "950700bcdc0e9a2b6883d40d2c51c6fc435cd714"
+                "git_sha": "213403187932dbbdd936a04474cc8cd8abae7a08"
             },
             "deeptools/computematrix": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
@@ -61,13 +61,13 @@
                 "git_sha": "6a46e7cf117bbae41bca9b4c7ff7a77794df16ec"
             },
             "picard/collectmultiplemetrics": {
-                "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
+                "git_sha": "00467ac64affbbc17b255762f10a6c8fa362aabc"
             },
             "picard/markduplicates": {
-                "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
+                "git_sha": "20ebb89ff97a2665106be9cace5ccb9aa4eed1be"
             },
             "picard/mergesamfiles": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "20ebb89ff97a2665106be9cace5ccb9aa4eed1be"
             },
             "preseq/lcextrap": {
                 "git_sha": "7111e571cc5b6069de4673cd6165af680f17b4d7"
@@ -91,7 +91,7 @@
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "trimgalore": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "85ec13ff1fc2196c5a507ea497de468101baabed"
             },
             "ucsc/bedgraphtobigwig": {
                 "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
