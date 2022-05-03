@@ -4,7 +4,7 @@
     "repos": {
         "nf-core/modules": {
             "bowtie2/align": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "bowtie2/build": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
@@ -13,10 +13,10 @@
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "bwa/mem": {
-                "git_sha": "950700bcdc0e9a2b6883d40d2c51c6fc435cd714"
+                "git_sha": "4f5274c3de0c9521f5033893ff61057a74c45ba9"
             },
             "chromap/chromap": {
-                "git_sha": "dbb46c9b635080b132bab4b8d5b9a14f0d1c22e7"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "chromap/index": {
                 "git_sha": "dbb46c9b635080b132bab4b8d5b9a14f0d1c22e7"
@@ -25,7 +25,7 @@
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "custom/getchromsizes": {
-                "git_sha": "950700bcdc0e9a2b6883d40d2c51c6fc435cd714"
+                "git_sha": "213403187932dbbdd936a04474cc8cd8abae7a08"
             },
             "deeptools/computematrix": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
@@ -40,13 +40,13 @@
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "fastqc": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
             },
             "gffread": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "gunzip": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
             },
             "homer/annotatepeaks": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
@@ -55,49 +55,49 @@
                 "git_sha": "f0800157544a82ae222931764483331a81812012"
             },
             "multiqc": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
             },
             "phantompeakqualtools": {
-                "git_sha": "5e7daa7b96fa9699a52ac8fa3dcbf4291cc6d050"
+                "git_sha": "6a46e7cf117bbae41bca9b4c7ff7a77794df16ec"
             },
             "picard/collectmultiplemetrics": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "00467ac64affbbc17b255762f10a6c8fa362aabc"
             },
             "picard/markduplicates": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "20ebb89ff97a2665106be9cace5ccb9aa4eed1be"
             },
             "picard/mergesamfiles": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "20ebb89ff97a2665106be9cace5ccb9aa4eed1be"
             },
             "preseq/lcextrap": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "7111e571cc5b6069de4673cd6165af680f17b4d7"
             },
             "samtools/flagstat": {
-                "git_sha": "1ad73f1b2abdea9398680d6d20014838135c9a35"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "samtools/idxstats": {
-                "git_sha": "1ad73f1b2abdea9398680d6d20014838135c9a35"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "samtools/index": {
-                "git_sha": "1ad73f1b2abdea9398680d6d20014838135c9a35"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "samtools/sort": {
-                "git_sha": "1ad73f1b2abdea9398680d6d20014838135c9a35"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "samtools/stats": {
-                "git_sha": "1ad73f1b2abdea9398680d6d20014838135c9a35"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "subread/featurecounts": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "trimgalore": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "85ec13ff1fc2196c5a507ea497de468101baabed"
             },
             "ucsc/bedgraphtobigwig": {
                 "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
             },
             "untar": {
-                "git_sha": "7ec09d0ef4df89617baacc9b2dafcddb7cd4b05a"
+                "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
             }
         }
     }
