@@ -76,7 +76,7 @@ jobs:
       matrix:
         aligner:
           - "bowtie2"
-          # - "chromap" #TODO uncomment when implemented
+          - "chromap"
           - "star"
     steps:
       - name: Check out pipeline code
