@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
-- Updated pipeline template to [nf-core/tools 2.4.2](https://github.com/nf-core/tools/releases/tag/2.4.2)
+- Updated pipeline template to [nf-core/tools 2.4.1](https://github.com/nf-core/tools/releases/tag/2.4.1)
 - [[#128](https://github.com/nf-core/chipseq/issues/128)] - Filter files with no peaks to avoid errors in downstream processes
 - [[#220](https://github.com/nf-core/chipseq/issues/220)] - Fix `phantompeakqualtools` protection stack overflow error
 - [[#233](https://github.com/nf-core/chipseq/issues/233)] - Add `chromap` to the available aligners
