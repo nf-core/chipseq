@@ -271,6 +271,18 @@ workflow CHIPSEQ {
     ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
 
     //
+    // MODULE: Library coverage
+    //
+    ch_preseq_multiqc = Channel.empty()
+    if (!params.skip_preseq) {
+        PRESEQ_LCEXTRAP (
+            MARK_DUPLICATES_PICARD.out.bam
+        )
+        ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
+        ch_versions       = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
+    }
+
+    //
     // MODULE: Post alignment QC
     //
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
@@ -281,18 +293,6 @@ workflow CHIPSEQ {
         )
         ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
         ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
-    }
-
-    //
-    // MODULE: Library coverage
-    //
-    ch_preseq_multiqc = Channel.empty()
-    if (!params.skip_preseq) {
-        PRESEQ_LCEXTRAP (
-            FILTER_BAM_BAMTOOLS.out.bam
-        )
-        ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
-        ch_versions       = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
