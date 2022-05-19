@@ -438,12 +438,7 @@ workflow CHIPSEQ {
         ch_custompeaks_frip_multiqc  = MULTIQC_CUSTOM_PEAKS.out.frip
         ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS.out.count
 
-        if (!params.skip_peak_annotation && !params.skip_peak_qc) {
-            PLOT_MACS2_QC (
-                ch_macs2_peaks.collect{it[1]}
-            )
-            ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
-
+        if (!params.skip_peak_annotation) {
             HOMER_ANNOTATEPEAKS_MACS2 (
                 ch_macs2_peaks,
                 PREPARE_GENOME.out.fasta,
@@ -451,13 +446,20 @@ workflow CHIPSEQ {
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
-            PLOT_HOMER_ANNOTATEPEAKS (
-                HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
-                ch_peak_annotation_header,
-                "_peaks.annotatePeaks.txt"
-            )
-            ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
-            ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
+            if (!params.skip_peak_qc) {
+                PLOT_MACS2_QC (
+                    ch_macs2_peaks.collect{it[1]}
+                )
+                ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
+
+                PLOT_HOMER_ANNOTATEPEAKS (
+                    HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
+                    ch_peak_annotation_header,
+                    "_peaks.annotatePeaks.txt"
+                )
+                ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
+                ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
+            }
         }
 
         //
