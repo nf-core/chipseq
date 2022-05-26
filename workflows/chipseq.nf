@@ -486,7 +486,7 @@ workflow CHIPSEQ {
                         meta.replicates_exist = groups.max { groups.value }.value > 1
                         [ meta, peaks ] }
                 .set { ch_antibody_peaks }
-
+            // ch_antibody_peaks.dump()
             MACS2_CONSENSUS (
                 ch_antibody_peaks
             )
@@ -510,11 +510,15 @@ workflow CHIPSEQ {
                 .map { meta, saf -> [ meta.id, meta, saf ] }
                 .set { ch_ip_saf }
 
+            // ch_ip_saf.dump()
+
             ch_ip_control_bam
                 .map { meta, ip_bam, control_bam -> [ meta.antibody, meta, ip_bam ] }
                 .groupTuple()
                 .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+                // .dump()
                 .join(ch_ip_saf)
+                .dump()
                 .map {
                     it ->
                         fmeta = it[1]
@@ -530,8 +534,6 @@ workflow CHIPSEQ {
             ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
             ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
 
-            ch_deseq2_pca_header = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
-            ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
             if (!params.skip_deseq2_qc) {
                 DESEQ2_QC (
                     SUBREAD_FEATURECOUNTS.out.counts,
