@@ -238,7 +238,7 @@ workflow CHIPSEQ {
     ch_genome_bam
         .map {
             meta, bam ->
-                fmeta = meta.findAll { it.key != 'read_group' }
+                def fmeta = meta.findAll { it.key != 'read_group' }
                 fmeta.id = fmeta.id.split('_')[0..-2].join('_')
                 [ fmeta, bam ] }
         .groupTuple(by: [0])
@@ -521,7 +521,7 @@ workflow CHIPSEQ {
                 .dump()
                 .map {
                     it ->
-                        fmeta = it[1]
+                        def fmeta = it[1]
                         fmeta['id'] = it[3]['id']
                         fmeta['replicates_exist'] = it[3]['replicates_exist']
                         fmeta['multiple_groups']  = it[3]['multiple_groups']
