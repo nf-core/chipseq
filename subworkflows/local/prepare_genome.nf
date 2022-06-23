@@ -45,16 +45,9 @@ workflow PREPARE_GENOME {
 
     // Make fasta file available if reference saved or IGV is run
     if (params.save_reference || !params.skip_igv) {
-        // log.info "test\n===============culo\n===============culo\n===============culo\n===============culo\n===============culo\n"
         file("${params.outdir}/genome/").mkdirs()
         ch_fasta.copyTo("${params.outdir}/genome/")
     }
-    // else {
-    //     log.info "pedo\n===============pedo\n===============pedo\n================pedo\n===============pedo\n===============pedo\n"
-    // }
-    // ch_fasta.subscribe {
-    //     it.copyTo("${params.outdir}/genome/")
-    // }
 
     //
     // Uncompress GTF annotation file or create from GFF3 if required
