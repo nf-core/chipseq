@@ -253,10 +253,10 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
     //
-    ch_markduplicates_multiqc = Channel.empty()
     MARK_DUPLICATES_PICARD (
         PICARD_MERGESAMFILES.out.bam
     )
+    ch_versions = ch_versions.mix(MARK_DUPLICATES_PICARD.out.versions)
 
     //
     // SUBWORKFLOW: Fix getting name sorted BAM here for PE/SE
