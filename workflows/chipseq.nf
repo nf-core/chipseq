@@ -486,7 +486,7 @@ workflow CHIPSEQ {
                         meta.replicates_exist = groups.max { groups.value }.value > 1
                         [ meta, peaks ] }
                 .set { ch_antibody_peaks }
-            // ch_antibody_peaks.dump()
+
             MACS2_CONSENSUS (
                 ch_antibody_peaks
             )
@@ -510,15 +510,11 @@ workflow CHIPSEQ {
                 .map { meta, saf -> [ meta.id, meta, saf ] }
                 .set { ch_ip_saf }
 
-            // ch_ip_saf.dump()
-
             ch_ip_control_bam
                 .map { meta, ip_bam, control_bam -> [ meta.antibody, meta, ip_bam ] }
                 .groupTuple()
                 .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
-                // .dump()
                 .join(ch_ip_saf)
-                .dump()
                 .map {
                     it ->
                         def fmeta = it[1]
