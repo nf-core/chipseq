@@ -11,8 +11,8 @@ process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
     path correlation_header
 
     output:
-    tuple val(meta), path("*.spp_nsc_mqc.tsv"), emit: nsc
-    tuple val(meta), path("*.spp_rsc_mqc.tsv"), emit: rsc
+    tuple val(meta), path("*.spp_nsc_mqc.tsv")        , emit: nsc
+    tuple val(meta), path("*.spp_rsc_mqc.tsv")        , emit: rsc
     tuple val(meta), path("*.spp_correlation_mqc.tsv"), emit: correlation
 
     script:

@@ -238,7 +238,7 @@ workflow CHIPSEQ {
     ch_genome_bam
         .map {
             meta, bam ->
-                fmeta = meta.findAll { it.key != 'read_group' }
+                def fmeta = meta.findAll { it.key != 'read_group' }
                 fmeta.id = fmeta.id.split('_')[0..-2].join('_')
                 [ fmeta, bam ] }
         .groupTuple(by: [0])
@@ -253,10 +253,10 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
     //
-    ch_markduplicates_multiqc = Channel.empty()
     MARK_DUPLICATES_PICARD (
         PICARD_MERGESAMFILES.out.bam
     )
+    ch_versions = ch_versions.mix(MARK_DUPLICATES_PICARD.out.versions)
 
     //
     // SUBWORKFLOW: Fix getting name sorted BAM here for PE/SE
@@ -271,6 +271,18 @@ workflow CHIPSEQ {
     ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
 
     //
+    // MODULE: Library coverage
+    //
+    ch_preseq_multiqc = Channel.empty()
+    if (!params.skip_preseq) {
+        PRESEQ_LCEXTRAP (
+            MARK_DUPLICATES_PICARD.out.bam
+        )
+        ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
+        ch_versions       = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
+    }
+
+    //
     // MODULE: Post alignment QC
     //
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
@@ -279,20 +291,8 @@ workflow CHIPSEQ {
             FILTER_BAM_BAMTOOLS.out.bam,
             PREPARE_GENOME.out.fasta
         )
-        ch_picardcollectmultiplemetrics_multiqc = MARK_DUPLICATES_PICARD.out.metrics
+        ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
         ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
-    }
-
-    //
-    // MODULE: Library coverage
-    //
-    ch_preseq_multiqc = Channel.empty()
-    if (!params.skip_preseq) {
-        PRESEQ_LCEXTRAP (
-            FILTER_BAM_BAMTOOLS.out.bam
-        )
-        ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
-        ch_versions       = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
@@ -438,12 +438,7 @@ workflow CHIPSEQ {
         ch_custompeaks_frip_multiqc  = MULTIQC_CUSTOM_PEAKS.out.frip
         ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS.out.count
 
-        if (!params.skip_peak_annotation && !params.skip_peak_qc) {
-            PLOT_MACS2_QC (
-                ch_macs2_peaks.collect{it[1]}
-            )
-            ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
-
+        if (!params.skip_peak_annotation) {
             HOMER_ANNOTATEPEAKS_MACS2 (
                 ch_macs2_peaks,
                 PREPARE_GENOME.out.fasta,
@@ -451,13 +446,20 @@ workflow CHIPSEQ {
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
-            PLOT_HOMER_ANNOTATEPEAKS (
-                HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
-                ch_peak_annotation_header,
-                "_peaks.annotatePeaks.txt"
-            )
-            ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
-            ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
+            if (!params.skip_peak_qc) {
+                PLOT_MACS2_QC (
+                    ch_macs2_peaks.collect{it[1]}
+                )
+                ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
+
+                PLOT_HOMER_ANNOTATEPEAKS (
+                    HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
+                    ch_peak_annotation_header,
+                    "_peaks.annotatePeaks.txt"
+                )
+                ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
+                ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
+            }
         }
 
         //
@@ -515,7 +517,7 @@ workflow CHIPSEQ {
                 .join(ch_ip_saf)
                 .map {
                     it ->
-                        fmeta = it[1]
+                        def fmeta = it[1]
                         fmeta['id'] = it[3]['id']
                         fmeta['replicates_exist'] = it[3]['replicates_exist']
                         fmeta['multiple_groups']  = it[3]['multiple_groups']
@@ -528,8 +530,6 @@ workflow CHIPSEQ {
             ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
             ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
 
-            ch_deseq2_pca_header = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
-            ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
             if (!params.skip_deseq2_qc) {
                 DESEQ2_QC (
                     SUBREAD_FEATURECOUNTS.out.counts,

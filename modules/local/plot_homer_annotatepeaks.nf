@@ -12,9 +12,9 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     val suffix
 
     output:
-    path '*.txt', emit: txt
-    path '*.pdf', emit: pdf
-    path '*.tsv', emit: tsv
+    path '*.txt'       , emit: txt
+    path '*.pdf'       , emit: pdf
+    path '*.tsv'       , emit: tsv
     path "versions.yml", emit: versions
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/

@@ -24,7 +24,7 @@ process DESEQ2_QC {
     path "versions.yml"         , emit: versions
 
     script:
-    if (meta.multiple_groups || meta.replicates_exist) {
+    if (meta.multiple_groups && meta.replicates_exist) {
         def args      = task.ext.args ?: ''
         def peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
         def antibody  = meta.antibody

@@ -14,7 +14,6 @@ workflow FILTER_BAM_BAMTOOLS {
     bamtools_filter_pe_config //    file: BAMtools filter JSON config file for PE data
 
     main:
-
     ch_versions = Channel.empty()
 
     BAM_FILTER(ch_bam_bai, ch_bed, bamtools_filter_se_config, bamtools_filter_pe_config)

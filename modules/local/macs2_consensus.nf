@@ -22,7 +22,7 @@ process MACS2_CONSENSUS {
     path "versions.yml"                     , emit: versions
 
     when:
-    (meta.multiple_groups || meta.replicates_exist)
+    task.ext.when == null || task.ext.when
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
 
