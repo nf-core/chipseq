@@ -28,6 +28,12 @@ class WorkflowChipseq {
             macsGsizeWarn(log)
         }
 
+        if (!params.read_length && !params.macs_gsize) {
+            log.error "Read length not specified! The pipeline requires either the '--read_length' parameter to be set" +
+            "to infer MACS2 genome size\nor to provide it with the '--macs_gsize' parameter"
+            System.exit(1)
+        }
+
         if (params.aligner) {
             if (!valid_params['aligners'].contains(params.aligner)) {
                     log.error "Invalid option: '${params.aligner}'. Valid options for '--aligner': ${valid_params['aligners'].join(', ')}."
