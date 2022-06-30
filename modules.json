@@ -51,6 +51,9 @@
             "homer/annotatepeaks": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
+            "khmer/uniquekmers": {
+                "git_sha": "82fdff4fb4ce6cafcc028a7503da835427f35352"
+            },
             "macs2/callpeak": {
                 "git_sha": "f0800157544a82ae222931764483331a81812012"
             },

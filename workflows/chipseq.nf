@@ -64,7 +64,6 @@ ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering
 */
 
 include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'
-include { KHMER_UNIQUEKMERS                   } from '../modules/local/khmer_uniquekmers'
 include { FRIP_SCORE                          } from '../modules/local/frip_score'
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
@@ -101,6 +100,7 @@ include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deept
 include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'
+include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/modules/khmer/uniquekmers/main'
 include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'
 include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
