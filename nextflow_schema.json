@@ -10,9 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": [
-                "outdir"
-            ],
+            "required": ["outdir"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -40,13 +38,7 @@
                     "description": "Read length to calculate macs genome size (--macs_gsize)parameter",
                     "fa_icon": "fas fa-chart-area",
                     "default": 100,
-                    "enum": [
-                        50,
-                        75,
-                        100,
-                        150,
-                        200
-                    ]
+                    "enum": [50, 75, 100, 150, 200]
                 },
                 "outdir": {
                     "type": "string",
@@ -230,12 +222,7 @@
                     "default": "bwa",
                     "description": "Specifies the alignment algorithm to use - available options are 'bwa', 'bowtie2' and 'star'.",
                     "fa_icon": "fas fa-map-signs",
-                    "enum": [
-                        "bwa",
-                        "bowtie2",
-                        "chromap",
-                        "star"
-                    ]
+                    "enum": ["bwa", "bowtie2", "chromap", "star"]
                 },
                 "keep_dups": {
                     "type": "boolean",
@@ -511,14 +498,7 @@
                     "description": "Method used to save pipeline results to output directory.",
                     "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
                     "fa_icon": "fas fa-copy",
-                    "enum": [
-                        "symlink",
-                        "rellink",
-                        "link",
-                        "copy",
-                        "copyNoFollow",
-                        "move"
-                    ],
+                    "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
                     "hidden": true
                 },
                 "fingerprint_bins": {
