@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[228](https://github.com/nf-core/chipseq/issues/228)] - Update blacklist bed files.
 - [nf-core/tools#1415](https://github.com/nf-core/tools/issues/1415) - Make `--outdir` a mandatory parameter
 - [[282](https://github.com/nf-core/chipseq/issues/282)] - Fix `genome.fa` publication for IGV.
-- [[280](https://github.com/nf-core/chipseq/issues/280)] - Update `macs_gsizes` on the `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `macs_gsizes` when the parameter is missing.
+- [[280](https://github.com/nf-core/chipseq/issues/280)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing.
 
 ### Parameters
 
