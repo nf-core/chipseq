@@ -24,34 +24,32 @@ process DESEQ2_QC {
     path "versions.yml"         , emit: versions
 
     script:
-    if (meta.multiple_groups && meta.replicates_exist) {
-        def args      = task.ext.args ?: ''
-        def peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
-        def antibody  = meta.antibody
-        def prefix    = "${antibody}.consensus_peaks"
-        """
-        deseq2_qc.r \\
-            --count_file $counts \\
-            --outdir ./ \\
-            --outprefix $prefix \\
-            --cores $task.cpus \\
-            $args
+    def args      = task.ext.args ?: ''
+    def peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
+    def antibody  = meta.antibody
+    def prefix    = "${antibody}.consensus_peaks"
+    """
+    deseq2_qc.r \\
+        --count_file $counts \\
+        --outdir ./ \\
+        --outprefix $prefix \\
+        --cores $task.cpus \\
+        $args
 
-        sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
-        sed -i -e 's/DESeq2 /${antibody} DESeq2 /g' tmp.txt
-        cat tmp.txt ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+    sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
+    sed -i -e 's/DESeq2 /${antibody} DESeq2 /g' tmp.txt
+    cat tmp.txt ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
 
-        sed 's/deseq2_clustering/deseq2_clustering_${task.index}/g' <$deseq2_clustering_header >tmp.txt
-        sed -i -e 's/DESeq2 /${antibody} DESeq2 /g' tmp.txt
-        cat tmp.txt ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
+    sed 's/deseq2_clustering/deseq2_clustering_${task.index}/g' <$deseq2_clustering_header >tmp.txt
+    sed -i -e 's/DESeq2 /${antibody} DESeq2 /g' tmp.txt
+    cat tmp.txt ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
 
-        find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${peak_type}/consensus/${antibody}/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
+    find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${peak_type}/consensus/${antibody}/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-            bioconductor-deseq2: \$(Rscript -e "library(DESeq2); cat(as.character(packageVersion('DESeq2')))")
-        END_VERSIONS
-        """
-    }
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
+        bioconductor-deseq2: \$(Rscript -e "library(DESeq2); cat(as.character(packageVersion('DESeq2')))")
+    END_VERSIONS
+    """
 }
