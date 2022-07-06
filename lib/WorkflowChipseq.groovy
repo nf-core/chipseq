@@ -29,8 +29,7 @@ class WorkflowChipseq {
         }
 
         if (!params.read_length && !params.macs_gsize) {
-            log.error "Read length not specified! The pipeline requires either the '--read_length' parameter to be set" +
-            "to infer MACS2 genome size\nor to provide it with the '--macs_gsize' parameter"
+            log.error "Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS2 genome size for peak calling."
             System.exit(1)
         }
 
