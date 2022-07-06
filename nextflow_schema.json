@@ -37,7 +37,6 @@
                     "type": "integer",
                     "description": "Read length to calculate macs genome size (--macs_gsize)parameter",
                     "fa_icon": "fas fa-chart-area",
-                    "default": 100,
                     "enum": [50, 75, 100, 150, 200]
                 },
                 "outdir": {
