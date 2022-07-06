@@ -12,6 +12,7 @@ include {
 include {
     UNTAR as UNTAR_BWA_INDEX
     UNTAR as UNTAR_BOWTIE2_INDEX
+    UNTAR as UNTAR_CHROMAP_INDEX
     UNTAR as UNTAR_STAR_INDEX    } from '../../modules/nf-core/modules/untar/main'
 
 include { GFFREAD              } from '../../modules/nf-core/modules/gffread/main'
@@ -172,7 +173,7 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'chromap') {
         if (params.chromap_index) {
             if (params.chromap_index.endsWith('.tar.gz')) {
-                ch_chromap_index = UNTAR ( params.chromap_index ).untar
+                ch_chromap_index = UNTAR_CHROMAP_INDEX ( [:], params.chromap_index ).untar.map{ it[1] }
                 ch_versions  = ch_versions.mix(UNTAR.out.versions)
             } else {
                 ch_chromap_index = file(params.chromap_index)
