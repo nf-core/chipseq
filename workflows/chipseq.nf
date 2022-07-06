@@ -548,27 +548,28 @@ workflow CHIPSEQ {
                 ch_deseq2_clustering_header
             )
         }
-
-        //
-        // Create IGV session
-        //
-        if (!params.skip_igv) {
-            IGV (
-                PREPARE_GENOME.out.fasta,
-                UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-                ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
-                MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
-                "bwa/mergedLibrary/bigwig",
-                { ["bwa/mergedLibrary/macs2",
-                    params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                    ].join('') },
-                { ["bwa/mergedLibrary/macs2",
-                    params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                    ].join('') }
-            )
-            ch_versions = ch_versions.mix(IGV.out.versions)
-        }
     }
+
+    //
+    // Create IGV session
+    //
+    if (!params.skip_igv) {
+        IGV (
+            PREPARE_GENOME.out.fasta,
+            UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
+            ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
+            MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
+            "bwa/mergedLibrary/bigwig",
+            { ["bwa/mergedLibrary/macs2",
+                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                ].join('') },
+            { ["bwa/mergedLibrary/macs2",
+                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                ].join('') }
+        )
+        ch_versions = ch_versions.mix(IGV.out.versions)
+    }
+
 
 
     //
