@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update `igenomes.config` to fetch whole `BWAIndex/version0.6.0/` folder
 - [[228](https://github.com/nf-core/chipseq/issues/228)] - Update blacklist bed files.
 - [nf-core/tools#1415](https://github.com/nf-core/tools/issues/1415) - Make `--outdir` a mandatory parameter
+- [[282](https://github.com/nf-core/chipseq/issues/282)] - Fix `genome.fa` publication for IGV.
+- [[280](https://github.com/nf-core/chipseq/issues/280)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing.
 
 ### Parameters
 
@@ -30,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 |                        | `--aligner`        |
 |                        | `--save_unaligned` |
 | `--skip_diff_analysis` | `--skip_deseq2_qc` |
+|                        | `--read_length`    |
 
 > **NB:** Parameter has been **updated** if both old and new parameter information is present.
 > **NB:** Parameter has been **added** if just the new parameter information is present.

@@ -33,6 +33,12 @@
                     "description": "Sequencing center information to be added to read group of BAM files.",
                     "fa_icon": "fas fa-synagogue"
                 },
+                "read_length": {
+                    "type": "integer",
+                    "description": "Read length used to calculate MACS2 genome size for peak calling if `--macs_gsize` isn't provided.",
+                    "fa_icon": "fas fa-chart-area",
+                    "enum": [50, 75, 100, 150, 200]
+                },
                 "outdir": {
                     "type": "string",
                     "format": "directory-path",
