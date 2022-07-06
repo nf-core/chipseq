@@ -99,7 +99,7 @@ class WorkflowChipseq {
     private static void macsGsizeWarn(log) {
         log.warn "=============================================================================\n" +
             "  --macs_gsize parameter has not been provided.\n" +
-            "  Its value will be obtained using khmer unique-kmers.py based on the --read_length parameter.\n" +
+            "  It will be auto-calculated by 'khmer unique-kmers.py' using the '--read_length' parameter.\n" +
             "  Provide '--macs_gsize macs2_genome_size' or --read_length to change this behaviour.\n" +
             "==================================================================================="
     }
