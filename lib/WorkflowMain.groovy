@@ -94,7 +94,7 @@ class WorkflowMain {
     //
     // Get macs genome size (macs_gsize)
     //
-    public static Integer getMacsGsize(params) {
+    public static Long getMacsGsize(params) {
         def val = null
         if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
             if (params.genomes[ params.genome ].containsKey('macs_gsize')) {
