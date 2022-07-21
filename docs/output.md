@@ -52,21 +52,44 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 ### Alignment
 
+The pipeline has been written in a way where all the files generated downstream of the alignment are placed in the same directory as specified by `--aligner` e.g. if `--aligner bwa` is specified then all the downstream results will be placed in the `bwa/` directory. This helps with organising the directory structure and more importantly, allows the end-user to get the results from multiple aligners by simply re-running the pipeline with a different `--aligner` option along the `-resume` parameter. It also means that results won't be overwritten when resuming the pipeline and can be used for benchmarking between alignment algorithms if required. Thus, `<ALIGNER>` in the directory structure below corresponds to the aligner set when running the pipeline.
+
 <details markdown="1">
     <summary>Output files</summary>
 
-- `bwa/library/`
+- `<ALIGNER>/library/`
   - `*.bam`: The files resulting from the alignment of individual libraries are not saved by default so this directory will not be present in your results. You can override this behaviour with the use of the `--save_align_intermeds` flag in which case it will contain the coordinate sorted alignment files in [`*.bam`](https://samtools.github.io/hts-specs/SAMv1.pdf) format.
-- `bwa/library/samtools_stats/`
+- `<ALIGNER>/library/samtools_stats/`
   - SAMtools `<SAMPLE>.sorted.bam.flagstat`, `<SAMPLE>.sorted.bam.idxstats` and `<SAMPLE>.sorted.bam.stats` files generated from the alignment files.
 
-> **NB:** File names in the resulting directory (i.e. `bwa/library/`) will have the '`.Lb.`' suffix.
+> **NB:** File names in the resulting directory (i.e. `<ALIGNER>/library/`) will have the '`.Lb.`' suffix.
 
 </details>
 
-Adapter-trimmed reads are mapped to the reference assembly using [BWA](http://bio-bwa.sourceforge.net/bwa.shtml). A genome index is required to run BWA so if this is not provided explicitly using the `--bwa_index` parameter then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--save_reference` parameter to save the indices for future pipeline runs, reducing processing times.
+Adapter-trimmed reads are mapped to the reference assembly using the aligner set by the `--aligner` parameter. Available aligners are [BWA](http://bio-bwa.sourceforge.net/bwa.shtml) (default), [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml), [Chromap](https://github.com/haowenz/chromap) and [STAR](https://github.com/alexdobin/STAR). A genome index is required to run any of this aligners so if this is not provided explicitly using the corresponding parameter (e.g. `--bwa_index`), then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--save_reference` parameter to save the indices for future pipeline runs, reducing processing times.
 
 ![MultiQC - SAMtools stats plot](images/mqc_samtools_stats_plot.png)
+
+#### Unmapped reads
+
+The `--save_unaligned` parameter enables to obtain FastQ files containing unmapped reads (only available for STAR and Bowtie2).
+
+<details markdown="1">
+    <summary>Output files</summary>
+- `<ALIGNER>/library/unmapped/`
+  - `*.fastq.gz`: If `--save_unaligned` is specified, FastQ files containing unmapped reads will be placed in this directory.
+
+</details>
+
+#### STAR logs
+
+<details markdown="1">
+    <summary>Output files</summary>
+
+- `star/library/log/`
+  - `*.SJ.out.tab`: File containing filtered splice junctions detected after mapping the reads.
+  - `*.Log.final.out`: STAR alignment report containing the mapping results summary.
+  - `*.Log.out` and `*.Log.progress.out`: STAR log files containing detailed information about the run. Typically only useful for debugging purposes.
 
 ## Merged library-level analysis
 
@@ -77,19 +100,19 @@ The library-level alignments associated with the same sample are merged and subs
 <details markdown="1">
     <summary>Output files</summary>
 
-- `bwa/mergedLibrary/`
+- `<ALIGNER>/mergedLibrary/`
   - `*.bam`: Merged library-level, coordinate sorted `*.bam` files after the marking of duplicates, and filtering based on various criteria. The file suffix for the final filtered files will be `*.mLb.clN.*`. If you specify the `--save_align_intermeds` parameter then two additional sets of files will be present. These represent the unfiltered alignments with duplicates marked (`*.mLb.mkD.*`), and in the case of paired-end datasets the filtered alignments before the removal of orphan read pairs (`*.mLb.flT.*`).
-- `bwa/mergedLibrary/samtools_stats/`
+- `<ALIGNER>/mergedLibrary/samtools_stats/`
   - SAMtools `*.flagstat`, `*.idxstats` and `*.stats` files generated from the alignment files.
-- `bwa/mergedLibrary/picard_metrics/`
+- `<ALIGNER>/mergedLibrary/picard_metrics/`
   - `*_metrics`: Alignment QC files from picard CollectMultipleMetrics.
   - `*.metrics.txt`: Metrics file from MarkDuplicates.
-- `bwa/mergedLibrary/picard_metrics/pdf/`
+- `<ALIGNER>/mergedLibrary/picard_metrics/pdf/`
   - `*.pdf`: Alignment QC plot files from picard CollectMultipleMetrics.
-- `bwa/mergedLibrary/preseq/`
+- `<ALIGNER>/mergedLibrary/preseq/`
   - `*.lc_extrap.txt`: Preseq expected future yield file.
 
-> **NB:** File names in the resulting directory (i.e. `bwa/mergedLibrary/`) will have the '`.mLb.`' suffix.
+> **NB:** File names in the resulting directory (i.e. `<ALIGNER>/mergedLibrary/`) will have the '`.mLb.`' suffix.
 
 </details>
 
@@ -110,7 +133,7 @@ The [Preseq](http://smithlabresearch.org/software/preseq/) package is aimed at p
 <details markdown="1">
     <summary>Output files</summary>
 
-- `bwa/mergedLibrary/bigwig/`
+- `<ALIGNER>/mergedLibrary/bigwig/`
   - `*.bigWig`: Normalised bigWig files scaled to 1 million mapped reads.
 
 </details>
@@ -122,12 +145,12 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in a
 <details markdown="1">
     <summary>Output files</summary>
 
-- `bwa/mergedLibrary/phantompeakqualtools/`
+- `<ALIGNER>/mergedLibrary/phantompeakqualtools/`
   - `*.spp.out`, `*.spp.pdf`: phantompeakqualtools output files.
   - `*_mqc.tsv`: MultiQC custom content files.
-- `bwa/mergedLibrary/deepTools/plotFingerprint/`
+- `<ALIGNER>/mergedLibrary/deepTools/plotFingerprint/`
   - `*.plotFingerprint.pdf`, `*.plotFingerprint.qcmetrics.txt`, `*.plotFingerprint.raw.txt`: plotFingerprint output files.
-- `bwa/mergedLibrary/deepTools/plotProfile/`
+- `<ALIGNER>/mergedLibrary/deepTools/plotProfile/`
   - `*.computeMatrix.mat.gz`, `*.computeMatrix.vals.mat.tab`, `*.plotProfile.pdf`, `*.plotProfile.tab`, `*.plotHeatmap.pdf`, `*.plotHeatmap.mat.tab`: plotProfile output files.
 
 </details>
@@ -157,10 +180,10 @@ The results from deepTools plotProfile gives you a quick visualisation for the g
 <details markdown="1">
     <summary>Output files</summary>
 
-- `bwa/mergedLibrary/macs2/<PEAK_TYPE>/`
+- `<ALIGNER>/mergedLibrary/macs2/<PEAK_TYPE>/`
   - `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak`, `*summits.bed`: MACS2 output files - the files generated will depend on whether MACS2 has been run in _narrowPeak_ or _broadPeak_ mode.
   - `*.annotatePeaks.txt`: HOMER peak-to-gene annotation file.
-- `bwa/mergedLibrary/macs2/<PEAK_TYPE>/qc/`
+- `<ALIGNER>/mergedLibrary/macs2/<PEAK_TYPE>/qc/`
   - `macs_peak.plots.pdf`: QC plots for MACS2 peaks.
   - `macs_annotatePeaks.plots.pdf`: QC plots for peak-to-gene feature annotation.
   - `*.FRiP_mqc.tsv`, `*.count_mqc.tsv`, `macs_annotatePeaks.summary_mqc.tsv`: MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios.
@@ -186,7 +209,7 @@ Various QC plots per sample including number of peaks, fold-change distribution,
 <details markdown="1">
     <summary>Output files</summary>
 
-- `bwa/mergedLibrary/macs2/<PEAK_TYPE>/consensus/`
+- `<ALIGNER>/mergedLibrary/macs2/<PEAK_TYPE>/consensus/`
   - `*.bed`: Consensus peak-set across all samples in BED format.
   - `*.saf`: Consensus peak-set across all samples in SAF format. Required by featureCounts for read quantification.
   - `*.featureCounts.txt`: Read counts across all samples relative to consensus peak-set.
@@ -214,18 +237,12 @@ The [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) tool is used to co
 <details markdown="1">
     <summary>Output files</summary>
 
-- `bwa/mergedLibrary/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/deseq2/`
-  - `*.results.txt`: Spreadsheet containing differential binding results across all consensus peaks and all comparisons.
+- `<ALIGNER>/mergedLibrary/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/deseq2/`
+  - `*.sample.dists.txt`: Spreadsheet containing sample-to-sample distance across each consensus peak.
   - `*.plots.pdf`: File containing PCA and hierarchical clustering plots.
-  - `*.log`: Log file with information for number of differentially bound intervals at different FDR and fold-change thresholds for each comparison.
   - `*.dds.rld.RData`: File containing R `dds` and `rld` objects generated by DESeq2.
   - `R_sessionInfo.log`: File containing information about R, the OS and attached or loaded packages.
-  - `bwa/mergedLibrary/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/<COMPARISON>/`
-  - `*.results.txt`: Spreadsheet containing comparison-specific DESeq2 output for differential binding results across all peaks.
-  - `*FDR0.01.results.txt`, `*FDR0.05.results.txt`: Subset of above file for peaks that pass FDR <= 0.01 and FDR <= 0.05.
-  - `*FDR0.01.results.bed`, `*FDR0.05.results.bed`: BED files for peaks that pass FDR <= 0.01 and FDR <= 0.05.
-  - `*deseq2.plots.pdf`: MA, Volcano, clustering and scatterplots at FDR <= 0.01 and FDR <= 0.05.
-  - `bwa/mergedLibrary/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/sizeFactors/`
+  - `<ALIGNER>/mergedLibrary/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/sizeFactors/`
   - `*.txt`, `*.RData`: Files containing DESeq2 sizeFactors per sample.
 
 </details>
@@ -237,16 +254,6 @@ This pipeline uses a standardised DESeq2 analysis script to get an idea of the r
 ![MultiQC - DESeq2 PCA plot](images/mqc_deseq2_pca_plot.png)
 
 ![MultiQC - DESeq2 sample similarity plot](images/mqc_deseq2_sample_similarity_plot.png)
-
-By default, all possible pairwise comparisons across the groups from a particular antibody (as defined in [`design.csv`](usage.md#--design)) are performed. The DESeq2 results are generated by the pipeline in various ways. You can load up the results across all of the comparisons in a single spreadsheet, or individual folders will also be created that contain the results specific to a particular comparison. For the latter, additional files will also be generated where the intervals have been pre-filtered based on a couple of standard FDR thresholds. Please see [DESeq2 output](http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#differential-expression-analysis) for a description of the columns generated by DESeq2.
-
-<p markdown="1" align="center">
-    <img src="images/r_deseq2_ma_plot.png" alt="R - DESeq2 MA plot">
-</p>
-
-<p markdown="1" align="center">
-    <img src="images/r_deseq2_volcano_plot.png" alt="R - DESeq2 Volcano plot">
-</p>
 
 ## Aggregate analysis
 
@@ -304,6 +311,7 @@ Once installed, open IGV, go to `File > Open Session` and select the `igv_sessio
 
   - `bwa/`: Directory containing BWA indices.
   - `bowtie2/`: Directory containing BOWTIE2 indices.
+  - `chromap/`: Directory containing Chromap indices.
   - `star/`: Directory containing STAR indices.
 
   - If the `--save_reference` parameter is provided then the alignment indices generated by the pipeline will be saved in this directory. This can be quite a time-consuming process so it permits their reuse for future runs of the pipeline or for other purposes.
