@@ -503,7 +503,7 @@ workflow CHIPSEQ {
         MACS2_CONSENSUS (
             ch_antibody_peaks
         )
-        ch_macs2_consensus_bed_lib = MACS2_CONSENSUS_LIB.out.bed
+        ch_macs2_consensus_bed_lib = MACS2_CONSENSUS.out.bed
         ch_versions                = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
         if (!params.skip_peak_annotation) {
