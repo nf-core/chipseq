@@ -18,7 +18,7 @@ workflow ALIGN_BOWTIE2 {
     //
     // Map reads with BWA
     //
-    BOWTIE2_ALIGN(reads, index, save_unaligned)
+    BOWTIE2_ALIGN(reads, index, save_unaligned, false)
     ch_versions = ch_versions.mix(BOWTIE2_ALIGN.out.versions.first())
 
     //

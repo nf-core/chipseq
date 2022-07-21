@@ -290,7 +290,8 @@ workflow CHIPSEQ {
     if (!params.skip_picard_metrics) {
         PICARD_COLLECTMULTIPLEMETRICS (
             FILTER_BAM_BAMTOOLS.out.bam,
-            PREPARE_GENOME.out.fasta
+            PREPARE_GENOME.out.fasta,
+            []
         )
         ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
         ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
