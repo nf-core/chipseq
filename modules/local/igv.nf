@@ -16,7 +16,6 @@ process IGV {
     val bigwig_publish_dir
     val peak_publish_dir
     val consensus_publish_dir
-    // path differential_peaks from ch_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
 
     output:
     path "*files.txt"  , emit: txt
@@ -27,6 +26,8 @@ process IGV {
     """
     find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; > bigwig.igv.txt
     find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; > peaks.igv.txt
+    # Avoid error when consensus not produced
+    find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$consensus_publish_dir" || test \$? = 1; } > bed.igv.txt
 
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
@@ -37,5 +38,3 @@ process IGV {
     END_VERSIONS
     """
 }
-// find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
-// find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt

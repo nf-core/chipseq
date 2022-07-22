@@ -290,7 +290,8 @@ workflow CHIPSEQ {
     if (!params.skip_picard_metrics) {
         PICARD_COLLECTMULTIPLEMETRICS (
             FILTER_BAM_BAMTOOLS.out.bam,
-            PREPARE_GENOME.out.fasta
+            PREPARE_GENOME.out.fasta,
+            []
         )
         ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
         ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
@@ -476,6 +477,7 @@ workflow CHIPSEQ {
     //
     //  Consensus peaks analysis
     //
+    ch_macs2_consensus_bed_lib = Channel.empty()
     if (!params.skip_consensus_peaks) {
         // Create channel: [ meta , [ peaks ] ]
         // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
@@ -501,7 +503,8 @@ workflow CHIPSEQ {
         MACS2_CONSENSUS (
             ch_antibody_peaks
         )
-        ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
+        ch_macs2_consensus_bed_lib = MACS2_CONSENSUS.out.bed
+        ch_versions                = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
         if (!params.skip_peak_annotation) {
             HOMER_ANNOTATEPEAKS_CONSENSUS (
@@ -548,27 +551,28 @@ workflow CHIPSEQ {
                 ch_deseq2_clustering_header
             )
         }
-
-        //
-        // Create IGV session
-        //
-        if (!params.skip_igv) {
-            IGV (
-                PREPARE_GENOME.out.fasta,
-                UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-                ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
-                MACS2_CONSENSUS.out.bed.collect{it[1]}.ifEmpty([]),
-                "bwa/mergedLibrary/bigwig",
-                { ["bwa/mergedLibrary/macs2",
-                    params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                    ].join('') },
-                { ["bwa/mergedLibrary/macs2",
-                    params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                    ].join('') }
-            )
-            ch_versions = ch_versions.mix(IGV.out.versions)
-        }
     }
+
+    //
+    // Create IGV session
+    //
+    if (!params.skip_igv) {
+        IGV (
+            PREPARE_GENOME.out.fasta,
+            UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
+            ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
+            ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
+            "bwa/mergedLibrary/bigwig",
+            { ["bwa/mergedLibrary/macs2",
+                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                ].join('') },
+            { ["bwa/mergedLibrary/macs2",
+                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                ].join('') }
+        )
+        ch_versions = ch_versions.mix(IGV.out.versions)
+    }
+
 
 
     //
