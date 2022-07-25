@@ -567,7 +567,9 @@ workflow CHIPSEQ {
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
                 ].join('') },
             { ["${params.aligner}/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                params.narrow_peak? '/narrowPeak' : '/broadPeak',
+                '/consensus',
+                "/${meta.id}"
                 ].join('') }
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
