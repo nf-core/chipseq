@@ -562,11 +562,11 @@ workflow CHIPSEQ {
             UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
-            "bwa/mergedLibrary/bigwig",
-            { ["bwa/mergedLibrary/macs2",
+            { "${params.aligner}/mergedLibrary/bigwig" },
+            { ["${params.aligner}/mergedLibrary/macs2",
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
                 ].join('') },
-            { ["bwa/mergedLibrary/macs2",
+            { ["${params.aligner}/mergedLibrary/macs2",
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
                 ].join('') }
         )
