@@ -68,6 +68,7 @@ include { FRIP_SCORE                          } from '../modules/local/frip_scor
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
 include { MACS2_CONSENSUS                     } from '../modules/local/macs2_consensus'
+include { ANNOTATE_BOOLEAN_PEAKS              } from '../modules/local/annotate_boolean_peaks'
 include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
 include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
@@ -541,8 +542,11 @@ workflow CHIPSEQ {
                 PREPARE_GENOME.out.gtf
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS.out.versions)
-            // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-            // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+
+            ANNOTATE_BOOLEAN_PEAKS (
+                MACS2_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS_CONSENSUS.out.txt, by: [0]),
+            )
+            ch_versions = ch_versions.mix(ANNOTATE_BOOLEAN_PEAKS.out.versions)
         }
 
         // Create channel: [ val(meta), ip_bam ]
@@ -601,8 +605,6 @@ workflow CHIPSEQ {
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
     }
-
-
 
     //
     // MODULE: Pipeline reporting
