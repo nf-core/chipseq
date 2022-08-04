@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove `deseq2` differential binding analysis of consensus peaks.
 - Filter paired-end files produced by `chromap` due to [this](https://github.com/nf-core/chipseq/issues/291) issue.
 - Remove <ANTIBODY> from the macs2 consensus publish directory since it can not be referred as input from the IGV process (meta.id not resolved at execution time).
+
 ### Parameters
 
 | Old parameter          | New parameter      |
