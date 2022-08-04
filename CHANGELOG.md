@@ -21,9 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [nf-core/tools#1415](https://github.com/nf-core/tools/issues/1415) - Make `--outdir` a mandatory parameter
 - [[282](https://github.com/nf-core/chipseq/issues/282)] - Fix `genome.fa` publication for IGV.
 - [[280](https://github.com/nf-core/chipseq/issues/280)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing.
-- Eliminate `if`s conditions from `deseq2_qc` and `macs2_consensus` {local module and use `ext.when` instead.
+- Eliminate `if`s conditions from `deseq2_qc` and `macs2_consensus` (local module and use `ext.when` instead).
 - Remove `deseq2` differential binding analysis of consensus peaks.
-
+- Filter paired-end files produced by `chromap` due to [this](https://github.com/nf-core/chipseq/issues/291) issue.
+- Remove <ANTIBODY> from the macs2 consensus publish directory since it can not be referred as input from the IGV process (meta.id not resolved at execution time).
 ### Parameters
 
 | Old parameter          | New parameter      |
