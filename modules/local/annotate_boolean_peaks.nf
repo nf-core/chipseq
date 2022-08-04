@@ -11,8 +11,8 @@ process ANNOTATE_BOOLEAN_PEAKS {
     tuple val(meta), path(boolean_txt), path(homer_peaks)
 
     output:
-    path '*.csv'       , emit: csv
-    path "versions.yml", emit: versions
+    path '*.boolean.annotatePeaks.txt', emit: annotate_peaks_txt
+    path "versions.yml"               , emit: versions
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
