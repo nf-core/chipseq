@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Filter paired-end files produced by `chromap` due to [this](https://github.com/nf-core/chipseq/issues/291) issue
 - Remove <ANTIBODY> from the macs2 consensus publish directory since it can not be referred as input from the IGV process (meta.id not resolved at execution time)
 - Add bytesize link to readme.
+
 ### Parameters
 
 | Old parameter          | New parameter      |
