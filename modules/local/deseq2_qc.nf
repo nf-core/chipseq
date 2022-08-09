@@ -15,6 +15,7 @@ process DESEQ2_QC {
     output:
     path "*.pdf"                , optional:true, emit: pdf
     path "*.RData"              , optional:true, emit: rdata
+    path "*.rds"                , optional:true, emit: rds
     path "*pca.vals.txt"        , optional:true, emit: pca_txt
     path "*pca.vals_mqc.tsv"    , optional:true, emit: pca_multiqc
     path "*sample.dists.txt"    , optional:true, emit: dists_txt

@@ -68,6 +68,7 @@ include { FRIP_SCORE                          } from '../modules/local/frip_scor
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
 include { MACS2_CONSENSUS                     } from '../modules/local/macs2_consensus'
+include { ANNOTATE_BOOLEAN_PEAKS              } from '../modules/local/annotate_boolean_peaks'
 include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
 include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
@@ -206,7 +207,35 @@ workflow CHIPSEQ {
             PREPARE_GENOME.out.chromap_index,
             PREPARE_GENOME.out.fasta
         )
-        ch_genome_bam        = ALIGN_CHROMAP.out.bam
+
+        // Filter out paired-end reads until the issue below is fixed
+        // https://github.com/nf-core/chipseq/issues/291
+        // ch_genome_bam        = ALIGN_CHROMAP.out.bam
+        ALIGN_CHROMAP
+            .out
+            .bam
+            .branch {
+                meta, bam ->
+                    single_end: meta.single_end
+                        return [ meta, bam ]
+                    paired_end: !meta.single_end
+                        return [ meta, bam ]
+            }.set { ch_genome_bam_chromap }
+
+        ch_genome_bam_chromap.paired_end
+            .collect()
+            .map { it ->
+                def count = it.size()
+                if (count > 0) {
+                    log.warn "=============================================================================\n" +
+                    "  Paired-end files produced by chromap can not be used by some downstream tools due the issue below:\n" +
+                    "  https://github.com/nf-core/chipseq/issues/291\n" +
+                    "  They will be excluded from the analysis. Consider to use a different aligner\n" +
+                    "==================================================================================="
+                }
+            }
+
+        ch_genome_bam        = ch_genome_bam_chromap.single_end
         ch_genome_bam_index  = ALIGN_CHROMAP.out.bai
         ch_samtools_stats    = ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
@@ -513,8 +542,11 @@ workflow CHIPSEQ {
                 PREPARE_GENOME.out.gtf
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS.out.versions)
-            // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-            // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+
+            ANNOTATE_BOOLEAN_PEAKS (
+                MACS2_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS_CONSENSUS.out.txt, by: [0]),
+            )
+            ch_versions = ch_versions.mix(ANNOTATE_BOOLEAN_PEAKS.out.versions)
         }
 
         // Create channel: [ val(meta), ip_bam ]
@@ -562,18 +594,17 @@ workflow CHIPSEQ {
             UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
-            "bwa/mergedLibrary/bigwig",
-            { ["bwa/mergedLibrary/macs2",
+            { "${params.aligner}/mergedLibrary/bigwig" },
+            { ["${params.aligner}/mergedLibrary/macs2",
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
                 ].join('') },
-            { ["bwa/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+            { ["${params.aligner}/mergedLibrary/macs2",
+                params.narrow_peak? '/narrowPeak' : '/broadPeak',
+                '/consensus'
                 ].join('') }
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
     }
-
-
 
     //
     // MODULE: Pipeline reporting
