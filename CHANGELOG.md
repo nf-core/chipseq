@@ -61,7 +61,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `deeptools`             | 3.4.3       | 3.5.1       |
 | `pigz`                  | 2.3.4       | 2.6         |
 | `preseq`                | 2.0.3       | 3.1.2       |
-| `multiqc`               | 1.9         | 1.12        |
+| `multiqc`               | 1.9         | 1.13a       |
 | `r-base`                | 3.6.1       | 4.0.3       |
 | `r-ggplot2`             | 3.3.2       | 3.3.3       |
 | `bioconductor-deseq2`   | 1.26.0      | 1.28.0      |
