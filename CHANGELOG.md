@@ -52,8 +52,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | Dependency              | Old version | New version |
 | ----------------------- | ----------- | ----------- |
 | `samtools`              | 1.10        | 1.15.1      |
-| `picard`                | 2.23.1      | 2.26.10     |
-| `picard`                | 2.23.1      | 2.26.10     |
+| `picard`                | 2.23.1      | 2.27.4      |
 | `bamtools`              | 2.5.1       | 2.5.2       |
 | `pysam`                 | 0.15.3      | 0.19.0      |
 | `bedtools`              | 2.29.2      | 2.30.0      |
