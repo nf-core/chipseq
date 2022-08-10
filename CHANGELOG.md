@@ -52,8 +52,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | Dependency              | Old version | New version |
 | ----------------------- | ----------- | ----------- |
 | `samtools`              | 1.10        | 1.15.1      |
-| `picard`                | 2.23.1      | 2.26.10     |
-| `picard`                | 2.23.1      | 2.26.10     |
+| `picard`                | 2.23.1      | 2.27.4      |
 | `bamtools`              | 2.5.1       | 2.5.2       |
 | `pysam`                 | 0.15.3      | 0.19.0      |
 | `bedtools`              | 2.29.2      | 2.30.0      |
@@ -65,6 +64,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `r-base`                | 3.6.1       | 4.0.3       |
 | `r-ggplot2`             | 3.3.2       | 3.3.3       |
 | `bioconductor-deseq2`   | 1.26.0      | 1.28.0      |
+| `trim-galore`           | 0.6.5       | 0.6.7       |
 | `r-optparse`            | -           | 1.7.1       |
 | `chromap`               | -           | 0.2.1       |
 | `bowtie2`               | -           | 2.4.4       |

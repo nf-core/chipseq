@@ -14,8 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # aligner: ["bwa", "bowtie2", "chromap", "star"] //TODO uncomment when chromap implemented
-        aligner: ["bwa", "bowtie2", "star"]
+        aligner: ["bwa", "bowtie2", "chromap", "star"]
     steps:
       - name: Launch workflow via tower
         uses: nf-core/tower-action@v3
