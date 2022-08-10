@@ -64,6 +64,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `r-base`                | 3.6.1       | 4.0.3       |
 | `r-ggplot2`             | 3.3.2       | 3.3.3       |
 | `bioconductor-deseq2`   | 1.26.0      | 1.28.0      |
+| `trim-galore`           | 0.6.5       | 0.6.7       |
 | `r-optparse`            | -           | 1.7.1       |
 | `chromap`               | -           | 0.2.1       |
 | `bowtie2`               | -           | 2.4.4       |
