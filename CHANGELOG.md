@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.2] - 2022-08-22
+## [2.0.0] - 2022-08-11
 
 ### Enhancements & fixes
 
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[280](https://github.com/nf-core/chipseq/issues/280)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing
 - Eliminate `if`s conditions from `deseq2_qc` and `macs2_consensus` (local module and use `ext.when` instead)
 - Remove `deseq2` differential binding analysis of consensus peaks.
-- Filter paired-end files produced by `chromap` due to [this](https://github.com/nf-core/chipseq/issues/291) issue
+- [[280](https://github.com/nf-core/chipseq/issues/291) - Filter paired-end files produced by `chromap` since the resulting `BAM` files can not be processed downstream.
 - Remove <ANTIBODY> from the macs2 consensus publish directory since it can not be referred as input from the IGV process (meta.id not resolved at execution time)
 - Add bytesize link to readme.
 
@@ -61,7 +61,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `deeptools`             | 3.4.3       | 3.5.1       |
 | `pigz`                  | 2.3.4       | 2.6         |
 | `preseq`                | 2.0.3       | 3.1.2       |
-| `multiqc`               | 1.9         | 1.12        |
+| `multiqc`               | 1.9         | 1.13a       |
 | `r-base`                | 3.6.1       | 4.0.3       |
 | `r-ggplot2`             | 3.3.2       | 3.3.3       |
 | `bioconductor-deseq2`   | 1.26.0      | 1.28.0      |
