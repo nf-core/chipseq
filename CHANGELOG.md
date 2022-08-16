@@ -31,15 +31,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Parameters
 
-| Old parameter          | New parameter      |
-| ---------------------- | ------------------ |
-| `--clusterOptions`     |                    |
-| `--conda`              | `--enable_conda`   |
-|                        | `--skip_qc`        |
-|                        | `--aligner`        |
-|                        | `--save_unaligned` |
-| `--skip_diff_analysis` | `--skip_deseq2_qc` |
-|                        | `--read_length`    |
+| Old parameter          | New parameter           |
+| ---------------------- | ----------------------- |
+| `--conda`              | `--enable_conda`        |
+| `--skip_diff_analysis` | `--skip_deseq2_qc`      |
+|                        | `--skip_qc`             |
+|                        | `--aligner`             |
+|                        | `--save_unaligned`      |
+|                        | `--read_length`         |
+|                        | `--multiqc_title`       |
+|                        | `--gff`                 |
+|                        | `--bowtie2_index`       |
+|                        | `--chromap_index`       |
+|                        | `--star_index`          |
+|                        | `--validate_params`     |
+|                        | `--show_hidden_params`  |
+|                        | `--config_profile_name` |
+| `--clusterOptions`     |                         |
+| `--single_end`         |                         |
+| `--name`               |                         |
+| `--hostnames`          |                         |
 
 > **NB:** Parameter has been **updated** if both old and new parameter information is present.
 > **NB:** Parameter has been **added** if just the new parameter information is present.
