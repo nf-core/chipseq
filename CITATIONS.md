@@ -26,6 +26,10 @@
 
   > Langmead, B. and Salzberg, S. L. 2012 Fast gapped-read alignment with Bowtie 2. Nature methods, 9(4), p. 357–359. doi: 10.1038/nmeth.1923.
 
+- [Chromap](https://doi.org/10.1038/s41467-021-26865-w)
+
+  > Zhang H, Song L, Wang X, Cheng H, Wang C, Meyer CA, Liu T, Tang M, Aluru S, Yue F, Liu XS and Li H. Fast alignment and preprocessing of chromatin profiles with Chromap. Nature communications. 2021, 12(1), 1-6. doi: 10.1038/s41467-021-26865-w
+
 - [deepTools](https://www.ncbi.nlm.nih.gov/pubmed/27079975/)
 
   > Ramírez F, Ryan DP, Grüning B, Bhardwaj V, Kilpert F, Richter AS, Heyne S, Dündar F, Manke T. deepTools2: a next generation web server for deep-sequencing data analysis. Nucleic Acids Res. 2016 Jul 8;44(W1):W160-5. doi: 10.1093/nar/gkw257. Epub 2016 Apr 13. PubMed PMID: 27079975; PubMed Central PMCID: PMC4987876.
@@ -83,10 +87,6 @@
 
   > Love MI, Huber W, Anders S. Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2. Genome Biol. 2014;15(12):550. PubMed PMID: 25516281; PubMed Central PMCID: PMC4302049.
 
-- [vsn](https://bioconductor.org/packages/release/bioc/html/vsn.html)
-
-  > Wolfgang Huber, Anja von Heydebreck, Holger Sueltmann, Annemarie Poustka and Martin Vingron. Variance Stabilization Applied to Microarray Data Calibration and to the Quantification of Differential Expression. Bioinformatics 18, S96-S104 (2002).
-
 - [UpSetR](https://CRAN.R-project.org/package=UpSetR)
 
   > Nils Gehlenborg (2017). UpSetR: A More Scalable Alternative to Venn and Euler Diagrams for Visualizing Intersecting Sets.
@@ -107,10 +107,6 @@
 
   > Raivo Kolde (2018). pheatmap: Pretty Heatmaps.
 
-- [lattice](https://cran.r-project.org/web/packages/lattice/index.html)
-
-  > Sarkar, Deepayan (2008) Lattice: Multivariate Data Visualization with R. Springer, New York. ISBN 978-0-387-75968-5.
-
 - [RColorBrewer](https://CRAN.R-project.org/package=RColorBrewer)
 
   > Erich Neuwirth (2014). RColorBrewer: ColorBrewer Palettes.
@@ -118,9 +114,6 @@
 - [optparse](https://CRAN.R-project.org/package=optparse)
 
   > Trevor L Davis (2018). optparse: Command Line Option Parser.
-
-- [xfun](https://CRAN.R-project.org/package=xfun)
-  > Yihui Xie (2018). xfun: Miscellaneous Functions by 'Yihui Xie'.
 
 ## Software packaging/containerisation tools
 
