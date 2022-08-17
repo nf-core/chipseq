@@ -580,9 +580,6 @@
             "$ref": "#/definitions/peak_calling_options"
         },
         {
-            "$ref": "#/definitions/deseq_qc_options"
-        },
-        {
             "$ref": "#/definitions/process_skipping_options"
         },
         {
