@@ -506,7 +506,9 @@ workflow CHIPSEQ {
     //
     //  Consensus peaks analysis
     //
-    ch_macs2_consensus_bed_lib = Channel.empty()
+    ch_macs2_consensus_bed_lib   = Channel.empty()
+    ch_deseq2_pca_multiqc        = Channel.empty()
+    ch_deseq2_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
         // Create channel: [ meta , [ peaks ] ]
         // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
@@ -576,8 +578,6 @@ workflow CHIPSEQ {
         ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
         ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
 
-        ch_deseq2_pca_multiqc        = Channel.empty()
-        ch_deseq2_clustering_multiqc = Channel.empty()
         if (!params.skip_deseq2_qc) {
             DESEQ2_QC (
                 SUBREAD_FEATURECOUNTS.out.counts,
