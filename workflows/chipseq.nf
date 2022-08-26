@@ -576,6 +576,8 @@ workflow CHIPSEQ {
         ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
         ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
 
+        ch_deseq2_pca_multiqc        = Channel.empty()
+        ch_deseq2_clustering_multiqc = Channel.empty()
         if (!params.skip_deseq2_qc) {
             DESEQ2_QC (
                 SUBREAD_FEATURECOUNTS.out.counts,
