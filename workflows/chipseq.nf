@@ -506,7 +506,9 @@ workflow CHIPSEQ {
     //
     //  Consensus peaks analysis
     //
-    ch_macs2_consensus_bed_lib = Channel.empty()
+    ch_macs2_consensus_bed_lib   = Channel.empty()
+    ch_deseq2_pca_multiqc        = Channel.empty()
+    ch_deseq2_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
         // Create channel: [ meta , [ peaks ] ]
         // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
@@ -582,6 +584,8 @@ workflow CHIPSEQ {
                 ch_deseq2_pca_header,
                 ch_deseq2_clustering_header
             )
+            ch_deseq2_pca_multiqc        = DESEQ2_QC.out.pca_multiqc
+            ch_deseq2_clustering_multiqc = DESEQ2_QC.out.dists_multiqc
         }
     }
 
@@ -654,9 +658,10 @@ workflow CHIPSEQ {
 
             ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
             ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_plothomerannotatepeaks_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([])//,
-            // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
+            ch_plothomerannotatepeaks_multiqc.collect().ifEmpty([]),
+            ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_deseq2_pca_multiqc.collect().ifEmpty([]),
+            ch_deseq2_clustering_multiqc.collect().ifEmpty([])
         )
         multiqc_report       = MULTIQC.out.report.toList()
     }

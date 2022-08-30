@@ -323,25 +323,6 @@
                 }
             }
         },
-        "deseq_qc_options": {
-            "title": "Differential analysis options",
-            "type": "object",
-            "fa_icon": "fas fa-not-equal",
-            "description": "Options to adjust differential analysis criteria.",
-            "properties": {
-                "deseq2_vst": {
-                    "type": "boolean",
-                    "description": "Use vst transformation instead of rlog with DESeq2.",
-                    "help_text": "See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).",
-                    "fa_icon": "fas fa-dolly"
-                },
-                "skip_deseq2_qc": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-fast-forward",
-                    "description": "Skip DESeq2 PCA and heatmap plotting."
-                }
-            }
-        },
         "process_skipping_options": {
             "title": "Process skipping options",
             "type": "object",
@@ -363,6 +344,12 @@
                     "description": "Skip Preseq.",
                     "fa_icon": "fas fa-fast-forward"
                 },
+                "deseq2_vst": {
+                    "type": "boolean",
+                    "description": "Use vst transformation instead of rlog with DESeq2.",
+                    "help_text": "See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).",
+                    "fa_icon": "fas fa-dolly"
+                },
                 "skip_plot_profile": {
                     "type": "boolean",
                     "description": "Skip deepTools plotProfile.",
@@ -377,6 +364,11 @@
                     "type": "boolean",
                     "description": "Skip Phantompeakqualtools.",
                     "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_deseq2_qc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip DESeq2 PCA and heatmap plotting."
                 },
                 "skip_igv": {
                     "type": "boolean",
@@ -586,9 +578,6 @@
         },
         {
             "$ref": "#/definitions/peak_calling_options"
-        },
-        {
-            "$ref": "#/definitions/deseq_qc_options"
         },
         {
             "$ref": "#/definitions/process_skipping_options"

@@ -44,6 +44,9 @@ process MULTIQC {
 
     path ('featurecounts/*')
 
+    path ('deseq2/*')
+    path ('deseq2/*')
+
     output:
     path "*multiqc_report.html", emit: report
     path "*_data"              , emit: data
