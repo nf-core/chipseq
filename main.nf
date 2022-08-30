@@ -4,7 +4,7 @@
     nf-core/chipseq
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Github : https://github.com/nf-core/chipseq
-    Website: https://nf-co.re/chipseq
+Website: https://nf-co.re/chipseq
     Slack  : https://nfcore.slack.com/channels/chipseq
 ----------------------------------------------------------------------------------------
 */
