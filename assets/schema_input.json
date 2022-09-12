@@ -29,6 +29,16 @@
                         "maxLength": 0
                     }
                 ]
+            },
+            "antibody": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Antibody entry cannot contain spaces"
+            },
+            "control": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Control entry cannot contain spaces"
             }
         },
         "required": ["sample", "fastq_1"]

@@ -22,3 +22,6 @@ indent_size = unset
 
 [/assets/email*]
 indent_size = unset
+
+[/assets/blacklists/GRCh37-blacklist.bed]
+trim_trailing_whitespace = unset
