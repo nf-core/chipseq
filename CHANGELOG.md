@@ -3,13 +3,13 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2022-08-11
+## [[2.0.0](https://github.com/nf-core/chipseq/releases/tag/2.0.0)] - 2022-09-30
 
 ### Enhancements & fixes
 
 - Pipeline has been re-implemented in [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html)
 - All software containers are now exclusively obtained from [Biocontainers](https://biocontainers.pro/#/registry)
-- Updated pipeline template to [nf-core/tools 2.4.1](https://github.com/nf-core/tools/releases/tag/2.4.1)
+- Updated pipeline template to [nf-core/tools 2.5.1](https://github.com/nf-core/tools/releases/tag/2.5.1)
 - [[#128](https://github.com/nf-core/chipseq/issues/128)] - Filter files with no peaks to avoid errors in downstream processes
 - [[#220](https://github.com/nf-core/chipseq/issues/220)] - Fix `phantompeakqualtools` protection stack overflow error
 - [[#233](https://github.com/nf-core/chipseq/issues/233)] - Add `chromap` to the available aligners
@@ -88,7 +88,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 > **NB:** Dependency has been **added** if just the new version information is present.
 > **NB:** Dependency has been **removed** if version information isn't present.
 
-## [1.2.2] - 2021-04-22
+## [[1.2.2](https://github.com/nf-core/chipseq/releases/tag/1.2.2)] - 2021-04-22
 
 - [#206](https://github.com/nf-core/chipseq/issues/206) - Minor patch release to fix Conda environment
 
@@ -97,11 +97,11 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 - Update r-base `3.6.2` -> `3.6.3`
 - Update r-xfun `0.15` -> `0.20`
 
-## [1.2.1] - 2020-07-29
+## [[1.2.1](https://github.com/nf-core/chipseq/releases/tag/1.2.1)] - 2020-07-29
 
 - [#171](https://github.com/nf-core/chipseq/issues/171) - Minor patch release to update pipeline schema
 
-## [1.2.0] - 2020-07-02
+## [[1.2.0](https://github.com/nf-core/chipseq/releases/tag/1.2.0)] - 2020-07-02
 
 ### `Added`
 
@@ -179,7 +179,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 - Update trim-galore `0.5.0` -> `0.6.5`
 - Update ucsc-bedgraphtobigwig `377` -> `357`
 
-## [1.1.0] - 2019-11-05
+## [[1.1.0](https://github.com/nf-core/chipseq/releases/tag/1.1.0)] - 2019-11-05
 
 ### `Added`
 
@@ -228,7 +228,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `--skipIGV`                  | `--skip_igv`              |
 | `--skipMultiQC`              | `--skip_multiqc`          |
 
-## [1.0.0] - 2019-06-06
+## [[1.0.0](https://github.com/nf-core/chipseq/releases/tag/1.0.0)] - 2019-06-06
 
 Initial release of nf-core/chipseq pipeline.
 

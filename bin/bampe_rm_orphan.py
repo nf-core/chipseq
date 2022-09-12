@@ -17,17 +17,25 @@ import argparse
 ############################################
 ############################################
 
-Description = 'Remove singleton reads from paired-end BAM file i.e if read1 is present in BAM file without read 2 and vice versa.'
+Description = (
+    "Remove singleton reads from paired-end BAM file i.e if read1 is present in BAM file without read 2 and vice versa."
+)
 Epilog = """Example usage: bampe_rm_orphan.py <BAM_INPUT_FILE> <BAM_OUTPUT_FILE>"""
 
 argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 
 ## REQUIRED PARAMETERS
-argParser.add_argument('BAM_INPUT_FILE', help="Input BAM file sorted by name.")
-argParser.add_argument('BAM_OUTPUT_FILE', help="Output BAM file sorted by name.")
+argParser.add_argument("BAM_INPUT_FILE", help="Input BAM file sorted by name.")
+argParser.add_argument("BAM_OUTPUT_FILE", help="Output BAM file sorted by name.")
 
 ## OPTIONAL PARAMETERS
-argParser.add_argument('-fr', '--only_fr_pairs', dest="ONLY_FR_PAIRS", help="Only keeps pairs that are in FR orientation on same chromosome.",action='store_true')
+argParser.add_argument(
+    "-fr",
+    "--only_fr_pairs",
+    dest="ONLY_FR_PAIRS",
+    help="Only keeps pairs that are in FR orientation on same chromosome.",
+    action="store_true",
+)
 args = argParser.parse_args()
 
 ############################################
@@ -35,6 +43,7 @@ args = argParser.parse_args()
 ## HELPER FUNCTIONS
 ############################################
 ############################################
+
 
 def makedir(path):
 
@@ -45,20 +54,25 @@ def makedir(path):
             if exception.errno != errno.EEXIST:
                 raise
 
+
 ############################################
 ############################################
 ## MAIN FUNCTION
 ############################################
 ############################################
 
-def bampe_rm_orphan(BAMIn,BAMOut,onlyFRPairs=False):
+
+def bampe_rm_orphan(BAMIn, BAMOut, onlyFRPairs=False):
 
     ## SETUP DIRECTORY/FILE STRUCTURE
     OutDir = os.path.dirname(BAMOut)
     makedir(OutDir)
 
     ## COUNT VARIABLES
-    totalReads = 0; totalOutputPairs = 0; totalSingletons = 0; totalImproperPairs = 0
+    totalReads = 0
+    totalOutputPairs = 0
+    totalSingletons = 0
+    totalImproperPairs = 0
 
     ## ITERATE THROUGH BAM FILE
     EOF = 0
@@ -69,7 +83,8 @@ def bampe_rm_orphan(BAMIn,BAMOut,onlyFRPairs=False):
     for read in iter:
         totalReads += 1
         if currRead.qname == read.qname:
-            pair1 = currRead; pair2 = read
+            pair1 = currRead
+            pair2 = read
 
             ## FILTER FOR READS ON SAME CHROMOSOME IN FR ORIENTATION
             if onlyFRPairs:
@@ -125,22 +140,23 @@ def bampe_rm_orphan(BAMIn,BAMOut,onlyFRPairs=False):
     SAMFin.close()
     SAMFout.close()
 
-    LogFile = os.path.join(OutDir,'%s_bampe_rm_orphan.log' % (os.path.basename(BAMOut[:-4])))
-    SamLogFile = open(LogFile,'w')
-    SamLogFile.write('\n##############################\n')
-    SamLogFile.write('FILES/DIRECTORIES')
-    SamLogFile.write('\n##############################\n\n')
-    SamLogFile.write('Input File: ' + BAMIn + '\n')
-    SamLogFile.write('Output File: ' + BAMOut + '\n')
-    SamLogFile.write('\n##############################\n')
-    SamLogFile.write('OVERALL COUNTS')
-    SamLogFile.write('\n##############################\n\n')
-    SamLogFile.write('Total Input Reads = ' + str(totalReads) + '\n')
-    SamLogFile.write('Total Output Pairs = ' + str(totalOutputPairs) + '\n')
-    SamLogFile.write('Total Singletons Excluded = ' + str(totalSingletons) + '\n')
-    SamLogFile.write('Total Improper Pairs Excluded = ' + str(totalImproperPairs) + '\n')
-    SamLogFile.write('\n##############################\n')
+    LogFile = os.path.join(OutDir, "%s_bampe_rm_orphan.log" % (os.path.basename(BAMOut[:-4])))
+    SamLogFile = open(LogFile, "w")
+    SamLogFile.write("\n##############################\n")
+    SamLogFile.write("FILES/DIRECTORIES")
+    SamLogFile.write("\n##############################\n\n")
+    SamLogFile.write("Input File: " + BAMIn + "\n")
+    SamLogFile.write("Output File: " + BAMOut + "\n")
+    SamLogFile.write("\n##############################\n")
+    SamLogFile.write("OVERALL COUNTS")
+    SamLogFile.write("\n##############################\n\n")
+    SamLogFile.write("Total Input Reads = " + str(totalReads) + "\n")
+    SamLogFile.write("Total Output Pairs = " + str(totalOutputPairs) + "\n")
+    SamLogFile.write("Total Singletons Excluded = " + str(totalSingletons) + "\n")
+    SamLogFile.write("Total Improper Pairs Excluded = " + str(totalImproperPairs) + "\n")
+    SamLogFile.write("\n##############################\n")
     SamLogFile.close()
+
 
 ############################################
 ############################################
@@ -148,7 +164,7 @@ def bampe_rm_orphan(BAMIn,BAMOut,onlyFRPairs=False):
 ############################################
 ############################################
 
-bampe_rm_orphan(BAMIn=args.BAM_INPUT_FILE,BAMOut=args.BAM_OUTPUT_FILE,onlyFRPairs=args.ONLY_FR_PAIRS)
+bampe_rm_orphan(BAMIn=args.BAM_INPUT_FILE, BAMOut=args.BAM_OUTPUT_FILE, onlyFRPairs=args.ONLY_FR_PAIRS)
 
 ############################################
 ############################################
