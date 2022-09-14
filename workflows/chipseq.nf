@@ -373,7 +373,7 @@ workflow CHIPSEQ {
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
         ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
-        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
+        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
 
         DEEPTOOLS_PLOTHEATMAP (
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
