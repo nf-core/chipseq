@@ -228,9 +228,9 @@ workflow CHIPSEQ {
                 def count = it.size()
                 if (count > 0) {
                     log.warn "=============================================================================\n" +
-                    "  Paired-end files produced by chromap can not be used by some downstream tools due the issue below:\n" +
+                    "  Paired-end files produced by chromap cannot be used by some downstream tools due to the issue below:\n" +
                     "  https://github.com/nf-core/chipseq/issues/291\n" +
-                    "  They will be excluded from the analysis. Consider to use a different aligner\n" +
+                    "  They will be excluded from the analysis. Consider using a different aligner\n" +
                     "==================================================================================="
                 }
             }
@@ -268,7 +268,8 @@ workflow CHIPSEQ {
     ch_genome_bam
         .map {
             meta, bam ->
-                def fmeta = meta.findAll { it.key != 'read_group' }
+                def fmeta = meta.clone()
+                fmeta.remove('read_group')
                 fmeta.id = fmeta.id.split('_')[0..-2].join('_')
                 [ fmeta, bam ] }
         .groupTuple(by: [0])
@@ -294,7 +295,6 @@ workflow CHIPSEQ {
     FILTER_BAM_BAMTOOLS (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
-
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
@@ -414,7 +414,7 @@ workflow CHIPSEQ {
         DEEPTOOLS_PLOTFINGERPRINT (
             ch_ip_control_bam_bai
         )
-        ch_deeptools_plotfingerprintmultiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
+        ch_deeptoolsplotfingerprint_multiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
         ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
 
@@ -426,7 +426,6 @@ workflow CHIPSEQ {
     ch_custompeaks_count_multiqc      = Channel.empty()
     ch_plothomerannotatepeaks_multiqc = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
-
     ch_macs_gsize = params.macs_gsize
     if (!params.macs_gsize) {
         KHMER_UNIQUEKMERS (
@@ -649,8 +648,10 @@ workflow CHIPSEQ {
             ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
+    
             ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
             ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
+    
             PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
             MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc.collect{it[1]}.ifEmpty([]),
             MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
@@ -660,10 +661,11 @@ workflow CHIPSEQ {
             ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
             ch_plothomerannotatepeaks_multiqc.collect().ifEmpty([]),
             ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
+
             ch_deseq2_pca_multiqc.collect().ifEmpty([]),
             ch_deseq2_clustering_multiqc.collect().ifEmpty([])
         )
-        multiqc_report       = MULTIQC.out.report.toList()
+        multiqc_report = MULTIQC.out.report.toList()
     }
 }
 
