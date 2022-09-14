@@ -19,13 +19,15 @@ process PLOT_HOMER_ANNOTATEPEAKS {
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "annotatepeaks"
     """
     plot_homer_annotatepeaks.r \\
         -i ${annos.join(',')} \\
         -s ${annos.join(',').replaceAll("${suffix}","")} \\
+        -p $prefix \\
         $args
 
-    find ./ -type f -name "*.txt" -exec cat {} \\; | cat $mqc_header - > annotatepeaks.summary_mqc.tsv
+    find ./ -type f -name "*.txt" -exec cat {} \\; | cat $mqc_header - > ${prefix}.summary_mqc.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
