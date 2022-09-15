@@ -268,10 +268,10 @@ workflow CHIPSEQ {
     ch_genome_bam
         .map {
             meta, bam ->
-                def fmeta = meta.clone()
-                fmeta.remove('read_group')
-                fmeta.id = fmeta.id.split('_')[0..-2].join('_')
-                [ fmeta, bam ] }
+                def meta_clone = meta.clone()
+                meta_clone.remove('read_group')
+                meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
+                [ meta_clone, bam ] }
         .groupTuple(by: [0])
         .map { it ->  [ it[0], it[1].flatten() ] }
         .set { ch_sort_bam }
@@ -387,25 +387,17 @@ workflow CHIPSEQ {
     FILTER_BAM_BAMTOOLS
         .out
         .bam
-        .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
-        .map {
-            meta, bam, bai ->
-                meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
+        .join(FILTER_BAM_BAMTOOLS.out.bai, by: [0])
+        .set { ch_genome_bam_bai }
+    
+    ch_genome_bam_bai
+        .combine(ch_genome_bam_bai)
+        .map { 
+            meta1, bam1, bai1, meta2, bam2, bai2 ->
+                meta1.control == meta2.id ? [ meta1, [ bam1, bam2 ], [ bai1, bai2 ] ] : null
         }
-        .set { ch_control_bam_bai }
-
-    FILTER_BAM_BAMTOOLS
-        .out
-        .bam
-        .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
-        .map {
-            meta, bam, bai ->
-                meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
-        }
-        .combine(ch_control_bam_bai, by: 0)
-        .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
         .set { ch_ip_control_bam_bai }
-
+    
     //
     // plotFingerprint for IP and control together
     //
