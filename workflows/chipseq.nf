@@ -507,7 +507,7 @@ workflow CHIPSEQ {
     ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS.out.count
 
     if (!params.skip_peak_annotation) {
-|       //
+        //
         // MODULE: Annotate peaks with MACS2
         //
         HOMER_ANNOTATEPEAKS_MACS2 (
