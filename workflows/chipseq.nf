@@ -182,7 +182,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // SUBWORKFLOW: Alignment with BOWTIE2 & BAM QC
+    // SUBWORKFLOW: Alignment with Bowtie2 & BAM QC
     //
     if (params.aligner == 'bowtie2') {
         ALIGN_BOWTIE2 (
@@ -199,7 +199,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // SUBWORKFLOW: Alignment with CHROMAP & BAM QC
+    // SUBWORKFLOW: Alignment with Chromap & BAM QC
     //
     if (params.aligner == 'chromap') {
         ALIGN_CHROMAP (
@@ -210,7 +210,7 @@ workflow CHIPSEQ {
 
         // Filter out paired-end reads until the issue below is fixed
         // https://github.com/nf-core/chipseq/issues/291
-        // ch_genome_bam        = ALIGN_CHROMAP.out.bam
+        // ch_genome_bam = ALIGN_CHROMAP.out.bam
         ALIGN_CHROMAP
             .out
             .bam
@@ -220,19 +220,22 @@ workflow CHIPSEQ {
                         return [ meta, bam ]
                     paired_end: !meta.single_end
                         return [ meta, bam ]
-            }.set { ch_genome_bam_chromap }
+            }
+            .set { ch_genome_bam_chromap }
 
-        ch_genome_bam_chromap.paired_end
+        ch_genome_bam_chromap
+            .paired_end
             .collect()
-            .map { it ->
-                def count = it.size()
-                if (count > 0) {
-                    log.warn "=============================================================================\n" +
-                    "  Paired-end files produced by chromap can not be used by some downstream tools due the issue below:\n" +
-                    "  https://github.com/nf-core/chipseq/issues/291\n" +
-                    "  They will be excluded from the analysis. Consider to use a different aligner\n" +
-                    "==================================================================================="
-                }
+            .map { 
+                it ->
+                    def count = it.size()
+                    if (count > 0) {
+                        log.warn "=============================================================================\n" +
+                        "  Paired-end files produced by chromap cannot be used by some downstream tools due to the issue below:\n" +
+                        "  https://github.com/nf-core/chipseq/issues/291\n" +
+                        "  They will be excluded from the analysis. Consider using a different aligner\n" +
+                        "==================================================================================="
+                    }
             }
 
         ch_genome_bam        = ch_genome_bam_chromap.single_end
@@ -263,16 +266,21 @@ workflow CHIPSEQ {
     }
 
     //
-    // SUBWORKFLOW: Merge resequenced BAM files
+    // MODULE: Merge resequenced BAM files
     //
     ch_genome_bam
         .map {
             meta, bam ->
-                def fmeta = meta.findAll { it.key != 'read_group' }
-                fmeta.id = fmeta.id.split('_')[0..-2].join('_')
-                [ fmeta, bam ] }
+                def meta_clone = meta.clone()
+                meta_clone.remove('read_group')
+                meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
+                [ meta_clone, bam ] 
+        }
         .groupTuple(by: [0])
-        .map { it ->  [ it[0], it[1].flatten() ] }
+        .map { 
+            it ->
+                [ it[0], it[1].flatten() ] 
+        }
         .set { ch_sort_bam }
 
     PICARD_MERGESAMFILES (
@@ -294,14 +302,13 @@ workflow CHIPSEQ {
     FILTER_BAM_BAMTOOLS (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
-
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
     ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
 
     //
-    // MODULE: Library coverage
+    // MODULE: Preseq coverage analysis
     //
     ch_preseq_multiqc = Channel.empty()
     if (!params.skip_preseq) {
@@ -309,11 +316,11 @@ workflow CHIPSEQ {
             MARK_DUPLICATES_PICARD.out.bam
         )
         ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
-        ch_versions       = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
+        ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
-    // MODULE: Post alignment QC
+    // MODULE: Picard post alignment QC
     //
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
     if (!params.skip_picard_metrics) {
@@ -327,13 +334,16 @@ workflow CHIPSEQ {
     }
 
     //
-    // MODULE: Strand cross-correlation
+    // MODULE: Phantompeaktools strand cross-correlation and QC metrics
     //
     PHANTOMPEAKQUALTOOLS (
         FILTER_BAM_BAMTOOLS.out.bam
     )
     ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
 
+    //
+    // MODULE: MultiQC custom content for Phantompeaktools
+    //
     MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
         PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
         ch_spp_nsc_header,
@@ -342,7 +352,7 @@ workflow CHIPSEQ {
     )
 
     //
-    // MODULE: Coverage tracks
+    // MODULE: BedGraph coverage tracks
     //
     BEDTOOLS_GENOMECOV (
         FILTER_BAM_BAMTOOLS.out.bam.join(FILTER_BAM_BAMTOOLS.out.flagstat, by: [0])
@@ -350,7 +360,7 @@ workflow CHIPSEQ {
     ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
 
     //
-    // MODULE: Coverage tracks
+    // MODULE: BigWig coverage tracks
     //
     UCSC_BEDGRAPHTOBIGWIG (
         BEDTOOLS_GENOMECOV.out.bedgraph,
@@ -358,23 +368,29 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first())
 
-    //
-    // MODULE: Coverage plots
-    //
     ch_deeptoolsplotprofile_multiqc = Channel.empty()
     if (!params.skip_plot_profile) {
+        //
+        // MODULE: deepTools matrix generation for plotting
+        //
         DEEPTOOLS_COMPUTEMATRIX (
             UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
             PREPARE_GENOME.out.gene_bed
         )
         ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
+        //
+        // MODULE: deepTools profile plots
+        //
         DEEPTOOLS_PLOTPROFILE (
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
         ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
-        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
+        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
 
+        //
+        // MODULE: deepTools heatmaps
+        //
         DEEPTOOLS_PLOTHEATMAP (
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
@@ -382,51 +398,42 @@ workflow CHIPSEQ {
     }
 
     //
-    // Refactor channels: [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
+    // Create channels: [ meta, [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
     //
     FILTER_BAM_BAMTOOLS
         .out
         .bam
-        .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
-        .map {
-            meta, bam, bai ->
-                meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
+        .join(FILTER_BAM_BAMTOOLS.out.bai, by: [0])
+        .set { ch_genome_bam_bai }
+    
+    ch_genome_bam_bai
+        .combine(ch_genome_bam_bai)
+        .map { 
+            meta1, bam1, bai1, meta2, bam2, bai2 ->
+                meta1.control == meta2.id ? [ meta1, [ bam1, bam2 ], [ bai1, bai2 ] ] : null
         }
-        .set { ch_control_bam_bai }
-
-    FILTER_BAM_BAMTOOLS
-        .out
-        .bam
-        .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
-        .map {
-            meta, bam, bai ->
-                meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
-        }
-        .combine(ch_control_bam_bai, by: 0)
-        .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
         .set { ch_ip_control_bam_bai }
-
+    
     //
-    // plotFingerprint for IP and control together
+    // MODULE: deepTools plotFingerprint joint QC for IP and control
     //
     ch_deeptoolsplotfingerprint_multiqc = Channel.empty()
     if (!params.skip_plot_fingerprint) {
         DEEPTOOLS_PLOTFINGERPRINT (
             ch_ip_control_bam_bai
         )
-        ch_deeptools_plotfingerprintmultiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
+        ch_deeptoolsplotfingerprint_multiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
         ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
 
     //
-    // Call peaks
+    // MODULE: Calculute genome size with khmer
     //
     ch_macs_gsize                     = Channel.empty()
     ch_custompeaks_frip_multiqc       = Channel.empty()
     ch_custompeaks_count_multiqc      = Channel.empty()
     ch_plothomerannotatepeaks_multiqc = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
-
     ch_macs_gsize = params.macs_gsize
     if (!params.macs_gsize) {
         KHMER_UNIQUEKMERS (
@@ -436,11 +443,17 @@ workflow CHIPSEQ {
         ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
     }
 
-    // Create channel: [ val(meta), ip_bam, control_bam ]
+    // Create channels: [ meta, ip_bam, control_bam ]
     ch_ip_control_bam_bai
-        .map { meta, bams, bais -> [ meta , bams[0], bams[1] ] }
+        .map { 
+            meta, bams, bais -> 
+                [ meta , bams[0], bams[1] ] 
+        }
         .set { ch_ip_control_bam }
 
+    //
+    // MODULE: Call peaks with MACS2
+    //
     MACS2_CALLPEAK (
         ch_ip_control_bam,
         ch_macs_gsize
@@ -448,7 +461,7 @@ workflow CHIPSEQ {
     ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
 
     //
-    // Filter for MACS2 files without peaks
+    // Filter out samples with 0 MACS2 peaks called
     //
     MACS2_CALLPEAK
         .out
@@ -456,23 +469,37 @@ workflow CHIPSEQ {
         .filter { meta, peaks -> peaks.size() > 0 }
         .set { ch_macs2_peaks }
 
+    // Create channels: [ meta, ip_bam, peaks ]
     ch_ip_control_bam
         .join(ch_macs2_peaks, by: [0])
-        .map { it -> [ it[0], it[1], it[3] ] }
-        .set { ch_ip_peak }
+        .map { 
+            it -> 
+                [ it[0], it[1], it[3] ] 
+        }
+        .set { ch_ip_bam_peaks }
 
+    //
+    // MODULE: Calculate FRiP score
+    //
     FRIP_SCORE (
-        ch_ip_peak
+        ch_ip_bam_peaks
     )
     ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
-    ch_ip_peak
+    // Create channels: [ meta, peaks, frip ]
+    ch_ip_bam_peaks
         .join(FRIP_SCORE.out.txt, by: [0])
-        .map { it -> [ it[0], it[2], it[3] ] }
-        .set { ch_ip_peak_frip }
+        .map { 
+            it -> 
+                [ it[0], it[2], it[3] ] 
+        }
+        .set { ch_ip_peaks_frip }
 
+    //
+    // MODULE: FRiP score custom content for MultiQC
+    //
     MULTIQC_CUSTOM_PEAKS (
-        ch_ip_peak_frip,
+        ch_ip_peaks_frip,
         ch_peak_count_header,
         ch_frip_score_header
     )
@@ -480,6 +507,9 @@ workflow CHIPSEQ {
     ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS.out.count
 
     if (!params.skip_peak_annotation) {
+        //
+        // MODULE: Annotate peaks with MACS2
+        //
         HOMER_ANNOTATEPEAKS_MACS2 (
             ch_macs2_peaks,
             PREPARE_GENOME.out.fasta,
@@ -488,11 +518,17 @@ workflow CHIPSEQ {
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
         if (!params.skip_peak_qc) {
+            //
+            // MODULE: MACS2 QC plots with R
+            //
             PLOT_MACS2_QC (
                 ch_macs2_peaks.collect{it[1]}
             )
             ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
 
+            //
+            // MODULE: Peak annotation QC plots with R
+            //
             PLOT_HOMER_ANNOTATEPEAKS (
                 HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
                 ch_peak_annotation_header,
@@ -510,10 +546,13 @@ workflow CHIPSEQ {
     ch_deseq2_pca_multiqc        = Channel.empty()
     ch_deseq2_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
-        // Create channel: [ meta , [ peaks ] ]
-        // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
+        // Create channels: [ meta , [ peaks ] ]
+            // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
         ch_macs2_peaks
-            .map { meta, peak -> [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] }
+            .map { 
+                meta, peak -> 
+                    [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] 
+            }
             .groupTuple()
             .map {
                 antibody, groups, peaks ->
@@ -521,23 +560,31 @@ workflow CHIPSEQ {
                         antibody,
                         groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
                         peaks
-                    ] }
+                    ] 
+            }
             .map {
                 antibody, groups, peaks ->
-                    def meta = [:]
-                    meta.id = antibody
-                    meta.multiple_groups = groups.size() > 1
-                    meta.replicates_exist = groups.max { groups.value }.value > 1
-                    [ meta, peaks ] }
+                    def meta_new = [:]
+                    meta_new.id = antibody
+                    meta_new.multiple_groups = groups.size() > 1
+                    meta_new.replicates_exist = groups.max { groups.value }.value > 1
+                    [ meta_new, peaks ] 
+            }
             .set { ch_antibody_peaks }
 
+        //
+        // MODULE: Generate consensus peaks across samples
+        //
         MACS2_CONSENSUS (
             ch_antibody_peaks
         )
         ch_macs2_consensus_bed_lib = MACS2_CONSENSUS.out.bed
-        ch_versions                = ch_versions.mix(MACS2_CONSENSUS.out.versions)
+        ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
         if (!params.skip_peak_annotation) {
+            //
+            // MODULE: Annotate consensus peaks
+            //
             HOMER_ANNOTATEPEAKS_CONSENSUS (
                 MACS2_CONSENSUS.out.bed,
                 PREPARE_GENOME.out.fasta,
@@ -545,40 +592,52 @@ workflow CHIPSEQ {
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS.out.versions)
 
+            //
+            // MODULE: Add boolean fields to annotated consensus peaks to aid filtering
+            //
             ANNOTATE_BOOLEAN_PEAKS (
                 MACS2_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS_CONSENSUS.out.txt, by: [0]),
             )
             ch_versions = ch_versions.mix(ANNOTATE_BOOLEAN_PEAKS.out.versions)
         }
 
-        // Create channel: [ val(meta), ip_bam ]
+        // Create channels: [ antibody, [ ip_bams ] ]
+        ch_ip_control_bam
+            .map { 
+                meta, ip_bam, control_bam ->
+                    [ meta.antibody, ip_bam ]
+            }
+            .groupTuple()
+            .set { ch_antibody_bams }
+
+        // Create channels: [ meta, [ ip_bams ], saf ]
         MACS2_CONSENSUS
             .out
             .saf
-            .map { meta, saf -> [ meta.id, meta, saf ] }
-            .set { ch_ip_saf }
-
-        ch_ip_control_bam
-            .map { meta, ip_bam, control_bam -> [ meta.antibody, meta, ip_bam ] }
-            .groupTuple()
-            .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
-            .join(ch_ip_saf)
+            .map { 
+                meta, saf -> 
+                    [ meta.id, meta, saf ] 
+            }
+            .join(ch_antibody_bams)
             .map {
-                it ->
-                    def fmeta = it[1]
-                    fmeta['id'] = it[3]['id']
-                    fmeta['replicates_exist'] = it[3]['replicates_exist']
-                    fmeta['multiple_groups']  = it[3]['multiple_groups']
-                    [ fmeta, it[2], it[4] ] }
-            .set { ch_ip_bam }
+                antibody, meta, saf, bams ->
+                    [ meta, bams.flatten().sort(), saf ]
+            }
+            .set { ch_saf_bams }
 
+        //
+        // MODULE: Quantify peaks across samples with featureCounts
+        //
         SUBREAD_FEATURECOUNTS (
-            ch_ip_bam
+            ch_saf_bams
         )
         ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
         ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
 
         if (!params.skip_deseq2_qc) {
+            //
+            // MODULE: Generate QC plots with DESeq2
+            //
             DESEQ2_QC (
                 SUBREAD_FEATURECOUNTS.out.counts,
                 ch_deseq2_pca_header,
@@ -590,7 +649,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // Create IGV session
+    // MODULE: Create IGV session
     //
     if (!params.skip_igv) {
         IGV (
@@ -599,13 +658,21 @@ workflow CHIPSEQ {
             ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
             { "${params.aligner}/mergedLibrary/bigwig" },
-            { ["${params.aligner}/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                ].join('') },
-            { ["${params.aligner}/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak',
-                '/consensus'
-                ].join('') }
+            { 
+                [
+                    "${params.aligner}/mergedLibrary/macs2",
+                    params.narrow_peak ? '/narrowPeak' : '/broadPeak'
+                ]
+                .join('') 
+            },
+            { 
+                [
+                    "${params.aligner}/mergedLibrary/macs2",
+                    params.narrow_peak ? '/narrowPeak' : '/broadPeak',
+                    '/consensus'
+                ]
+                .join('') 
+            }
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
     }
@@ -649,8 +716,10 @@ workflow CHIPSEQ {
             ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
+    
             ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
             ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
+    
             PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
             MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc.collect{it[1]}.ifEmpty([]),
             MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
@@ -660,10 +729,11 @@ workflow CHIPSEQ {
             ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
             ch_plothomerannotatepeaks_multiqc.collect().ifEmpty([]),
             ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
+
             ch_deseq2_pca_multiqc.collect().ifEmpty([]),
             ch_deseq2_clustering_multiqc.collect().ifEmpty([])
         )
-        multiqc_report       = MULTIQC.out.report.toList()
+        multiqc_report = MULTIQC.out.report.toList()
     }
 }
 

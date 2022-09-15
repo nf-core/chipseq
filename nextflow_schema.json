@@ -348,7 +348,8 @@
                     "type": "boolean",
                     "description": "Use vst transformation instead of rlog with DESeq2.",
                     "help_text": "See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).",
-                    "fa_icon": "fas fa-dolly"
+                    "fa_icon": "fas fa-dolly",
+                    "default": true
                 },
                 "skip_plot_profile": {
                     "type": "boolean",

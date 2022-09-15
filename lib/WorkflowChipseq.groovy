@@ -12,7 +12,7 @@ class WorkflowChipseq {
 
 
         if (!params.fasta) {
-            log.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
+            log.error "Genome fasta file not specified with e.g. '--fasta' or via a detectable config file."
             System.exit(1)
         }
 
@@ -98,7 +98,7 @@ class WorkflowChipseq {
         log.warn "=============================================================================\n" +
             "  --macs_gsize parameter has not been provided.\n" +
             "  It will be auto-calculated by 'khmer unique-kmers.py' using the '--read_length' parameter.\n" +
-            "  Explicitly provide '--macs_gsize macs2_genome_size' to change this behaviour.\n" +
+            "  Explicitly provide '--macs_gsize' to change this behaviour.\n" +
             "==================================================================================="
     }
 

@@ -31,8 +31,10 @@ process MULTIQC {
     path ('alignment/mergedLibrary/filtered/picard_metrics/*')
 
     path ('preseq/*')
+
     path ('deeptools/*')
     path ('deeptools/*')
+
     path ('phantompeakqualtools/*')
     path ('phantompeakqualtools/*')
     path ('phantompeakqualtools/*')
@@ -41,8 +43,7 @@ process MULTIQC {
     path ('macs2/peaks/*')
     path ('macs2/peaks/*')
     path ('macs2/annotation/*')
-
-    path ('featurecounts/*')
+    path ('macs2/featurecounts/*')
 
     path ('deseq2/*')
     path ('deseq2/*')
