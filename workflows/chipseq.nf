@@ -224,15 +224,16 @@ workflow CHIPSEQ {
 
         ch_genome_bam_chromap.paired_end
             .collect()
-            .map { it ->
-                def count = it.size()
-                if (count > 0) {
-                    log.warn "=============================================================================\n" +
-                    "  Paired-end files produced by chromap cannot be used by some downstream tools due to the issue below:\n" +
-                    "  https://github.com/nf-core/chipseq/issues/291\n" +
-                    "  They will be excluded from the analysis. Consider using a different aligner\n" +
-                    "==================================================================================="
-                }
+            .map { 
+                it ->
+                    def count = it.size()
+                    if (count > 0) {
+                        log.warn "=============================================================================\n" +
+                        "  Paired-end files produced by chromap cannot be used by some downstream tools due to the issue below:\n" +
+                        "  https://github.com/nf-core/chipseq/issues/291\n" +
+                        "  They will be excluded from the analysis. Consider using a different aligner\n" +
+                        "==================================================================================="
+                    }
             }
 
         ch_genome_bam        = ch_genome_bam_chromap.single_end
@@ -271,9 +272,13 @@ workflow CHIPSEQ {
                 def meta_clone = meta.clone()
                 meta_clone.remove('read_group')
                 meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
-                [ meta_clone, bam ] }
+                [ meta_clone, bam ] 
+        }
         .groupTuple(by: [0])
-        .map { it ->  [ it[0], it[1].flatten() ] }
+        .map { 
+            it ->
+                [ it[0], it[1].flatten() ] 
+        }
         .set { ch_sort_bam }
 
     PICARD_MERGESAMFILES (
@@ -309,7 +314,7 @@ workflow CHIPSEQ {
             MARK_DUPLICATES_PICARD.out.bam
         )
         ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
-        ch_versions       = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
+        ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
@@ -382,7 +387,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // Refactor channels: [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
+    // Refactor channels: [ meta, [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
     //
     FILTER_BAM_BAMTOOLS
         .out
@@ -427,9 +432,12 @@ workflow CHIPSEQ {
         ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
     }
 
-    // Create channel: [ val(meta), ip_bam, control_bam ]
+    // Create channel: [ meta, ip_bam, control_bam ]
     ch_ip_control_bam_bai
-        .map { meta, bams, bais -> [ meta , bams[0], bams[1] ] }
+        .map { 
+            meta, bams, bais -> 
+                [ meta , bams[0], bams[1] ] 
+        }
         .set { ch_ip_control_bam }
 
     MACS2_CALLPEAK (
@@ -447,23 +455,31 @@ workflow CHIPSEQ {
         .filter { meta, peaks -> peaks.size() > 0 }
         .set { ch_macs2_peaks }
 
+    // Create channel: [ meta, ip_bam, peaks ]
     ch_ip_control_bam
         .join(ch_macs2_peaks, by: [0])
-        .map { it -> [ it[0], it[1], it[3] ] }
-        .set { ch_ip_peak }
+        .map { 
+            it -> 
+                [ it[0], it[1], it[3] ] 
+        }
+        .set { ch_ip_bam_peaks }
 
     FRIP_SCORE (
-        ch_ip_peak
+        ch_ip_bam_peaks
     )
     ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
-    ch_ip_peak
+    // Create channel: [ meta, peaks, frip ]
+    ch_ip_bam_peaks
         .join(FRIP_SCORE.out.txt, by: [0])
-        .map { it -> [ it[0], it[2], it[3] ] }
-        .set { ch_ip_peak_frip }
+        .map { 
+            it -> 
+                [ it[0], it[2], it[3] ] 
+        }
+        .set { ch_ip_peaks_frip }
 
     MULTIQC_CUSTOM_PEAKS (
-        ch_ip_peak_frip,
+        ch_ip_peaks_frip,
         ch_peak_count_header,
         ch_frip_score_header
     )
@@ -502,9 +518,12 @@ workflow CHIPSEQ {
     ch_deseq2_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
         // Create channel: [ meta , [ peaks ] ]
-        // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
+            // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
         ch_macs2_peaks
-            .map { meta, peak -> [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] }
+            .map { 
+                meta, peak -> 
+                    [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] 
+            }
             .groupTuple()
             .map {
                 antibody, groups, peaks ->
@@ -512,21 +531,23 @@ workflow CHIPSEQ {
                         antibody,
                         groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
                         peaks
-                    ] }
+                    ] 
+            }
             .map {
                 antibody, groups, peaks ->
-                    def meta = [:]
-                    meta.id = antibody
-                    meta.multiple_groups = groups.size() > 1
-                    meta.replicates_exist = groups.max { groups.value }.value > 1
-                    [ meta, peaks ] }
+                    def meta_new = [:]
+                    meta_new.id = antibody
+                    meta_new.multiple_groups = groups.size() > 1
+                    meta_new.replicates_exist = groups.max { groups.value }.value > 1
+                    [ meta_new, peaks ] 
+            }
             .set { ch_antibody_peaks }
 
         MACS2_CONSENSUS (
             ch_antibody_peaks
         )
         ch_macs2_consensus_bed_lib = MACS2_CONSENSUS.out.bed
-        ch_versions                = ch_versions.mix(MACS2_CONSENSUS.out.versions)
+        ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
         if (!params.skip_peak_annotation) {
             HOMER_ANNOTATEPEAKS_CONSENSUS (
@@ -542,29 +563,32 @@ workflow CHIPSEQ {
             ch_versions = ch_versions.mix(ANNOTATE_BOOLEAN_PEAKS.out.versions)
         }
 
-        // Create channel: [ val(meta), ip_bam ]
+        // Create channel: [ antibody, [ ip_bams ] ]
+        ch_ip_control_bam
+            .map { 
+                meta, ip_bam, control_bam ->
+                    [ meta.antibody, ip_bam ]
+            }
+            .groupTuple()
+            .set { ch_antibody_bams }
+
+        // Create channel: [ meta, [ ip_bams ], saf ]
         MACS2_CONSENSUS
             .out
             .saf
-            .map { meta, saf -> [ meta.id, meta, saf ] }
-            .set { ch_ip_saf }
-
-        ch_ip_control_bam
-            .map { meta, ip_bam, control_bam -> [ meta.antibody, meta, ip_bam ] }
-            .groupTuple()
-            .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
-            .join(ch_ip_saf)
+            .map { 
+                meta, saf -> 
+                    [ meta.id, meta, saf ] 
+            }
+            .join(ch_antibody_bams)
             .map {
-                it ->
-                    def fmeta = it[1]
-                    fmeta['id'] = it[3]['id']
-                    fmeta['replicates_exist'] = it[3]['replicates_exist']
-                    fmeta['multiple_groups']  = it[3]['multiple_groups']
-                    [ fmeta, it[2], it[4] ] }
-            .set { ch_ip_bam }
+                antibody, meta, saf, bams ->
+                    [ meta, bams.flatten().sort(), saf ]
+            }
+            .set { ch_saf_bams }
 
         SUBREAD_FEATURECOUNTS (
-            ch_ip_bam
+            ch_saf_bams
         )
         ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
         ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
@@ -590,13 +614,21 @@ workflow CHIPSEQ {
             ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
             { "${params.aligner}/mergedLibrary/bigwig" },
-            { ["${params.aligner}/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                ].join('') },
-            { ["${params.aligner}/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak',
-                '/consensus'
-                ].join('') }
+            { 
+                [
+                    "${params.aligner}/mergedLibrary/macs2",
+                    params.narrow_peak ? '/narrowPeak' : '/broadPeak'
+                ]
+                .join('') 
+            },
+            { 
+                [
+                    "${params.aligner}/mergedLibrary/macs2",
+                    params.narrow_peak ? '/narrowPeak' : '/broadPeak',
+                    '/consensus'
+                ]
+                .join('') 
+            }
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
     }
