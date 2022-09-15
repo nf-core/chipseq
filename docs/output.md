@@ -97,6 +97,8 @@ The `--save_unaligned` parameter enables to obtain FastQ files containing unmapp
   - `*.Log.final.out`: STAR alignment report containing the mapping results summary.
   - `*.Log.out` and `*.Log.progress.out`: STAR log files containing detailed information about the run. Typically only useful for debugging purposes.
 
+</details>
+
 ## Merged library-level analysis
 
 The library-level alignments associated with the same sample are merged and subsequently used for the downstream analyses.
