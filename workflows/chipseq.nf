@@ -182,7 +182,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // SUBWORKFLOW: Alignment with BOWTIE2 & BAM QC
+    // SUBWORKFLOW: Alignment with Bowtie2 & BAM QC
     //
     if (params.aligner == 'bowtie2') {
         ALIGN_BOWTIE2 (
@@ -199,7 +199,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // SUBWORKFLOW: Alignment with CHROMAP & BAM QC
+    // SUBWORKFLOW: Alignment with Chromap & BAM QC
     //
     if (params.aligner == 'chromap') {
         ALIGN_CHROMAP (
@@ -210,7 +210,7 @@ workflow CHIPSEQ {
 
         // Filter out paired-end reads until the issue below is fixed
         // https://github.com/nf-core/chipseq/issues/291
-        // ch_genome_bam        = ALIGN_CHROMAP.out.bam
+        // ch_genome_bam = ALIGN_CHROMAP.out.bam
         ALIGN_CHROMAP
             .out
             .bam
@@ -220,9 +220,11 @@ workflow CHIPSEQ {
                         return [ meta, bam ]
                     paired_end: !meta.single_end
                         return [ meta, bam ]
-            }.set { ch_genome_bam_chromap }
+            }
+            .set { ch_genome_bam_chromap }
 
-        ch_genome_bam_chromap.paired_end
+        ch_genome_bam_chromap
+            .paired_end
             .collect()
             .map { 
                 it ->
@@ -264,7 +266,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // SUBWORKFLOW: Merge resequenced BAM files
+    // MODULE: Merge resequenced BAM files
     //
     ch_genome_bam
         .map {
@@ -306,7 +308,7 @@ workflow CHIPSEQ {
     ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
 
     //
-    // MODULE: Library coverage
+    // MODULE: Preseq coverage analysis
     //
     ch_preseq_multiqc = Channel.empty()
     if (!params.skip_preseq) {
@@ -318,7 +320,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // MODULE: Post alignment QC
+    // MODULE: Picard post alignment QC
     //
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
     if (!params.skip_picard_metrics) {
@@ -332,13 +334,16 @@ workflow CHIPSEQ {
     }
 
     //
-    // MODULE: Strand cross-correlation
+    // MODULE: Phantompeaktools strand cross-correlation and QC metrics
     //
     PHANTOMPEAKQUALTOOLS (
         FILTER_BAM_BAMTOOLS.out.bam
     )
     ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
 
+    //
+    // MODULE: MultiQC custom content for Phantompeaktools
+    //
     MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
         PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
         ch_spp_nsc_header,
@@ -347,7 +352,7 @@ workflow CHIPSEQ {
     )
 
     //
-    // MODULE: Coverage tracks
+    // MODULE: BedGraph coverage tracks
     //
     BEDTOOLS_GENOMECOV (
         FILTER_BAM_BAMTOOLS.out.bam.join(FILTER_BAM_BAMTOOLS.out.flagstat, by: [0])
@@ -355,7 +360,7 @@ workflow CHIPSEQ {
     ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
 
     //
-    // MODULE: Coverage tracks
+    // MODULE: BigWig coverage tracks
     //
     UCSC_BEDGRAPHTOBIGWIG (
         BEDTOOLS_GENOMECOV.out.bedgraph,
@@ -363,23 +368,29 @@ workflow CHIPSEQ {
     )
     ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first())
 
-    //
-    // MODULE: Coverage plots
-    //
     ch_deeptoolsplotprofile_multiqc = Channel.empty()
     if (!params.skip_plot_profile) {
+        //
+        // MODULE: deepTools matrix generation for plotting
+        //
         DEEPTOOLS_COMPUTEMATRIX (
             UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
             PREPARE_GENOME.out.gene_bed
         )
         ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
+        //
+        // MODULE: deepTools profile plots
+        //
         DEEPTOOLS_PLOTPROFILE (
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
         ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
         ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
 
+        //
+        // MODULE: deepTools heatmaps
+        //
         DEEPTOOLS_PLOTHEATMAP (
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
@@ -387,7 +398,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // Refactor channels: [ meta, [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
+    // Create channels: [ meta, [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
     //
     FILTER_BAM_BAMTOOLS
         .out
@@ -404,7 +415,7 @@ workflow CHIPSEQ {
         .set { ch_ip_control_bam_bai }
     
     //
-    // plotFingerprint for IP and control together
+    // MODULE: deepTools plotFingerprint joint QC for IP and control
     //
     ch_deeptoolsplotfingerprint_multiqc = Channel.empty()
     if (!params.skip_plot_fingerprint) {
@@ -416,7 +427,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // Call peaks
+    // MODULE: Calculute genome size with khmer
     //
     ch_macs_gsize                     = Channel.empty()
     ch_custompeaks_frip_multiqc       = Channel.empty()
@@ -432,7 +443,7 @@ workflow CHIPSEQ {
         ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
     }
 
-    // Create channel: [ meta, ip_bam, control_bam ]
+    // Create channels: [ meta, ip_bam, control_bam ]
     ch_ip_control_bam_bai
         .map { 
             meta, bams, bais -> 
@@ -440,6 +451,9 @@ workflow CHIPSEQ {
         }
         .set { ch_ip_control_bam }
 
+    //
+    // MODULE: Call peaks with MACS2
+    //
     MACS2_CALLPEAK (
         ch_ip_control_bam,
         ch_macs_gsize
@@ -447,7 +461,7 @@ workflow CHIPSEQ {
     ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
 
     //
-    // Filter for MACS2 files without peaks
+    // Filter out samples with 0 MACS2 peaks called
     //
     MACS2_CALLPEAK
         .out
@@ -455,7 +469,7 @@ workflow CHIPSEQ {
         .filter { meta, peaks -> peaks.size() > 0 }
         .set { ch_macs2_peaks }
 
-    // Create channel: [ meta, ip_bam, peaks ]
+    // Create channels: [ meta, ip_bam, peaks ]
     ch_ip_control_bam
         .join(ch_macs2_peaks, by: [0])
         .map { 
@@ -464,12 +478,15 @@ workflow CHIPSEQ {
         }
         .set { ch_ip_bam_peaks }
 
+    //
+    // MODULE: Calculate FRiP score
+    //
     FRIP_SCORE (
         ch_ip_bam_peaks
     )
     ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
-    // Create channel: [ meta, peaks, frip ]
+    // Create channels: [ meta, peaks, frip ]
     ch_ip_bam_peaks
         .join(FRIP_SCORE.out.txt, by: [0])
         .map { 
@@ -478,6 +495,9 @@ workflow CHIPSEQ {
         }
         .set { ch_ip_peaks_frip }
 
+    //
+    // MODULE: FRiP score custom content for MultiQC
+    //
     MULTIQC_CUSTOM_PEAKS (
         ch_ip_peaks_frip,
         ch_peak_count_header,
@@ -487,6 +507,9 @@ workflow CHIPSEQ {
     ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS.out.count
 
     if (!params.skip_peak_annotation) {
+|       //
+        // MODULE: Annotate peaks with MACS2
+        //
         HOMER_ANNOTATEPEAKS_MACS2 (
             ch_macs2_peaks,
             PREPARE_GENOME.out.fasta,
@@ -495,11 +518,17 @@ workflow CHIPSEQ {
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
         if (!params.skip_peak_qc) {
+            //
+            // MODULE: MACS2 QC plots with R
+            //
             PLOT_MACS2_QC (
                 ch_macs2_peaks.collect{it[1]}
             )
             ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
 
+            //
+            // MODULE: Peak annotation QC plots with R
+            //
             PLOT_HOMER_ANNOTATEPEAKS (
                 HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
                 ch_peak_annotation_header,
@@ -517,7 +546,7 @@ workflow CHIPSEQ {
     ch_deseq2_pca_multiqc        = Channel.empty()
     ch_deseq2_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
-        // Create channel: [ meta , [ peaks ] ]
+        // Create channels: [ meta , [ peaks ] ]
             // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
         ch_macs2_peaks
             .map { 
@@ -543,6 +572,9 @@ workflow CHIPSEQ {
             }
             .set { ch_antibody_peaks }
 
+        //
+        // MODULE: Generate consensus peaks across samples
+        //
         MACS2_CONSENSUS (
             ch_antibody_peaks
         )
@@ -550,6 +582,9 @@ workflow CHIPSEQ {
         ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
         if (!params.skip_peak_annotation) {
+            //
+            // MODULE: Annotate consensus peaks
+            //
             HOMER_ANNOTATEPEAKS_CONSENSUS (
                 MACS2_CONSENSUS.out.bed,
                 PREPARE_GENOME.out.fasta,
@@ -557,13 +592,16 @@ workflow CHIPSEQ {
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS.out.versions)
 
+            //
+            // MODULE: Add boolean fields to annotated consensus peaks to aid filtering
+            //
             ANNOTATE_BOOLEAN_PEAKS (
                 MACS2_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS_CONSENSUS.out.txt, by: [0]),
             )
             ch_versions = ch_versions.mix(ANNOTATE_BOOLEAN_PEAKS.out.versions)
         }
 
-        // Create channel: [ antibody, [ ip_bams ] ]
+        // Create channels: [ antibody, [ ip_bams ] ]
         ch_ip_control_bam
             .map { 
                 meta, ip_bam, control_bam ->
@@ -572,7 +610,7 @@ workflow CHIPSEQ {
             .groupTuple()
             .set { ch_antibody_bams }
 
-        // Create channel: [ meta, [ ip_bams ], saf ]
+        // Create channels: [ meta, [ ip_bams ], saf ]
         MACS2_CONSENSUS
             .out
             .saf
@@ -587,6 +625,9 @@ workflow CHIPSEQ {
             }
             .set { ch_saf_bams }
 
+        //
+        // MODULE: Quantify peaks across samples with featureCounts
+        //
         SUBREAD_FEATURECOUNTS (
             ch_saf_bams
         )
@@ -594,6 +635,9 @@ workflow CHIPSEQ {
         ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
 
         if (!params.skip_deseq2_qc) {
+            //
+            // MODULE: Generate QC plots with DESeq2
+            //
             DESEQ2_QC (
                 SUBREAD_FEATURECOUNTS.out.counts,
                 ch_deseq2_pca_header,
@@ -605,7 +649,7 @@ workflow CHIPSEQ {
     }
 
     //
-    // Create IGV session
+    // MODULE: Create IGV session
     //
     if (!params.skip_igv) {
         IGV (
