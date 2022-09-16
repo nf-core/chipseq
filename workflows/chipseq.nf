@@ -297,7 +297,7 @@ workflow CHIPSEQ {
     ch_versions = ch_versions.mix(MARK_DUPLICATES_PICARD.out.versions)
 
     //
-    // SUBWORKFLOW: Fix getting name sorted BAM here for PE/SE
+    // SUBWORKFLOW: Filter BAM file with BamTools
     //
     FILTER_BAM_BAMTOOLS (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
