@@ -27,7 +27,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
         -p $prefix \\
         $args
 
-    find ./ -type f -name "*.txt" -exec cat {} \\; | cat $mqc_header - > ${prefix}.summary_mqc.tsv
+    find ./ -type f -name "*summary.txt" -exec cat {} \\; | cat $mqc_header - > ${prefix}.summary_mqc.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
