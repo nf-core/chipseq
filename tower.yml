@@ -1,0 +1,19 @@
+reports:
+  multiqc_report.html:
+    display: "MultiQC HTML report"
+  macs2_peak.plots.pdf:
+    display: "All samples MACS2 peak QC PDF plots"
+  macs2_annotatePeaks.plots.pdf:
+    display: "All samples HOMER annotatePeaks.pl QC PDF plots"
+  "*.consensus_peaks.plots.pdf":
+    display: "Consensus peaks DESeq2 QC PDF plots"
+  "*.consensus_peaks.boolean.intersect.plot.pdf":
+    display: "Consensus peaks UpSetR intersection PDF plots"
+  "*.consensus_peaks.boolean.annotatePeaks.txt":
+    display: "Consensus peaks annotated by HOMER"
+  "*.plotHeatmap.pdf":
+    display: "Per-sample deepTools plotHeatmap PDF plots"
+  "*_peaks.broadPeak":
+    display: "Per-sample MACS2 broadPeak file"
+  "*_peaks.narrowPeak":
+    display: "Per-sample MACS2 narrowPeak file"
