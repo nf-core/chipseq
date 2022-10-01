@@ -9,28 +9,31 @@ process IGV {
         'quay.io/biocontainers/python:3.8.3' }"
 
     input:
+    val aligner_dir
+    val peak_dir
     path fasta
-    path ("${bigwig_publish_dir}/*")
-    path ("${peak_publish_dir}/*")
-    path ("${consensus_publish_dir}/*")
-    val bigwig_publish_dir
-    val peak_publish_dir
-    val consensus_publish_dir
-
+    path ("${aligner_dir}/mergedLibrary/bigwig/*")
+    path ("${aligner_dir}/mergedLibrary/macs2/${peak_dir}/*")
+    path ("${aligner_dir}/mergedLibrary/macs2/${peak_dir}/consensus/*")
+    path ("mappings/*")
+    
     output:
     path "*files.txt"  , emit: txt
     path "*.xml"       , emit: xml
     path "versions.yml", emit: versions
 
     script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
+    def consensus_dir = "${aligner_dir}/mergedLibrary/macs2/${peak_dir}/consensus/*"
     """
     find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; > bigwig.igv.txt
     find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; > peaks.igv.txt
     # Avoid error when consensus not produced
-    find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$consensus_publish_dir" || test \$? = 1; } > bed.igv.txt
+    find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$consensus_dir" || test \$? = 1; } > consensus.igv.txt
 
-    cat *.txt > igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
+    cat mappings/* > replace_paths.txt
+
+    cat *.igv.txt > igv_files_orig.txt
+    igv_files_to_session.py igv_session.xml igv_files_orig.txt replace_paths.txt ../../genome/${fasta.getName()} --path_prefix '../../'
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
