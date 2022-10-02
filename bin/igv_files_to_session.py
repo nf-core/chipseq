@@ -24,10 +24,16 @@ argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 ## REQUIRED PARAMETERS
 argParser.add_argument("XML_OUT", help="XML output file.")
 argParser.add_argument(
-    "LIST_FILE", help="Tab-delimited file containing two columns i.e. file_name\tcolour. Header isnt required."
+    "LIST_FILE",
+    help="Tab-delimited file containing two columns i.e. file_name\tcolour. Header isnt required.",
 )
 argParser.add_argument(
-    "GENOME", help="Full path to genome fasta file or shorthand for genome available in IGV e.g. hg19."
+    "REPLACE_FILE",
+    help="Tab-delimited file containing two columns i.e. file_name\treplacement_file_name. Header isnt required.",
+)
+argParser.add_argument(
+    "GENOME",
+    help="Full path to genome fasta file or shorthand for genome available in IGV e.g. hg19.",
 )
 
 ## OPTIONAL PARAMETERS
@@ -65,10 +71,20 @@ def makedir(path):
 ############################################
 
 
-def igv_files_to_session(XMLOut, ListFile, Genome, PathPrefix=""):
+def igv_files_to_session(XMLOut, ListFile, ReplaceFile, Genome, PathPrefix=""):
 
     makedir(os.path.dirname(XMLOut))
 
+    replaceFileDict = {}
+    fin = open(ReplaceFile, "r")
+    while True:
+        line = fin.readline()
+        if line:
+            ofile, rfile = line.strip().split("\t")
+            replaceFileDict[ofile] = rfile
+        else:
+            break
+            fin.close()
     fileList = []
     fin = open(ListFile, "r")
     while True:
@@ -77,10 +93,17 @@ def igv_files_to_session(XMLOut, ListFile, Genome, PathPrefix=""):
             ifile, colour = line.strip().split("\t")
             if len(colour.strip()) == 0:
                 colour = "0,0,178"
+            for ofile, rfile in replaceFileDict.items():
+                if ofile in ifile:
+                    ifile = ifile.replace(ofile, rfile)
             fileList.append((PathPrefix.strip() + ifile, colour))
         else:
             break
-            fout.close()
+            fin.close()
+    fout = open("igv_files.txt", "w")
+    for ifile, colour in fileList:
+        fout.write(ifile + "\n")
+    fout.close()
 
     ## ADD RESOURCES SECTION
     XMLStr = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n'
@@ -138,7 +161,6 @@ def igv_files_to_session(XMLOut, ListFile, Genome, PathPrefix=""):
                 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n'
                 % (ifile, os.path.basename(ifile))
             )
-
     XMLStr += "\t</Panel>\n"
     # XMLStr += '\t<HiddenAttributes>\n\t\t<Attribute name="DATA FILE"/>\n\t\t<Attribute name="DATA TYPE"/>\n\t\t<Attribute name="NAME"/>\n\t</HiddenAttributes>\n'
     XMLStr += "</Session>"
@@ -153,7 +175,13 @@ def igv_files_to_session(XMLOut, ListFile, Genome, PathPrefix=""):
 ############################################
 ############################################
 
-igv_files_to_session(XMLOut=args.XML_OUT, ListFile=args.LIST_FILE, Genome=args.GENOME, PathPrefix=args.PATH_PREFIX)
+igv_files_to_session(
+    XMLOut=args.XML_OUT,
+    ListFile=args.LIST_FILE,
+    ReplaceFile=args.REPLACE_FILE,
+    Genome=args.GENOME,
+    PathPrefix=args.PATH_PREFIX,
+)
 
 ############################################
 ############################################

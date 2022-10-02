@@ -17,6 +17,7 @@ process MACS2_CONSENSUS {
     tuple val(meta), path("*.bed")          , emit: bed
     tuple val(meta), path("*.saf")          , emit: saf
     tuple val(meta), path("*.pdf")          , emit: pdf
+    tuple val(meta), path("*.antibody.txt") , emit: txt
     tuple val(meta), path("*.boolean.txt")  , emit: boolean_txt
     tuple val(meta), path("*.intersect.txt"), emit: intersect_txt
     path "versions.yml"                     , emit: versions
@@ -25,7 +26,6 @@ process MACS2_CONSENSUS {
     task.ext.when == null || task.ext.when
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
-
     def prefix       = task.ext.prefix    ?: "${meta.id}"
     def peak_type    = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
     def mergecols    = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
@@ -48,6 +48,8 @@ process MACS2_CONSENSUS {
     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
 
     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
+
+    echo "${prefix}.bed\t${meta.id}/${prefix}.bed" > ${prefix}.antibody.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

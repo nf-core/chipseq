@@ -543,6 +543,7 @@ workflow CHIPSEQ {
     //  Consensus peaks analysis
     //
     ch_macs2_consensus_bed_lib   = Channel.empty()
+    ch_macs2_consensus_txt_lib   = Channel.empty()
     ch_deseq2_pca_multiqc        = Channel.empty()
     ch_deseq2_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
@@ -579,6 +580,7 @@ workflow CHIPSEQ {
             ch_antibody_peaks
         )
         ch_macs2_consensus_bed_lib = MACS2_CONSENSUS.out.bed
+        ch_macs2_consensus_txt_lib = MACS2_CONSENSUS.out.txt
         ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
         if (!params.skip_peak_annotation) {
@@ -653,26 +655,13 @@ workflow CHIPSEQ {
     //
     if (!params.skip_igv) {
         IGV (
+            params.aligner,
+            params.narrow_peak ? 'narrowPeak' : 'broadPeak',
             PREPARE_GENOME.out.fasta,
             UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
-            { "${params.aligner}/mergedLibrary/bigwig" },
-            { 
-                [
-                    "${params.aligner}/mergedLibrary/macs2",
-                    params.narrow_peak ? '/narrowPeak' : '/broadPeak'
-                ]
-                .join('') 
-            },
-            { 
-                [
-                    "${params.aligner}/mergedLibrary/macs2",
-                    params.narrow_peak ? '/narrowPeak' : '/broadPeak',
-                    '/consensus'
-                ]
-                .join('') 
-            }
+            ch_macs2_consensus_txt_lib.collect{it[1]}.ifEmpty([])
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
     }
