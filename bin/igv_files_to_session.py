@@ -17,9 +17,7 @@ import argparse
 ############################################
 
 Description = 'Create IGV session file from a list of files and associated colours - ".bed", ".bw", ".bigwig", ".tdf", ".gtf" files currently supported.'
-Epilog = (
-    """Example usage: python igv_files_to_session.py <XML_OUT> <LIST_FILE> <GENOME>"""
-)
+Epilog = """Example usage: python igv_files_to_session.py <XML_OUT> <LIST_FILE> <GENOME>"""
 
 argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 
@@ -109,10 +107,7 @@ def igv_files_to_session(XMLOut, ListFile, ReplaceFile, Genome, PathPrefix=""):
 
     ## ADD RESOURCES SECTION
     XMLStr = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n'
-    XMLStr += (
-        '<Session genome="%s" hasGeneTrack="true" hasSequenceTrack="true" locus="All" version="8">\n'
-        % (Genome)
-    )
+    XMLStr += '<Session genome="%s" hasGeneTrack="true" hasSequenceTrack="true" locus="All" version="8">\n' % (Genome)
     XMLStr += "\t<Resources>\n"
     for ifile, colour in fileList:
         XMLStr += '\t\t<Resource path="%s"/>\n' % (ifile)
@@ -149,9 +144,7 @@ def igv_files_to_session(XMLOut, ListFile, ReplaceFile, Genome, PathPrefix=""):
                 '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" '
                 % (colour)
             )
-            XMLStr += (
-                'displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" '
-            )
+            XMLStr += 'displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" '
             XMLStr += (
                 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n'
                 % (ifile, os.path.basename(ifile))

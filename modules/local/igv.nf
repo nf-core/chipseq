@@ -16,7 +16,7 @@ process IGV {
     path ("${aligner_dir}/mergedLibrary/macs2/${peak_dir}/*")
     path ("${aligner_dir}/mergedLibrary/macs2/${peak_dir}/consensus/*")
     path ("mappings/*")
-    
+
     output:
     path "*files.txt"  , emit: txt
     path "*.xml"       , emit: xml
@@ -34,7 +34,7 @@ process IGV {
     if [ -d "mappings" ]; then
         cat mappings/* > replace_paths.txt
     fi
-    
+
     cat *.igv.txt > igv_files_orig.txt
     igv_files_to_session.py igv_session.xml igv_files_orig.txt replace_paths.txt ../../genome/${fasta.getName()} --path_prefix '../../'
 
