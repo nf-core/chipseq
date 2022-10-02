@@ -30,8 +30,11 @@ process IGV {
     # Avoid error when consensus not produced
     find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$consensus_dir" || test \$? = 1; } > consensus.igv.txt
 
-    cat mappings/* > replace_paths.txt
-
+    touch replace_paths.txt
+    if [ -d "mappings" ]; then
+        cat mappings/* > replace_paths.txt
+    fi
+    
     cat *.igv.txt > igv_files_orig.txt
     igv_files_to_session.py igv_session.xml igv_files_orig.txt replace_paths.txt ../../genome/${fasta.getName()} --path_prefix '../../'
 
