@@ -25,7 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Eliminate `if` conditions from `deseq2_qc` and `macs2_consensus` (local module and use `ext.when` instead)
 - Remove `deseq2` differential binding analysis of consensus peaks.
 - [[280](https://github.com/nf-core/chipseq/issues/291) - Filter paired-end files produced by `chromap` since the resulting `BAM` files can not be processed downstream.
-- Remove <ANTIBODY> from the macs2 consensus publish directory since it can not be referred as input from the IGV process (meta.id not resolved at execution time)
 - Add bytesize link to readme.
 
 ### Parameters
