@@ -1,0 +1,139 @@
+{
+    "name": "nf-core/chipseq",
+    "homePage": "https://github.com/nf-core/chipseq",
+    "repos": {
+        "nf-core/modules": {
+            "git_url": "https://github.com/nf-core/modules.git",
+            "modules": {
+                "bowtie2/align": {
+                    "branch": "master",
+                    "git_sha": "848ee9a215d02d80be033bfa60881700f2bd914c"
+                },
+                "bowtie2/build": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "bwa/index": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "bwa/mem": {
+                    "branch": "master",
+                    "git_sha": "4f5274c3de0c9521f5033893ff61057a74c45ba9"
+                },
+                "chromap/chromap": {
+                    "branch": "master",
+                    "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                },
+                "chromap/index": {
+                    "branch": "master",
+                    "git_sha": "dbb46c9b635080b132bab4b8d5b9a14f0d1c22e7"
+                },
+                "custom/dumpsoftwareversions": {
+                    "branch": "master",
+                    "git_sha": "e5b44499efcf6f7fb24874886bac60591c5d94dd"
+                },
+                "custom/getchromsizes": {
+                    "branch": "master",
+                    "git_sha": "213403187932dbbdd936a04474cc8cd8abae7a08"
+                },
+                "deeptools/computematrix": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "deeptools/plotfingerprint": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "deeptools/plotheatmap": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "deeptools/plotprofile": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "fastqc": {
+                    "branch": "master",
+                    "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
+                },
+                "gffread": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "gunzip": {
+                    "branch": "master",
+                    "git_sha": "fa37e0662690c4ec4260dae282fbce08777503e6"
+                },
+                "homer/annotatepeaks": {
+                    "branch": "master",
+                    "git_sha": "233fa70811a03a4cecb2ece483b5c8396e2cee1d"
+                },
+                "khmer/uniquekmers": {
+                    "branch": "master",
+                    "git_sha": "82fdff4fb4ce6cafcc028a7503da835427f35352"
+                },
+                "macs2/callpeak": {
+                    "branch": "master",
+                    "git_sha": "f0800157544a82ae222931764483331a81812012"
+                },
+                "phantompeakqualtools": {
+                    "branch": "master",
+                    "git_sha": "233fa70811a03a4cecb2ece483b5c8396e2cee1d"
+                },
+                "picard/collectmultiplemetrics": {
+                    "branch": "master",
+                    "git_sha": "682f789f93070bd047868300dd018faf3d434e7c"
+                },
+                "picard/markduplicates": {
+                    "branch": "master",
+                    "git_sha": "682f789f93070bd047868300dd018faf3d434e7c"
+                },
+                "picard/mergesamfiles": {
+                    "branch": "master",
+                    "git_sha": "682f789f93070bd047868300dd018faf3d434e7c"
+                },
+                "preseq/lcextrap": {
+                    "branch": "master",
+                    "git_sha": "7111e571cc5b6069de4673cd6165af680f17b4d7"
+                },
+                "samtools/flagstat": {
+                    "branch": "master",
+                    "git_sha": "ecece498f10b47b7c9d06f53a310cea5811b4c5f"
+                },
+                "samtools/idxstats": {
+                    "branch": "master",
+                    "git_sha": "ecece498f10b47b7c9d06f53a310cea5811b4c5f"
+                },
+                "samtools/index": {
+                    "branch": "master",
+                    "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                },
+                "samtools/sort": {
+                    "branch": "master",
+                    "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                },
+                "samtools/stats": {
+                    "branch": "master",
+                    "git_sha": "f48a24770e24358e58de66e9b805a70d77cd154b"
+                },
+                "subread/featurecounts": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "trimgalore": {
+                    "branch": "master",
+                    "git_sha": "85ec13ff1fc2196c5a507ea497de468101baabed"
+                },
+                "ucsc/bedgraphtobigwig": {
+                    "branch": "master",
+                    "git_sha": "233fa70811a03a4cecb2ece483b5c8396e2cee1d"
+                },
+                "untar": {
+                    "branch": "master",
+                    "git_sha": "51be617b1ca9bff973655eb899d591ed6ab253b5"
+                }
+            }
+        }
+    }
+}
