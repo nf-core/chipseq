@@ -62,7 +62,7 @@ The nf-core/chipseq pipeline comes with documentation about the pipeline [usage]
 
 ## Credits
 
-nf-core/chipseq was originally written by Philip Ewels, Jose Espinosa-Carrasco, Harshil Patel.
+nf-core/chipseq was originally written by Espinosa-Carrasco J, Patel H, Wang C, Ewels P.
 
 We thank the following people for their extensive assistance in the development of this pipeline:
 
