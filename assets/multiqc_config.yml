@@ -129,10 +129,12 @@ report_section_order:
     order: -3400
   deseq2_clustering_10:
     order: -3500
-  software_versions:
+  "nf-core-chipseq-methods-description":
     order: -3600
-  nf-core-chipseq-summary:
+  software_versions:
     order: -3700
+  "nf-core-chipseq-summary":
+    order: -3800
 
 custom_plot_config:
   picard_insert_size:

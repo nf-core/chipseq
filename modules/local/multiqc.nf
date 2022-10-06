@@ -11,6 +11,8 @@ process MULTIQC {
     path mqc_custom_config
     path software_versions
     path workflow_summary
+    path methods_description
+    path logo
 
     path ('fastqc/*')
     path ('trimgalore/fastqc/*')
