@@ -2,8 +2,8 @@
 // Read QC and trimming
 //
 
-include { FASTQC     } from '../../modules/nf-core/modules/fastqc/main'
-include { TRIMGALORE } from '../../modules/nf-core/modules/trimgalore/main'
+include { FASTQC     } from '../../modules/nf-core/fastqc/main'
+include { TRIMGALORE } from '../../modules/nf-core/trimgalore/main'
 
 workflow FASTQC_TRIMGALORE {
     take:

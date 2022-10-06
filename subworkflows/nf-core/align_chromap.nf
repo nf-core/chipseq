@@ -2,7 +2,7 @@
  * Map reads, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-include { CHROMAP_CHROMAP   } from '../../modules/nf-core/modules/chromap/chromap/main'
+include { CHROMAP_CHROMAP   } from '../../modules/nf-core/chromap/chromap/main'
 include { BAM_SORT_SAMTOOLS } from './bam_sort_samtools'
 
 workflow ALIGN_CHROMAP {

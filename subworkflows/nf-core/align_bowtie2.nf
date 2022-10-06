@@ -2,7 +2,7 @@
  * Map reads, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-include { BOWTIE2_ALIGN     } from '../../modules/nf-core/modules/bowtie2/align/main'
+include { BOWTIE2_ALIGN     } from '../../modules/nf-core/bowtie2/align/main'
 include { BAM_SORT_SAMTOOLS } from './bam_sort_samtools'
 
 workflow ALIGN_BOWTIE2 {
