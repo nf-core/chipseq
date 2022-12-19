@@ -45,20 +45,6 @@ ch_multiqc_custom_config   = params.multiqc_config ? Channel.fromPath( params.mu
 ch_multiqc_logo            = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo, checkIfExists: true ) : Channel.empty()
 ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
 
-// JSON files required by BAMTools for alignment filtering
-ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
-ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
-
-// Header files for MultiQC
-ch_spp_nsc_header           = file("$projectDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
-ch_spp_rsc_header           = file("$projectDir/assets/multiqc/spp_rsc_header.txt", checkIfExists: true)
-ch_spp_correlation_header   = file("$projectDir/assets/multiqc/spp_correlation_header.txt", checkIfExists: true)
-ch_peak_count_header        = file("$projectDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
-ch_frip_score_header        = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
-ch_peak_annotation_header   = file("$projectDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
-ch_deseq2_pca_header        = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
-ch_deseq2_clustering_header = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -93,34 +79,9 @@ include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-
-include { PICARD_MERGESAMFILES          } from '../modules/nf-core/picard/mergesamfiles/main'
-include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
-include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap/main'
-include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/phantompeakqualtools/main'
-include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
-include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/computematrix/main'
-include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile/main'
-include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
-include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
-include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/khmer/uniquekmers/main'
-include { MACS2_CALLPEAK                } from '../modules/nf-core/macs2/callpeak/main'
-include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/subread/featurecounts/main'
-include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
-
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/homer/annotatepeaks/main'
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/homer/annotatepeaks/main'
-
-//
-// SUBWORKFLOW: Consisting entirely of nf-core/modules
-//
-
-include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
-include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
-include { ALIGN_BOWTIE2          } from '../subworkflows/nf-core/align_bowtie2'
-include { ALIGN_CHROMAP          } from '../subworkflows/nf-core/align_chromap'
-include { ALIGN_STAR             } from '../subworkflows/nf-core/align_star'
-include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'
+include { FASTQC                      } from '../modules/nf-core/fastqc/main'
+include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
+include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -682,55 +643,22 @@ workflow CHIPSEQ {
         workflow_summary    = WorkflowChipseq.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
-        methods_description    = WorkflowChipseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
-        ch_methods_description = Channel.value(methods_description)
+    methods_description    = WorkflowChipseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
+    ch_methods_description = Channel.value(methods_description)
 
-        MULTIQC (
-            ch_multiqc_config,
-            ch_multiqc_custom_config.collect().ifEmpty([]),
-            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
-            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
-            ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'),
-            ch_multiqc_logo.collect().ifEmpty([]),
+    ch_multiqc_files = Channel.empty()
+    ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+    ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
+    ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
+    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
 
-            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
-
-            ch_samtools_stats.collect{it[1]}.ifEmpty([]),
-            ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
-            ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
-
-            MARK_DUPLICATES_PICARD.out.stats.collect{it[1]}.ifEmpty([]),
-            MARK_DUPLICATES_PICARD.out.flagstat.collect{it[1]}.ifEmpty([]),
-            MARK_DUPLICATES_PICARD.out.idxstats.collect{it[1]}.ifEmpty([]),
-            MARK_DUPLICATES_PICARD.out.metrics.collect{it[1]}.ifEmpty([]),
-
-            FILTER_BAM_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
-            FILTER_BAM_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
-            FILTER_BAM_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
-            ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
-
-            ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
-
-            ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
-
-            PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
-            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc.collect{it[1]}.ifEmpty([]),
-            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
-            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation.collect{it[1]}.ifEmpty([]),
-
-            ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_plothomerannotatepeaks_multiqc.collect().ifEmpty([]),
-            ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
-
-            ch_deseq2_pca_multiqc.collect().ifEmpty([]),
-            ch_deseq2_clustering_multiqc.collect().ifEmpty([])
-        )
-        multiqc_report = MULTIQC.out.report.toList()
-    }
+    MULTIQC (
+        ch_multiqc_files.collect(),
+        ch_multiqc_config.toList(),
+        ch_multiqc_custom_config.toList(),
+        ch_multiqc_logo.toList()
+    )
+    multiqc_report = MULTIQC.out.report.toList()
 }
 
 /*
@@ -749,6 +677,9 @@ workflow.onComplete {
     }
 
     NfcoreTemplate.summary(workflow, params, log)
+    if (params.hook_url) {
+        NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
+    }
 }
 
 /*
