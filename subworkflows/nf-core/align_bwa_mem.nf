@@ -2,7 +2,7 @@
  * Map reads, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-include { BWA_MEM           } from '../../modules/nf-core/modules/bwa/mem/main'
+include { BWA_MEM           } from '../../modules/nf-core/bwa/mem/main'
 include { BAM_SORT_SAMTOOLS } from './bam_sort_samtools'
 
 workflow ALIGN_BWA_MEM {

@@ -40,8 +40,10 @@ if (anno_readme && file(anno_readme).exists()) {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
+ch_multiqc_config          = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+ch_multiqc_custom_config   = params.multiqc_config ? Channel.fromPath( params.multiqc_config, checkIfExists: true ) : Channel.empty()
+ch_multiqc_logo            = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo, checkIfExists: true ) : Channel.empty()
+ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
 
 // JSON files required by BAMTools for alignment filtering
 ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
@@ -92,22 +94,22 @@ include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 // MODULE: Installed directly from nf-core/modules
 //
 
-include { PICARD_MERGESAMFILES          } from '../modules/nf-core/modules/picard/mergesamfiles/main'
-include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/modules/picard/collectmultiplemetrics/main'
-include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/modules/preseq/lcextrap/main'
-include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/modules/phantompeakqualtools/main'
-include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
-include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/modules/deeptools/computematrix/main'
-include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deeptools/plotprofile/main'
-include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'
-include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'
-include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/modules/khmer/uniquekmers/main'
-include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'
-include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'
-include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
+include { PICARD_MERGESAMFILES          } from '../modules/nf-core/picard/mergesamfiles/main'
+include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
+include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap/main'
+include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/phantompeakqualtools/main'
+include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
+include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/computematrix/main'
+include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile/main'
+include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
+include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
+include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/khmer/uniquekmers/main'
+include { MACS2_CALLPEAK                } from '../modules/nf-core/macs2/callpeak/main'
+include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/subread/featurecounts/main'
+include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/modules/homer/annotatepeaks/main'
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/modules/homer/annotatepeaks/main'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/homer/annotatepeaks/main'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/homer/annotatepeaks/main'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -226,7 +228,7 @@ workflow CHIPSEQ {
         ch_genome_bam_chromap
             .paired_end
             .collect()
-            .map { 
+            .map {
                 it ->
                     def count = it.size()
                     if (count > 0) {
@@ -274,12 +276,12 @@ workflow CHIPSEQ {
                 def meta_clone = meta.clone()
                 meta_clone.remove('read_group')
                 meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
-                [ meta_clone, bam ] 
+                [ meta_clone, bam ]
         }
         .groupTuple(by: [0])
-        .map { 
+        .map {
             it ->
-                [ it[0], it[1].flatten() ] 
+                [ it[0], it[1].flatten() ]
         }
         .set { ch_sort_bam }
 
@@ -405,15 +407,15 @@ workflow CHIPSEQ {
         .bam
         .join(FILTER_BAM_BAMTOOLS.out.bai, by: [0])
         .set { ch_genome_bam_bai }
-    
+
     ch_genome_bam_bai
         .combine(ch_genome_bam_bai)
-        .map { 
+        .map {
             meta1, bam1, bai1, meta2, bam2, bai2 ->
                 meta1.control == meta2.id ? [ meta1, [ bam1, bam2 ], [ bai1, bai2 ] ] : null
         }
         .set { ch_ip_control_bam_bai }
-    
+
     //
     // MODULE: deepTools plotFingerprint joint QC for IP and control
     //
@@ -445,9 +447,9 @@ workflow CHIPSEQ {
 
     // Create channels: [ meta, ip_bam, control_bam ]
     ch_ip_control_bam_bai
-        .map { 
-            meta, bams, bais -> 
-                [ meta , bams[0], bams[1] ] 
+        .map {
+            meta, bams, bais ->
+                [ meta , bams[0], bams[1] ]
         }
         .set { ch_ip_control_bam }
 
@@ -472,9 +474,9 @@ workflow CHIPSEQ {
     // Create channels: [ meta, ip_bam, peaks ]
     ch_ip_control_bam
         .join(ch_macs2_peaks, by: [0])
-        .map { 
-            it -> 
-                [ it[0], it[1], it[3] ] 
+        .map {
+            it ->
+                [ it[0], it[1], it[3] ]
         }
         .set { ch_ip_bam_peaks }
 
@@ -489,9 +491,9 @@ workflow CHIPSEQ {
     // Create channels: [ meta, peaks, frip ]
     ch_ip_bam_peaks
         .join(FRIP_SCORE.out.txt, by: [0])
-        .map { 
-            it -> 
-                [ it[0], it[2], it[3] ] 
+        .map {
+            it ->
+                [ it[0], it[2], it[3] ]
         }
         .set { ch_ip_peaks_frip }
 
@@ -550,9 +552,9 @@ workflow CHIPSEQ {
         // Create channels: [ meta , [ peaks ] ]
             // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
         ch_macs2_peaks
-            .map { 
-                meta, peak -> 
-                    [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] 
+            .map {
+                meta, peak ->
+                    [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ]
             }
             .groupTuple()
             .map {
@@ -561,7 +563,7 @@ workflow CHIPSEQ {
                         antibody,
                         groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
                         peaks
-                    ] 
+                    ]
             }
             .map {
                 antibody, groups, peaks ->
@@ -569,7 +571,7 @@ workflow CHIPSEQ {
                     meta_new.id = antibody
                     meta_new.multiple_groups = groups.size() > 1
                     meta_new.replicates_exist = groups.max { groups.value }.value > 1
-                    [ meta_new, peaks ] 
+                    [ meta_new, peaks ]
             }
             .set { ch_antibody_peaks }
 
@@ -605,7 +607,7 @@ workflow CHIPSEQ {
 
         // Create channels: [ antibody, [ ip_bams ] ]
         ch_ip_control_bam
-            .map { 
+            .map {
                 meta, ip_bam, control_bam ->
                     [ meta.antibody, ip_bam ]
             }
@@ -616,9 +618,9 @@ workflow CHIPSEQ {
         MACS2_CONSENSUS
             .out
             .saf
-            .map { 
-                meta, saf -> 
-                    [ meta.id, meta, saf ] 
+            .map {
+                meta, saf ->
+                    [ meta.id, meta, saf ]
             }
             .join(ch_antibody_bams)
             .map {
@@ -680,11 +682,16 @@ workflow CHIPSEQ {
         workflow_summary    = WorkflowChipseq.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
+        methods_description    = WorkflowChipseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
+        ch_methods_description = Channel.value(methods_description)
+
         MULTIQC (
             ch_multiqc_config,
             ch_multiqc_custom_config.collect().ifEmpty([]),
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
             ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+            ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'),
+            ch_multiqc_logo.collect().ifEmpty([]),
 
             FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
@@ -705,10 +712,10 @@ workflow CHIPSEQ {
             ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
-    
+
             ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
             ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
-    
+
             PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
             MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc.collect{it[1]}.ifEmpty([]),
             MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
@@ -736,7 +743,15 @@ workflow.onComplete {
     if (params.email || params.email_on_fail) {
         NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)
     }
+
+    if (params.hook_url) {
+        NfcoreTemplate.adaptivecard(workflow, params, summary_params, projectDir, log)
+    }
+
     NfcoreTemplate.summary(workflow, params, log)
+    if (params.hook_url) {
+        NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
+    }
 }
 
 /*
