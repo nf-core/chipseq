@@ -26,6 +26,8 @@ You can find numerous talks on the [nf-core events page](https://nf-co.re/events
 
 ## Pipeline summary
 
+![nf-core/chipseq metro map](docs/images/nf-core-chipseq_metro_map_grey.png)
+
 1. Raw read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 2. Adapter trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
 3. Choice of multiple aligners
