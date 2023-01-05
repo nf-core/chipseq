@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Enhancements & fixes
 
 - Updated pipeline template to [nf-core/tools 2.7.2](https://github.com/nf-core/tools/releases/tag/2.7.2)
+- [[#317](https://github.com/nf-core/chipseq/issues/317)] Added metro map
 
 ## [[2.0.0](https://github.com/nf-core/chipseq/releases/tag/2.0.0)] - 2022-10-03
 
