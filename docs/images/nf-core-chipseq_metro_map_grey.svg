@@ -2,24 +2,24 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="436.14874mm"
    height="258.50705mm"
    viewBox="0 0 436.14874 258.50705"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
-   sodipodi:docname="chipseq_map_grey.svg"
-   inkscape:export-filename="/home/sarah/Images/Inkscape/nf-core/chipseq/chipseq_map_grey.png"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="nf-core-chipseq_metro_map_grey.svg"
+   inkscape:export-filename="/home/sarah/Code/nf-core/chipseq/docs/images/nf-core-chipseq_metro_map_grey.png"
    inkscape:export-xdpi="89"
-   inkscape:export-ydpi="89">
+   inkscape:export-ydpi="89"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs2">
     <marker
@@ -370,15 +370,15 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="253.55293"
-     inkscape:cy="458.22037"
+     inkscape:cx="929.5"
+     inkscape:cy="458"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1848"
-     inkscape:window-height="1016"
-     inkscape:window-x="72"
-     inkscape:window-y="27"
+     inkscape:window-width="1920"
+     inkscape:window-height="1043"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:snap-others="true"
      inkscape:snap-nodes="false"
@@ -398,7 +398,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -631,13 +631,11 @@
        id="text3422"
        style="font-variant:normal;font-weight:normal;font-size:11.00666809px;line-height:0%;font-family:'Liberation Sans';-inkscape-font-specification:LiberationSans;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.35277781"
        x="398.3688"
-       y="-202.90166">
-      <tspan
+       y="-202.90166"><tspan
          id="tspan3424"
          y="-202.90166"
          x="398.3688"
-         style="stroke-width:0.35277781" />
-    </text>
+         style="stroke-width:0.35277781" /></text>
     <g
        id="g6139"
        transform="matrix(0.3527778,0,0,-0.3527778,1019.3559,838.019)" />
@@ -717,7 +715,8 @@
              id="flowPara4861-7-7"
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.5px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"> </flowPara><flowPara
              id="flowPara4863-3-4"
-             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.5px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start">Germline</flowPara></flowRoot>        <flowRoot
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.5px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start">Germline</flowPara></flowRoot>
+        <flowRoot
            transform="translate(173.80193,-1606.61)"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0.01%;font-family:Chandas;-inkscape-font-specification:Chandas;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
            id="flowRoot5674-6-8-8-6"
@@ -732,8 +731,9 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
              id="flowPara5680-6-75-7-06">Sarek</flowPara><flowPara
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
-             id="flowPara5682-3-3-6-8"> </flowPara></flowRoot>        <path
-           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#0570b0;stroke-width:4.73763371;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             id="flowPara5682-3-3-6-8"> </flowPara></flowRoot>
+        <path
+           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#0570b0;stroke-width:4.73763;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            d="m 3920.4314,267.11708 h 139.337"
            id="path5765-9-4-7"
            inkscape:connector-type="polyline"
@@ -816,7 +816,8 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.45429611px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
              id="flowPara4841-4-3"> </flowPara><flowPara
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.45429611px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
-             id="flowPara4843-5-8">Somatic</flowPara></flowRoot>        <flowRoot
+             id="flowPara4843-5-8">Somatic</flowPara></flowRoot>
+        <flowRoot
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0.01%;font-family:Chandas;-inkscape-font-specification:Chandas;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
            id="flowRoot5674-6-8-3"
            xml:space="preserve"><flowRegion
@@ -830,8 +831,9 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
              id="flowPara5680-6-75-8">Sarek</flowPara><flowPara
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
-             id="flowPara5682-3-3-0"> </flowPara></flowRoot>        <path
-           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#cb181d;stroke-width:4.73763371;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             id="flowPara5682-3-3-0"> </flowPara></flowRoot>
+        <path
+           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#cb181d;stroke-width:4.73763;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            d="m 3920.4314,140.56477 h 139.337"
            id="path5765-9-47"
            inkscape:connector-type="polyline"
@@ -914,7 +916,8 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
              id="flowPara5680-6-4">Sarek</flowPara><flowPara
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
-             id="flowPara5682-3-1"> </flowPara></flowRoot>        <flowRoot
+             id="flowPara5682-3-1"> </flowPara></flowRoot>
+        <flowRoot
            xml:space="preserve"
            id="flowRoot4845-2-2"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0.01%;font-family:Chandas;-inkscape-font-specification:Chandas;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"><flowRegion
@@ -928,8 +931,9 @@
              id="flowPara4851-1-9"
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.45429611px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"> </flowPara><flowPara
              id="flowPara4853-5-28"
-             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.45429611px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start">Exome</flowPara></flowRoot>        <path
-           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#6a51a3;stroke-width:4.73763371;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.45429611px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start">Exome</flowPara></flowRoot>
+        <path
+           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#6a51a3;stroke-width:4.73763;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            d="m 3920.4314,14.244174 h 139.337"
            id="path5765-8"
            inkscape:connector-type="polyline"
@@ -1013,7 +1017,8 @@
              id="flowPara4861-7-7-8"
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.5px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"> </flowPara><flowPara
              id="flowPara4863-3-4-7"
-             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.5px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start">Germline</flowPara></flowRoot>        <flowRoot
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.5px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start">Germline</flowPara></flowRoot>
+        <flowRoot
            transform="translate(173.80193,-1606.61)"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0.01%;font-family:Chandas;-inkscape-font-specification:Chandas;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
            id="flowRoot5674-6-8-8-6-90"
@@ -1028,8 +1033,9 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
              id="flowPara5680-6-75-7-06-7">Sarek</flowPara><flowPara
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
-             id="flowPara5682-3-3-6-8-3"> </flowPara></flowRoot>        <path
-           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#0570b0;stroke-width:4.73763371;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             id="flowPara5682-3-3-6-8-3"> </flowPara></flowRoot>
+        <path
+           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#0570b0;stroke-width:4.73763;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            d="m 3482.9263,-1442.9727 h 139.3369"
            id="path5765-9-4-7-26"
            inkscape:connector-type="polyline"
@@ -1112,7 +1118,8 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.45429611px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
              id="flowPara4841-4-3-7"> </flowPara><flowPara
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.45429611px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
-             id="flowPara4843-5-8-0">Somatic</flowPara></flowRoot>        <flowRoot
+             id="flowPara4843-5-8-0">Somatic</flowPara></flowRoot>
+        <flowRoot
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0.01%;font-family:Chandas;-inkscape-font-specification:Chandas;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
            id="flowRoot5674-6-8-3-8"
            xml:space="preserve"><flowRegion
@@ -1126,8 +1133,9 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
              id="flowPara5680-6-75-8-7">Sarek</flowPara><flowPara
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
-             id="flowPara5682-3-3-0-9"> </flowPara></flowRoot>        <path
-           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#cb181d;stroke-width:4.73763371;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             id="flowPara5682-3-3-0-9"> </flowPara></flowRoot>
+        <path
+           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#cb181d;stroke-width:4.73763;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            d="m 3482.9263,-1569.525 h 139.3369"
            id="path5765-9-47-3"
            inkscape:connector-type="polyline"
@@ -1210,7 +1218,8 @@
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
              id="flowPara5680-6-4-5">Sarek</flowPara><flowPara
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:52.46426392px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"
-             id="flowPara5682-3-1-7"> </flowPara></flowRoot>        <flowRoot
+             id="flowPara5682-3-1-7"> </flowPara></flowRoot>
+        <flowRoot
            xml:space="preserve"
            id="flowRoot4845-2-2-4"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0.01%;font-family:Chandas;-inkscape-font-specification:Chandas;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"><flowRegion
@@ -1224,8 +1233,9 @@
              id="flowPara4851-1-9-4"
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.45429611px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start"> </flowPara><flowPara
              id="flowPara4853-5-28-5"
-             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.45429611px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start">Exome</flowPara></flowRoot>        <path
-           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#6a51a3;stroke-width:4.73763371;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:41.45429611px;line-height:1.25;font-family:'Eurostile Extended';-inkscape-font-specification:'Eurostile Extended';text-align:start;text-anchor:start">Exome</flowPara></flowRoot>
+        <path
+           style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#6a51a3;stroke-width:4.73763;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            d="m 3482.9263,-1695.8456 h 139.3369"
            id="path5765-8-9"
            inkscape:connector-type="polyline"
@@ -1268,7 +1278,8 @@
            y="2059.8672"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro'" /></flowRegion><flowPara
          id="flowPara7625"
-         style="font-size:40px;line-height:1.25">r</flowPara></flowRoot>    <g
+         style="font-size:40px;line-height:1.25">r</flowPara></flowRoot>
+    <g
        id="g7049"
        transform="matrix(0.3527778,0,0,-0.3527778,92.860278,745.14567)" />
     <text
@@ -1337,7 +1348,8 @@
              width="112"
              id="rect10549-33" /></flowRegion><flowPara
            id="flowPara10551-3"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">fasta</flowPara></flowRoot>    </g>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">fasta</flowPara></flowRoot>
+    </g>
     <g
        id="g9395"
        transform="matrix(0.43617521,0,0,0.43617521,-102.02332,146.29965)">
@@ -1370,7 +1382,8 @@
              width="112"
              id="rect10549-8" /></flowRegion><flowPara
            id="flowPara10551-9"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">GFF</flowPara></flowRoot>    </g>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">GFF</flowPara></flowRoot>
+    </g>
     <g
        id="g9404-0"
        transform="matrix(0.4361752,0,0,0.4361752,-195.42662,170.56618)">
@@ -1403,7 +1416,8 @@
              width="112"
              id="rect10549-6" /></flowRegion><flowPara
            id="flowPara10551-07"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">fastq</flowPara></flowRoot>    </g>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">fastq</flowPara></flowRoot>
+    </g>
     <g
        id="g9458-9"
        transform="matrix(0.4361752,0,0,0.4361752,-204.23753,168.24902)">
@@ -1436,7 +1450,8 @@
              width="112"
              id="rect10549-2-3" /></flowRegion><flowPara
            id="flowPara10551-89-6"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">HTML</flowPara></flowRoot>    </g>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">HTML</flowPara></flowRoot>
+    </g>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-opacity:1"
@@ -1511,10 +1526,10 @@
          y="-18.420591"
          id="tspan3422">Cutadapt</tspan><tspan
          sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299"
          x="168.61507"
          y="-10.483092"
-         id="tspan1347" /></text>
+         id="tspan1347"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299" /></text>
     <text
        xml:space="preserve"
        style="font-size:6.3499999px;line-height:1.25;font-family:Commissioner;-inkscape-font-specification:Commissioner;letter-spacing:0px;stroke-width:0.26458299"
@@ -1591,7 +1606,8 @@
            height="72.73098"
            x="880.85303"
            y="1262.1324" /></flowRegion><flowPara
-         id="flowPara5862" /></flowRoot>    <text
+         id="flowPara5862" /></flowRoot>
+    <text
        xml:space="preserve"
        style="font-size:6.3499999px;line-height:1.25;font-family:Commissioner;-inkscape-font-specification:Commissioner;letter-spacing:0px;stroke-width:0.26458299"
        x="259.73047"
@@ -1656,7 +1672,8 @@
              width="112"
              id="rect10549-4-4" /></flowRegion><flowPara
            id="flowPara10551-1-9"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">BAM</flowPara></flowRoot>    </g>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">BAM</flowPara></flowRoot>
+    </g>
     <g
        id="g9431-2"
        transform="matrix(0.4361752,0,0,0.4361752,87.076149,68.989547)">
@@ -1689,7 +1706,8 @@
              width="112"
              id="rect10549-3-4" /></flowRegion><flowPara
            id="flowPara10551-8-5"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">BAI</flowPara></flowRoot>    </g>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">BAI</flowPara></flowRoot>
+    </g>
     <g
        id="g9440-9"
        transform="matrix(0.4361752,0,0,0.4361752,138.87564,172.07849)">
@@ -1723,7 +1741,8 @@
              width="112"
              id="rect10549-9-1" /></flowRegion><flowPara
            id="flowPara10551-2-9"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:26.23099518px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">bigWig</flowPara></flowRoot>    </g>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:26.23099518px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold'">bigWig</flowPara></flowRoot>
+    </g>
     <g
        id="g2001">
       <path
@@ -1918,10 +1937,10 @@
          y="-42.791546"
          id="tspan3422-8">Picard¹</tspan><tspan
          sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299"
          x="317.52374"
          y="-34.854046"
-         id="tspan1347-9" /></text>
+         id="tspan1347-9"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299" /></text>
     <text
        xml:space="preserve"
        style="font-size:6.3499999px;line-height:1.25;font-family:Commissioner;-inkscape-font-specification:Commissioner;letter-spacing:0px;stroke-width:0.26458299"
@@ -2037,10 +2056,10 @@
          y="-42.791546"
          id="tspan3422-8-7">Picard</tspan><tspan
          sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299"
          x="375.60571"
          y="-34.854046"
-         id="tspan1347-9-6" /></text>
+         id="tspan1347-9-6"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299" /></text>
     <text
        xml:space="preserve"
        style="font-size:6.3499999px;line-height:1.25;font-family:Commissioner;-inkscape-font-specification:Commissioner;letter-spacing:0px;stroke-width:0.26458299"
@@ -2053,10 +2072,10 @@
          y="-18.484091"
          id="tspan2191">Preseq</tspan><tspan
          sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299"
          x="404.04068"
          y="-10.546592"
-         id="tspan1347-9-0" /></text>
+         id="tspan1347-9-0"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299" /></text>
     <g
        id="g2402">
       <path
@@ -2240,26 +2259,26 @@
          y="-10.694331"
          id="tspan2191-6">BedgraphtoBigWig</tspan><tspan
          sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299"
          x="508.05542"
          y="-2.7568312"
-         id="tspan1347-9-0-2" /></text>
+         id="tspan1347-9-0-2"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299" /></text>
     <text
        xml:space="preserve"
-       style="font-size:6.3499999px;line-height:1.25;font-family:Commissioner;-inkscape-font-specification:Commissioner;letter-spacing:0px;stroke-width:0.26458299"
+       style="font-size:6.35px;line-height:1.25;font-family:Commissioner;-inkscape-font-specification:Commissioner;letter-spacing:0px;stroke-width:0.264583"
        x="450.46417"
        y="-13.294867"
        id="text10160-1-4-6-1-4-84"><tspan
          sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:6.3499999px;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro Semi-Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299"
+         style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:6.35px;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro Semi-Bold';text-align:center;text-anchor:middle;stroke-width:0.264583"
          x="450.46417"
          y="-13.294867"
-         id="tspan2191-7">Preseq</tspan><tspan
+         id="tspan6549">Bedtools</tspan><tspan
          sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.3499999px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.26458299"
          x="450.46417"
-         y="-5.357367"
-         id="tspan1347-9-0-24" /></text>
+         y="-5.3573666"
+         id="tspan1347-9-0-24"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6.35px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono Bold';text-align:center;text-anchor:middle;stroke-width:0.264583" /></text>
     <g
        id="g2469-4-5"
        transform="matrix(1,0,0,0.81076791,-49.367849,98.638833)">
@@ -2557,7 +2576,8 @@
              width="85.200035"
              id="rect10549-9-1-6" /></flowRegion><flowPara
            id="flowPara10551-2-9-4"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:26.23099518px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold';text-align:center;direction:rtl;text-anchor:middle">XML</flowPara></flowRoot>    </g>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:26.23099518px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold';text-align:center;direction:rtl;text-anchor:middle">XML</flowPara></flowRoot>
+    </g>
     <path
        style="fill:none;stroke:#000000;stroke-width:1.32291663;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 381.02112,76.60209 H 370.5559"
@@ -2601,7 +2621,8 @@
              width="78.555511"
              id="rect10549-6-3" /></flowRegion><flowPara
            id="flowPara10551-07-3"
-           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold';text-align:center;text-anchor:middle">tab</flowPara></flowRoot>    </g>
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:32px;line-height:1.25;font-family:'Liberation Sans';-inkscape-font-specification:'Liberation Sans Bold';text-align:center;text-anchor:middle">tab</flowPara></flowRoot>
+    </g>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.26458332;stroke-opacity:1"
@@ -2638,7 +2659,8 @@
            x="1506.8446"
            y="764.32928"
            style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:26.66666794px;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro Semi-Bold'" /></flowRegion><flowPara
-         id="flowPara2980">1.</flowPara></flowRoot>    <path
+         id="flowPara2980">1.</flowPara></flowRoot>
+    <path
        style="fill:none;stroke:#000000;stroke-width:0.24680531px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 405.6513,79.073798 v 12.53494"
        id="path2982"
@@ -2656,7 +2678,8 @@
            x="1506.8446"
            y="764.32928"
            style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:26.66666794px;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro Semi-Bold'" /></flowRegion><flowPara
-         id="flowPara2980-0">2.</flowPara></flowRoot>    <flowRoot
+         id="flowPara2980-0">2.</flowPara></flowRoot>
+    <flowRoot
        xml:space="preserve"
        id="flowRoot3024"
        style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:16px;line-height:0.80000001;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:diagonal-fractions;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
@@ -2676,7 +2699,8 @@
          style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:16px;line-height:0.80000001;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:diagonal-fractions;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start"
          id="flowPara3049">Merge alignments from multiple libraries of the same sample </flowPara><flowPara
          id="flowPara3034"
-         style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:16px;line-height:0.80000001;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:diagonal-fractions;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start" /></flowRoot>    <flowRoot
+         style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:16px;line-height:0.80000001;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:diagonal-fractions;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start" /></flowRoot>
+    <flowRoot
        xml:space="preserve"
        id="flowRoot3053"
        style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:16px;line-height:1.25;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
@@ -2696,7 +2720,8 @@
          id="flowPara3063"
          style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:16px;line-height:0;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start">BAMtools (paired-ends only)</flowPara><flowPara
          style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:16px;line-height:0;font-family:'Maven Pro';-inkscape-font-specification:'Maven Pro, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start"
-         id="flowPara3065">Pysam (paired-ends only)</flowPara></flowRoot>    <path
+         id="flowPara3065">Pysam (paired-ends only)</flowPara></flowRoot>
+    <path
        style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 405.6513,101.01912 v 14.40584"
        id="path2982-3"
