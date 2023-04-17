@@ -310,20 +310,30 @@ workflow CHIPSEQ {
     //
     // MODULE: Phantompeaktools strand cross-correlation and QC metrics
     //
-    PHANTOMPEAKQUALTOOLS (
-        FILTER_BAM_BAMTOOLS.out.bam
-    )
-    ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
+    ch_phantompeakqualtools_spp_multiqc                 = Channel.empty()
+    ch_multiqc_phantompeakqualtools_nsc_multiqc         = Channel.empty()
+    ch_multiqc_phantompeakqualtools_rsc_multiqc         = Channel.empty()
+    ch_multiqc_phantompeakqualtools_correlation_multiqc = Channel.empty()
+    if (!params.skip_spp) {
+        PHANTOMPEAKQUALTOOLS (
+            FILTER_BAM_BAMTOOLS.out.bam
+        )
+        ch_phantompeakqualtools_spp_multiqc           = PHANTOMPEAKQUALTOOLS.out.spp
+        ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
 
-    //
-    // MODULE: MultiQC custom content for Phantompeaktools
-    //
-    MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
-        PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
-        ch_spp_nsc_header,
-        ch_spp_rsc_header,
-        ch_spp_correlation_header
-    )
+        //
+        // MODULE: MultiQC custom content for Phantompeaktools
+        //
+        MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
+            PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
+            ch_spp_nsc_header,
+            ch_spp_rsc_header,
+            ch_spp_correlation_header
+        )
+        ch_multiqc_phantompeakqualtools_nsc_multiqc         = MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc
+        ch_multiqc_phantompeakqualtools_rsc_multiqc         = MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc
+        ch_multiqc_phantompeakqualtools_correlation_multiqc = MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation
+    }
 
     //
     // MODULE: BedGraph coverage tracks
@@ -688,10 +698,10 @@ workflow CHIPSEQ {
             ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
             ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
 
-            PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
-            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc.collect{it[1]}.ifEmpty([]),
-            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
-            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation.collect{it[1]}.ifEmpty([]),
+            ch_phantompeakqualtools_spp_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_multiqc_phantompeakqualtools_nsc_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_multiqc_phantompeakqualtools_rsc_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_multiqc_phantompeakqualtools_correlation_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
             ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
