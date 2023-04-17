@@ -176,10 +176,10 @@ workflow PREPARE_GENOME {
                 ch_chromap_index = UNTAR_CHROMAP_INDEX ( [ [:], params.chromap_index ] ).untar.map{ it[1] }
                 ch_versions  = ch_versions.mix(UNTAR.out.versions)
             } else {
-                ch_chromap_index = file(params.chromap_index)
+                ch_chromap_index = [ [:], file(params.chromap_index) ]
             }
         } else {
-            ch_chromap_index = CHROMAP_INDEX ( ch_fasta ).index
+            ch_chromap_index = CHROMAP_INDEX ( [ [:], ch_fasta ] ).index
             ch_versions  = ch_versions.mix(CHROMAP_INDEX.out.versions)
         }
     }
