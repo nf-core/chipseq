@@ -208,39 +208,11 @@ workflow CHIPSEQ {
             FASTQC_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
             PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                }
         )
-
-        // Filter out paired-end reads until the issue below is fixed
-        // https://github.com/nf-core/chipseq/issues/291
-        // ch_genome_bam = ALIGN_CHROMAP.out.bam
-        ALIGN_CHROMAP
-            .out
-            .bam
-            .branch {
-                meta, bam ->
-                    single_end: meta.single_end
-                        return [ meta, bam ]
-                    paired_end: !meta.single_end
-                        return [ meta, bam ]
-            }
-            .set { ch_genome_bam_chromap }
-
-        ch_genome_bam_chromap
-            .paired_end
-            .collect()
-            .map {
-                it ->
-                    def count = it.size()
-                    if (count > 0) {
-                        log.warn "=============================================================================\n" +
-                        "  Paired-end files produced by chromap cannot be used by some downstream tools due to the issue below:\n" +
-                        "  https://github.com/nf-core/chipseq/issues/291\n" +
-                        "  They will be excluded from the analysis. Consider using a different aligner\n" +
-                        "==================================================================================="
-                    }
-            }
-
-        ch_genome_bam        = ch_genome_bam_chromap.single_end
+        ch_genome_bam        = ALIGN_CHROMAP.out.bam
         ch_genome_bam_index  = ALIGN_CHROMAP.out.bai
         ch_samtools_stats    = ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
