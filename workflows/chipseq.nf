@@ -116,7 +116,8 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../module
 //
 
 include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq_fastqc_umitools_trimgalore/main'
-include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
+include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq_align_bwa/main'
+
 include { ALIGN_BOWTIE2          } from '../subworkflows/nf-core/align_bowtie2'
 include { ALIGN_CHROMAP          } from '../subworkflows/nf-core/align_chromap'
 include { ALIGN_STAR             } from '../subworkflows/nf-core/align_star'
@@ -175,16 +176,18 @@ workflow CHIPSEQ {
     ch_samtools_flagstat = Channel.empty()
     ch_samtools_idxstats = Channel.empty()
     if (params.aligner == 'bwa') {
-        ALIGN_BWA_MEM (
+        FASTQ_ALIGN_BWA (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.bwa_index
+            PREPARE_GENOME.out.bwa_index,
+            false,
+            PREPARE_GENOME.out.fasta
         )
-        ch_genome_bam        = ALIGN_BWA_MEM.out.bam
-        ch_genome_bam_index  = ALIGN_BWA_MEM.out.bai
-        ch_samtools_stats    = ALIGN_BWA_MEM.out.stats
-        ch_samtools_flagstat = ALIGN_BWA_MEM.out.flagstat
-        ch_samtools_idxstats = ALIGN_BWA_MEM.out.idxstats
-        ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
+        ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
+        ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
+        ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
+        ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_BWA.out.versions)
     }
 
     //
