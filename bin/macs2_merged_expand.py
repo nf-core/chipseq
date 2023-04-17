@@ -55,7 +55,6 @@ args = argParser.parse_args()
 
 
 def makedir(path):
-
     if not len(path) == 0:
         try:
             os.makedirs(path)
@@ -78,7 +77,6 @@ def makedir(path):
 
 
 def macs2_merged_expand(MergedIntervalTxtFile, SampleNameList, OutFile, isNarrow=False, minReplicates=1):
-
     makedir(os.path.dirname(OutFile))
 
     combFreqDict = {}
