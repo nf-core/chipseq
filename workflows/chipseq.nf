@@ -115,7 +115,7 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../module
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
 //
 
-include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
+include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq_fastqc_umitools_trimgalore/main'
 include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
 include { ALIGN_BOWTIE2          } from '../subworkflows/nf-core/align_bowtie2'
 include { ALIGN_CHROMAP          } from '../subworkflows/nf-core/align_chromap'
@@ -155,12 +155,16 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Read QC and trim adapters
     //
-    FASTQC_TRIMGALORE (
+    FASTQ_FASTQC_UMITOOLS_TRIMGALORE (
         INPUT_CHECK.out.reads,
         params.skip_fastqc || params.skip_qc,
-        params.skip_trimming
+        false,
+        false,
+        params.skip_trimming,
+        0,
+        10000
     )
-    ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
+    ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
@@ -172,7 +176,7 @@ workflow CHIPSEQ {
     ch_samtools_idxstats = Channel.empty()
     if (params.aligner == 'bwa') {
         ALIGN_BWA_MEM (
-            FASTQC_TRIMGALORE.out.reads,
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.bwa_index
         )
         ch_genome_bam        = ALIGN_BWA_MEM.out.bam
@@ -188,7 +192,7 @@ workflow CHIPSEQ {
     //
     if (params.aligner == 'bowtie2') {
         ALIGN_BOWTIE2 (
-            FASTQC_TRIMGALORE.out.reads,
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.bowtie2_index,
             params.save_unaligned
         )
@@ -205,7 +209,7 @@ workflow CHIPSEQ {
     //
     if (params.aligner == 'chromap') {
         ALIGN_CHROMAP (
-            FASTQC_TRIMGALORE.out.reads,
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
             PREPARE_GENOME.out.fasta
                 .map {
@@ -225,7 +229,7 @@ workflow CHIPSEQ {
     //
     if (params.aligner == 'star') {
         ALIGN_STAR (
-            FASTQC_TRIMGALORE.out.reads,
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.star_index
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
@@ -675,9 +679,9 @@ workflow CHIPSEQ {
             ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'),
             ch_multiqc_logo.collect().ifEmpty([]),
 
-            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
 
             ch_samtools_stats.collect{it[1]}.ifEmpty([]),
             ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
