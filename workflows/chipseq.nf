@@ -117,8 +117,8 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../module
 
 include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq_fastqc_umitools_trimgalore/main'
 include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq_align_bwa/main'
+include { FASTQ_ALIGN_BOWTIE2              } from '../subworkflows/nf-core/fastq_align_bowtie2/main'
 
-include { ALIGN_BOWTIE2          } from '../subworkflows/nf-core/align_bowtie2'
 include { ALIGN_CHROMAP          } from '../subworkflows/nf-core/align_chromap'
 include { ALIGN_STAR             } from '../subworkflows/nf-core/align_star'
 include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'
@@ -194,17 +194,19 @@ workflow CHIPSEQ {
     // SUBWORKFLOW: Alignment with Bowtie2 & BAM QC
     //
     if (params.aligner == 'bowtie2') {
-        ALIGN_BOWTIE2 (
+        FASTQ_ALIGN_BOWTIE2 (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.bowtie2_index,
-            params.save_unaligned
+            params.save_unaligned,
+            false,
+            PREPARE_GENOME.out.fasta
         )
-        ch_genome_bam        = ALIGN_BOWTIE2.out.bam
-        ch_genome_bam_index  = ALIGN_BOWTIE2.out.bai
-        ch_samtools_stats    = ALIGN_BOWTIE2.out.stats
-        ch_samtools_flagstat = ALIGN_BOWTIE2.out.flagstat
-        ch_samtools_idxstats = ALIGN_BOWTIE2.out.idxstats
-        ch_versions = ch_versions.mix(ALIGN_BOWTIE2.out.versions.first())
+        ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
+        ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
+        ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
+        ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions.first())
     }
 
     //
