@@ -292,7 +292,7 @@ workflow CHIPSEQ {
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(BAM_FILTER_BAMTOOLS.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(BAM_FILTER_BAMTOOLS.out.versions)
 
     //
     // MODULE: Preseq coverage analysis
