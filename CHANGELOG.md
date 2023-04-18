@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#317](https://github.com/nf-core/chipseq/issues/317)] Added metro map
 - [[#288](https://github.com/nf-core/chipseq/issues/291)] Bump `chromap` version 2 and enable all the steps below chromap again when paired-end data is processed.
 - [[#311](https://github.com/nf-core/chipseq/issues/311)] Add back `--skip_spp` parameter which was unintentionally removed from the code.
+- Install available nf-core subworkflows and refactor code accordingly
 
 ## [[2.0.0](https://github.com/nf-core/chipseq/releases/tag/2.0.0)] - 2022-10-03
 
