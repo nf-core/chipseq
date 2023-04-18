@@ -27,7 +27,7 @@
                     },
                     "chromap/chromap": {
                         "branch": "master",
-                        "git_sha": "d6b7b1f108dab88b0269a4331767c36a1a8da960",
+                        "git_sha": "b7f0dbc07af00c0ccdc7c2df06efee8786e976ac",
                         "installed_by": ["fastq_align_chromap", "modules"]
                     },
                     "chromap/index": {
