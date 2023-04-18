@@ -82,7 +82,8 @@ include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_c
 //
 include { INPUT_CHECK         } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME      } from '../subworkflows/local/prepare_genome'
-include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
+include { ALIGN_STAR          } from '../subworkflows/local/align_star'
+include { BAM_FILTER_BAMTOOLS } from '../subworkflows/local/bam_filter_bamtools'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -118,10 +119,8 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../module
 include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq_fastqc_umitools_trimgalore/main'
 include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq_align_bwa/main'
 include { FASTQ_ALIGN_BOWTIE2              } from '../subworkflows/nf-core/fastq_align_bowtie2/main'
-
-include { ALIGN_CHROMAP          } from '../subworkflows/nf-core/align_chromap'
-include { ALIGN_STAR             } from '../subworkflows/nf-core/align_star'
-include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'
+include { FASTQ_ALIGN_CHROMAP              } from '../subworkflows/nf-core/fastq_align_chromap/main'
+include { MARK_DUPLICATES_PICARD           } from '../subworkflows/nf-core/mark_duplicates_picard'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -213,20 +212,24 @@ workflow CHIPSEQ {
     // SUBWORKFLOW: Alignment with Chromap & BAM QC
     //
     if (params.aligner == 'chromap') {
-        ALIGN_CHROMAP (
+        FASTQ_ALIGN_CHROMAP (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
             PREPARE_GENOME.out.fasta
                 .map {
                     [ [:], it ]
-                }
+                },
+            [],
+            [],
+            [],
+            []
         )
-        ch_genome_bam        = ALIGN_CHROMAP.out.bam
-        ch_genome_bam_index  = ALIGN_CHROMAP.out.bai
-        ch_samtools_stats    = ALIGN_CHROMAP.out.stats
-        ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
-        ch_samtools_idxstats = ALIGN_CHROMAP.out.idxstats
-        ch_versions = ch_versions.mix(ALIGN_CHROMAP.out.versions.first())
+        ch_genome_bam        = FASTQ_ALIGN_CHROMAP.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.bai
+        ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
+        ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
+        ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions.first())
     }
 
     //
@@ -282,13 +285,14 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Filter BAM file with BamTools
     //
-    FILTER_BAM_BAMTOOLS (
+    BAM_FILTER_BAMTOOLS (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
+        PREPARE_GENOME.out.fasta,
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(BAM_FILTER_BAMTOOLS.out.versions.first().ifEmpty(null))
 
     //
     // MODULE: Preseq coverage analysis
@@ -305,12 +309,33 @@ workflow CHIPSEQ {
     //
     // MODULE: Picard post alignment QC
     //
+    BAM_FILTER_BAMTOOLS
+                .out
+                .bam
+                .map {
+                    [ it[0], it[1], [] ]
+                }
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
     if (!params.skip_picard_metrics) {
         PICARD_COLLECTMULTIPLEMETRICS (
-            FILTER_BAM_BAMTOOLS.out.bam,
-            PREPARE_GENOME.out.fasta,
-            []
+            BAM_FILTER_BAMTOOLS
+                .out
+                .bam
+                .map {
+                    [ it[0], it[1], [] ]
+                },
+            PREPARE_GENOME
+                .out
+                .fasta
+                .map {
+                    [ [:], it ]
+                },
+            PREPARE_GENOME
+                .out
+                .fai
+                .map {
+                    [ [:], it ]
+                }
         )
         ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
         ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
@@ -325,7 +350,7 @@ workflow CHIPSEQ {
     ch_multiqc_phantompeakqualtools_correlation_multiqc = Channel.empty()
     if (!params.skip_spp) {
         PHANTOMPEAKQUALTOOLS (
-            FILTER_BAM_BAMTOOLS.out.bam
+            BAM_FILTER_BAMTOOLS.out.bam
         )
         ch_phantompeakqualtools_spp_multiqc           = PHANTOMPEAKQUALTOOLS.out.spp
         ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
@@ -348,7 +373,7 @@ workflow CHIPSEQ {
     // MODULE: BedGraph coverage tracks
     //
     BEDTOOLS_GENOMECOV (
-        FILTER_BAM_BAMTOOLS.out.bam.join(FILTER_BAM_BAMTOOLS.out.flagstat, by: [0])
+        BAM_FILTER_BAMTOOLS.out.bam.join(BAM_FILTER_BAMTOOLS.out.flagstat, by: [0])
     )
     ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
 
@@ -393,10 +418,10 @@ workflow CHIPSEQ {
     //
     // Create channels: [ meta, [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
     //
-    FILTER_BAM_BAMTOOLS
+    BAM_FILTER_BAMTOOLS
         .out
         .bam
-        .join(FILTER_BAM_BAMTOOLS.out.bai, by: [0])
+        .join(BAM_FILTER_BAMTOOLS.out.bai, by: [0])
         .set { ch_genome_bam_bai }
 
     ch_genome_bam_bai
@@ -697,9 +722,9 @@ workflow CHIPSEQ {
             MARK_DUPLICATES_PICARD.out.idxstats.collect{it[1]}.ifEmpty([]),
             MARK_DUPLICATES_PICARD.out.metrics.collect{it[1]}.ifEmpty([]),
 
-            FILTER_BAM_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
-            FILTER_BAM_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
-            FILTER_BAM_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
+            BAM_FILTER_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
+            BAM_FILTER_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
+            BAM_FILTER_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
             ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
