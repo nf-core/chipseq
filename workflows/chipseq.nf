@@ -309,12 +309,6 @@ workflow CHIPSEQ {
     //
     // MODULE: Picard post alignment QC
     //
-    BAM_FILTER_BAMTOOLS
-                .out
-                .bam
-                .map {
-                    [ it[0], it[1], [] ]
-                }
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
     if (!params.skip_picard_metrics) {
         PICARD_COLLECTMULTIPLEMETRICS (
