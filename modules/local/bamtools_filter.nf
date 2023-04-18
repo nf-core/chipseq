@@ -1,7 +1,4 @@
-/*
- * Filter BAM file
- */
-process BAM_FILTER {
+process BAMTOOLS_FILTER {
     tag "$meta.id"
     label 'process_medium'
 
@@ -20,19 +17,18 @@ process BAM_FILTER {
     tuple val(meta), path("*.bam"), emit: bam
     path "versions.yml"           , emit: versions
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
-    def prefix           = task.ext.prefix ?: "${meta.id}"
-    def filter_params    = meta.single_end ? '-F 0x004' : '-F 0x004 -F 0x0008 -f 0x001'
-    def dup_params       = params.keep_dups ? '' : '-F 0x0400'
-    def multimap_params  = params.keep_multi_map ? '' : '-q 1'
-    def blacklist_params = params.blacklist ? "-L $bed" : ''
-    def config           = meta.single_end ? bamtools_filter_se_config : bamtools_filter_pe_config
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    def blacklist = bed ? "-L $bed" : ''
+    def config = meta.single_end ? bamtools_filter_se_config : bamtools_filter_pe_config
     """
     samtools view \\
-        $filter_params \\
-        $dup_params \\
-        $multimap_params \\
-        $blacklist_params \\
+        $args \\
+        $blacklist \\
         -b $bam \\
         | bamtools filter \\
             -out ${prefix}.bam \\

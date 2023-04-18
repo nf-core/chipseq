@@ -82,7 +82,8 @@ include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_c
 //
 include { INPUT_CHECK         } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME      } from '../subworkflows/local/prepare_genome'
-include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
+include { ALIGN_STAR          } from '../subworkflows/local/align_star'
+include { BAM_FILTER_BAMTOOLS } from '../subworkflows/local/bam_filter_bamtools'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -115,12 +116,11 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../module
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
 //
 
-include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
-include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
-include { ALIGN_BOWTIE2          } from '../subworkflows/nf-core/align_bowtie2'
-include { ALIGN_CHROMAP          } from '../subworkflows/nf-core/align_chromap'
-include { ALIGN_STAR             } from '../subworkflows/nf-core/align_star'
-include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'
+include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq_fastqc_umitools_trimgalore/main'
+include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq_align_bwa/main'
+include { FASTQ_ALIGN_BOWTIE2              } from '../subworkflows/nf-core/fastq_align_bowtie2/main'
+include { FASTQ_ALIGN_CHROMAP              } from '../subworkflows/nf-core/fastq_align_chromap/main'
+include { MARK_DUPLICATES_PICARD           } from '../subworkflows/nf-core/mark_duplicates_picard'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -155,12 +155,16 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Read QC and trim adapters
     //
-    FASTQC_TRIMGALORE (
+    FASTQ_FASTQC_UMITOOLS_TRIMGALORE (
         INPUT_CHECK.out.reads,
         params.skip_fastqc || params.skip_qc,
-        params.skip_trimming
+        false,
+        false,
+        params.skip_trimming,
+        0,
+        10000
     )
-    ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
+    ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
@@ -171,53 +175,61 @@ workflow CHIPSEQ {
     ch_samtools_flagstat = Channel.empty()
     ch_samtools_idxstats = Channel.empty()
     if (params.aligner == 'bwa') {
-        ALIGN_BWA_MEM (
-            FASTQC_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.bwa_index
+        FASTQ_ALIGN_BWA (
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.bwa_index,
+            false,
+            PREPARE_GENOME.out.fasta
         )
-        ch_genome_bam        = ALIGN_BWA_MEM.out.bam
-        ch_genome_bam_index  = ALIGN_BWA_MEM.out.bai
-        ch_samtools_stats    = ALIGN_BWA_MEM.out.stats
-        ch_samtools_flagstat = ALIGN_BWA_MEM.out.flagstat
-        ch_samtools_idxstats = ALIGN_BWA_MEM.out.idxstats
-        ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
+        ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
+        ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
+        ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
+        ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_BWA.out.versions)
     }
 
     //
     // SUBWORKFLOW: Alignment with Bowtie2 & BAM QC
     //
     if (params.aligner == 'bowtie2') {
-        ALIGN_BOWTIE2 (
-            FASTQC_TRIMGALORE.out.reads,
+        FASTQ_ALIGN_BOWTIE2 (
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.bowtie2_index,
-            params.save_unaligned
+            params.save_unaligned,
+            false,
+            PREPARE_GENOME.out.fasta
         )
-        ch_genome_bam        = ALIGN_BOWTIE2.out.bam
-        ch_genome_bam_index  = ALIGN_BOWTIE2.out.bai
-        ch_samtools_stats    = ALIGN_BOWTIE2.out.stats
-        ch_samtools_flagstat = ALIGN_BOWTIE2.out.flagstat
-        ch_samtools_idxstats = ALIGN_BOWTIE2.out.idxstats
-        ch_versions = ch_versions.mix(ALIGN_BOWTIE2.out.versions.first())
+        ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
+        ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
+        ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
+        ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions.first())
     }
 
     //
     // SUBWORKFLOW: Alignment with Chromap & BAM QC
     //
     if (params.aligner == 'chromap') {
-        ALIGN_CHROMAP (
-            FASTQC_TRIMGALORE.out.reads,
+        FASTQ_ALIGN_CHROMAP (
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
             PREPARE_GENOME.out.fasta
                 .map {
                     [ [:], it ]
-                }
+                },
+            [],
+            [],
+            [],
+            []
         )
-        ch_genome_bam        = ALIGN_CHROMAP.out.bam
-        ch_genome_bam_index  = ALIGN_CHROMAP.out.bai
-        ch_samtools_stats    = ALIGN_CHROMAP.out.stats
-        ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
-        ch_samtools_idxstats = ALIGN_CHROMAP.out.idxstats
-        ch_versions = ch_versions.mix(ALIGN_CHROMAP.out.versions.first())
+        ch_genome_bam        = FASTQ_ALIGN_CHROMAP.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.bai
+        ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
+        ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
+        ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions.first())
     }
 
     //
@@ -225,8 +237,10 @@ workflow CHIPSEQ {
     //
     if (params.aligner == 'star') {
         ALIGN_STAR (
-            FASTQC_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.star_index
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.star_index,
+            PREPARE_GENOME.out.fasta,
+            params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
         ch_genome_bam_index  = ALIGN_STAR.out.bai
@@ -273,13 +287,14 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Filter BAM file with BamTools
     //
-    FILTER_BAM_BAMTOOLS (
+    BAM_FILTER_BAMTOOLS (
         MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
+        PREPARE_GENOME.out.fasta,
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(BAM_FILTER_BAMTOOLS.out.versions)
 
     //
     // MODULE: Preseq coverage analysis
@@ -299,9 +314,24 @@ workflow CHIPSEQ {
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
     if (!params.skip_picard_metrics) {
         PICARD_COLLECTMULTIPLEMETRICS (
-            FILTER_BAM_BAMTOOLS.out.bam,
-            PREPARE_GENOME.out.fasta,
-            []
+            BAM_FILTER_BAMTOOLS
+                .out
+                .bam
+                .map {
+                    [ it[0], it[1], [] ]
+                },
+            PREPARE_GENOME
+                .out
+                .fasta
+                .map {
+                    [ [:], it ]
+                },
+            PREPARE_GENOME
+                .out
+                .fai
+                .map {
+                    [ [:], it ]
+                }
         )
         ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
         ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
@@ -310,26 +340,36 @@ workflow CHIPSEQ {
     //
     // MODULE: Phantompeaktools strand cross-correlation and QC metrics
     //
-    PHANTOMPEAKQUALTOOLS (
-        FILTER_BAM_BAMTOOLS.out.bam
-    )
-    ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
+    ch_phantompeakqualtools_spp_multiqc                 = Channel.empty()
+    ch_multiqc_phantompeakqualtools_nsc_multiqc         = Channel.empty()
+    ch_multiqc_phantompeakqualtools_rsc_multiqc         = Channel.empty()
+    ch_multiqc_phantompeakqualtools_correlation_multiqc = Channel.empty()
+    if (!params.skip_spp) {
+        PHANTOMPEAKQUALTOOLS (
+            BAM_FILTER_BAMTOOLS.out.bam
+        )
+        ch_phantompeakqualtools_spp_multiqc           = PHANTOMPEAKQUALTOOLS.out.spp
+        ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
 
-    //
-    // MODULE: MultiQC custom content for Phantompeaktools
-    //
-    MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
-        PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
-        ch_spp_nsc_header,
-        ch_spp_rsc_header,
-        ch_spp_correlation_header
-    )
+        //
+        // MODULE: MultiQC custom content for Phantompeaktools
+        //
+        MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS (
+            PHANTOMPEAKQUALTOOLS.out.spp.join(PHANTOMPEAKQUALTOOLS.out.rdata, by: [0]),
+            ch_spp_nsc_header,
+            ch_spp_rsc_header,
+            ch_spp_correlation_header
+        )
+        ch_multiqc_phantompeakqualtools_nsc_multiqc         = MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc
+        ch_multiqc_phantompeakqualtools_rsc_multiqc         = MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc
+        ch_multiqc_phantompeakqualtools_correlation_multiqc = MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation
+    }
 
     //
     // MODULE: BedGraph coverage tracks
     //
     BEDTOOLS_GENOMECOV (
-        FILTER_BAM_BAMTOOLS.out.bam.join(FILTER_BAM_BAMTOOLS.out.flagstat, by: [0])
+        BAM_FILTER_BAMTOOLS.out.bam.join(BAM_FILTER_BAMTOOLS.out.flagstat, by: [0])
     )
     ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
 
@@ -374,10 +414,10 @@ workflow CHIPSEQ {
     //
     // Create channels: [ meta, [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
     //
-    FILTER_BAM_BAMTOOLS
+    BAM_FILTER_BAMTOOLS
         .out
         .bam
-        .join(FILTER_BAM_BAMTOOLS.out.bai, by: [0])
+        .join(BAM_FILTER_BAMTOOLS.out.bai, by: [0])
         .set { ch_genome_bam_bai }
 
     ch_genome_bam_bai
@@ -665,9 +705,9 @@ workflow CHIPSEQ {
             ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'),
             ch_multiqc_logo.collect().ifEmpty([]),
 
-            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
 
             ch_samtools_stats.collect{it[1]}.ifEmpty([]),
             ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
@@ -678,9 +718,9 @@ workflow CHIPSEQ {
             MARK_DUPLICATES_PICARD.out.idxstats.collect{it[1]}.ifEmpty([]),
             MARK_DUPLICATES_PICARD.out.metrics.collect{it[1]}.ifEmpty([]),
 
-            FILTER_BAM_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
-            FILTER_BAM_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
-            FILTER_BAM_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
+            BAM_FILTER_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
+            BAM_FILTER_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
+            BAM_FILTER_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
             ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
@@ -688,10 +728,10 @@ workflow CHIPSEQ {
             ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
             ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
 
-            PHANTOMPEAKQUALTOOLS.out.spp.collect{it[1]}.ifEmpty([]),
-            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.nsc.collect{it[1]}.ifEmpty([]),
-            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.rsc.collect{it[1]}.ifEmpty([]),
-            MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS.out.correlation.collect{it[1]}.ifEmpty([]),
+            ch_phantompeakqualtools_spp_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_multiqc_phantompeakqualtools_nsc_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_multiqc_phantompeakqualtools_rsc_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_multiqc_phantompeakqualtools_correlation_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
             ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),

@@ -11,6 +11,7 @@ process STAR_ALIGN {
     input:
     tuple val(meta), path(reads)
     path  index
+    val seq_center
 
     output:
     tuple val(meta), path('*d.out.bam')       , emit: bam
@@ -25,10 +26,13 @@ process STAR_ALIGN {
     tuple val(meta), path('*fastq.gz')               , optional:true, emit: fastq
     tuple val(meta), path('*.tab')                   , optional:true, emit: tab
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def seq_center = params.seq_center ? "--outSAMattrRGline ID:$prefix 'CN:$params.seq_center' 'SM:$prefix'" : "--outSAMattrRGline ID:$prefix 'SM:$prefix'"
+    def seq_center_tag = seq_center ? "--outSAMattrRGline ID:$prefix 'CN:$seq_center' 'SM:$prefix'" : "--outSAMattrRGline ID:$prefix 'SM:$prefix'"
     def out_sam_type = (args.contains('--outSAMtype')) ? '' : '--outSAMtype BAM Unsorted'
     def mv_unsorted_bam = (args.contains('--outSAMtype BAM Unsorted SortedByCoordinate')) ? "mv ${prefix}.Aligned.out.bam ${prefix}.Aligned.unsort.out.bam" : ''
     """
@@ -38,7 +42,7 @@ process STAR_ALIGN {
         --runThreadN $task.cpus \\
         --outFileNamePrefix $prefix. \\
         $out_sam_type \\
-        $seq_center \\
+        $seq_center_tag \\
         $args
     $mv_unsorted_bam
     if [ -f ${prefix}.Unmapped.out.mate1 ]; then
