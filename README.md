@@ -32,7 +32,7 @@ You can find numerous talks on the [nf-core events page](https://nf-co.re/events
 2. Adapter trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
 3. Choice of multiple aligners
    1.([`BWA`](https://sourceforge.net/projects/bio-bwa/files/))
-   2.([`Chromap`](https://github.com/haowenz/chromap)). **For paired-end reads only working until mapping steps, see [here](https://github.com/nf-core/chipseq/issues/291)**
+   2.([`Chromap`](https://github.com/haowenz/chromap))
    3.([`Bowtie2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
    4.([`STAR`](https://github.com/alexdobin/STAR))
 4. Mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
