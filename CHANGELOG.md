@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#311](https://github.com/nf-core/chipseq/issues/311)] Add back `--skip_spp` parameter which was unintentionally removed from the code.
 - Install available nf-core subworkflows and refactor code accordingly
 - [[#318](https://github.com/nf-core/chipseq/issues/318)] Update `bowtie2/align` module to fix issue when downloading its singularity image.
+- [[#320](https://github.com/nf-core/chipseq/issues/320)] Fix samplesheet control column in documentation examples.
 
 ## [[2.0.0](https://github.com/nf-core/chipseq/releases/tag/2.0.0)] - 2022-10-03
 
