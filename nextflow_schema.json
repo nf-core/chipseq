@@ -37,6 +37,7 @@
                     "type": "integer",
                     "description": "Read length used to calculate MACS2 genome size for peak calling if `--macs_gsize` isn't provided.",
                     "fa_icon": "fas fa-chart-area",
+                    "help_text": "Read length is used to calculate MACS2 genome size using the following [approach](https://deeptools.readthedocs.io/en/develop/content/feature/effectiveGenomeSize.html#effective-genome-size). For all the genomes present in the `igenomes.config` the genome size has been precomputed and the read length is then used to retrieve the corresponding value",
                     "enum": [50, 75, 100, 150, 200]
                 },
                 "outdir": {
@@ -132,7 +133,7 @@
                 "macs_gsize": {
                     "type": "number",
                     "description": "Effective genome size parameter required by MACS2.",
-                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter is not specified then the MACS2 peak-calling and differential analysis will be skipped.",
+                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. If using an iGenomes reference these have been provided for any of the genomes available in the igenomes.config, and for the following read lengths (50,75,100,150,200) that should be set using the `--read_length` parameter. For other genomes, if this parameter is not specified then the MACS2 peak-calling and differential analysis will be skipped.",
                     "fa_icon": "fas fa-arrows-alt-h"
                 },
                 "blacklist": {
