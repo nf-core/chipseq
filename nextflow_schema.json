@@ -37,7 +37,7 @@
                     "type": "integer",
                     "description": "Read length used to calculate MACS2 genome size for peak calling if `--macs_gsize` isn't provided.",
                     "fa_icon": "fas fa-chart-area",
-                    "help_text": "Read length is used to calculate MACS2 genome size using the following [approach](https://deeptools.readthedocs.io/en/develop/content/feature/effectiveGenomeSize.html#effective-genome-size). For all the genomes present in the `igenomes.config` the genome size has been precomputed and the read length is then used to retrieve the corresponding value",
+                    "help_text": "Read length together with the genome fasta are used to calculate MACS2 genome size using the `khmer` program as explained [here](https://deeptools.readthedocs.io/en/develop/content/feature/effectiveGenomeSize.html#effective-genome-size). For all the genomes present in the `igenomes.config` the genome size has been already precomputed and the read length is then used to retrieve the corresponding value",
                     "enum": [50, 75, 100, 150, 200]
                 },
                 "outdir": {
