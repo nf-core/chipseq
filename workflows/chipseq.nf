@@ -120,7 +120,7 @@ include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq
 include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq_align_bwa/main'
 include { FASTQ_ALIGN_BOWTIE2              } from '../subworkflows/nf-core/fastq_align_bowtie2/main'
 include { FASTQ_ALIGN_CHROMAP              } from '../subworkflows/nf-core/fastq_align_chromap/main'
-include { MARK_DUPLICATES_PICARD           } from '../subworkflows/nf-core/mark_duplicates_picard'
+include { BAM_MARKDUPLICATES_PICARD        } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -279,16 +279,18 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
     //
-    MARK_DUPLICATES_PICARD (
-        PICARD_MERGESAMFILES.out.bam
+    BAM_MARKDUPLICATES_PICARD (
+        PICARD_MERGESAMFILES.out.bam,
+        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME.out.fai
     )
-    ch_versions = ch_versions.mix(MARK_DUPLICATES_PICARD.out.versions)
+    ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD.out.versions)
 
     //
     // SUBWORKFLOW: Filter BAM file with BamTools
     //
     BAM_FILTER_BAMTOOLS (
-        MARK_DUPLICATES_PICARD.out.bam.join(MARK_DUPLICATES_PICARD.out.bai, by: [0]),
+        BAM_MARKDUPLICATES_PICARD.out.bam.join(BAM_MARKDUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
         PREPARE_GENOME.out.fasta,
         ch_bamtools_filter_se_config,
@@ -302,7 +304,7 @@ workflow CHIPSEQ {
     ch_preseq_multiqc = Channel.empty()
     if (!params.skip_preseq) {
         PRESEQ_LCEXTRAP (
-            MARK_DUPLICATES_PICARD.out.bam
+            BAM_MARKDUPLICATES_PICARD.out.bam
         )
         ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
         ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
@@ -713,10 +715,10 @@ workflow CHIPSEQ {
             ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
             ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
 
-            MARK_DUPLICATES_PICARD.out.stats.collect{it[1]}.ifEmpty([]),
-            MARK_DUPLICATES_PICARD.out.flagstat.collect{it[1]}.ifEmpty([]),
-            MARK_DUPLICATES_PICARD.out.idxstats.collect{it[1]}.ifEmpty([]),
-            MARK_DUPLICATES_PICARD.out.metrics.collect{it[1]}.ifEmpty([]),
+            BAM_MARKDUPLICATES_PICARD.out.stats.collect{it[1]}.ifEmpty([]),
+            BAM_MARKDUPLICATES_PICARD.out.flagstat.collect{it[1]}.ifEmpty([]),
+            BAM_MARKDUPLICATES_PICARD.out.idxstats.collect{it[1]}.ifEmpty([]),
+            BAM_MARKDUPLICATES_PICARD.out.metrics.collect{it[1]}.ifEmpty([]),
 
             BAM_FILTER_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
             BAM_FILTER_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
