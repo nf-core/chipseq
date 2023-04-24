@@ -144,7 +144,7 @@ workflow PREPARE_GENOME {
                 ch_bwa_index = file(params.bwa_index)
             }
         } else {
-            ch_bwa_index = BWA_INDEX ( ch_fasta ).index
+            ch_bwa_index = BWA_INDEX ( [ [:], ch_fasta ] ).index
             ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
         }
     }
