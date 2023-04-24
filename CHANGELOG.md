@@ -16,6 +16,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#320](https://github.com/nf-core/chipseq/issues/320)] Fix samplesheet control column in documentation examples.
 - [[#328](https://github.com/nf-core/chipseq/issues/328)] Modify documentation to clarify that is necessary to provide the `--read_length` when `--genome` is set and `--macs_gsize` has not provided.
 
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+| Dependency              | Old version | New version |
+| ----------------------- | ----------- | ----------- |
+| `chromap`               | 0.2.1       | 0.2.4       |
+| `multiqc`               | 1.13        | 1.14        |
+| `picard`                | 2.27.4      | 3.0.0       |
+| `samtools`              | 1.15.1      | 1.16.1      |
+
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
+
 ## [[2.0.0](https://github.com/nf-core/chipseq/releases/tag/2.0.0)] - 2022-10-03
 
 ### Enhancements & fixes
