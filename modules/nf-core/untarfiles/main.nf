@@ -1,4 +1,4 @@
-process UNTAR {
+process UNTARFILES {
     tag "$archive"
     label 'process_single'
 
@@ -11,8 +11,8 @@ process UNTAR {
     tuple val(meta), path(archive)
 
     output:
-    tuple val(meta), path("$prefix"), emit: untar
-    path "versions.yml"             , emit: versions
+    tuple val(meta), path("${prefix}/**") , emit: files
+    path "versions.yml"                   , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -25,23 +25,12 @@ process UNTAR {
     """
     mkdir $prefix
 
-    ## Ensures --strip-components only applied when top level of tar contents is a directory
-    ## If just files or multiple directories, place all in prefix
-    if [[ \$(tar -taf ${archive} | grep -o -P "^.*?\\/" | uniq | wc -l) -eq 1 ]]; then
-        tar \\
-            -C $prefix --strip-components 1 \\
-            -xavf \\
-            $args \\
-            $archive \\
-            $args2
-    else
-        tar \\
-            -C $prefix \\
-            -xavf \\
-            $args \\
-            $archive \\
-            $args2
-    fi
+    tar \\
+        -C $prefix \\
+        -xavf \\
+        $args \\
+        $archive \\
+        $args2
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -50,7 +39,7 @@ process UNTAR {
     """
 
     stub:
-    prefix    = task.ext.prefix ?: ( meta.id ? "${meta.id}" : archive.toString().replaceFirst(/\.[^\.]+(.gz)?$/, ""))
+    prefix    = task.ext.prefix ?: "${meta.id}"
     """
     mkdir $prefix
     touch ${prefix}/file.txt

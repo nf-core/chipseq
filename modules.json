@@ -172,7 +172,12 @@
                     },
                     "untar": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "cc1f997fab6d8fde5dc0e6e2a310814df5b53ce7",
+                        "installed_by": ["modules"]
+                    },
+                    "untarfiles": {
+                        "branch": "master",
+                        "git_sha": "2498e243c8c30c7125661e62fc777917d8e343b9",
                         "installed_by": ["modules"]
                     }
                 }

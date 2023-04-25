@@ -12,9 +12,9 @@ include {
 include {
     UNTAR as UNTAR_BWA_INDEX
     UNTAR as UNTAR_BOWTIE2_INDEX
-    UNTAR as UNTAR_CHROMAP_INDEX
     UNTAR as UNTAR_STAR_INDEX    } from '../../modules/nf-core/untar/main'
 
+include { UNTARFILES           } from '../../modules/nf-core/untarfiles/main'
 include { GFFREAD              } from '../../modules/nf-core/gffread/main'
 include { CUSTOM_GETCHROMSIZES } from '../../modules/nf-core/custom/getchromsizes/main'
 include { BWA_INDEX            } from '../../modules/nf-core/bwa/index/main'
@@ -138,7 +138,7 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'bwa') {
         if (params.bwa_index) {
             if (params.bwa_index.endsWith('.tar.gz')) {
-                ch_bwa_index = UNTAR_BWA_INDEX ( [ [:], params.bwa_index ] ).untar.map{ it[1] }
+                ch_bwa_index = UNTAR_BWA_INDEX ( [ [:], params.bwa_index ] ).untar
                 ch_versions  = ch_versions.mix(UNTAR_BWA_INDEX.out.versions)
             } else {
                 ch_bwa_index = file(params.bwa_index)
@@ -174,8 +174,8 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'chromap') {
         if (params.chromap_index) {
             if (params.chromap_index.endsWith('.tar.gz')) {
-                ch_chromap_index = UNTAR_CHROMAP_INDEX ( [ [:], params.chromap_index ] ).untar.map{ it[1] }
-                ch_versions  = ch_versions.mix(UNTAR.out.versions)
+                ch_chromap_index = UNTARFILES ( [ [:], params.chromap_index ] ).files
+                ch_versions  = ch_versions.mix(UNTARFILES.out.versions)
             } else {
                 ch_chromap_index = [ [:], file(params.chromap_index) ]
             }
