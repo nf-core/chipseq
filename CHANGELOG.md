@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#318](https://github.com/nf-core/chipseq/issues/318)] Update `bowtie2/align` module to fix issue when downloading its singularity image.
 - [[#320](https://github.com/nf-core/chipseq/issues/320)] Fix samplesheet control column in documentation examples.
 - [[#328](https://github.com/nf-core/chipseq/issues/328)] Modify documentation to clarify that is necessary to provide the `--read_length` when `--genome` is set and `--macs_gsize` has not provided.
+- Remove `enable_conda` param from local modules.
+- Fix the path where `chromap` index is stored when `--save_reference` is set.
+- Fix untar of `chromap` index when using `--chromap_index` param.
 
 ### Software dependencies
 
