@@ -192,7 +192,7 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'star') {
         if (params.star_index) {
             if (params.star_index.endsWith('.tar.gz')) {
-                ch_star_index = UNTAR_STAR_INDEX ( [ [:], params.star_index ] ).untar
+                ch_star_index = UNTAR_STAR_INDEX ( [ [:], params.star_index ] ).untar.map{ it[1] }
                 ch_versions   = ch_versions.mix(UNTAR_STAR_INDEX.out.versions)
             } else {
                 ch_star_index = file(params.star_index)
