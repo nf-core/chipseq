@@ -9,8 +9,8 @@ process STAR_ALIGN {
         'quay.io/biocontainers/star:2.6.1d--0' }"
 
     input:
-    tuple val(meta), path(reads)
-    path  index
+    tuple val(meta) , path(reads)
+    tuple val(meta2), path(index)
     val seq_center
 
     output:
