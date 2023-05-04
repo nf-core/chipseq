@@ -17,5 +17,3 @@ reports:
     display: "Per-sample MACS2 broadPeak file"
   "*_peaks.narrowPeak":
     display: "Per-sample MACS2 narrowPeak file"
-  samplesheet.csv:
-    display: "Auto-created samplesheet with collated metadata and FASTQ paths"
