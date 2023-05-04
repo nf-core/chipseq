@@ -25,7 +25,6 @@ def make_dir(path):
                 raise exception
 
 
-<<<<<<< HEAD
 def print_error(error, context="Line", context_str=""):
     error_str = "ERROR: Please check samplesheet -> {}".format(error)
     if context != "" and context_str != "":
@@ -34,17 +33,6 @@ def print_error(error, context="Line", context_str=""):
         )
     print(error_str)
     sys.exit(1)
-=======
-    .. _text file:
-        https://docs.python.org/3/glossary.html#term-text-file
-
-    """
-    peek = read_head(handle)
-    handle.seek(0)
-    sniffer = csv.Sniffer()
-    dialect = sniffer.sniff(peek)
-    return dialect
->>>>>>> 9b4a92a885010e56778a1b52eaf2e4fbc69cc53f
 
 
 def check_samplesheet(file_in, file_out):
