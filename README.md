@@ -86,9 +86,9 @@ WT_INPUT_REP3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
 
 Now, you can run the pipeline using:
 
-   ```bash
-   nextflow run nf-core/chipseq --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
-   ```
+```bash
+nextflow run nf-core/chipseq --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
+```
 
 See [usage docs](https://nf-co.re/chipseq/usage) for all of the available options when running the pipeline.
 
