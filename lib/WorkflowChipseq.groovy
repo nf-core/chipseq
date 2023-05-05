@@ -2,6 +2,7 @@
 // This file holds several functions specific to the workflow/chipseq.nf in the nf-core/chipseq pipeline
 //
 
+import nextflow.Nextflow
 import groovy.text.SimpleTemplateEngine
 
 class WorkflowChipseq {
@@ -14,13 +15,12 @@ class WorkflowChipseq {
 
 
         if (!params.fasta) {
-            log.error "Genome fasta file not specified with e.g. '--fasta' or via a detectable config file."
-            System.exit(1)
+            Nextflow.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
         }
 
         if (!params.gtf && !params.gff) {
-            log.error "No GTF or GFF3 annotation specified! The pipeline requires at least one of these files."
-            System.exit(1)
+            def error_string = "No GTF or GFF3 annotation specified! The pipeline requires at least one of these files."
+            Nextflow.error(error_string)
         }
 
         if (params.gtf && params.gff) {
@@ -32,14 +32,14 @@ class WorkflowChipseq {
         }
 
         if (!params.read_length && !params.macs_gsize) {
-            log.error "Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS2 genome size for peak calling."
-            System.exit(1)
+            def error_string = "Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS2 genome size for peak calling."
+            Nextflow.error(error_string)
         }
 
         if (params.aligner) {
             if (!valid_params['aligners'].contains(params.aligner)) {
-                    log.error "Invalid option: '${params.aligner}'. Valid options for '--aligner': ${valid_params['aligners'].join(', ')}."
-                    System.exit(1)
+                    def error_string = "Invalid option: '${params.aligner}'. Valid options for '--aligner': ${valid_params['aligners'].join(', ')}."
+                    Nextflow.error(error_string)
             }
         }
     }
@@ -86,17 +86,19 @@ class WorkflowChipseq {
         def description_html = engine.createTemplate(methods_text).make(meta)
 
         return description_html
-    }//
+    }
+
+    //
     // Exit pipeline if incorrect --genome key provided
     //
     private static void genomeExistsError(params, log) {
         if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-            log.error "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
+            def error_string = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
                 "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" +
                 "  Currently, the available genome keys are:\n" +
                 "  ${params.genomes.keySet().join(", ")}\n" +
                 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            System.exit(1)
+            Nextflow.error(error_string)
         }
     }
 
