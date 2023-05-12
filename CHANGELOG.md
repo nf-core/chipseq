@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove `enable_conda` param from local modules.
 - Fix the path where `chromap` index is stored when `--save_reference` is set.
 - Fix untar of `chromap` index when using `--chromap_index` param.
+- [nf-core/tools#2286](https://github.com/nf-core/tools/issues/2286) Set default container registry outside profile scope.
 
 ### Software dependencies
 
