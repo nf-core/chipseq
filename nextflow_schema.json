@@ -382,6 +382,16 @@
                     "description": "Skip MultiQC.",
                     "fa_icon": "fas fa-fast-forward"
                 },
+                "skip_peak_calling": {
+                    "type": "boolean",
+                    "description": "Skip MACS2 peak calling.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_reporting": {
+                    "type": "boolean",
+                    "description": "Skip reporting.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
                 "skip_qc": {
                     "type": "boolean",
                     "fa_icon": "fas fa-fast-forward",
