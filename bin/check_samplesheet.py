@@ -51,7 +51,7 @@ def check_samplesheet(file_in, file_out):
     with open(file_in, "r", encoding="utf-8-sig") as fin:
         ## Check header
         MIN_COLS = 3
-        HEADER = ["sample", "fastq_1", "fastq_2", "replicate", "antibody", "control","control_replicate"]
+        HEADER = ["sample", "fastq_1", "fastq_2", "replicate", "antibody", "control", "control_replicate"]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print(f"ERROR: Please check samplesheet header -> {','.join(header)} != {','.join(HEADER)}")
@@ -131,7 +131,7 @@ def check_samplesheet(file_in, file_out):
             ## Auto-detect paired-end/single-end
             sample_info = []  ## [single_end, fastq_1, fastq_2, replicate, antibody, control]
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = ["0", fastq_1, fastq_2, replicate, antibody,control]
+                sample_info = ["0", fastq_1, fastq_2, replicate, antibody, control]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
                 sample_info = ["1", fastq_1, fastq_2, replicate, antibody, control]
             else:
@@ -141,7 +141,7 @@ def check_samplesheet(file_in, file_out):
             replicate = int(replicate)
             sample_info = sample_info + lspl[len(HEADER) :]
             if sample not in sample_mapping_dict:
-                    sample_mapping_dict[sample] = {}
+                sample_mapping_dict[sample] = {}
             if replicate not in sample_mapping_dict[sample]:
                 sample_mapping_dict[sample][replicate] = [sample_info]
             else:
@@ -149,7 +149,6 @@ def check_samplesheet(file_in, file_out):
                     print_error("Samplesheet contains duplicate rows!", "Line", line)
                 else:
                     sample_mapping_dict[sample][replicate].append(sample_info)
-
 
     ## Write validated samplesheet with appropriate columns
     if len(sample_mapping_dict) > 0:
@@ -208,13 +207,13 @@ def check_samplesheet(file_in, file_out):
                         control_replicate = val[-1].split("_REP")[-1]
                         if control and (
                             control not in sample_mapping_dict.keys()
-                                or int(control_replicate) not in sample_mapping_dict[control].keys()
-                            ):
-                                print_error(
-                                    f"Control identifier and replicate has to match a provided sample identifier and replicate!",
-                                    "Control",
-                                    val[4],
-                                )
+                            or int(control_replicate) not in sample_mapping_dict[control].keys()
+                        ):
+                            print_error(
+                                f"Control identifier and replicate has to match a provided sample identifier and replicate!",
+                                "Control",
+                                val[4],
+                            )
 
                     ## Write to file
                     for idx in range(len(sample_mapping_dict[sample][replicate])):
