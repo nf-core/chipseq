@@ -16,7 +16,7 @@ You will need to create a samplesheet with information about the samples you wou
 
 The `sample` identifier should be identical when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1.
 
-The `antibody` column is required to separate the downstream consensus peak merging for different antibodies. Its not advisable to generate a consensus peak set across different antibodies especially if their binding patterns are inherently different e.g. narrow transcription factors and broad histone marks.
+The `antibody` column is required to separate the downstream consensus peak merging for different antibodies. It is not advisable to generate a consensus peak set across different antibodies especially if their binding patterns are inherently different e.g. narrow transcription factors and broad histone marks.
 
 The `control` column should be the `sample` identifier for the controls for any given IP. This column together with the `control_replicate` column will set the corresponding control for each of the samples in the table.
 
