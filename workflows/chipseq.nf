@@ -599,7 +599,7 @@ workflow CHIPSEQ {
                     [ meta_new, peaks ]
             }
             .set { ch_antibody_peaks }
-        ch_antibody_peaks.dump()
+
         //
         // MODULE: Generate consensus peaks across samples
         //
