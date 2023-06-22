@@ -51,7 +51,7 @@ WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
 
 The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 7 columns to match those defined in the table below.
 
-A final design file may look something like the one below. This is for two antibodies and associated controls, where the second replicate of the  `WT_BCATENIN_IP` and `NAIVE_BCATENIN_IP` samples have been sequenced twice:
+A final design file may look something like the one below. This is for two antibodies and associated controls, where the second replicate of the `WT_BCATENIN_IP` and `NAIVE_BCATENIN_IP` samples have been sequenced twice:
 
 ```console
 sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
@@ -77,15 +77,15 @@ NAIVE_INPUT,BLA203A48_S39_L001_R1_001.fastq.gz,,2,,,
 NAIVE_INPUT,BLA203A49_S1_L006_R1_001.fastq.gz,,3,,,
 ```
 
-| Column     | Description                                                                                                                                                                            |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sample`            | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`).                                  |
-| `fastq_1`           | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                                               |
-| `fastq_2`           | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                                               |
-| `replicate`         | Integer representing replicate number. This will be identical for re-sequenced libraries. Must start from `1..<number of replicates>`.                                                                      |
-| `antibody`          | Antibody name. This is required to segregate downstream analysis for different antibodies. Required when `control` is specified.                                                                         |
-| `control`           | Sample name for control sample.                            |
-| `control_replicate` | Integer representing replicate number for control sample.  |
+| Column              | Description                                                                                                                                                                            |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sample`            | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
+| `fastq_1`           | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+| `fastq_2`           | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+| `replicate`         | Integer representing replicate number. This will be identical for re-sequenced libraries. Must start from `1..<number of replicates>`.                                                 |
+| `antibody`          | Antibody name. This is required to segregate downstream analysis for different antibodies. Required when `control` is specified.                                                       |
+| `control`           | Sample name for control sample.                                                                                                                                                        |
+| `control_replicate` | Integer representing replicate number for control sample.                                                                                                                              |
 
 Example design files have bee_n provided with the pipeline for [paired-end](../assets/samplesheet_pe.csv) and [single-end](../assets/samplesheet_se.csv) data.
 
