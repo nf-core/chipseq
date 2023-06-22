@@ -9,12 +9,12 @@ include { SAMTOOLS_FLAGSTAT } from '../../../modules/nf-core/samtools/flagstat/m
 workflow BAM_STATS_SAMTOOLS {
     take:
     ch_bam_bai // channel: [ val(meta), path(bam), path(bai) ]
-    ch_fasta   // channel: [ path(fasta) ]
+    ch_fasta   // channel: [ val(meta), path(fasta) ]
 
     main:
     ch_versions = Channel.empty()
 
-    SAMTOOLS_STATS ( ch_bam_bai, ch_fasta )
+    SAMTOOLS_STATS ( ch_bam_bai, ch_fasta.map { [ [:], it ] } )
     ch_versions = ch_versions.mix(SAMTOOLS_STATS.out.versions)
 
     SAMTOOLS_FLAGSTAT ( ch_bam_bai )
