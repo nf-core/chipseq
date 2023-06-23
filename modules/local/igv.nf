@@ -20,6 +20,7 @@ process IGV {
     output:
     path "*files.txt"  , emit: txt
     path "*.xml"       , emit: xml
+    path fasta         , emit: fasta
     path "versions.yml", emit: versions
 
     script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
