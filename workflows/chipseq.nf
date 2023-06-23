@@ -593,7 +593,8 @@ workflow CHIPSEQ {
         // MODULE: Generate consensus peaks across samples
         //
         MACS2_CONSENSUS (
-            ch_antibody_peaks
+            ch_antibody_peaks,
+            params.narrow_peak
         )
         ch_macs2_consensus_bed_lib = MACS2_CONSENSUS.out.bed
         ch_macs2_consensus_txt_lib = MACS2_CONSENSUS.out.txt
