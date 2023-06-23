@@ -30,7 +30,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `chromap`  | 0.2.1       | 0.2.4       |
 | `multiqc`  | 1.13        | 1.14        |
 | `picard`   | 2.27.4      | 3.0.0       |
-| `samtools` | 1.15.1      | 1.16.1      |
+| `samtools` | 1.15.1      | 1.17        |
 
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.
