@@ -9,14 +9,33 @@ nextflow_pipeline {
 
         when {
             params {
-                outdir = "$outputDir"
+                outdir  = "$outputDir"
                 aligner = "bowtie2"
             }
         }
 
         then {
             assertAll(
-                { assert workflow.success }
+                { assert workflow.success },
+                { assert snapshot(UTILS.removeNextflowVersion("$outputDir")).match("software_versions") },
+                { assert snapshot(path("$outputDir/bowtie2/mergedLibrary/SPT5_INPUT_REP1.mLb.clN.sorted.bam"),
+                                path("$outputDir/bowtie2/mergedLibrary/SPT5_INPUT_REP2.mLb.clN.sorted.bam"),
+                                path("$outputDir/bowtie2/mergedLibrary/SPT5_T0_REP1.mLb.clN.sorted.bam"),
+                                path("$outputDir/bowtie2/mergedLibrary/SPT5_T0_REP2.mLb.clN.sorted.bam"),
+                                path("$outputDir/bowtie2/mergedLibrary/SPT5_T15_REP1.mLb.clN.sorted.bam"),
+                                path("$outputDir/bowtie2/mergedLibrary/SPT5_T15_REP2.mLb.clN.sorted.bam")).match("bwa/mergedLibrary/") },
+                { assert new File("$outputDir/bowtie2/mergedLibrary/bigwig/").exists() },
+                { assert new File("$outputDir/bowtie2/mergedLibrary/deepTools/").exists() },
+                { assert new File("$outputDir/bowtie2/mergedLibrary/macs2/").exists() },
+                { assert new File("$outputDir/bowtie2/mergedLibrary/phantompeakqualtools/").exists() },
+                { assert new File("$outputDir/bowtie2/mergedLibrary/picard_metrics/").exists() },
+                { assert new File("$outputDir/bowtie2/mergedLibrary/samtools_stats/").exists() },
+                { assert new File("$outputDir/fastqc/").exists() },
+                { assert snapshot(path("$outputDir/genome").list()).match("genome") },
+                { assert new File("$outputDir/igv/").exists() },
+                { assert new File("$outputDir/multiqc/").exists() },
+                { assert new File("$outputDir/pipeline_info/").exists() },
+                { assert new File("$outputDir/trimgalore/").exists() }
             )
         }
 

@@ -16,7 +16,26 @@ nextflow_pipeline {
 
         then {
             assertAll(
-                { assert workflow.success }
+                { assert workflow.success },
+                { assert snapshot(UTILS.removeNextflowVersion("$outputDir")).match("software_versions") },
+                { assert snapshot(path("$outputDir/bwa/mergedLibrary/SPT5_INPUT_REP1.mLb.clN.sorted.bam"),
+                                path("$outputDir/bwa/mergedLibrary/SPT5_INPUT_REP2.mLb.clN.sorted.bam"),
+                                path("$outputDir/bwa/mergedLibrary/SPT5_T0_REP1.mLb.clN.sorted.bam"),
+                                path("$outputDir/bwa/mergedLibrary/SPT5_T0_REP2.mLb.clN.sorted.bam"),
+                                path("$outputDir/bwa/mergedLibrary/SPT5_T15_REP1.mLb.clN.sorted.bam"),
+                                path("$outputDir/bwa/mergedLibrary/SPT5_T15_REP2.mLb.clN.sorted.bam")).match("bwa/mergedLibrary/") },
+                { assert new File("$outputDir/bwa/mergedLibrary/bigwig/").exists() },
+                { assert new File("$outputDir/bwa/mergedLibrary/deepTools/").exists() },
+                { assert new File("$outputDir/bwa/mergedLibrary/macs2/").exists() },
+                { assert new File("$outputDir/bwa/mergedLibrary/phantompeakqualtools/").exists() },
+                { assert new File("$outputDir/bwa/mergedLibrary/picard_metrics/").exists() },
+                { assert new File("$outputDir/bwa/mergedLibrary/samtools_stats/").exists() },
+                { assert new File("$outputDir/fastqc/").exists() },
+                { assert snapshot(path("$outputDir/genome").list()).match("genome") },
+                { assert new File("$outputDir/igv/").exists() },
+                { assert new File("$outputDir/multiqc/").exists() },
+                { assert new File("$outputDir/pipeline_info/").exists() },
+                { assert new File("$outputDir/trimgalore/").exists() }
             )
         }
 
