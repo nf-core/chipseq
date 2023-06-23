@@ -16,7 +16,7 @@ process PLOT_MACS2_QC {
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     def args      = task.ext.args ?: ''
-    def peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
+    def peak_type = is_narrow_peak ? 'narrowPeak' : 'broadPeak'
     """
     plot_macs2_qc.r \\
         -i ${peaks.join(',')} \\

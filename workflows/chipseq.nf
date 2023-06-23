@@ -549,7 +549,8 @@ workflow CHIPSEQ {
             // MODULE: MACS2 QC plots with R
             //
             PLOT_MACS2_QC (
-                ch_macs2_peaks.collect{it[1]}
+                ch_macs2_peaks.collect{it[1]},
+                is_narrow_peak
             )
             ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
 
