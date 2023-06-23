@@ -215,7 +215,10 @@ workflow CHIPSEQ {
         FASTQ_ALIGN_CHROMAP (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
-            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                },
             [],
             [],
             [],
@@ -420,19 +423,11 @@ workflow CHIPSEQ {
         .set { ch_genome_bam_bai }
 
     ch_genome_bam_bai
+        .combine(ch_genome_bam_bai)
         .map {
-            meta, bam, bai ->
-                meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
+            meta1, bam1, bai1, meta2, bam2, bai2 ->
+                meta1.control == meta2.id ? [ meta1, [ bam1, bam2 ], [ bai1, bai2 ] ] : null
         }
-        .set { ch_control_bam_bai }
-
-    ch_genome_bam_bai
-        .map {
-            meta, bam, bai ->
-                meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
-        }
-        .combine(ch_control_bam_bai, by: 0)
-        .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
         .set { ch_ip_control_bam_bai }
 
     //
@@ -487,10 +482,7 @@ workflow CHIPSEQ {
     MACS2_CALLPEAK
         .out
         .peak
-        .filter {
-            meta, peaks ->
-                peaks.size() > 0
-        }
+        .filter { meta, peaks -> peaks.size() > 0 }
         .set { ch_macs2_peaks }
 
     // Create channels: [ meta, ip_bam, peaks ]
@@ -572,7 +564,7 @@ workflow CHIPSEQ {
     ch_deseq2_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
         // Create channels: [ meta , [ peaks ] ]
-        // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
+            // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
         ch_macs2_peaks
             .map {
                 meta, peak ->
@@ -601,8 +593,7 @@ workflow CHIPSEQ {
         // MODULE: Generate consensus peaks across samples
         //
         MACS2_CONSENSUS (
-            ch_antibody_peaks,
-            params.narrow_peak
+            ch_antibody_peaks
         )
         ch_macs2_consensus_bed_lib = MACS2_CONSENSUS.out.bed
         ch_macs2_consensus_txt_lib = MACS2_CONSENSUS.out.txt
