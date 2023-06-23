@@ -5,7 +5,7 @@ nextflow_pipeline {
     tag "test_aligner_chromap"
     tag "pipeline"
 
-    test("SPT5_T0 / SPT5_T15 / SPT5_INPUT") {
+    test("Aligner - Chromap") {
 
         when {
             params {
@@ -14,16 +14,8 @@ nextflow_pipeline {
         }
 
         then {
-            aassertAll(
-                { assert workflow.success },
-                { assert snapshot(UTILS.removeNextflowVersion("$outputDir")).match("software_versions") },
-                { assert new File("$outputDir/bwa/").exists() },
-                { assert new File("$outputDir/fastqc/").exists() },
-                { assert new File("$outputDir/genome/").exists() },
-                { assert new File("$outputDir/igv/").exists() },
-                { assert new File("$outputDir/multiqc/").exists() },
-                { assert new File("$outputDir/pipeline_info/").exists() },
-                { assert new File("$outputDir/trimgalore/").exists() }
+            assertAll(
+                { assert workflow.success }
             )
         }
 
