@@ -205,7 +205,7 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions.first())
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions)
     }
 
     //
@@ -229,7 +229,7 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions.first())
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions)
     }
 
     //
@@ -274,7 +274,7 @@ workflow CHIPSEQ {
     PICARD_MERGESAMFILES (
         ch_sort_bam
     )
-    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions.first())
 
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
