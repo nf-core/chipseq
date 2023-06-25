@@ -6,23 +6,23 @@
             "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc",
             "genome.include_regions.bed:md5,58b27f8faf81d116a596c37be421ce01"
         ],
-        "timestamp": "2023-06-23T14:47:53+0000"
+        "timestamp": "2023-06-25T23:42:37+0000"
     },
     "software_versions": {
         "content": [
-            "{BAMTOOLS_FILTER={bamtools=2.5.2, samtools=1.15.1}, BAM_REMOVE_ORPHANS={samtools=1.15.1}, BEDTOOLS_GENOMECOV={bedtools=2.30.0}, BWA_INDEX={bwa=0.7.17-r1188}, BWA_MEM={bwa=0.7.17-r1188, samtools=1.17}, CUSTOM_DUMPSOFTWAREVERSIONS={python=3.11.0, yaml=6.0}, CUSTOM_GETCHROMSIZES={getchromsizes=1.16.1}, DEEPTOOLS_COMPUTEMATRIX={deeptools=3.5.1}, DEEPTOOLS_PLOTFINGERPRINT={deeptools=3.5.1}, DEEPTOOLS_PLOTHEATMAP={deeptools=3.5.1}, DEEPTOOLS_PLOTPROFILE={deeptools=3.5.1}, FASTQC={fastqc=0.11.9}, FRIP_SCORE={bedtools=2.30.0, samtools=1.15.1}, GENOME_BLACKLIST_REGIONS={bedtools=2.30.0}, GTF2BED={perl=5.26.2}, HOMER_ANNOTATEPEAKS_MACS2={homer=4.11}, IGV={python=3.8.3}, MACS2_CALLPEAK={macs2=2.2.7.1}, PHANTOMPEAKQUALTOOLS={phantompeakqualtools=1.2.2}, PICARD_COLLECTMULTIPLEMETRICS={picard=3.0.0}, PICARD_MARKDUPLICATES={picard=3.0.0}, PICARD_MERGESAMFILES={picard=3.0.0}, PLOT_HOMER_ANNOTATEPEAKS={r-base=4.0.3}, PLOT_MACS2_QC={r-base=4.0.3}, SAMPLESHEET_CHECK={python=3.8.3}, SAMTOOLS_FLAGSTAT={samtools=1.17}, SAMTOOLS_IDXSTATS={samtools=1.17}, SAMTOOLS_INDEX={samtools=1.17}, SAMTOOLS_SORT={samtools=1.17}, SAMTOOLS_STATS={samtools=1.17}, TRIMGALORE={cutadapt=3.4, trimgalore=0.6.7}, UCSC_BEDGRAPHTOBIGWIG={ucsc=377}, Workflow={nf-core/chipseq=2.1.0dev}}"
+            "{BAMTOOLS_FILTER={bamtools=2.5.2, samtools=1.15.1}, BAM_REMOVE_ORPHANS={samtools=1.15.1}, BEDTOOLS_GENOMECOV={bedtools=2.30.0}, BWA_INDEX={bwa=0.7.17-r1188}, BWA_MEM={bwa=0.7.17-r1188, samtools=1.16.1}, CUSTOM_DUMPSOFTWAREVERSIONS={python=3.11.0, yaml=6.0}, CUSTOM_GETCHROMSIZES={getchromsizes=1.16.1}, DEEPTOOLS_COMPUTEMATRIX={deeptools=3.5.1}, DEEPTOOLS_PLOTFINGERPRINT={deeptools=3.5.1}, DEEPTOOLS_PLOTHEATMAP={deeptools=3.5.1}, DEEPTOOLS_PLOTPROFILE={deeptools=3.5.1}, FASTQC={fastqc=0.11.9}, FRIP_SCORE={bedtools=2.30.0, samtools=1.15.1}, GENOME_BLACKLIST_REGIONS={bedtools=2.30.0}, GTF2BED={perl=5.26.2}, HOMER_ANNOTATEPEAKS_MACS2={homer=4.11}, IGV={python=3.8.3}, MACS2_CALLPEAK={macs2=2.2.7.1}, PHANTOMPEAKQUALTOOLS={phantompeakqualtools=1.2.2}, PICARD_COLLECTMULTIPLEMETRICS={picard=3.0.0}, PICARD_MARKDUPLICATES={picard=3.0.0}, PICARD_MERGESAMFILES={picard=3.0.0}, PLOT_HOMER_ANNOTATEPEAKS={r-base=4.0.3}, PLOT_MACS2_QC={r-base=4.0.3}, SAMPLESHEET_CHECK={python=3.8.3}, SAMTOOLS_FLAGSTAT={samtools=1.17}, SAMTOOLS_IDXSTATS={samtools=1.17}, SAMTOOLS_INDEX={samtools=1.17}, SAMTOOLS_SORT={samtools=1.17}, SAMTOOLS_STATS={samtools=1.17}, TRIMGALORE={cutadapt=3.4, trimgalore=0.6.7}, UCSC_BEDGRAPHTOBIGWIG={ucsc=377}, Workflow={nf-core/chipseq=2.1.0dev}}"
         ],
-        "timestamp": "2023-06-23T14:47:53+0000"
+        "timestamp": "2023-06-25T23:42:37+0000"
     },
     "bwa/mergedLibrary/": {
         "content": [
-            "SPT5_INPUT_REP1.mLb.clN.sorted.bam:md5,cfe3ca6d25ea7e6bc2aaa7722da41788",
-            "SPT5_INPUT_REP2.mLb.clN.sorted.bam:md5,89419543b9259872c37c13bd98d50618",
-            "SPT5_T0_REP1.mLb.clN.sorted.bam:md5,81cdda5b11aaa901a788cc7b1bbde5c3",
-            "SPT5_T0_REP2.mLb.clN.sorted.bam:md5,0a31e5e50e3a27775d50c76c699cd1bd",
-            "SPT5_T15_REP1.mLb.clN.sorted.bam:md5,e532ef8339f6c927752860b1a963b52e",
-            "SPT5_T15_REP2.mLb.clN.sorted.bam:md5,2d7e47d3384b2b349d63d57849628e72"
+            "SPT5_INPUT_REP1.mLb.clN.sorted.bam:md5,d7bee922bf952cf61386fc16ca4caa97",
+            "SPT5_INPUT_REP2.mLb.clN.sorted.bam:md5,77546d38f90715f72970ee79115867e8",
+            "SPT5_T0_REP1.mLb.clN.sorted.bam:md5,9e08abe685744dfbc007b98f75e35a6b",
+            "SPT5_T0_REP2.mLb.clN.sorted.bam:md5,7a633fa29c9dd0572c20f71c10f3b0e7",
+            "SPT5_T15_REP1.mLb.clN.sorted.bam:md5,dbfc6b58eee6d28dc56aac5fa38703b1",
+            "SPT5_T15_REP2.mLb.clN.sorted.bam:md5,b61cb600c3866477c0c3957b779bf5f0"
         ],
-        "timestamp": "2023-06-23T14:47:53+0000"
+        "timestamp": "2023-06-25T23:42:37+0000"
     }
 }
