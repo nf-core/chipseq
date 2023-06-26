@@ -8,6 +8,7 @@ process PLOT_MACS2_QC {
 
     input:
     path peaks
+    val is_narrow_peak
 
     output:
     path '*.txt'       , emit: txt
