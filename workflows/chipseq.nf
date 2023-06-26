@@ -550,7 +550,7 @@ workflow CHIPSEQ {
             //
             PLOT_MACS2_QC (
                 ch_macs2_peaks.collect{it[1]},
-                is_narrow_peak
+                params.narrow_peak
             )
             ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
 
