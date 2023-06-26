@@ -18,6 +18,7 @@ process SAMPLESHEET_CHECK {
     task.ext.when == null || task.ext.when
 
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    def args = task.ext.args ?: ''
     """
     check_samplesheet.py \\
         $samplesheet \\
