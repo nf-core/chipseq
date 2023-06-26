@@ -17,6 +17,9 @@ process GENOME_BLACKLIST_REGIONS {
     path '*.bed'       , emit: bed
     path "versions.yml", emit: versions
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
     def file_out = "${sizes.simpleName}.include_regions.bed"
     if (blacklist) {
