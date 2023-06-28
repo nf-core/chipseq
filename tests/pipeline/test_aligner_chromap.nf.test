@@ -1,0 +1,44 @@
+nextflow_pipeline {
+
+    name "Test Workflow main.nf"
+    script "main.nf"
+    tag "test_aligner_chromap"
+    tag "pipeline"
+
+    test("Aligner - Chromap") {
+
+        when {
+            params {
+                outdir  = "$outputDir"
+                aligner = "chromap"
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(UTILS.removeNextflowVersion("$outputDir")).match("software_versions") },
+                { assert snapshot(path("$outputDir/chromap/mergedLibrary/SPT5_INPUT_REP1.mLb.clN.sorted.bam"),
+                                path("$outputDir/chromap/mergedLibrary/SPT5_INPUT_REP2.mLb.clN.sorted.bam"),
+                                path("$outputDir/chromap/mergedLibrary/SPT5_T0_REP1.mLb.clN.sorted.bam"),
+                                path("$outputDir/chromap/mergedLibrary/SPT5_T0_REP2.mLb.clN.sorted.bam"),
+                                path("$outputDir/chromap/mergedLibrary/SPT5_T15_REP1.mLb.clN.sorted.bam"),
+                                path("$outputDir/chromap/mergedLibrary/SPT5_T15_REP2.mLb.clN.sorted.bam")).match("bwa/mergedLibrary/") },
+                { assert new File("$outputDir/chromap/mergedLibrary/bigwig/").exists() },
+                { assert new File("$outputDir/chromap/mergedLibrary/deepTools/").exists() },
+                { assert new File("$outputDir/chromap/mergedLibrary/macs2/").exists() },
+                { assert new File("$outputDir/chromap/mergedLibrary/phantompeakqualtools/").exists() },
+                { assert new File("$outputDir/chromap/mergedLibrary/picard_metrics/").exists() },
+                { assert new File("$outputDir/chromap/mergedLibrary/samtools_stats/").exists() },
+                { assert new File("$outputDir/fastqc/").exists() },
+                { assert snapshot(path("$outputDir/genome").list()).match("genome") },
+                { assert new File("$outputDir/igv/").exists() },
+                { assert new File("$outputDir/multiqc/").exists() },
+                { assert new File("$outputDir/pipeline_info/").exists() },
+                { assert new File("$outputDir/trimgalore/").exists() }
+            )
+        }
+
+    }
+
+}
