@@ -692,7 +692,7 @@ workflow CHIPSEQ {
     if (!params.skip_igv) {
         IGV (
             params.aligner,
-            params.narrow_peak ? 'narrowPeak' : 'broadPeak',
+            params.narrow_peak ? 'narrow_peak' : 'broad_peak',
             PREPARE_GENOME.out.fasta,
             UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
