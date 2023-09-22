@@ -108,19 +108,19 @@ The library-level alignments associated with the same sample are merged and subs
 <details markdown="1">
     <summary>Output files</summary>
 
-- `<ALIGNER>/mergedLibrary/`
+- `<ALIGNER>/merged_library/`
   - `*.bam`: Merged library-level, coordinate sorted `*.bam` files after the marking of duplicates, and filtering based on various criteria. The file suffix for the final filtered files will be `*.mLb.clN.*`. If you specify the `--save_align_intermeds` parameter then two additional sets of files will be present. These represent the unfiltered alignments with duplicates marked (`*.mLb.mkD.*`), and in the case of paired-end datasets the filtered alignments before the removal of orphan read pairs (`*.mLb.flT.*`).
-- `<ALIGNER>/mergedLibrary/samtools_stats/`
+- `<ALIGNER>/merged_library/samtools_stats/`
   - SAMtools `*.flagstat`, `*.idxstats` and `*.stats` files generated from the alignment files.
-- `<ALIGNER>/mergedLibrary/picard_metrics/`
+- `<ALIGNER>/merged_library/picard_metrics/`
   - `*_metrics`: Alignment QC files from picard CollectMultipleMetrics.
   - `*.metrics.txt`: Metrics file from MarkDuplicates.
-- `<ALIGNER>/mergedLibrary/picard_metrics/pdf/`
+- `<ALIGNER>/merged_library/picard_metrics/pdf/`
   - `*.pdf`: Alignment QC plot files from picard CollectMultipleMetrics.
-- `<ALIGNER>/mergedLibrary/preseq/`
+- `<ALIGNER>/merged_library/preseq/`
   - `*.lc_extrap.txt`: Preseq expected future yield file.
 
-> **NB:** File names in the resulting directory (i.e. `<ALIGNER>/mergedLibrary/`) will have the '`.mLb.`' suffix.
+> **NB:** File names in the resulting directory (i.e. `<ALIGNER>/merged_library/`) will have the '`.mLb.`' suffix.
 
 </details>
 
@@ -141,7 +141,7 @@ The [Preseq](http://smithlabresearch.org/software/preseq/) package is aimed at p
 <details markdown="1">
     <summary>Output files</summary>
 
-- `<ALIGNER>/mergedLibrary/bigwig/`
+- `<ALIGNER>/merged_library/bigwig/`
   - `*.bigWig`: Normalised bigWig files scaled to 1 million mapped reads.
 
 </details>
@@ -153,12 +153,12 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in a
 <details markdown="1">
     <summary>Output files</summary>
 
-- `<ALIGNER>/mergedLibrary/phantompeakqualtools/`
+- `<ALIGNER>/merged_library/phantompeakqualtools/`
   - `*.spp.out`, `*.spp.pdf`: phantompeakqualtools output files.
   - `*_mqc.tsv`: MultiQC custom content files.
-- `<ALIGNER>/mergedLibrary/deepTools/plotFingerprint/`
+- `<ALIGNER>/merged_library/deepTools/plotFingerprint/`
   - `*.plotFingerprint.pdf`, `*.plotFingerprint.qcmetrics.txt`, `*.plotFingerprint.raw.txt`: plotFingerprint output files.
-- `<ALIGNER>/mergedLibrary/deepTools/plotProfile/`
+- `<ALIGNER>/merged_library/deepTools/plotProfile/`
   - `*.computeMatrix.mat.gz`, `*.computeMatrix.vals.mat.tab`, `*.plotProfile.pdf`, `*.plotProfile.tab`, `*.plotHeatmap.pdf`, `*.plotHeatmap.mat.tab`: plotProfile output files.
 
 </details>
@@ -188,10 +188,10 @@ The results from deepTools plotProfile gives you a quick visualisation for the g
 <details markdown="1">
     <summary>Output files</summary>
 
-- `<ALIGNER>/mergedLibrary/macs2/<PEAK_TYPE>/`
+- `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/`
   - `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak`, `*summits.bed`: MACS2 output files - the files generated will depend on whether MACS2 has been run in _narrowPeak_ or _broadPeak_ mode.
   - `*.annotatePeaks.txt`: HOMER peak-to-gene annotation file.
-- `<ALIGNER>/mergedLibrary/macs2/<PEAK_TYPE>/qc/`
+- `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/qc/`
   - `macs2_peak.plots.pdf`: QC plots for MACS2 peaks.
   - `macs2_annotatePeaks.plots.pdf`: QC plots for peak-to-gene feature annotation.
   - `*.FRiP_mqc.tsv`, `*.peak_count_mqc.tsv`, `annotatepeaks.summary_mqc.tsv`: MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios.
@@ -217,7 +217,7 @@ Various QC plots per sample including number of peaks, fold-change distribution,
 <details markdown="1">
     <summary>Output files</summary>
 
-- `<ALIGNER>/mergedLibrary/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/`
+- `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/`
   - `*.bed`: Consensus peak-set across all samples in BED format.
   - `*.saf`: Consensus peak-set across all samples in SAF format. Required by featureCounts for read quantification.
   - `*.featureCounts.txt`: Read counts across all samples relative to consensus peak-set.
@@ -245,7 +245,7 @@ The [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) tool is used to co
 <details markdown="1">
     <summary>Output files</summary>
 
-- `<ALIGNER>/mergedLibrary/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/deseq2/`
+- `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/deseq2/`
   - `*.sample.dists.txt`: Spreadsheet containing sample-to-sample distance across each consensus peak.
   - `*.plots.pdf`: File containing PCA and hierarchical clustering plots.
   - `*.dds.RData`: File containing R `DESeqDataSet` object generated by DESeq2, with either
@@ -254,7 +254,7 @@ The [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) tool is used to co
     `readRDS` to give user control of the eventual object name.
   - `*pca.vals.txt`: Matrix of values for the first 2 principal components.
   - `R_sessionInfo.log`: File containing information about R, the OS and attached or loaded packages.
-  - `<ALIGNER>/mergedLibrary/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/sizeFactors/`
+  - `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/sizeFactors/`
   - `*.txt`, `*.RData`: Files containing DESeq2 sizeFactors per sample.
 
 </details>

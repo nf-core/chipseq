@@ -1,14 +1,21 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    VALIDATE INPUTS
+    PRINT PARAMS SUMMARY
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
+include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
+
+def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
+def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
+def summary_params = paramsSummaryMap(workflow)
+
+// Print parameter summary log to screen
+log.info logo + paramsSummaryLog(workflow) + citation
 
 def valid_params = [
     aligners       : [ 'bwa', 'bowtie2', 'chromap', 'star' ]
 ]
-
-def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
 // Validate input parameters
 WorkflowChipseq.initialise(params, log, valid_params)
@@ -23,9 +30,6 @@ def checkPathParamList = [
     params.bamtools_filter_pe_config, params.bamtools_filter_se_config
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
-
-// Check mandatory parameters
-if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
@@ -151,6 +155,9 @@ workflow CHIPSEQ {
         params.seq_center
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+    // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
+    // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
+    // ! There is currently no tooling to help you write a sample sheet schema
 
     //
     // SUBWORKFLOW: Read QC and trim adapters
@@ -205,7 +212,7 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions.first())
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions)
     }
 
     //
@@ -229,7 +236,7 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions.first())
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions)
     }
 
     //
@@ -274,7 +281,7 @@ workflow CHIPSEQ {
     PICARD_MERGESAMFILES (
         ch_sort_bam
     )
-    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions.first())
 
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
@@ -377,11 +384,19 @@ workflow CHIPSEQ {
         .set { ch_genome_bam_bai }
 
     ch_genome_bam_bai
-        .combine(ch_genome_bam_bai)
         .map {
-            meta1, bam1, bai1, meta2, bam2, bai2 ->
-                meta1.control == meta2.id ? [ meta1, [ bam1, bam2 ], [ bai1, bai2 ] ] : null
+            meta, bam, bai ->
+                meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
         }
+        .set { ch_control_bam_bai }
+
+    ch_genome_bam_bai
+        .map {
+            meta, bam, bai ->
+                meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
+        }
+        .combine(ch_control_bam_bai, by: 0)
+        .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
         .set { ch_ip_control_bam_bai }
 
     //
@@ -448,6 +463,21 @@ workflow CHIPSEQ {
         //             meta1.control == meta2.id ? [ meta1, [ bam1, bam2 ], [ bai1, bai2 ] ] : null
         //     }
         //     .set { ch_ip_control_bam_bai }
+    ch_genome_bam_bai
+        .map {
+            meta, bam, bai ->
+                meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
+        }
+        .set { ch_control_bam_bai }
+
+    ch_genome_bam_bai
+        .map {
+            meta, bam, bai ->
+                meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
+        }
+        .combine(ch_control_bam_bai, by: 0)
+        .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
+        .set { ch_ip_control_bam_bai }
 
         //
         // MODULE: deepTools plotFingerprint joint QC for IP and control
@@ -486,14 +516,17 @@ workflow CHIPSEQ {
             }
             .set { ch_ip_control_bam }
 
-        //
-        // MODULE: Call peaks with MACS2
-        //
-        MACS2_CALLPEAK (
-            ch_ip_control_bam,
-            ch_macs_gsize
-        )
-        ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
+    //
+    // Filter out samples with 0 MACS2 peaks called
+    //
+    MACS2_CALLPEAK
+        .out
+        .peak
+        .filter {
+            meta, peaks ->
+                peaks.size() > 0
+        }
+        .set { ch_macs2_peaks }
 
         //
         // Filter out samples with 0 MACS2 peaks called
@@ -538,8 +571,17 @@ workflow CHIPSEQ {
             ch_peak_count_header,
             ch_frip_score_header
         )
-        ch_custompeaks_frip_multiqc  = MULTIQC_CUSTOM_PEAKS.out.frip
-        ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS.out.count
+        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
+
+        if (!params.skip_peak_qc) {
+            //
+            // MODULE: MACS2 QC plots with R
+            //
+            PLOT_MACS2_QC (
+                ch_macs2_peaks.collect{it[1]},
+                params.narrow_peak
+            )
+            ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
 
         if (!params.skip_peak_annotation) {
             //
@@ -584,7 +626,7 @@ workflow CHIPSEQ {
     ch_deseq2_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
         // Create channels: [ meta , [ peaks ] ]
-            // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
+        // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
         ch_macs2_peaks
             .map {
                 meta, peak ->
@@ -613,7 +655,8 @@ workflow CHIPSEQ {
         // MODULE: Generate consensus peaks across samples
         //
         MACS2_CONSENSUS (
-            ch_antibody_peaks
+            ch_antibody_peaks,
+            params.narrow_peak
         )
         ch_macs2_consensus_bed_lib = MACS2_CONSENSUS.out.bed
         ch_macs2_consensus_txt_lib = MACS2_CONSENSUS.out.txt
@@ -716,8 +759,8 @@ workflow CHIPSEQ {
         workflow_summary    = WorkflowChipseq.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
-        methods_description    = WorkflowChipseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
-        ch_methods_description = Channel.value(methods_description)
+    methods_description    = WorkflowChipseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description, params)
+    ch_methods_description = Channel.value(methods_description)
 
         MULTIQC (
             ch_multiqc_config,

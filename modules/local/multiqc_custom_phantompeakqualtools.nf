@@ -16,6 +16,9 @@ process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
     tuple val(meta), path("*.spp_rsc_mqc.tsv")        , emit: rsc
     tuple val(meta), path("*.spp_correlation_mqc.tsv"), emit: correlation
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """

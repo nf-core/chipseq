@@ -38,20 +38,20 @@ def print_error(error, context="Line", context_str=""):
 def check_samplesheet(file_in, file_out):
     """
     This function checks that the samplesheet follows the following structure:
-    sample,fastq_1,fastq_2,antibody,control
-    SPT5_T0_REP1,SRR1822153_1.fastq.gz,SRR1822153_2.fastq.gz,SPT5,SPT5_INPUT_REP1
-    SPT5_T0_REP2,SRR1822154_1.fastq.gz,SRR1822154_2.fastq.gz,SPT5,SPT5_INPUT_REP2
-    SPT5_INPUT_REP1,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,
-    SPT5_INPUT_REP2,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,
+    sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+    SPT5_T0,SRR1822153_1.fastq.gz,SRR1822153_2.fastq.gz,SPT5,1,SPT5_INPUT,1
+    SPT5_T0,SRR1822154_1.fastq.gz,SRR1822154_2.fastq.gz,SPT5,2,SPT5_INPUT,2
+    SPT5_INPUT,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,1,,,
+    SPT5_INPUT,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,2,,,
     For an example see:
-    https://raw.githubusercontent.com/nf-core/test-datasets/chipseq/samplesheet/v2.0/samplesheet_test.csv
+    https://raw.githubusercontent.com/nf-core/test-datasets/chipseq/samplesheet/v2.1/samplesheet_test.csv
     """
 
     sample_mapping_dict = {}
     with open(file_in, "r", encoding="utf-8-sig") as fin:
         ## Check header
-        MIN_COLS = 2
-        HEADER = ["sample", "fastq_1", "fastq_2", "antibody", "control"]
+        MIN_COLS = 3
+        HEADER = ["sample", "fastq_1", "fastq_2", "replicate", "antibody", "control", "control_replicate"]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print(f"ERROR: Please check samplesheet header -> {','.join(header)} != {','.join(HEADER)}")
@@ -77,7 +77,7 @@ def check_samplesheet(file_in, file_out):
                 )
 
             ## Check sample name entries
-            sample, fastq_1, fastq_2, antibody, control = lspl[: len(HEADER)]
+            sample, fastq_1, fastq_2, replicate, antibody, control, control_replicate = lspl[: len(HEADER)]
             if sample.find(" ") != -1:
                 print(f"WARNING: Spaces have been replaced by underscores for sample: {sample}")
                 sample = sample.replace(" ", "_")
@@ -96,6 +96,11 @@ def check_samplesheet(file_in, file_out):
                             line,
                         )
 
+            ## Check replicate column is integer
+            if not replicate.isdecimal():
+                print_error("Replicate id not an integer!", "Line", line)
+                sys.exit(1)
+
             ## Check antibody and control columns have valid values
             if antibody:
                 if antibody.find(" ") != -1:
@@ -107,10 +112,15 @@ def check_samplesheet(file_in, file_out):
                         "Line",
                         line,
                     )
+
             if control:
                 if control.find(" ") != -1:
                     print(f"WARNING: Spaces have been replaced by underscores for control: {control}")
                     control = control.replace(" ", "_")
+                if not control_replicate.isdecimal():
+                    print_error("Control replicate id not an integer!", "Line", line)
+                    sys.exit(1)
+                control = "{}_REP{}".format(control, control_replicate)
                 if not antibody:
                     print_error(
                         "Both antibody and control columns must be specified!",
@@ -119,22 +129,26 @@ def check_samplesheet(file_in, file_out):
                     )
 
             ## Auto-detect paired-end/single-end
-            sample_info = []  ## [single_end, fastq_1, fastq_2, antibody, control]
+            sample_info = []  ## [single_end, fastq_1, fastq_2, replicate, antibody, control]
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = ["0", fastq_1, fastq_2, antibody, control]
+                sample_info = ["0", fastq_1, fastq_2, replicate, antibody, control]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = ["1", fastq_1, fastq_2, antibody, control]
+                sample_info = ["1", fastq_1, fastq_2, replicate, antibody, control]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
 
-            ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, antibody, control ]]}
+            ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, replicate, antibody, control ]]}
+            replicate = int(replicate)
+            sample_info = sample_info + lspl[len(HEADER) :]
             if sample not in sample_mapping_dict:
-                sample_mapping_dict[sample] = [sample_info]
+                sample_mapping_dict[sample] = {}
+            if replicate not in sample_mapping_dict[sample]:
+                sample_mapping_dict[sample][replicate] = [sample_info]
             else:
-                if sample_info in sample_mapping_dict[sample]:
+                if sample_info in sample_mapping_dict[sample][replicate]:
                     print_error("Samplesheet contains duplicate rows!", "Line", line)
                 else:
-                    sample_mapping_dict[sample].append(sample_info)
+                    sample_mapping_dict[sample][replicate].append(sample_info)
 
     ## Write validated samplesheet with appropriate columns
     if len(sample_mapping_dict) > 0:
@@ -148,6 +162,7 @@ def check_samplesheet(file_in, file_out):
                         "single_end",
                         "fastq_1",
                         "fastq_2",
+                        "replicate",
                         "antibody",
                         "control",
                     ]
@@ -155,24 +170,60 @@ def check_samplesheet(file_in, file_out):
                 + "\n"
             )
             for sample in sorted(sample_mapping_dict.keys()):
-                ## Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
-                if not all(x[0] == sample_mapping_dict[sample][0][0] for x in sample_mapping_dict[sample]):
+                ## Check that replicate ids are in format 1..<num_replicates>
+                uniq_rep_ids = sorted(list(set(sample_mapping_dict[sample].keys())))
+                if len(uniq_rep_ids) != max(uniq_rep_ids) or 1 != min(uniq_rep_ids):
                     print_error(
-                        f"Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end!",
+                        "Replicate ids must start with 1..<num_replicates>!",
+                        "Sample",
+                        "{}, replicate ids: {}".format(sample, ",".join([str(x) for x in uniq_rep_ids])),
+                    )
+                    sys.exit(1)
+
+                ## Check that multiple replicates are of the same datatype i.e. single-end / paired-end
+                if not all(
+                    x[0][0] == sample_mapping_dict[sample][1][0][0] for x in sample_mapping_dict[sample].values()
+                ):
+                    print_error(
+                        f"Multiple replicates of a sample must be of the same datatype i.e. single-end or paired-end!",
                         "Sample",
                         sample,
                     )
 
-                for idx, val in enumerate(sample_mapping_dict[sample]):
-                    control = val[-1]
-                    if control and control not in sample_mapping_dict.keys():
+                for replicate in sorted(sample_mapping_dict[sample].keys()):
+                    ## Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
+                    if not all(
+                        x[0] == sample_mapping_dict[sample][replicate][0][0]
+                        for x in sample_mapping_dict[sample][replicate]
+                    ):
                         print_error(
-                            f"Control identifier has to match does a provided sample identifier!",
-                            "Control",
-                            control,
+                            f"Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end!",
+                            "Sample",
+                            sample,
                         )
 
-                    fout.write(",".join([f"{sample}_T{idx+1}"] + val) + "\n")
+                    for idx, val in enumerate(sample_mapping_dict[sample][replicate]):
+                        control = "_REP".join(val[-1].split("_REP")[:-1])
+                        control_replicate = val[-1].split("_REP")[-1]
+                        if control and (
+                            control not in sample_mapping_dict.keys()
+                            or int(control_replicate) not in sample_mapping_dict[control].keys()
+                        ):
+                            print_error(
+                                f"Control identifier and replicate has to match a provided sample identifier and replicate!",
+                                "Control",
+                                val[4],
+                            )
+
+                    ## Write to file
+                    for idx in range(len(sample_mapping_dict[sample][replicate])):
+                        fastq_files = sample_mapping_dict[sample][replicate][idx]
+                        sample_id = "{}_REP{}_T{}".format(sample, replicate, idx + 1)
+                        if len(fastq_files) == 1:
+                            fout.write(",".join([sample_id] + fastq_files) + ",\n")
+                        else:
+                            fout.write(",".join([sample_id] + fastq_files) + "\n")
+
     else:
         print_error(f"No entries to process!", "Samplesheet: {file_in}")
 

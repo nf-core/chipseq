@@ -41,13 +41,7 @@ workflow PREPARE_GENOME {
         ch_fasta    = GUNZIP_FASTA ( [ [:], params.fasta ] ).gunzip.map{ it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
-        ch_fasta = file(params.fasta)
-    }
-
-    // Make fasta file available if reference saved or IGV is run
-    if (params.save_reference || !params.skip_igv) {
-        file("${params.outdir}/genome/").mkdirs()
-        ch_fasta.copyTo("${params.outdir}/genome/")
+        ch_fasta = Channel.value(file(params.fasta))
     }
 
     //
@@ -107,14 +101,15 @@ workflow PREPARE_GENOME {
             ch_gene_bed = GUNZIP_GENE_BED ( [ [:], params.gene_bed ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GENE_BED.out.versions)
         } else {
-            ch_gene_bed = file(params.gene_bed)
+            ch_gene_bed = Channel.value(file(params.gene_bed))
         }
     }
 
     //
     // Create chromosome sizes file
     //
-    ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( [ [:], ch_fasta ] ).sizes.map{ it[1] }
+    CUSTOM_GETCHROMSIZES ( ch_fasta.map { [ [:], it ] } )
+    ch_chrom_sizes = CUSTOM_GETCHROMSIZES.out.sizes.map { it[1] }
     ch_fai         = CUSTOM_GETCHROMSIZES.out.fai.map{ it[1] }
     ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
 
@@ -144,7 +139,7 @@ workflow PREPARE_GENOME {
                 ch_bwa_index = file(params.bwa_index)
             }
         } else {
-            ch_bwa_index = BWA_INDEX ( [ [:], ch_fasta ] ).index
+            ch_bwa_index = BWA_INDEX ( ch_fasta.map { [ [:], it ] } ).index
             ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
         }
     }
@@ -162,7 +157,7 @@ workflow PREPARE_GENOME {
                 ch_bowtie2_index = [ [:], file(params.bowtie2_index) ]
             }
         } else {
-            ch_bowtie2_index = BOWTIE2_BUILD ( [ [:], ch_fasta ] ).index
+            ch_bowtie2_index = BOWTIE2_BUILD ( ch_fasta.map { [ [:], it ] } ).index
             ch_versions      = ch_versions.mix(BOWTIE2_BUILD.out.versions)
         }
     }
@@ -180,7 +175,7 @@ workflow PREPARE_GENOME {
                 ch_chromap_index = [ [:], file(params.chromap_index) ]
             }
         } else {
-            ch_chromap_index = CHROMAP_INDEX ( [ [:], ch_fasta ] ).index
+            ch_chromap_index = CHROMAP_INDEX ( ch_fasta.map { [ [:], it ] } ).index
             ch_versions  = ch_versions.mix(CHROMAP_INDEX.out.versions)
         }
     }
@@ -195,7 +190,7 @@ workflow PREPARE_GENOME {
                 ch_star_index = UNTAR_STAR_INDEX ( [ [:], params.star_index ] ).untar.map{ it[1] }
                 ch_versions   = ch_versions.mix(UNTAR_STAR_INDEX.out.versions)
             } else {
-                ch_star_index = file(params.star_index)
+                ch_star_index = Channel.value(file(params.star_index))
             }
         } else {
             ch_star_index = STAR_GENOMEGENERATE ( ch_fasta, ch_gtf ).index

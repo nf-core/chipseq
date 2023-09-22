@@ -20,7 +20,11 @@ process IGV {
     output:
     path "*files.txt"  , emit: txt
     path "*.xml"       , emit: xml
+    path fasta         , emit: fasta
     path "versions.yml", emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
     def consensus_dir = "${aligner_dir}/mergedLibrary/macs2/${peak_dir}/consensus/*"

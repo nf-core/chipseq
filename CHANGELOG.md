@@ -8,16 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Enhancements & fixes
 
 - Updated pipeline template to [nf-core/tools 2.7.2](https://github.com/nf-core/tools/releases/tag/2.7.2)
-- [[#317](https://github.com/nf-core/chipseq/issues/317)] Added metro map
-- [[#288](https://github.com/nf-core/chipseq/issues/291)] Bump `chromap` version 2 and enable all the steps below chromap again when paired-end data is processed.
-- [[#311](https://github.com/nf-core/chipseq/issues/311)] Add back `--skip_spp` parameter which was unintentionally removed from the code.
+- [[#317](https://github.com/nf-core/chipseq/issues/317)] - Added metro map
+- [[#288](https://github.com/nf-core/chipseq/issues/291)] - Bump `chromap` version 2 and enable all the steps below chromap again when paired-end data is processed.
+- [[#311](https://github.com/nf-core/chipseq/issues/311)] - Add back `--skip_spp` parameter which was unintentionally removed from the code.
 - Install available nf-core subworkflows and refactor code accordingly
-- [[#318](https://github.com/nf-core/chipseq/issues/318)] Update `bowtie2/align` module to fix issue when downloading its singularity image.
-- [[#320](https://github.com/nf-core/chipseq/issues/320)] Fix samplesheet control column in documentation examples.
-- [[#328](https://github.com/nf-core/chipseq/issues/328)] Modify documentation to clarify that is necessary to provide the `--read_length` when `--genome` is set and `--macs_gsize` has not provided.
+- [[#318](https://github.com/nf-core/chipseq/issues/318)] - Update `bowtie2/align` module to fix issue when downloading its singularity image.
+- [[#320](https://github.com/nf-core/chipseq/issues/320)] - Fix samplesheet control column in documentation examples.
+- [[#328](https://github.com/nf-core/chipseq/issues/328)] - Modify documentation to clarify that is necessary to provide the `--read_length` when `--genome` is set and `--macs_gsize` has not provided.
 - Remove `enable_conda` param from local modules.
 - Fix the path where `chromap` index is stored when `--save_reference` is set.
 - Fix untar of `chromap` index when using `--chromap_index` param.
+- [nf-core/tools#2286](https://github.com/nf-core/tools/issues/2286) - Set default container registry outside profile scope.
+- [[#343](https://github.com/nf-core/chipseq/issues/343)] - Provide replicate information explicitly in samplesheet.
 
 ### Software dependencies
 
@@ -28,7 +30,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `chromap`  | 0.2.1       | 0.2.4       |
 | `multiqc`  | 1.13        | 1.14        |
 | `picard`   | 2.27.4      | 3.0.0       |
-| `samtools` | 1.15.1      | 1.16.1      |
+| `samtools` | 1.15.1      | 1.17        |
 
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.
