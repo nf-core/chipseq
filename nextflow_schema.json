@@ -85,6 +85,7 @@
                 "gtf": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.gtf(\\.gz)?$",
                     "description": "Path to GTF annotation file.",
@@ -94,6 +95,7 @@
                 "gff": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.gff(\\.gz)?$",
                     "fa_icon": "fas fa-code-branch",
@@ -102,30 +104,36 @@
                 },
                 "bwa_index": {
                     "type": "string",
+                    "format": "path",
+                    "exists": true,
                     "description": "Path to directory or tar.gz archive for pre-built BWA index.",
                     "fa_icon": "fas fa-bezier-curve"
                 },
                 "bowtie2_index": {
                     "type": "string",
                     "format": "path",
+                    "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
                     "description": "Path to directory or tar.gz archive for pre-built Bowtie2 index."
                 },
                 "chromap_index": {
                     "type": "string",
                     "format": "path",
+                    "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
                     "description": "Path to directory or tar.gz archive for pre-built Chromap index."
                 },
                 "star_index": {
                     "type": "string",
                     "format": "path",
+                    "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
                     "description": "Path to directory or tar.gz archive for pre-built STAR index."
                 },
                 "gene_bed": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.bed(\\.gz)?$",
                     "fa_icon": "fas fa-procedures",
@@ -254,6 +262,8 @@
                 },
                 "bamtools_filter_pe_config": {
                     "type": "string",
+                    "format": "path",
+                    "exists": true,
                     "default": "$projectDir/assets/bamtools_filter_pe.json",
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for paired-end data.",
@@ -261,6 +271,8 @@
                 },
                 "bamtools_filter_se_config": {
                     "type": "string",
+                    "format": "path",
+                    "exists": true,
                     "default": "$projectDir/assets/bamtools_filter_se.json",
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for single-end data.",
@@ -560,18 +572,23 @@
                 "multiqc_config": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "description": "Custom config file to supply to MultiQC.",
                     "fa_icon": "fas fa-cog",
                     "hidden": true
                 },
                 "multiqc_logo": {
                     "type": "string",
+                    "format": "file-path",
+                    "exists": true,
                     "description": "Custom logo file to supply to MultiQC. File name must also be set in the MultiQC config file",
                     "fa_icon": "fas fa-image",
                     "hidden": true
                 },
                 "multiqc_methods_description": {
                     "type": "string",
+                    "format": "file-path",
+                    "exists": true,
                     "description": "Custom MultiQC yaml file containing HTML including a methods description.",
                     "fa_icon": "fas fa-cog"
                 },

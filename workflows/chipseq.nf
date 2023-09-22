@@ -13,23 +13,8 @@ def summary_params = paramsSummaryMap(workflow)
 // Print parameter summary log to screen
 log.info logo + paramsSummaryLog(workflow) + citation
 
-def valid_params = [
-    aligners       : [ 'bwa', 'bowtie2', 'chromap', 'star' ]
-]
-
 // Validate input parameters
-WorkflowChipseq.initialise(params, log, valid_params)
-
-// Check input path parameters to see if they exist
-def checkPathParamList = [
-    params.input, params.multiqc_config,
-    params.fasta,
-    params.gtf, params.gff, params.gene_bed,
-    params.bwa_index, params.bowtie2_index, params.chromap_index, params.star_index,
-    params.blacklist,
-    params.bamtools_filter_pe_config, params.bamtools_filter_se_config
-]
-for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+WorkflowChipseq.initialise(params, log)
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
@@ -44,14 +29,14 @@ if (anno_readme && file(anno_readme).exists()) {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-ch_multiqc_config          = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-ch_multiqc_custom_config   = params.multiqc_config ? Channel.fromPath( params.multiqc_config, checkIfExists: true ) : Channel.empty()
-ch_multiqc_logo            = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo, checkIfExists: true ) : Channel.empty()
-ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+ch_multiqc_config          = Channel.fromPath("$projectDir/assets/multiqc_config.yml")
+ch_multiqc_custom_config   = params.multiqc_config ? Channel.fromPath( params.multiqc_config ) : Channel.empty()
+ch_multiqc_logo            = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo ) : Channel.empty()
+ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
 
 // JSON files required by BAMTools for alignment filtering
-ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
-ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
+ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config)
+ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
 
 // Header files for MultiQC
 ch_spp_nsc_header           = file("$projectDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
@@ -375,6 +360,52 @@ workflow CHIPSEQ {
     }
 
     //
+    // MODULE: BedGraph coverage tracks
+    //
+    BEDTOOLS_GENOMECOV (
+        BAM_FILTER_BAMTOOLS.out.bam.join(BAM_FILTER_BAMTOOLS.out.flagstat, by: [0])
+    )
+    ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
+
+    //
+    // MODULE: BigWig coverage tracks
+    //
+    UCSC_BEDGRAPHTOBIGWIG (
+        BEDTOOLS_GENOMECOV.out.bedgraph,
+        PREPARE_GENOME.out.chrom_sizes
+    )
+    ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first())
+
+    ch_deeptoolsplotprofile_multiqc = Channel.empty()
+    if (!params.skip_plot_profile) {
+        //
+        // MODULE: deepTools matrix generation for plotting
+        //
+        DEEPTOOLS_COMPUTEMATRIX (
+            UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
+            PREPARE_GENOME.out.gene_bed
+        )
+        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
+
+        //
+        // MODULE: deepTools profile plots
+        //
+        DEEPTOOLS_PLOTPROFILE (
+            DEEPTOOLS_COMPUTEMATRIX.out.matrix
+        )
+        ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
+        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
+
+        //
+        // MODULE: deepTools heatmaps
+        //
+        DEEPTOOLS_PLOTHEATMAP (
+            DEEPTOOLS_COMPUTEMATRIX.out.matrix
+        )
+        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
+    }
+
+    //
     // Create channels: [ meta, [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
     //
     BAM_FILTER_BAMTOOLS
@@ -400,96 +431,17 @@ workflow CHIPSEQ {
         .set { ch_ip_control_bam_bai }
 
     //
-    // MODULE: BedGraph coverage tracks
+    // MODULE: deepTools plotFingerprint joint QC for IP and control
     //
-    ch_deeptoolsplotprofile_multiqc     = Channel.empty()
     ch_deeptoolsplotfingerprint_multiqc = Channel.empty()
-    if (!params.skip_reporting) {
-        BEDTOOLS_GENOMECOV (
-            BAM_FILTER_BAMTOOLS.out.bam.join(BAM_FILTER_BAMTOOLS.out.flagstat, by: [0])
+    if (!params.skip_plot_fingerprint) {
+        DEEPTOOLS_PLOTFINGERPRINT (
+            ch_ip_control_bam_bai
         )
-        ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
-
-        //
-        // MODULE: BigWig coverage tracks
-        //
-        UCSC_BEDGRAPHTOBIGWIG (
-            BEDTOOLS_GENOMECOV.out.bedgraph,
-            PREPARE_GENOME.out.chrom_sizes
-        )
-        ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first())
-
-        if (!params.skip_plot_profile) {
-            //
-            // MODULE: deepTools matrix generation for plotting
-            //
-            DEEPTOOLS_COMPUTEMATRIX (
-                UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
-                PREPARE_GENOME.out.gene_bed
-            )
-            ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
-
-            //
-            // MODULE: deepTools profile plots
-            //
-            DEEPTOOLS_PLOTPROFILE (
-                DEEPTOOLS_COMPUTEMATRIX.out.matrix
-            )
-            ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
-            ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
-
-            //
-            // MODULE: deepTools heatmaps
-            //
-            DEEPTOOLS_PLOTHEATMAP (
-                DEEPTOOLS_COMPUTEMATRIX.out.matrix
-            )
-            ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
-        }
-
-        // //
-        // // Create channels: [ meta, [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
-        // //
-        // BAM_FILTER_BAMTOOLS
-        //     .out
-        //     .bam
-        //     .join(BAM_FILTER_BAMTOOLS.out.bai, by: [0])
-        //     .set { ch_genome_bam_bai }
-
-        // ch_genome_bam_bai
-        //     .combine(ch_genome_bam_bai)
-        //     .map {
-        //         meta1, bam1, bai1, meta2, bam2, bai2 ->
-        //             meta1.control == meta2.id ? [ meta1, [ bam1, bam2 ], [ bai1, bai2 ] ] : null
-        //     }
-        //     .set { ch_ip_control_bam_bai }
-    ch_genome_bam_bai
-        .map {
-            meta, bam, bai ->
-                meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
-        }
-        .set { ch_control_bam_bai }
-
-    ch_genome_bam_bai
-        .map {
-            meta, bam, bai ->
-                meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
-        }
-        .combine(ch_control_bam_bai, by: 0)
-        .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
-        .set { ch_ip_control_bam_bai }
-
-        //
-        // MODULE: deepTools plotFingerprint joint QC for IP and control
-        //
-        if (!params.skip_plot_fingerprint) {
-            DEEPTOOLS_PLOTFINGERPRINT (
-                ch_ip_control_bam_bai
-            )
-            ch_deeptoolsplotfingerprint_multiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
-            ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
-        }
+        ch_deeptoolsplotfingerprint_multiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
+        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
+
     //
     // MODULE: Calculute genome size with khmer
     //
@@ -499,22 +451,30 @@ workflow CHIPSEQ {
     ch_plothomerannotatepeaks_multiqc = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
     ch_macs_gsize = params.macs_gsize
-    if (!params.skip_peak_calling) {
-        if (!params.macs_gsize) {
-            KHMER_UNIQUEKMERS (
-                PREPARE_GENOME.out.fasta,
-                params.read_length
-            )
-            ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
-        }
+    if (!params.macs_gsize) {
+        KHMER_UNIQUEKMERS (
+            PREPARE_GENOME.out.fasta,
+            params.read_length
+        )
+        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
+    }
 
-        // Create channels: [ meta, ip_bam, control_bam ]
-        ch_ip_control_bam_bai
-            .map {
-                meta, bams, bais ->
-                    [ meta , bams[0], bams[1] ]
-            }
-            .set { ch_ip_control_bam }
+    // Create channels: [ meta, ip_bam, control_bam ]
+    ch_ip_control_bam_bai
+        .map {
+            meta, bams, bais ->
+                [ meta , bams[0], bams[1] ]
+        }
+        .set { ch_ip_control_bam }
+
+    //
+    // MODULE: Call peaks with MACS2
+    //
+    MACS2_CALLPEAK (
+        ch_ip_control_bam,
+        ch_macs_gsize
+    )
+    ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
 
     //
     // Filter out samples with 0 MACS2 peaks called
@@ -528,48 +488,51 @@ workflow CHIPSEQ {
         }
         .set { ch_macs2_peaks }
 
-        //
-        // Filter out samples with 0 MACS2 peaks called
-        //
-        MACS2_CALLPEAK
-            .out
-            .peak
-            .filter { meta, peaks -> peaks.size() > 0 }
-            .set { ch_macs2_peaks }
+    // Create channels: [ meta, ip_bam, peaks ]
+    ch_ip_control_bam
+        .join(ch_macs2_peaks, by: [0])
+        .map {
+            it ->
+                [ it[0], it[1], it[3] ]
+        }
+        .set { ch_ip_bam_peaks }
 
-        // Create channels: [ meta, ip_bam, peaks ]
-        ch_ip_control_bam
-            .join(ch_macs2_peaks, by: [0])
-            .map {
-                it ->
-                    [ it[0], it[1], it[3] ]
-            }
-            .set { ch_ip_bam_peaks }
-
-        //
-        // MODULE: Calculate FRiP score
-        //
-        FRIP_SCORE (
-            ch_ip_bam_peaks
-        )
-        ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
-
-        // Create channels: [ meta, peaks, frip ]
+    //
+    // MODULE: Calculate FRiP score
+    //
+    FRIP_SCORE (
         ch_ip_bam_peaks
-            .join(FRIP_SCORE.out.txt, by: [0])
-            .map {
-                it ->
-                    [ it[0], it[2], it[3] ]
-            }
-            .set { ch_ip_peaks_frip }
+    )
+    ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
+    // Create channels: [ meta, peaks, frip ]
+    ch_ip_bam_peaks
+        .join(FRIP_SCORE.out.txt, by: [0])
+        .map {
+            it ->
+                [ it[0], it[2], it[3] ]
+        }
+        .set { ch_ip_peaks_frip }
+
+    //
+    // MODULE: FRiP score custom content for MultiQC
+    //
+    MULTIQC_CUSTOM_PEAKS (
+        ch_ip_peaks_frip,
+        ch_peak_count_header,
+        ch_frip_score_header
+    )
+    ch_custompeaks_frip_multiqc  = MULTIQC_CUSTOM_PEAKS.out.frip
+    ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS.out.count
+
+    if (!params.skip_peak_annotation) {
         //
-        // MODULE: FRiP score custom content for MultiQC
+        // MODULE: Annotate peaks with MACS2
         //
-        MULTIQC_CUSTOM_PEAKS (
-            ch_ip_peaks_frip,
-            ch_peak_count_header,
-            ch_frip_score_header
+        HOMER_ANNOTATEPEAKS_MACS2 (
+            ch_macs2_peaks,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.gtf
         )
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
@@ -583,37 +546,16 @@ workflow CHIPSEQ {
             )
             ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
 
-        if (!params.skip_peak_annotation) {
             //
-            // MODULE: Annotate peaks with MACS2
+            // MODULE: Peak annotation QC plots with R
             //
-            HOMER_ANNOTATEPEAKS_MACS2 (
-                ch_macs2_peaks,
-                PREPARE_GENOME.out.fasta,
-                PREPARE_GENOME.out.gtf
+            PLOT_HOMER_ANNOTATEPEAKS (
+                HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
+                ch_peak_annotation_header,
+                "_peaks.annotatePeaks.txt"
             )
-            ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
-
-            if (!params.skip_peak_qc) {
-                //
-                // MODULE: MACS2 QC plots with R
-                //
-                PLOT_MACS2_QC (
-                    ch_macs2_peaks.collect{it[1]}
-                )
-                ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
-
-                //
-                // MODULE: Peak annotation QC plots with R
-                //
-                PLOT_HOMER_ANNOTATEPEAKS (
-                    HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
-                    ch_peak_annotation_header,
-                    "_peaks.annotatePeaks.txt"
-                )
-                ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
-                ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
-            }
+            ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
+            ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
         }
     }
 
