@@ -38,7 +38,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 
 // JSON files required by BAMTools for alignment filtering
 ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config)
-ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config: true)
+ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
 
 // Header files for MultiQC
 ch_spp_nsc_header           = file("$projectDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
