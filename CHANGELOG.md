@@ -20,7 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix untar of `chromap` index when using `--chromap_index` param.
 - [nf-core/tools#2286](https://github.com/nf-core/tools/issues/2286) - Set default container registry outside profile scope.
 - [[#343](https://github.com/nf-core/chipseq/issues/343)] - Provide replicate information explicitly in samplesheet.
-- Updated pipeline template to [nf-core/tools 2.10](https://github.com/nf-core/tools/releases/tag/2.10)
+- Updated pipeline template to [nf-core/tools 2.10](https://github.com/nf-core/tools/releases/tag/2.10).
+- [[#367](https://github.com/nf-core/chipseq/issues/367)] - Get rid of `CheckIfExists` for params paths.
 
 ### Software dependencies
 
