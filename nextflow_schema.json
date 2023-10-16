@@ -560,6 +560,12 @@
                     "description": "Run this workflow with Conda. You can also use '-profile conda' instead of providing this parameter.",
                     "hidden": true,
                     "fa_icon": "fas fa-bacon"
+                },
+                "memory_overhead": {
+                    "type": "number",
+                    "fa_icon": "fas fa-memory",
+                    "description": "This value is deduced from the 'task.memory' value to account for additional memory needed to run the process, e.g. Singularity memory.",
+                    "hidden": true
                 }
             }
         }
