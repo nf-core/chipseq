@@ -12,9 +12,9 @@ process IGV {
     val aligner_dir
     val peak_dir
     path fasta
-    path ("${aligner_dir}/mergedLibrary/bigwig/*")
-    path ("${aligner_dir}/mergedLibrary/macs2/${peak_dir}/*")
-    path ("${aligner_dir}/mergedLibrary/macs2/${peak_dir}/consensus/*")
+    path ("${aligner_dir}/merged_library/bigwig/*")
+    path ("${aligner_dir}/merged_library/macs2/${peak_dir}/*")
+    path ("${aligner_dir}/merged_library/macs2/${peak_dir}/consensus/*")
     path ("mappings/*")
 
     output:
@@ -27,7 +27,7 @@ process IGV {
     task.ext.when == null || task.ext.when
 
     script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
-    def consensus_dir = "${aligner_dir}/mergedLibrary/macs2/${peak_dir}/consensus/*"
+    def consensus_dir = "${aligner_dir}/merged_library/macs2/${peak_dir}/consensus/*"
     """
     find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; > bigwig.igv.txt
     find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; > peaks.igv.txt
