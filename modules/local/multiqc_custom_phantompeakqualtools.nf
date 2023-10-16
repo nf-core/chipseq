@@ -3,7 +3,7 @@ process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
     conda "conda-forge::r-base=3.5.1"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-base:3.5.1':
-        'quay.io/biocontainers/r-base:3.5.1' }"
+        'biocontainers/r-base:3.5.1' }"
 
     input:
     tuple val(meta), path(spp), path(rdata)

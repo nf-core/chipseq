@@ -7,7 +7,7 @@ process GENOME_BLACKLIST_REGIONS {
     conda "bioconda::bedtools=2.30.0"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0':
-        'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0' }"
+        'biocontainers/bedtools:2.30.0--hc088bd4_0' }"
 
     input:
     path sizes
