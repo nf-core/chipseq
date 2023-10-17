@@ -13,23 +13,10 @@ def summary_params = paramsSummaryMap(workflow)
 // Print parameter summary log to screen
 log.info logo + paramsSummaryLog(workflow) + citation
 
-def valid_params = [
-    aligners       : [ 'bwa', 'bowtie2', 'chromap', 'star' ]
-]
-
 // Validate input parameters
-WorkflowChipseq.initialise(params, log, valid_params)
+WorkflowChipseq.initialise(params, log)
 
-// Check input path parameters to see if they exist
-def checkPathParamList = [
-    params.input, params.multiqc_config,
-    params.fasta,
-    params.gtf, params.gff, params.gene_bed,
-    params.bwa_index, params.bowtie2_index, params.chromap_index, params.star_index,
-    params.blacklist,
-    params.bamtools_filter_pe_config, params.bamtools_filter_se_config
-]
-for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+ch_input = file(params.input)
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
@@ -45,13 +32,13 @@ if (anno_readme && file(anno_readme).exists()) {
 */
 
 ch_multiqc_config          = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-ch_multiqc_custom_config   = params.multiqc_config ? Channel.fromPath( params.multiqc_config, checkIfExists: true ) : Channel.empty()
-ch_multiqc_logo            = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo, checkIfExists: true ) : Channel.empty()
-ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+ch_multiqc_custom_config   = params.multiqc_config ? Channel.fromPath( params.multiqc_config ): Channel.empty()
+ch_multiqc_logo            = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo )  : Channel.empty()
+ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
 
 // JSON files required by BAMTools for alignment filtering
-ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
-ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
+ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config)
+ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
 
 // Header files for MultiQC
 ch_spp_nsc_header           = file("$projectDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
