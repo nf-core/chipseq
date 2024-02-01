@@ -7,10 +7,10 @@
                 "nf-core": {
                     "bowtie2/align": {
                         "branch": "master",
-                        "git_sha": "fe54581f8bed20e4c4a51c616c93fd3379d89820",
+                        "git_sha": "3c77ca9aac783e76c3614a06db3bfe4fef619bde",
                         "installed_by": [
-                            "modules",
-                            "fastq_align_bowtie2"
+                            "fastq_align_bowtie2",
+                            "modules"
                         ]
                     },
                     "bowtie2/build": {
@@ -29,18 +29,18 @@
                     },
                     "bwa/mem": {
                         "branch": "master",
-                        "git_sha": "603ecbd9f45300c9788f197d2a15a005685b4220",
+                        "git_sha": "a64788f5ad388f1d2ac5bd5f1f3f8fc81476148c",
                         "installed_by": [
-                            "modules",
-                            "fastq_align_bwa"
+                            "fastq_align_bwa",
+                            "modules"
                         ]
                     },
                     "chromap/chromap": {
                         "branch": "master",
-                        "git_sha": "603ecbd9f45300c9788f197d2a15a005685b4220",
+                        "git_sha": "3f5420aa22e00bd030a2556dfdffc9e164ec0ec5",
                         "installed_by": [
-                            "modules",
-                            "fastq_align_chromap"
+                            "fastq_align_chromap",
+                            "modules"
                         ]
                     },
                     "chromap/index": {
@@ -158,10 +158,10 @@
                     },
                     "picard/markduplicates": {
                         "branch": "master",
-                        "git_sha": "735e1e04e7e01751d2d6e97055bbdb6f70683cc1",
+                        "git_sha": "ec833ac4c29db6005d18baccf3306f557c46b006",
                         "installed_by": [
-                            "modules",
-                            "bam_markduplicates_picard"
+                            "bam_markduplicates_picard",
+                            "modules"
                         ]
                     },
                     "picard/mergesamfiles": {
@@ -180,43 +180,43 @@
                     },
                     "samtools/flagstat": {
                         "branch": "master",
-                        "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
+                        "git_sha": "ce0b1aed7d504883061e748f492a31bf44c5777c",
                         "installed_by": [
-                            "modules",
-                            "bam_stats_samtools"
+                            "bam_stats_samtools",
+                            "modules"
                         ]
                     },
                     "samtools/idxstats": {
                         "branch": "master",
-                        "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
+                        "git_sha": "ce0b1aed7d504883061e748f492a31bf44c5777c",
                         "installed_by": [
-                            "modules",
-                            "bam_stats_samtools"
+                            "bam_stats_samtools",
+                            "modules"
                         ]
                     },
                     "samtools/index": {
                         "branch": "master",
-                        "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
+                        "git_sha": "ce0b1aed7d504883061e748f492a31bf44c5777c",
                         "installed_by": [
-                            "modules",
                             "bam_markduplicates_picard",
-                            "bam_sort_stats_samtools"
+                            "bam_sort_stats_samtools",
+                            "modules"
                         ]
                     },
                     "samtools/sort": {
                         "branch": "master",
-                        "git_sha": "a0f7be95788366c1923171e358da7d049eb440f9",
+                        "git_sha": "ce0b1aed7d504883061e748f492a31bf44c5777c",
                         "installed_by": [
-                            "modules",
-                            "bam_sort_stats_samtools"
+                            "bam_sort_stats_samtools",
+                            "modules"
                         ]
                     },
                     "samtools/stats": {
                         "branch": "master",
-                        "git_sha": "735e1e04e7e01751d2d6e97055bbdb6f70683cc1",
+                        "git_sha": "ec833ac4c29db6005d18baccf3306f557c46b006",
                         "installed_by": [
-                            "modules",
-                            "bam_stats_samtools"
+                            "bam_stats_samtools",
+                            "modules"
                         ]
                     },
                     "subread/featurecounts": {
@@ -228,7 +228,7 @@
                     },
                     "trimgalore": {
                         "branch": "master",
-                        "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
+                        "git_sha": "3f5420aa22e00bd030a2556dfdffc9e164ec0ec5",
                         "installed_by": [
                             "fastq_fastqc_umitools_trimgalore",
                             "modules"
@@ -243,7 +243,7 @@
                     },
                     "umitools/extract": {
                         "branch": "master",
-                        "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
+                        "git_sha": "65ad3e0b9a4099592e1102e92e10455dc661cf53",
                         "installed_by": [
                             "fastq_fastqc_umitools_trimgalore"
                         ]
