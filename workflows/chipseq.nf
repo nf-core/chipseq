@@ -173,7 +173,12 @@ workflow CHIPSEQ {
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.bwa_index,
             false,
-            PREPARE_GENOME.out.fasta
+            PREPARE_GENOME
+                .out
+                .fasta
+                .map {
+                        [ [:], it ]
+                }
         )
         ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
         ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
@@ -193,6 +198,9 @@ workflow CHIPSEQ {
             params.save_unaligned,
             false,
             PREPARE_GENOME.out.fasta
+                .map {
+                        [ [:], it ]
+                }
         )
         ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
         ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
@@ -209,7 +217,9 @@ workflow CHIPSEQ {
         FASTQ_ALIGN_CHROMAP (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
-            PREPARE_GENOME.out.fasta
+            PREPARE_GENOME
+                .out
+                .fasta
                 .map {
                     [ [:], it ]
                 },
@@ -233,7 +243,12 @@ workflow CHIPSEQ {
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.star_index,
-            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME
+                .out
+                .fasta
+                .map {
+                        [ [:], it ]
+                },
             params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
@@ -275,8 +290,16 @@ workflow CHIPSEQ {
     //
     BAM_MARKDUPLICATES_PICARD (
         PICARD_MERGESAMFILES.out.bam,
-        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME
+            .out
+            .fasta
+            .map {
+                    [ [:], it ]
+            },
         PREPARE_GENOME.out.fai
+            .map {
+                [ [:], it ]
+            }
     )
     ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD.out.versions)
 
@@ -286,7 +309,12 @@ workflow CHIPSEQ {
     BAM_FILTER_BAMTOOLS (
         BAM_MARKDUPLICATES_PICARD.out.bam.join(BAM_MARKDUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
-        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME
+            .out
+            .fasta
+            .map {
+                [ [:], it ]
+            },
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
@@ -768,6 +796,13 @@ workflow.onComplete {
     NfcoreTemplate.summary(workflow, params, log)
     if (params.hook_url) {
         NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
+    }
+}
+
+workflow.onError {
+    if (workflow.errorReport.contains("Process requirement exceeds available memory")) {
+        println("🛑 Default resources exceed availability 🛑 ")
+        println("💡 See here on how to configure pipeline: https://nf-co.re/docs/usage/configuration#tuning-workflow-resources 💡")
     }
 }
 
