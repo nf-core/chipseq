@@ -27,39 +27,50 @@ include { STAR_GENOMEGENERATE      } from '../../modules/local/star_genomegenera
 
 workflow PREPARE_GENOME {
     take:
+    genome             //  string: genome name
+    genomes            //     map: genome attributes
     prepare_tool_index // string  : tool to prepare index for
-
+    fasta              //    path: path to genome fasta file
+    gtf                //    file: /path/to/genome.gtf
+    gff                //    file: /path/to/genome.gff
+    blacklist          //    file: /path/to/blacklist.bed
+    gene_bed           //    file: /path/to/gene.bed
+    bwa_index          //    file: /path/to/bwa/index/
+    bowtie2_index      //    file: /path/to/bowtie2/index/
+    chromap_index      //    file: /path/to/chromap/index/
+    star_index         //    file: /path/to/star/index/
+    
     main:
 
     ch_versions = Channel.empty()
-
+    
     //
     // Uncompress genome fasta file if required
     //
     ch_fasta = Channel.empty()
-    if (params.fasta.endsWith('.gz')) {
-        ch_fasta    = GUNZIP_FASTA ( [ [:], params.fasta ] ).gunzip.map{ it[1] }
+    if (fasta.endsWith('.gz')) {
+        ch_fasta    = GUNZIP_FASTA ( [ [:], fasta ] ).gunzip.map{ it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
-        ch_fasta = Channel.value(file(params.fasta))
+        ch_fasta = Channel.value(file(fasta))
     }
 
     //
     // Uncompress GTF annotation file or create from GFF3 if required
     //
-    if (params.gtf) {
-        if (params.gtf.endsWith('.gz')) {
-            ch_gtf      = GUNZIP_GTF ( [ [:], params.gtf ] ).gunzip.map{ it[1] }
+    if (gtf) {
+        if (gtf.endsWith('.gz')) {
+            ch_gtf      = GUNZIP_GTF ( [ [:], gtf ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
-            ch_gtf = file(params.gtf)
+            ch_gtf = Channel.value(file(gtf))
         }
-    } else if (params.gff) {
-        if (params.gff.endsWith('.gz')) {
-            ch_gff      = GUNZIP_GFF ( [ [:], params.gff ] ).gunzip.map{ it[1] }
+    } else if (gff) {
+        if (gff.endsWith('.gz')) {
+            ch_gff      = GUNZIP_GFF ( [ [:], gff ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GFF.out.versions)
         } else {
-            ch_gff = file(params.gff)
+            ch_gff = Channel.value(file(gff))
         }
         ch_gtf      = GFFREAD ( ch_gff ).gtf
         ch_versions = ch_versions.mix(GFFREAD.out.versions)
@@ -69,12 +80,12 @@ workflow PREPARE_GENOME {
     // Uncompress blacklist file if required
     //
     ch_blacklist = Channel.empty()
-    if (params.blacklist) {
-        if (params.blacklist.endsWith('.gz')) {
-            ch_blacklist = GUNZIP_BLACKLIST ( [ [:], params.blacklist ] ).gunzip.map{ it[1] }
+    if (blacklist) {
+        if (blacklist.endsWith('.gz')) {
+            ch_blacklist = GUNZIP_BLACKLIST ( [ [:], blacklist ] ).gunzip.map{ it[1] }
             ch_versions  = ch_versions.mix(GUNZIP_BLACKLIST.out.versions)
         } else {
-            ch_blacklist = Channel.fromPath(file(params.blacklist))
+            ch_blacklist = Channel.value(file(blacklist))
         }
     }
 
@@ -85,10 +96,10 @@ workflow PREPARE_GENOME {
     // If --gtf is supplied along with --genome
     // Make gene bed from supplied --gtf instead of using iGenomes one automatically
     def make_bed = false
-    if (!params.gene_bed) {
+    if (!gene_bed) {
         make_bed = true
-    } else if (params.genome && params.gtf) {
-        if (params.genomes[ params.genome ].gtf != params.gtf) {
+    } else if (genome && gtf) {
+        if (genomes[ genome ].gtf != gtf) {
             make_bed = true
         }
     }
@@ -97,11 +108,11 @@ workflow PREPARE_GENOME {
         ch_gene_bed = GTF2BED ( ch_gtf ).bed
         ch_versions = ch_versions.mix(GTF2BED.out.versions)
     } else {
-        if (params.gene_bed.endsWith('.gz')) {
-            ch_gene_bed = GUNZIP_GENE_BED ( [ [:], params.gene_bed ] ).gunzip.map{ it[1] }
+        if (gene_bed.endsWith('.gz')) {
+            ch_gene_bed = GUNZIP_GENE_BED ( [ [:], gene_bed ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GENE_BED.out.versions)
         } else {
-            ch_gene_bed = Channel.value(file(params.gene_bed))
+            ch_gene_bed = Channel.value(file(gene_bed))
         }
     }
 
@@ -119,24 +130,23 @@ workflow PREPARE_GENOME {
     ch_genome_filtered_bed = Channel.empty()
 
     GENOME_BLACKLIST_REGIONS (
-        CUSTOM_GETCHROMSIZES.out.sizes.map{ it[1] },
+        ch_chrom_sizes,
         ch_blacklist.ifEmpty([])
     )
     ch_genome_filtered_bed = GENOME_BLACKLIST_REGIONS.out.bed
     ch_versions = ch_versions.mix(GENOME_BLACKLIST_REGIONS.out.versions)
-
 
     //
     // Uncompress BWA index or generate from scratch if required
     //
     ch_bwa_index = Channel.empty()
     if (prepare_tool_index == 'bwa') {
-        if (params.bwa_index) {
-            if (params.bwa_index.endsWith('.tar.gz')) {
-                ch_bwa_index = UNTAR_BWA_INDEX ( [ [:], params.bwa_index ] ).untar
+        if (bwa_index) {
+            if (bwa_index.endsWith('.tar.gz')) {
+                ch_bwa_index = UNTAR_BWA_INDEX ( [ [:], bwa_index ] ).untar
                 ch_versions  = ch_versions.mix(UNTAR_BWA_INDEX.out.versions)
             } else {
-                ch_bwa_index = file(params.bwa_index)
+                ch_bwa_index = file(bwa_index)
             }
         } else {
             ch_bwa_index = BWA_INDEX ( ch_fasta.map { [ [:], it ] } ).index
@@ -149,12 +159,12 @@ workflow PREPARE_GENOME {
     //
     ch_bowtie2_index = Channel.empty()
     if (prepare_tool_index == 'bowtie2') {
-        if (params.bowtie2_index) {
-            if (params.bowtie2_index.endsWith('.tar.gz')) {
-                ch_bowtie2_index = UNTAR_BOWTIE2_INDEX ( [ [:], params.bowtie2_index ] ).untar
+        if (bowtie2_index) {
+            if (bowtie2_index.endsWith('.tar.gz')) {
+                ch_bowtie2_index = UNTAR_BOWTIE2_INDEX ( [ [:], bowtie2_index ] ).untar
                 ch_versions  = ch_versions.mix(UNTAR_BOWTIE2_INDEX.out.versions)
             } else {
-                ch_bowtie2_index = [ [:], file(params.bowtie2_index) ]
+                ch_bowtie2_index = [ [:], file(bowtie2_index) ]
             }
         } else {
             ch_bowtie2_index = BOWTIE2_BUILD ( ch_fasta.map { [ [:], it ] } ).index
@@ -167,12 +177,12 @@ workflow PREPARE_GENOME {
     //
     ch_chromap_index = Channel.empty()
     if (prepare_tool_index == 'chromap') {
-        if (params.chromap_index) {
-            if (params.chromap_index.endsWith('.tar.gz')) {
-                ch_chromap_index = UNTARFILES ( [ [:], params.chromap_index ] ).files
+        if (chromap_index) {
+            if (chromap_index.endsWith('.tar.gz')) {
+                ch_chromap_index = UNTARFILES ( [ [:], chromap_index ] ).files
                 ch_versions  = ch_versions.mix(UNTARFILES.out.versions)
             } else {
-                ch_chromap_index = [ [:], file(params.chromap_index) ]
+                ch_chromap_index = [ [:], file(chromap_index) ]
             }
         } else {
             ch_chromap_index = CHROMAP_INDEX ( ch_fasta.map { [ [:], it ] } ).index
@@ -185,12 +195,12 @@ workflow PREPARE_GENOME {
     //
     ch_star_index = Channel.empty()
     if (prepare_tool_index == 'star') {
-        if (params.star_index) {
-            if (params.star_index.endsWith('.tar.gz')) {
-                ch_star_index = UNTAR_STAR_INDEX ( [ [:], params.star_index ] ).untar.map{ it[1] }
+        if (star_index) {
+            if (star_index.endsWith('.tar.gz')) {
+                ch_star_index = UNTAR_STAR_INDEX ( [ [:], star_index ] ).untar.map{ it[1] }
                 ch_versions   = ch_versions.mix(UNTAR_STAR_INDEX.out.versions)
             } else {
-                ch_star_index = Channel.value(file(params.star_index))
+                ch_star_index = Channel.value(file(star_index))
             }
         } else {
             ch_star_index = STAR_GENOMEGENERATE ( ch_fasta, ch_gtf ).index
@@ -209,6 +219,5 @@ workflow PREPARE_GENOME {
     bowtie2_index = ch_bowtie2_index          //    path: bowtie2/index/
     chromap_index = ch_chromap_index          //    path: genome.index
     star_index    = ch_star_index             //    path: star/index/
-
-    versions    = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
+    versions    = ch_versions.ifEmpty(null)   // channel: [ versions.yml ]
 }
