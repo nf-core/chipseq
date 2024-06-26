@@ -70,7 +70,7 @@ workflow NFCORE_CHIPSEQ {
         params.star_index,
     )
     ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
-    
+
     //
     // WORKFLOW: Run nf-core/chipseq workflow
     //

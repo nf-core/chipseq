@@ -112,7 +112,7 @@ workflow CHIPSEQ {
     ch_bowtie2_index // channel: path(bowtie2/index)
     ch_chromap_index // channel: path(chromap.index)
     ch_star_index    // channel: path(star/index/)
-    
+
     main:
     ch_multiqc_files = Channel.empty()
 

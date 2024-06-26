@@ -39,11 +39,11 @@ workflow PREPARE_GENOME {
     bowtie2_index      //    file: /path/to/bowtie2/index/
     chromap_index      //    file: /path/to/chromap/index/
     star_index         //    file: /path/to/star/index/
-    
+
     main:
 
     ch_versions = Channel.empty()
-    
+
     //
     // Uncompress genome fasta file if required
     //
