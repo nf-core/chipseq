@@ -93,7 +93,7 @@ workflow NFCORE_CHIPSEQ {
 
     emit:
     multiqc_report = CHIPSEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                   // channel: [version1, version2, ...]
+    versions       = ch_versions                // channel: [version1, version2, ...]
 }
 
 /*
