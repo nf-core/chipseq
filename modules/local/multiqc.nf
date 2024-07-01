@@ -7,11 +7,9 @@ process MULTIQC {
         'biocontainers/multiqc:1.13a--pyhdfd78af_1' }"
 
     input:
+    path workflow_summary
     path multiqc_config
     path mqc_custom_config
-    path software_versions
-    path workflow_summary
-    path methods_description
     path logo
 
     path ('fastqc/*')
