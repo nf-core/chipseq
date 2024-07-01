@@ -100,7 +100,7 @@ if (anno_readme && file(anno_readme).exists()) {
 workflow CHIPSEQ {
 
     take:
-    ch_samplesheet   // channel: path(sample_sheet.csv)
+    ch_input         // channel: path(sample_sheet.csv)
     ch_versions      // channel: [ path(versions.yml) ]
     ch_fasta         // channel: path(genome.fa)
     ch_fai           // channel: path(genome.fai)
@@ -119,7 +119,6 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
-    ch_input = file(ch_samplesheet)
     INPUT_CHECK (
         ch_input,
         params.seq_center
