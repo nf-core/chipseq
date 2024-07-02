@@ -175,3 +175,5 @@ sp:
     fn: "*plotProfile*"
   phantompeakqualtools/out:
     fn: "*.spp.out"
+
+disable_version_detection: true

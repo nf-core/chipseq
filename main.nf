@@ -47,7 +47,7 @@ params.macs_gsize    = getMacsGsize(params)
 */
 
 //
-// WORKFLOW: Run main nf-core/chipseq analysis pipeline
+// WORKFLOW: Run main analysis pipeline depending on type of input
 //
 workflow NFCORE_CHIPSEQ {
 
@@ -74,10 +74,10 @@ workflow NFCORE_CHIPSEQ {
     //
     // WORKFLOW: Run nf-core/chipseq workflow
     //
-    ch_samplesheet = Channel.value(file(params.input, checkIfExists: true))
+    ch_input = Channel.value(file(params.input, checkIfExists: true))
 
     CHIPSEQ(
-        params.input,
+        ch_input,
         ch_versions,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.fai,

@@ -1,12 +1,7 @@
 repository_type: pipeline
-
+nf_core_version: "2.14.1"
 lint:
   nextflow_config:
     - config_defaults:
         - params.bamtools_filter_se_config
         - params.bamtools_filter_pe_config
-  files_unchanged:
-    - .github/CONTRIBUTING.md
-    - .github/workflows/branch.yml
-    - .github/workflows/linting_comment.yml
-    - .github/workflows/linting.yml
