@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated pipeline template to [nf-core/tools 2.10](https://github.com/nf-core/tools/releases/tag/2.10).
 - [[#367](https://github.com/nf-core/chipseq/issues/367)] - Get rid of `CheckIfExists` for params paths.
 - [[#370](https://github.com/nf-core/chipseq/issues/370)] - Fix stack overflow exceptions in phantompeakqualtools ([see here](https://github.com/kundajelab/phantompeakqualtools/issues/3)).
-- [[PR #391](https://github.com/nf-core/chipseq/pull/391)] - Get rid of the `lib` folder and rearrange the pipeline accordingly.
+- [[#387](https://github.com/nf-core/chipseq/issues/387)] - Get rid of the `lib` folder and rearrange the pipeline accordingly.
 
 ### Software dependencies
 
