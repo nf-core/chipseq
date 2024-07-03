@@ -10,12 +10,13 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["outdir"],
+            "required": ["input", "outdir"],
             "properties": {
                 "input": {
                     "type": "string",
                     "format": "file-path",
                     "exists": true,
+                    "schema": "assets/schema_input.json",
                     "mimetype": "text/csv",
                     "pattern": "^\\S+\\.csv$",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
@@ -147,6 +148,8 @@
                 },
                 "blacklist": {
                     "type": "string",
+                    "format": "path",
+                    "exists": true,
                     "description": "Path to blacklist regions in BED format, used for filtering alignments.",
                     "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`/assets/blacklists`](https://github.com/nf-core/chipseq/tree/master/assets/blacklists) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.",
                     "fa_icon": "fas fa-book-dead"
@@ -161,7 +164,7 @@
                     "type": "string",
                     "format": "directory-path",
                     "description": "Directory / URL base for iGenomes references.",
-                    "default": "s3://ngi-igenomes/igenomes",
+                    "default": "s3://ngi-igenomes/igenomes/",
                     "fa_icon": "fas fa-cloud-download-alt",
                     "hidden": true
                 },
@@ -172,7 +175,8 @@
                     "hidden": true,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
                 }
-            }
+            },
+            "required": ["fasta"]
         },
         "adapter_trimming_options": {
             "title": "Adapter trimming options",
@@ -569,6 +573,7 @@
                     "type": "string",
                     "format": "file-path",
                     "exists": true,
+                    "mimetype": "text/plain",
                     "description": "Custom config file to supply to MultiQC.",
                     "fa_icon": "fas fa-cog",
                     "hidden": true
@@ -585,6 +590,7 @@
                     "type": "string",
                     "format": "file-path",
                     "exists": true,
+                    "mimetype": "text/plain",
                     "description": "Custom MultiQC yaml file containing HTML including a methods description.",
                     "fa_icon": "fas fa-cog"
                 },
@@ -615,6 +621,13 @@
                     "description": "Validation of parameters in lenient more.",
                     "hidden": true,
                     "help_text": "Allows string values that are parseable as numbers or booleans. For further information see [JSONSchema docs](https://github.com/everit-org/json-schema#lenient-mode)."
+                },
+                "pipelines_testdata_base_path": {
+                    "type": "string",
+                    "fa_icon": "far fa-check-circle",
+                    "description": "Base URL or local path to location of pipeline test dataset files",
+                    "default": "https://raw.githubusercontent.com/nf-core/test-datasets/",
+                    "hidden": true
                 }
             }
         }

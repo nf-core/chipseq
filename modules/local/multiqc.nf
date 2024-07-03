@@ -4,14 +4,12 @@ process MULTIQC {
     conda "bioconda::multiqc=1.13a"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/multiqc:1.13a--pyhdfd78af_1':
-        'quay.io/biocontainers/multiqc:1.13a--pyhdfd78af_1' }"
+        'biocontainers/multiqc:1.13a--pyhdfd78af_1' }"
 
     input:
+    path workflow_summary
     path multiqc_config
     path mqc_custom_config
-    path software_versions
-    path workflow_summary
-    path methods_description
     path logo
 
     path ('fastqc/*')
@@ -22,15 +20,15 @@ process MULTIQC {
     path ('alignment/library/*')
     path ('alignment/library/*')
 
-    path ('alignment/mergedLibrary/unfiltered/*')
-    path ('alignment/mergedLibrary/unfiltered/*')
-    path ('alignment/mergedLibrary/unfiltered/*')
-    path ('alignment/mergedLibrary/unfiltered/picard_metrics/*')
+    path ('alignment/merged_library/unfiltered/*')
+    path ('alignment/merged_library/unfiltered/*')
+    path ('alignment/merged_library/unfiltered/*')
+    path ('alignment/merged_library/unfiltered/picard_metrics/*')
 
-    path ('alignment/mergedLibrary/filtered/*')
-    path ('alignment/mergedLibrary/filtered/*')
-    path ('alignment/mergedLibrary/filtered/*')
-    path ('alignment/mergedLibrary/filtered/picard_metrics/*')
+    path ('alignment/merged_library/filtered/*')
+    path ('alignment/merged_library/filtered/*')
+    path ('alignment/merged_library/filtered/*')
+    path ('alignment/merged_library/filtered/picard_metrics/*')
 
     path ('preseq/*')
 
