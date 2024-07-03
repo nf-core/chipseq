@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#367](https://github.com/nf-core/chipseq/issues/367)] - Get rid of `CheckIfExists` for params paths.
 - [[#370](https://github.com/nf-core/chipseq/issues/370)] - Fix stack overflow exceptions in phantompeakqualtools ([see here](https://github.com/kundajelab/phantompeakqualtools/issues/3)).
 - [[#387](https://github.com/nf-core/chipseq/issues/387)] - Get rid of the `lib` folder and rearrange the pipeline accordingly.
+- [[#385](https://github.com/nf-core/chipseq/issues/385)] - Fix `--save_unaligned` description in schema.
 
 ### Software dependencies
 
