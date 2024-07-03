@@ -261,7 +261,7 @@
                 "save_unaligned": {
                     "type": "boolean",
                     "fa_icon": "fas fa-save",
-                    "description": "Where possible, save unaligned reads from either STAR, HISAT2 or Salmon to the results directory.",
+                    "description": "Save unaligned sequences to the output directory (only available for Bowtie 2 And STAR.",
                     "help_text": "This may either be in the form of FastQ or BAM files depending on the options available for that particular tool."
                 },
                 "bamtools_filter_pe_config": {
@@ -397,6 +397,16 @@
                 "skip_multiqc": {
                     "type": "boolean",
                     "description": "Skip MultiQC.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_peak_calling": {
+                    "type": "boolean",
+                    "description": "Skip MACS2 peak calling.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_reporting": {
+                    "type": "boolean",
+                    "description": "Skip reporting.",
                     "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_qc": {
