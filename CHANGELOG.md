@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#370](https://github.com/nf-core/chipseq/issues/370)] - Fix stack overflow exceptions in phantompeakqualtools ([see here](https://github.com/kundajelab/phantompeakqualtools/issues/3)).
 - [[#387](https://github.com/nf-core/chipseq/issues/387)] - Get rid of the `lib` folder and rearrange the pipeline accordingly.
 - [[#385](https://github.com/nf-core/chipseq/issues/385)] - Fix `--save_unaligned` description in schema.
-- [[PR #392](https://github.com/nf-core/chipseq/pull/392)] - Adding line numbers to warnings/errors messages in `bin/check_samplesheet.py`
+- [[PR #392](https://github.com/nf-core/chipseq/pull/392)] - Adding line numbers to warnings/errors messages in `bin/check_samplesheet.py`.
+- [[#396](https://github.com/nf-core/chipseq/issues/396)] - Check that samplesheet samples IDs do only have alphanumeric characters, dots, dashes or underscores.
 
 ### Software dependencies
 

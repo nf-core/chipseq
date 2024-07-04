@@ -4,6 +4,7 @@ import os
 import sys
 import errno
 import argparse
+import re
 
 
 def parse_args(args=None):
@@ -84,22 +85,28 @@ def check_samplesheet(file_in, file_out):
                     sample = sample.replace(" ", "_")
                 if not sample:
                     print_error("Sample entry has not been specified!", "Line {}".format(line_number), line)
+                if not re.match(r"^[a-zA-Z0-9_.-]+$", sample):
+                    print_error(
+                        "Sample name contains invalid characters! Only alphanumeric characters, underscores, dots and dashes are allowed.",
+                        "Line {}".format(line_number),
+                        line,
+                    )
 
                 ## Check FastQ file extension
                 for fastq in [fastq_1, fastq_2]:
                     if fastq:
                         if fastq.find(" ") != -1:
-                            print_error("FastQ file contains spaces!", "Line {}".format(lineNo), line)
+                            print_error("FastQ file contains spaces!", "Line {}".format(line_number), line)
                         if not fastq.endswith(".fastq.gz") and not fastq.endswith(".fq.gz"):
                             print_error(
                                 "FastQ file does not have extension '.fastq.gz' or '.fq.gz'!",
-                                "Line {}".format(lineNo),
+                                "Line {}".format(line_number),
                                 line,
                             )
 
                 ## Check replicate column is integer
                 if not replicate.isdecimal():
-                    print_error("Replicate id not an integer!", "Line {}".format(lineNo), line)
+                    print_error("Replicate id not an integer!", "Line {}".format(line_number), line)
                     sys.exit(1)
 
                 ## Check antibody and control columns have valid values
