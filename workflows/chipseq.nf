@@ -7,7 +7,6 @@
 //
 // MODULE: Loaded from modules/local/
 //
-include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'
 include { FRIP_SCORE                          } from '../modules/local/frip_score'
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
@@ -22,13 +21,14 @@ include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_c
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { paramsSummaryMap       } from 'plugin/nf-validation'
-include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_chipseq_pipeline'
-include { INPUT_CHECK            } from '../subworkflows/local/input_check'
-include { ALIGN_STAR             } from '../subworkflows/local/align_star'
-include { BAM_FILTER_BAMTOOLS    } from '../subworkflows/local/bam_filter_bamtools'
+include { paramsSummaryMap                       } from 'plugin/nf-validation'
+include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML                 } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText                 } from '../subworkflows/local/utils_nfcore_chipseq_pipeline'
+include { INPUT_CHECK                            } from '../subworkflows/local/input_check'
+include { ALIGN_STAR                             } from '../subworkflows/local/align_star'
+include { BAM_FILTER_BAMTOOLS                    } from '../subworkflows/local/bam_filter_bamtools'
+include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC      } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,7 +44,6 @@ include { PICARD_MERGESAMFILES          } from '../modules/nf-core/picard/merges
 include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
 include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap/main'
 include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/phantompeakqualtools/main'
-include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
 include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/computematrix/main'
 include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile/main'
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
@@ -358,21 +357,14 @@ workflow CHIPSEQ {
     }
 
     //
-    // MODULE: BedGraph coverage tracks
+    // SUBWORKFLOW: Normalised bigWig coverage tracks
     //
-    BEDTOOLS_GENOMECOV (
-        BAM_FILTER_BAMTOOLS.out.bam.join(BAM_FILTER_BAMTOOLS.out.flagstat, by: [0])
-    )
-    ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
-
-    //
-    // MODULE: BigWig coverage tracks
-    //
-    UCSC_BEDGRAPHTOBIGWIG (
-        BEDTOOLS_GENOMECOV.out.bedgraph,
+    BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC (
+        BAM_FILTER_BAMTOOLS.out.bam.join(BAM_FILTER_BAMTOOLS.out.flagstat, by: [0]),
         ch_chrom_sizes
     )
-    ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first())
+    ch_versions = ch_versions.mix(BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.versions)
+
 
     ch_deeptoolsplotprofile_multiqc = Channel.empty()
     if (!params.skip_plot_profile) {
@@ -380,7 +372,7 @@ workflow CHIPSEQ {
         // MODULE: deepTools matrix generation for plotting
         //
         DEEPTOOLS_COMPUTEMATRIX (
-            UCSC_BEDGRAPHTOBIGWIG.out.bigwig,
+            BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.bigwig,
             ch_gene_bed
         )
         ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
@@ -678,7 +670,7 @@ workflow CHIPSEQ {
             params.aligner,
             params.narrow_peak ? 'narrow_peak' : 'broad_peak',
             ch_fasta,
-            UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
+            BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_txt_lib.collect{it[1]}.ifEmpty([])
