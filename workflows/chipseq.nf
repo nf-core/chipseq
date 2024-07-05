@@ -466,7 +466,7 @@ workflow CHIPSEQ {
         params.skip_peak_annotation,
         params.skip_peak_qc
     )
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.versions)
+    ch_versions = ch_versions.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.versions)
 
     //
     //  Consensus peaks analysis

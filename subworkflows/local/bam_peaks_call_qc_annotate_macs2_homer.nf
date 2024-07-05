@@ -23,7 +23,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     is_narrow_peak                    // boolean: true/false
     skip_peak_annotation              // boolean: true/false
     skip_peak_qc                      // boolean: true/false
-    
+
     main:
 
     ch_versions = Channel.empty()
@@ -43,7 +43,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     MACS2_CALLPEAK
         .out
         .peak
-        .filter { 
+        .filter {
             meta, peaks ->
                 peaks.size() > 0
         }
@@ -102,7 +102,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
-    
+
         if (!skip_peak_qc) {
             //
             // MACS2 QC plots with R
@@ -138,7 +138,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     bedgraph                     = MACS2_CALLPEAK.out.bdg           // channel: [ val(meta), [ bedgraph ] ]
 
     frip_txt                     = FRIP_SCORE.out.txt               // channel: [ val(meta), [ txt ] ]
-    
+
     frip_multiqc                 = MULTIQC_CUSTOM_PEAKS.out.frip    // channel: [ val(meta), [ frip ] ]
     peak_count_multiqc           = MULTIQC_CUSTOM_PEAKS.out.count   // channel: [ val(meta), [ counts ] ]
 
