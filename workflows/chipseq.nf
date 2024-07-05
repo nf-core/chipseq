@@ -29,7 +29,6 @@ include { INPUT_CHECK                            } from '../subworkflows/local/i
 include { ALIGN_STAR                             } from '../subworkflows/local/align_star'
 include { BAM_FILTER_BAMTOOLS                    } from '../subworkflows/local/bam_filter_bamtools'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC      } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,7 +44,6 @@ include { PICARD_MERGESAMFILES          } from '../modules/nf-core/picard/merges
 include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
 include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap/main'
 include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/phantompeakqualtools/main'
-include { UCSC_BEDGRAPHTOBIGWIG         } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
 include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/computematrix/main'
 include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile/main'
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
