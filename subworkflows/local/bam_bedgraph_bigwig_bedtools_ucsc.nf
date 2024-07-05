@@ -1,4 +1,3 @@
-
 //
 // Convert BAM to normalised bigWig via bedGraph using BEDTools and UCSC
 //
