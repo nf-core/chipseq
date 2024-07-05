@@ -10,7 +10,7 @@ workflow BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC {
     take:
     ch_bam_flagstat // channel: [ val(meta), [bam], [flagstat] ]
     ch_chrom_sizes  // channel: [ bed ]
-    
+
     main:
 
     ch_versions = Channel.empty()
