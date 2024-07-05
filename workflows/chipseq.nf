@@ -361,7 +361,7 @@ workflow CHIPSEQ {
     //
     BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC (
         BAM_FILTER_BAMTOOLS.out.bam.join(BAM_FILTER_BAMTOOLS.out.flagstat, by: [0]),
-        PREPARE_GENOME.out.chrom_sizes
+        ch_chrom_sizes
     )
     ch_versions = ch_versions.mix(BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.versions)
 
