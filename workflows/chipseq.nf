@@ -8,7 +8,6 @@
 // MODULE: Loaded from modules/local/
 //
 include { MACS2_CONSENSUS                     } from '../modules/local/macs2_consensus'
-include { ANNOTATE_BOOLEAN_PEAKS              } from '../modules/local/annotate_boolean_peaks'
 include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
 include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
