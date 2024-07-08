@@ -7,16 +7,12 @@
 //
 // MODULE: Loaded from modules/local/
 //
-include { FRIP_SCORE                          } from '../modules/local/frip_score'
-include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'
-include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
 include { MACS2_CONSENSUS                     } from '../modules/local/macs2_consensus'
 include { ANNOTATE_BOOLEAN_PEAKS              } from '../modules/local/annotate_boolean_peaks'
 include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
 include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'
-include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -29,6 +25,7 @@ include { INPUT_CHECK                            } from '../subworkflows/local/i
 include { ALIGN_STAR                             } from '../subworkflows/local/align_star'
 include { BAM_FILTER_BAMTOOLS                    } from '../subworkflows/local/bam_filter_bamtools'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC      } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,10 +46,8 @@ include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plo
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
 include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/khmer/uniquekmers/main'
-include { MACS2_CALLPEAK                } from '../modules/nf-core/macs2/callpeak/main'
 include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/subread/featurecounts/main'
 
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/homer/annotatepeaks/main'
 include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/homer/annotatepeaks/main'
 
 //
@@ -437,9 +432,6 @@ workflow CHIPSEQ {
     //
     // TODO move to prepare genome
     ch_macs_gsize                     = Channel.empty()
-    ch_custompeaks_frip_multiqc       = Channel.empty()
-    ch_custompeaks_count_multiqc      = Channel.empty()
-    ch_plothomerannotatepeaks_multiqc = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
     ch_macs_gsize = params.macs_gsize
     if (!params.macs_gsize) {
@@ -459,96 +451,22 @@ workflow CHIPSEQ {
         .set { ch_ip_control_bam }
 
     //
-    // MODULE: Call peaks with MACS2
+    // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
     //
-    MACS2_CALLPEAK (
+    BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER (
         ch_ip_control_bam,
-        ch_macs_gsize
-    )
-    ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
-
-    //
-    // Filter out samples with 0 MACS2 peaks called
-    //
-    MACS2_CALLPEAK
-        .out
-        .peak
-        .filter {
-            meta, peaks ->
-                peaks.size() > 0
-        }
-        .set { ch_macs2_peaks }
-
-    // Create channels: [ meta, ip_bam, peaks ]
-    ch_ip_control_bam
-        .join(ch_macs2_peaks, by: [0])
-        .map {
-            it ->
-                [ it[0], it[1], it[3] ]
-        }
-        .set { ch_ip_bam_peaks }
-
-    //
-    // MODULE: Calculate FRiP score
-    //
-    FRIP_SCORE (
-        ch_ip_bam_peaks
-    )
-    ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
-
-    // Create channels: [ meta, peaks, frip ]
-    ch_ip_bam_peaks
-        .join(FRIP_SCORE.out.txt, by: [0])
-        .map {
-            it ->
-                [ it[0], it[2], it[3] ]
-        }
-        .set { ch_ip_peaks_frip }
-
-    //
-    // MODULE: FRiP score custom content for MultiQC
-    //
-    MULTIQC_CUSTOM_PEAKS (
-        ch_ip_peaks_frip,
+        ch_fasta,
+        ch_gtf,
+        ch_macs_gsize,
+        "_peaks.annotatePeaks.txt",
         ch_peak_count_header,
-        ch_frip_score_header
+        ch_frip_score_header,
+        ch_peak_annotation_header,
+        params.narrow_peak,
+        params.skip_peak_annotation,
+        params.skip_peak_qc
     )
-    ch_custompeaks_frip_multiqc  = MULTIQC_CUSTOM_PEAKS.out.frip
-    ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS.out.count
-
-    if (!params.skip_peak_annotation) {
-        //
-        // MODULE: Annotate peaks with MACS2
-        //
-        HOMER_ANNOTATEPEAKS_MACS2 (
-            ch_macs2_peaks,
-            ch_fasta,
-            ch_gtf
-        )
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
-
-        if (!params.skip_peak_qc) {
-            //
-            // MODULE: MACS2 QC plots with R
-            //
-            PLOT_MACS2_QC (
-                ch_macs2_peaks.collect{it[1]},
-                params.narrow_peak
-            )
-            ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
-
-            //
-            // MODULE: Peak annotation QC plots with R
-            //
-            PLOT_HOMER_ANNOTATEPEAKS (
-                HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
-                ch_peak_annotation_header,
-                "_peaks.annotatePeaks.txt"
-            )
-            ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
-            ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
-        }
-    }
+    ch_versions = ch_versions.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.versions)
 
     //
     //  Consensus peaks analysis
@@ -560,7 +478,7 @@ workflow CHIPSEQ {
     if (!params.skip_consensus_peaks) {
         // Create channels: [ meta , [ peaks ] ]
         // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
-        ch_macs2_peaks
+        BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.peaks
             .map {
                 meta, peak ->
                     [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ]
@@ -671,7 +589,7 @@ workflow CHIPSEQ {
             params.narrow_peak ? 'narrow_peak' : 'broad_peak',
             ch_fasta,
             BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.bigwig.collect{it[1]}.ifEmpty([]),
-            ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
+            BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_txt_lib.collect{it[1]}.ifEmpty([])
         )
@@ -731,9 +649,9 @@ workflow CHIPSEQ {
             ch_multiqc_phantompeakqualtools_rsc_multiqc.collect{it[1]}.ifEmpty([]),
             ch_multiqc_phantompeakqualtools_correlation_multiqc.collect{it[1]}.ifEmpty([]),
 
-            ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_plothomerannotatepeaks_multiqc.collect().ifEmpty([]),
+            BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.frip_multiqc.collect{it[1]}.ifEmpty([]),
+            BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.peak_count_multiqc.collect{it[1]}.ifEmpty([]),
+            BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
             ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_deseq2_pca_multiqc.collect().ifEmpty([]),
