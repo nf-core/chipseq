@@ -7,8 +7,6 @@
 //
 // MODULE: Loaded from modules/local/
 //
-include { MACS2_CONSENSUS                     } from '../modules/local/macs2_consensus'
-include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
 include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'
@@ -46,9 +44,6 @@ include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plo
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
 include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/khmer/uniquekmers/main'
-include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/subread/featurecounts/main'
-
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/homer/annotatepeaks/main'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -240,13 +235,13 @@ workflow CHIPSEQ {
             meta, bam ->
                 def meta_clone = meta.clone()
                 meta_clone.remove('read_group')
-                meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
+                meta_clone.id = meta_clone.id - ~/_T\d+$/
                 [ meta_clone, bam ]
         }
         .groupTuple(by: [0])
         .map {
-            it ->
-                [ it[0], it[1].flatten() ]
+            meta, bam ->
+                [ meta, bam.flatten() ]
         }
         .set { ch_sort_bam }
 
