@@ -1,15 +1,16 @@
-process MACS2_CALLPEAK {
+
+process MACS3_CALLPEAK {
     tag "$meta.id"
     label 'process_medium'
 
-    conda "bioconda::macs2=2.2.7.1"
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/macs2:2.2.7.1--py38h4a8c8d9_3' :
-        'biocontainers/macs2:2.2.7.1--py38h4a8c8d9_3' }"
+        'https://depot.galaxyproject.org/singularity/macs3:3.0.1--py311h0152c62_3':
+        'biocontainers/macs3:3.0.1--py311h0152c62_3' }"
 
     input:
     tuple val(meta), path(ipbam), path(controlbam)
-    val   macs2_gsize
+    val   macs3_gsize
 
     output:
     tuple val(meta), path("*.{narrowPeak,broadPeak}"), emit: peak
@@ -36,10 +37,10 @@ process MACS2_CALLPEAK {
         args_list.remove(id)
     }
     """
-    macs2 \\
+    macs3 \\
         callpeak \\
         ${args_list.join(' ')} \\
-        --gsize $macs2_gsize \\
+        --gsize $macs3_gsize \\
         --format $format \\
         --name $prefix \\
         --treatment $ipbam \\
@@ -47,7 +48,23 @@ process MACS2_CALLPEAK {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        macs2: \$(macs2 --version | sed -e "s/macs2 //g")
+        macs3: \$(macs3 --version | sed -e "s/macs3 //g")
+    END_VERSIONS
+    """
+
+    stub:
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    touch ${prefix}.gappedPeak
+    touch ${prefix}.bed
+    touch ${prefix}.bdg
+    touch ${prefix}.narrowPeak
+    touch ${prefix}.xls
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        macs3: \$(macs3 --version | sed -e "s/macs3 //g")
     END_VERSIONS
     """
 }

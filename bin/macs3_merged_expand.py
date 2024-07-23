@@ -17,15 +17,15 @@ import argparse
 ############################################
 
 Description = "Add sample boolean files and aggregate columns from merged MACS narrow or broad peak file."
-Epilog = """Example usage: python macs2_merged_expand.py <MERGED_INTERVAL_FILE> <SAMPLE_NAME_LIST> <OUTFILE> --is_narrow_peak --min_replicates 1"""
+Epilog = """Example usage: python macs3_merged_expand.py <MERGED_INTERVAL_FILE> <SAMPLE_NAME_LIST> <OUTFILE> --is_narrow_peak --min_replicates 1"""
 
 argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 
 ## REQUIRED PARAMETERS
-argParser.add_argument("MERGED_INTERVAL_FILE", help="Merged MACS2 interval file created using linux sort and mergeBed.")
+argParser.add_argument("MERGED_INTERVAL_FILE", help="Merged MACS3 interval file created using linux sort and mergeBed.")
 argParser.add_argument(
     "SAMPLE_NAME_LIST",
-    help="Comma-separated list of sample names as named in individual MACS2 broadPeak/narrowPeak output file e.g. SAMPLE_R1 for SAMPLE_R1_peak_1.",
+    help="Comma-separated list of sample names as named in individual MACS3 broadPeak/narrowPeak output file e.g. SAMPLE_R1 for SAMPLE_R1_peak_1.",
 )
 argParser.add_argument("OUTFILE", help="Full path to output directory.")
 
@@ -76,7 +76,7 @@ def makedir(path):
 ## sort -k1,1 -k2,2n <MACS_NARROWPEAK_FILE_LIST> | mergeBed -c 2,3,4,5,6,7,8,9,10 -o collapse,collapse,collapse,collapse,collapse,collapse,collapse,collapse,collapse > merged_peaks.txt
 
 
-def macs2_merged_expand(MergedIntervalTxtFile, SampleNameList, OutFile, isNarrow=False, minReplicates=1):
+def macs3_merged_expand(MergedIntervalTxtFile, SampleNameList, OutFile, isNarrow=False, minReplicates=1):
     makedir(os.path.dirname(OutFile))
 
     combFreqDict = {}
@@ -208,7 +208,7 @@ def macs2_merged_expand(MergedIntervalTxtFile, SampleNameList, OutFile, isNarrow
 ############################################
 ############################################
 
-macs2_merged_expand(
+macs3_merged_expand(
     MergedIntervalTxtFile=args.MERGED_INTERVAL_FILE,
     SampleNameList=args.SAMPLE_NAME_LIST.split(","),
     OutFile=args.OUTFILE,

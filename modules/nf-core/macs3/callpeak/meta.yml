@@ -1,4 +1,6 @@
-name: macs2_callpeak
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "macs3_callpeak"
 description: Peak calling of enriched genomic regions of ChIP-seq and ATAC-seq experiments
 keywords:
   - alignment
@@ -6,32 +8,40 @@ keywords:
   - chip-seq
   - peak-calling
 tools:
-  - macs2:
-      description: Model Based Analysis for ChIP-Seq data
-
-      documentation: https://docs.csc.fi/apps/macs2/
-      tool_dev_url: https://github.com/macs3-project/MACS
+  - macs3:
+      description: "Model Based Analysis for ChIP-Seq data"
+      homepage: "https://macs3-project.github.io/MACS/"
+      documentation: "https://macs3-project.github.io/MACS/"
+      tool_dev_url: "https://github.com/macs3-project/MACS/"
       doi: "10.1101/496521"
-      licence: ["BSD"]
+      licence: ["BSD-3-clause"]
 
 input:
   - meta:
       type: map
       description: |
         Groovy Map containing sample information
-        e.g. [ id:'test', single_end:false ]
+        e.g. `[ id:'sample_1', single_end:false ]`
   - ipbam:
       type: file
       description: The ChIP-seq treatment file
   - controlbam:
       type: file
       description: The control file
-  - macs2_gsize:
+  - macs3_gsize:
       type: string
-      description: Effective genome size. It can be 1.0e+9 or 1000000000, or shortcuts:'hs' for human (2.7e9),
-        'mm' for mouse (1.87e9), 'ce' for C. elegans (9e7) and 'dm' for fruitfly (1.2e8)
+      description: |
+        Effective genome size. It can be 1.0e+9 or 1000000000,
+        or shortcuts:'hs' for human (2,913,022,398), 'mm' for mouse
+        (2,652,783,500), 'ce' for C. elegans (100,286,401)
+        and 'dm' for fruitfly (142,573,017), Default:hs.
 
 output:
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing sample information
+        e.g. `[ id:'sample1', single_end:false ]`
   - versions:
       type: file
       description: File containing software version
@@ -58,6 +68,6 @@ output:
       pattern: "*.bdg"
 
 authors:
-  - "@ntoda03"
   - "@JoseEspinosa"
-  - "@jianhong"
+maintainers:
+  - "@JoseEspinosa"

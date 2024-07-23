@@ -72,7 +72,7 @@ module_order:
       anchor: "mlib_featurecounts"
       info: "This section of the report shows featureCounts results for the number of reads assigned to merged library consensus peaks."
       path_filters:
-        - "./macs2/featurecounts/*.summary"
+        - "./macs3/featurecounts/*.summary"
 
 report_section_order:
   peak_count:

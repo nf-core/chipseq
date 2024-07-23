@@ -1,16 +1,16 @@
 //
-// Call peaks with MACS2, annotate with HOMER and perform downstream QC
+// Call peaks with MACS3, annotate with HOMER and perform downstream QC
 //
 
-include { MACS2_CALLPEAK           } from '../../modules/nf-core/macs2/callpeak/main'
+include { MACS3_CALLPEAK           } from '../../modules/nf-core/macs3/callpeak/main'
 include { HOMER_ANNOTATEPEAKS      } from '../../modules/nf-core/homer/annotatepeaks/main'
 
 include { FRIP_SCORE               } from '../../modules/local/frip_score'
 include { MULTIQC_CUSTOM_PEAKS     } from '../../modules/local/multiqc_custom_peaks'
-include { PLOT_MACS2_QC            } from '../../modules/local/plot_macs2_qc'
+include { PLOT_MACS3_QC            } from '../../modules/local/plot_macs3_qc'
 include { PLOT_HOMER_ANNOTATEPEAKS } from '../../modules/local/plot_homer_annotatepeaks'
 
-workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
+workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     take:
     ch_bam                            // channel: [ val(meta), [ ip_bam ], [ control_bam ] ]
     ch_fasta                          // channel: [ fasta ]
@@ -29,29 +29,29 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     ch_versions = Channel.empty()
 
     //
-    // Call peaks with MACS2
+    // Call peaks with MACS3
     //
-    MACS2_CALLPEAK (
+    MACS3_CALLPEAK (
         ch_bam,
         macs_gsize
     )
-    ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
+    ch_versions = ch_versions.mix(MACS3_CALLPEAK.out.versions.first())
 
     //
-    // Filter out samples with 0 MACS2 peaks called
+    // Filter out samples with 0 MACS3 peaks called
     //
-    MACS2_CALLPEAK
+    MACS3_CALLPEAK
         .out
         .peak
         .filter {
             meta, peaks ->
                 peaks.size() > 0
         }
-        .set { ch_macs2_peaks }
+        .set { ch_macs3_peaks }
 
     // Create channels: [ meta, ip_bam, peaks ]
     ch_bam
-        .join(ch_macs2_peaks, by: [0])
+        .join(ch_macs3_peaks, by: [0])
         .map {
             meta, ip_bam, control_bam, peaks ->
                 [ meta, ip_bam, peaks ]
@@ -86,8 +86,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     ch_versions = ch_versions.mix(MULTIQC_CUSTOM_PEAKS.out.versions.first())
 
     ch_homer_annotatepeaks          = Channel.empty()
-    ch_plot_macs2_qc_txt            = Channel.empty()
-    ch_plot_macs2_qc_pdf            = Channel.empty()
+    ch_plot_macs3_qc_txt            = Channel.empty()
+    ch_plot_macs3_qc_pdf            = Channel.empty()
     ch_plot_homer_annotatepeaks_txt = Channel.empty()
     ch_plot_homer_annotatepeaks_pdf = Channel.empty()
     ch_plot_homer_annotatepeaks_tsv = Channel.empty()
@@ -96,7 +96,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
         // Annotate peaks with HOMER
         //
         HOMER_ANNOTATEPEAKS (
-            ch_macs2_peaks,
+            ch_macs3_peaks,
             ch_fasta,
             ch_gtf
         )
@@ -105,15 +105,15 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
 
         if (!skip_peak_qc) {
             //
-            // MACS2 QC plots with R
+            // MACS3 QC plots with R
             //
-            PLOT_MACS2_QC (
-                ch_macs2_peaks.collect{it[1]},
+            PLOT_MACS3_QC (
+                ch_macs3_peaks.collect{it[1]},
                 is_narrow_peak
             )
-            ch_plot_macs2_qc_txt = PLOT_MACS2_QC.out.txt
-            ch_plot_macs2_qc_pdf = PLOT_MACS2_QC.out.pdf
-            ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
+            ch_plot_macs3_qc_txt = PLOT_MACS3_QC.out.txt
+            ch_plot_macs3_qc_pdf = PLOT_MACS3_QC.out.pdf
+            ch_versions = ch_versions.mix(PLOT_MACS3_QC.out.versions)
 
             //
             // Peak annotation QC plots with R
@@ -131,11 +131,11 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     }
 
     emit:
-    peaks                        = ch_macs2_peaks                   // channel: [ val(meta), [ peaks ] ]
-    xls                          = MACS2_CALLPEAK.out.xls           // channel: [ val(meta), [ xls ] ]
-    gapped_peaks                 = MACS2_CALLPEAK.out.gapped        // channel: [ val(meta), [ gapped_peak ] ]
-    bed                          = MACS2_CALLPEAK.out.bed           // channel: [ val(meta), [ bed ] ]
-    bedgraph                     = MACS2_CALLPEAK.out.bdg           // channel: [ val(meta), [ bedgraph ] ]
+    peaks                        = ch_macs3_peaks                   // channel: [ val(meta), [ peaks ] ]
+    xls                          = MACS3_CALLPEAK.out.xls           // channel: [ val(meta), [ xls ] ]
+    gapped_peaks                 = MACS3_CALLPEAK.out.gapped        // channel: [ val(meta), [ gapped_peak ] ]
+    bed                          = MACS3_CALLPEAK.out.bed           // channel: [ val(meta), [ bed ] ]
+    bedgraph                     = MACS3_CALLPEAK.out.bdg           // channel: [ val(meta), [ bedgraph ] ]
 
     frip_txt                     = FRIP_SCORE.out.txt               // channel: [ val(meta), [ txt ] ]
 
@@ -144,8 +144,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
 
     homer_annotatepeaks          = ch_homer_annotatepeaks           // channel: [ val(meta), [ txt ] ]
 
-    plot_macs2_qc_txt            = ch_plot_macs2_qc_txt             // channel: [ txt ]
-    plot_macs2_qc_pdf            = ch_plot_macs2_qc_pdf             // channel: [ pdf ]
+    plot_macs3_qc_txt            = ch_plot_macs3_qc_txt             // channel: [ txt ]
+    plot_macs3_qc_pdf            = ch_plot_macs3_qc_pdf             // channel: [ pdf ]
 
     plot_homer_annotatepeaks_txt = ch_plot_homer_annotatepeaks_txt  // channel: [ txt ]
     plot_homer_annotatepeaks_pdf = ch_plot_homer_annotatepeaks_pdf  // channel: [ pdf ]

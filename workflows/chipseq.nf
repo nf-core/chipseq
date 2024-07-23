@@ -22,7 +22,7 @@ include { INPUT_CHECK            } from '../subworkflows/local/input_check'
 include { ALIGN_STAR             } from '../subworkflows/local/align_star'
 include { BAM_FILTER_BAMTOOLS    } from '../subworkflows/local/bam_filter_bamtools'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC                       } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER                  } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER                  } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer.nf'
 include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
 
 /*
@@ -446,9 +446,9 @@ workflow CHIPSEQ {
         .set { ch_ip_control_bam }
 
     //
-    // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
+    // SUBWORKFLOW: Call peaks with MACS3, annotate with HOMER and perform downstream QC
     //
-    BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER (
+    BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER (
         ch_ip_control_bam,
         ch_fasta,
         ch_gtf,
@@ -461,13 +461,13 @@ workflow CHIPSEQ {
         params.skip_peak_annotation,
         params.skip_peak_qc
     )
-    ch_versions = ch_versions.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.versions)
+    ch_versions = ch_versions.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.versions)
 
     //
     //  Consensus peaks analysis
     //
-    ch_macs2_consensus_bed_lib   = Channel.empty()
-    ch_macs2_consensus_txt_lib   = Channel.empty()
+    ch_macs3_consensus_bed_lib   = Channel.empty()
+    ch_macs3_consensus_txt_lib   = Channel.empty()
     ch_deseq2_pca_multiqc        = Channel.empty()
     ch_deseq2_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
@@ -481,7 +481,7 @@ workflow CHIPSEQ {
             .set { ch_antibody_bams }
 
         BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 (
-            BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.peaks,
+            BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.peaks,
             ch_antibody_bams,
             ch_fasta,
             ch_gtf,
@@ -491,8 +491,8 @@ workflow CHIPSEQ {
             params.skip_peak_annotation,
             params.skip_deseq2_qc
         )
-        ch_macs2_consensus_bed_lib       = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.consensus_bed
-        ch_macs2_consensus_txt_lib       = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.consensus_txt
+        ch_macs3_consensus_bed_lib       = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.consensus_bed
+        ch_macs3_consensus_txt_lib       = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.consensus_txt
         ch_subreadfeaturecounts_multiqc  = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.featurecounts_summary
         ch_deseq2_pca_multiqc            = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.deseq2_qc_pca_multiqc
         ch_deseq2_clustering_multiqc     = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.deseq2_qc_dists_multiqc
@@ -508,9 +508,9 @@ workflow CHIPSEQ {
             params.narrow_peak ? 'narrow_peak' : 'broad_peak',
             ch_fasta,
             BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.bigwig.collect{it[1]}.ifEmpty([]),
-            BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.peaks.collect{it[1]}.ifEmpty([]),
-            ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
-            ch_macs2_consensus_txt_lib.collect{it[1]}.ifEmpty([])
+            BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.peaks.collect{it[1]}.ifEmpty([]),
+            ch_macs3_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
+            ch_macs3_consensus_txt_lib.collect{it[1]}.ifEmpty([])
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
     }
@@ -568,9 +568,9 @@ workflow CHIPSEQ {
             ch_multiqc_phantompeakqualtools_rsc_multiqc.collect{it[1]}.ifEmpty([]),
             ch_multiqc_phantompeakqualtools_correlation_multiqc.collect{it[1]}.ifEmpty([]),
 
-            BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.frip_multiqc.collect{it[1]}.ifEmpty([]),
-            BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.peak_count_multiqc.collect{it[1]}.ifEmpty([]),
-            BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER.out.plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
+            BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.frip_multiqc.collect{it[1]}.ifEmpty([]),
+            BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.peak_count_multiqc.collect{it[1]}.ifEmpty([]),
+            BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
             ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_deseq2_pca_multiqc.collect().ifEmpty([]),

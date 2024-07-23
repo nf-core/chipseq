@@ -85,9 +85,9 @@
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
                         "installed_by": ["modules"]
                     },
-                    "macs2/callpeak": {
+                    "macs3/callpeak": {
                         "branch": "master",
-                        "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
+                        "git_sha": "3a3f471ed42f640115b2661edee5b258e6a254c1",
                         "installed_by": ["modules"]
                     },
                     "multiqc": {
