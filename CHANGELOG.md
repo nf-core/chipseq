@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#385](https://github.com/nf-core/chipseq/issues/385)] - Fix `--save_unaligned` description in schema.
 - [[PR #392](https://github.com/nf-core/chipseq/pull/392)] - Adding line numbers to warnings/errors messages in `bin/check_samplesheet.py`.
 - [[#396](https://github.com/nf-core/chipseq/issues/396)] - Check that samplesheet samples IDs do only have alphanumeric characters, dots, dashes or underscores.
+- [[#378](https://github.com/nf-core/chipseq/issues/378)] - Switch from macs2 to macs3.
 
 ### Software dependencies
 
@@ -35,6 +36,8 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | Dependency | Old version | New version |
 | ---------- | ----------- | ----------- |
 | `chromap`  | 0.2.1       | 0.2.4       |
+| `macs2`    | 2.2.7.1     |             |
+| `macs3`    |             | 3.0.1       |
 | `multiqc`  | 1.13        | 1.14        |
 | `picard`   | 2.27.4      | 3.0.0       |
 | `samtools` | 1.15.1      | 1.17        |
