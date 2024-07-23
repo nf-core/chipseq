@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[PR #392](https://github.com/nf-core/chipseq/pull/392)] - Adding line numbers to warnings/errors messages in `bin/check_samplesheet.py`.
 - [[#396](https://github.com/nf-core/chipseq/issues/396)] - Check that samplesheet samples IDs do only have alphanumeric characters, dots, dashes or underscores.
 - [[#378](https://github.com/nf-core/chipseq/issues/378)] - Switch from macs2 to macs3.
+- [[#347](https://github.com/nf-core/chipseq/issues/347)] - Add read group tag to bam files processed by bowtie2.
 
 ### Software dependencies
 
