@@ -1,7 +1,0 @@
-sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
-SPT5_T0,https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/testdata/SRR1822153_1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/testdata/SRR1822153_2.fastq.gz,1,SPT5,SPT5_INPUT,1
-SPT5_T0,https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/testdata/SRR1822154_1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/testdata/SRR1822154_2.fastq.gz,2,SPT5,SPT5_INPUT,2
-SPT5_T15,https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/testdata/SRR1822157_1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/testdata/SRR1822157_2.fastq.gz,1,SPT5,SPT5_INPUT,1
-SPT5_T15,https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/testdata/SRR1822158_1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/testdata/SRR1822158_2.fastq.gz,2,SPT5,SPT5_INPUT,2
-SPT5_INPUT,https://raw.githubusercontent.com/nf-core/test-datasets/chipseq/testdata/SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/chipseq/testdata/SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,1,,,
-SPT5_INPUT,https://raw.githubusercontent.com/nf-core/test-datasets/chipseq/testdata/SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/chipseq/testdata/SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,2,,,
