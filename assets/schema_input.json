@@ -33,15 +33,30 @@
                     }
                 ]
             },
+            "replicate": {
+                "type": "integer",
+                "errorMessage": "Replicate id not an integer!",
+                "meta": ["replicate"]
+            },
             "antibody": {
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Antibody entry cannot contain spaces"
+                "errorMessage": "Antibody entry cannot contain spaces",
+                "dependentRequired": ["control"],
+                "meta": ["antibody"]
             },
             "control": {
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Control entry cannot contain spaces"
+                "errorMessage": "Control entry cannot contain spaces",
+                "dependentRequired": ["antibody", "control_replicate"],
+                "meta": ["control"]
+            },
+            "control_replicate": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Control entry cannot contain spaces",
+                "meta": ["control_replicate"]
             }
         },
         "required": ["sample", "fastq_1"]

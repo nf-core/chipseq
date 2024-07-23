@@ -9,9 +9,9 @@
 //
 include { BEDTOOLS_GENOMECOV                  } from '../modules/local/bedtools_genomecov'
 include { FRIP_SCORE                          } from '../modules/local/frip_score'
-include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'
+include { PLOT_MACS3_QC                       } from '../modules/local/plot_macs3_qc'
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
-include { MACS2_CONSENSUS                     } from '../modules/local/macs2_consensus'
+include { MACS3_CONSENSUS                     } from '../modules/local/macs3_consensus'
 include { ANNOTATE_BOOLEAN_PEAKS              } from '../modules/local/annotate_boolean_peaks'
 include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
 include { IGV                                 } from '../modules/local/igv'
@@ -50,10 +50,10 @@ include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plo
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
 include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/khmer/uniquekmers/main'
-include { MACS2_CALLPEAK                } from '../modules/nf-core/macs2/callpeak/main'
+include { MACS3_CALLPEAK                } from '../modules/nf-core/macs3/callpeak/main'
 include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/subread/featurecounts/main'
 
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/homer/annotatepeaks/main'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS3     } from '../modules/nf-core/homer/annotatepeaks/main'
 include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/homer/annotatepeaks/main'
 
 //
@@ -467,29 +467,29 @@ workflow CHIPSEQ {
         .set { ch_ip_control_bam }
 
     //
-    // MODULE: Call peaks with MACS2
+    // MODULE: Call peaks with MACS3
     //
-    MACS2_CALLPEAK (
+    MACS3_CALLPEAK (
         ch_ip_control_bam,
         ch_macs_gsize
     )
-    ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
+    ch_versions = ch_versions.mix(MACS3_CALLPEAK.out.versions.first())
 
     //
-    // Filter out samples with 0 MACS2 peaks called
+    // Filter out samples with 0 MACS3 peaks called
     //
-    MACS2_CALLPEAK
+    MACS3_CALLPEAK
         .out
         .peak
         .filter {
             meta, peaks ->
                 peaks.size() > 0
         }
-        .set { ch_macs2_peaks }
+        .set { ch_macs3_peaks }
 
     // Create channels: [ meta, ip_bam, peaks ]
     ch_ip_control_bam
-        .join(ch_macs2_peaks, by: [0])
+        .join(ch_macs3_peaks, by: [0])
         .map {
             it ->
                 [ it[0], it[1], it[3] ]
@@ -526,30 +526,30 @@ workflow CHIPSEQ {
 
     if (!params.skip_peak_annotation) {
         //
-        // MODULE: Annotate peaks with MACS2
+        // MODULE: Annotate peaks with MACS3
         //
-        HOMER_ANNOTATEPEAKS_MACS2 (
-            ch_macs2_peaks,
+        HOMER_ANNOTATEPEAKS_MACS3 (
+            ch_macs3_peaks,
             ch_fasta,
             ch_gtf
         )
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
+        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS3.out.versions.first())
 
         if (!params.skip_peak_qc) {
             //
-            // MODULE: MACS2 QC plots with R
+            // MODULE: MACS3 QC plots with R
             //
-            PLOT_MACS2_QC (
-                ch_macs2_peaks.collect{it[1]},
+            PLOT_MACS3_QC (
+                ch_macs3_peaks.collect{it[1]},
                 params.narrow_peak
             )
-            ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
+            ch_versions = ch_versions.mix(PLOT_MACS3_QC.out.versions)
 
             //
             // MODULE: Peak annotation QC plots with R
             //
             PLOT_HOMER_ANNOTATEPEAKS (
-                HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
+                HOMER_ANNOTATEPEAKS_MACS3.out.txt.collect{it[1]},
                 ch_peak_annotation_header,
                 "_peaks.annotatePeaks.txt"
             )
@@ -561,14 +561,14 @@ workflow CHIPSEQ {
     //
     //  Consensus peaks analysis
     //
-    ch_macs2_consensus_bed_lib   = Channel.empty()
-    ch_macs2_consensus_txt_lib   = Channel.empty()
+    ch_macs3_consensus_bed_lib   = Channel.empty()
+    ch_macs3_consensus_txt_lib   = Channel.empty()
     ch_deseq2_pca_multiqc        = Channel.empty()
     ch_deseq2_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
         // Create channels: [ meta , [ peaks ] ]
         // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
-        ch_macs2_peaks
+        ch_macs3_peaks
             .map {
                 meta, peak ->
                     [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ]
@@ -595,20 +595,20 @@ workflow CHIPSEQ {
         //
         // MODULE: Generate consensus peaks across samples
         //
-        MACS2_CONSENSUS (
+        MACS3_CONSENSUS (
             ch_antibody_peaks,
             params.narrow_peak
         )
-        ch_macs2_consensus_bed_lib = MACS2_CONSENSUS.out.bed
-        ch_macs2_consensus_txt_lib = MACS2_CONSENSUS.out.txt
-        ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
+        ch_macs3_consensus_bed_lib = MACS3_CONSENSUS.out.bed
+        ch_macs3_consensus_txt_lib = MACS3_CONSENSUS.out.txt
+        ch_versions = ch_versions.mix(MACS3_CONSENSUS.out.versions)
 
         if (!params.skip_peak_annotation) {
             //
             // MODULE: Annotate consensus peaks
             //
             HOMER_ANNOTATEPEAKS_CONSENSUS (
-                MACS2_CONSENSUS.out.bed,
+                MACS3_CONSENSUS.out.bed,
                 ch_fasta,
                 ch_gtf
             )
@@ -618,7 +618,7 @@ workflow CHIPSEQ {
             // MODULE: Add boolean fields to annotated consensus peaks to aid filtering
             //
             ANNOTATE_BOOLEAN_PEAKS (
-                MACS2_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS_CONSENSUS.out.txt, by: [0]),
+                MACS3_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS_CONSENSUS.out.txt, by: [0]),
             )
             ch_versions = ch_versions.mix(ANNOTATE_BOOLEAN_PEAKS.out.versions)
         }
@@ -633,7 +633,7 @@ workflow CHIPSEQ {
             .set { ch_antibody_bams }
 
         // Create channels: [ meta, [ ip_bams ], saf ]
-        MACS2_CONSENSUS
+        MACS3_CONSENSUS
             .out
             .saf
             .map {
@@ -679,9 +679,9 @@ workflow CHIPSEQ {
             params.narrow_peak ? 'narrow_peak' : 'broad_peak',
             ch_fasta,
             UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-            ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
-            ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
-            ch_macs2_consensus_txt_lib.collect{it[1]}.ifEmpty([])
+            ch_macs3_peaks.collect{it[1]}.ifEmpty([]),
+            ch_macs3_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
+            ch_macs3_consensus_txt_lib.collect{it[1]}.ifEmpty([])
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
     }
