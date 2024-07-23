@@ -5,7 +5,7 @@
 include { HOMER_ANNOTATEPEAKS    } from '../../modules/nf-core/homer/annotatepeaks/main'
 include { SUBREAD_FEATURECOUNTS  } from '../../modules/nf-core/subread/featurecounts/main'
 
-include { MACS2_CONSENSUS        } from '../../modules/local/macs2_consensus'
+include { MACS3_CONSENSUS        } from '../../modules/local/macs3_consensus'
 include { ANNOTATE_BOOLEAN_PEAKS } from '../../modules/local/annotate_boolean_peaks'
 include { DESEQ2_QC              } from '../../modules/local/deseq2_qc'
 
@@ -54,18 +54,18 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     //
     // Generate consensus peaks across samples
     //
-    MACS2_CONSENSUS (
+    MACS3_CONSENSUS (
         ch_antibody_peaks,
         is_narrow_peak
     )
-    ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
+    ch_versions = ch_versions.mix(MACS3_CONSENSUS.out.versions)
 
     //
     // Annotate consensus peaks
     //
     if (!skip_peak_annotation) {
         HOMER_ANNOTATEPEAKS (
-            MACS2_CONSENSUS.out.bed,
+            MACS3_CONSENSUS.out.bed,
             ch_fasta,
             ch_gtf
         )
@@ -75,13 +75,13 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         // MODULE: Add boolean fields to annotated consensus peaks to aid filtering
         //
         ANNOTATE_BOOLEAN_PEAKS (
-            MACS2_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS.out.txt, by: [0]),
+            MACS3_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS.out.txt, by: [0]),
         )
         ch_versions = ch_versions.mix(ANNOTATE_BOOLEAN_PEAKS.out.versions)
     }
 
     // Create channels: [ meta, [ ip_bams ], saf ]
-    MACS2_CONSENSUS
+    MACS3_CONSENSUS
         .out
         .saf
         .map {
@@ -134,12 +134,12 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     }
 
     emit:
-    consensus_bed           = MACS2_CONSENSUS.out.bed           // channel: [ bed ]
-    consensus_saf           = MACS2_CONSENSUS.out.saf           // channel: [ saf ]
-    consensus_pdf           = MACS2_CONSENSUS.out.pdf           // channel: [ pdf ]
-    consensus_txt           = MACS2_CONSENSUS.out.txt           // channel: [ pdf ]
-    consensus_boolean_txt   = MACS2_CONSENSUS.out.boolean_txt   // channel: [ txt ]
-    consensus_intersect_txt = MACS2_CONSENSUS.out.intersect_txt // channel: [ txt ]
+    consensus_bed           = MACS3_CONSENSUS.out.bed           // channel: [ bed ]
+    consensus_saf           = MACS3_CONSENSUS.out.saf           // channel: [ saf ]
+    consensus_pdf           = MACS3_CONSENSUS.out.pdf           // channel: [ pdf ]
+    consensus_txt           = MACS3_CONSENSUS.out.txt           // channel: [ pdf ]
+    consensus_boolean_txt   = MACS3_CONSENSUS.out.boolean_txt   // channel: [ txt ]
+    consensus_intersect_txt = MACS3_CONSENSUS.out.intersect_txt // channel: [ txt ]
 
     featurecounts_txt       = SUBREAD_FEATURECOUNTS.out.counts  // channel: [ txt ]
     featurecounts_summary   = SUBREAD_FEATURECOUNTS.out.summary // channel: [ txt ]
