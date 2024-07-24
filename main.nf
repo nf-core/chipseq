@@ -37,8 +37,8 @@ include { CHIPSEQ                 } from './workflows/chipseq'
 include { PREPARE_GENOME          } from './subworkflows/local/prepare_genome'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
-include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
-include { getMacsGsize            } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
+// include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
+// include { getMacsGsize            } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
