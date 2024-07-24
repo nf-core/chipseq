@@ -33,6 +33,7 @@ jobs:
           profiles: test_full
 
       - uses: actions/upload-artifact@v4
+        if: success() || failure()
         with:
           name: Seqera Platform debug log file
           path: |
