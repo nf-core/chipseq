@@ -146,7 +146,7 @@ workflow PREPARE_GENOME {
                 ch_bwa_index = UNTAR_BWA_INDEX ( [ [:], bwa_index ] ).untar
                 ch_versions  = ch_versions.mix(UNTAR_BWA_INDEX.out.versions)
             } else {
-                ch_bwa_index = file(bwa_index)
+                ch_bwa_index = [ [:], file(bwa_index) ] 
             }
         } else {
             ch_bwa_index = BWA_INDEX ( ch_fasta.map { [ [:], it ] } ).index
