@@ -150,18 +150,6 @@ def validateInputParameters() {
 }
 
 //
-// Get attribute from genome config file e.g. fasta
-//
-def getGenomeAttribute(attribute) {
-    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
-        if (params.genomes[ params.genome ].containsKey(attribute)) {
-            return params.genomes[ params.genome ][ attribute ]
-        }
-    }
-    return null
-}
-
-//
 // Exit pipeline if incorrect --genome key provided
 //
 def genomeExistsError() {
@@ -173,21 +161,6 @@ def genomeExistsError() {
             "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         error(error_string)
     }
-}
-
-//
-// Get macs genome size (macs_gsize)
-//
-def getMacsGsize(params) {
-    def val = null
-    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
-        if (params.genomes[ params.genome ].containsKey('macs_gsize')) {
-            if (params.genomes[ params.genome ][ 'macs_gsize' ].containsKey(params.read_length.toString())) {
-                val = params.genomes[ params.genome ][ 'macs_gsize' ][ params.read_length.toString() ]
-            }
-        }
-    }
-    return val
 }
 
 //
