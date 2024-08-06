@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#378](https://github.com/nf-core/chipseq/issues/378)] - Switch from macs2 to macs3.
 - [[#347](https://github.com/nf-core/chipseq/issues/347)] - Add read group tag to bam files processed by bowtie2.
 - [[PR #406](https://github.com/nf-core/chipseq/pull/406)] - Update metro map to show macs3 instead of macs2.
+- [[#409](https://github.com/nf-core/chipseq/issues/409)] - Bulk modules and subworkflows update.
 
 ### Software dependencies
 
