@@ -7,7 +7,7 @@
                 "nf-core": {
                     "bowtie2/align": {
                         "branch": "master",
-                        "git_sha": "e4bad511789f16d0df39ee306b2cd50418365048",
+                        "git_sha": "9bfc81874554e87740bcb3e5e07acf0a153c9ecb",
                         "installed_by": ["fastq_align_bowtie2", "modules"]
                     },
                     "bowtie2/build": {
@@ -22,17 +22,17 @@
                     },
                     "bwa/mem": {
                         "branch": "master",
-                        "git_sha": "e0ff65e1fb313677de09f5f477ae3da30ce19b7b",
+                        "git_sha": "2201e21b09213f083832ac58e33353d410a6fde7",
                         "installed_by": ["fastq_align_bwa", "modules"]
                     },
                     "chromap/chromap": {
                         "branch": "master",
-                        "git_sha": "4bd9481c5718ca7bfd31459b8242c349171dac87",
-                        "installed_by": ["modules", "fastq_align_chromap"]
+                        "git_sha": "8438ab16df8334b8e15526cef7e8eda7f218ea20",
+                        "installed_by": ["fastq_align_chromap", "modules"]
                     },
                     "chromap/index": {
                         "branch": "master",
-                        "git_sha": "4bd9481c5718ca7bfd31459b8242c349171dac87",
+                        "git_sha": "8438ab16df8334b8e15526cef7e8eda7f218ea20",
                         "installed_by": ["modules"]
                     },
                     "custom/getchromsizes": {
@@ -42,22 +42,22 @@
                     },
                     "deeptools/computematrix": {
                         "branch": "master",
-                        "git_sha": "575e1bc54b083fb15e7dd8b5fcc40bea60e8ce83",
+                        "git_sha": "dd51244ab3b1e4a30ddeb93ba3c6ef3ce1f02ef8",
                         "installed_by": ["modules"]
                     },
                     "deeptools/plotfingerprint": {
                         "branch": "master",
-                        "git_sha": "575e1bc54b083fb15e7dd8b5fcc40bea60e8ce83",
+                        "git_sha": "dd51244ab3b1e4a30ddeb93ba3c6ef3ce1f02ef8",
                         "installed_by": ["modules"]
                     },
                     "deeptools/plotheatmap": {
                         "branch": "master",
-                        "git_sha": "575e1bc54b083fb15e7dd8b5fcc40bea60e8ce83",
+                        "git_sha": "dd51244ab3b1e4a30ddeb93ba3c6ef3ce1f02ef8",
                         "installed_by": ["modules"]
                     },
                     "deeptools/plotprofile": {
                         "branch": "master",
-                        "git_sha": "575e1bc54b083fb15e7dd8b5fcc40bea60e8ce83",
+                        "git_sha": "dd51244ab3b1e4a30ddeb93ba3c6ef3ce1f02ef8",
                         "installed_by": ["modules"]
                     },
                     "fastqc": {
