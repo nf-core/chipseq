@@ -7,17 +7,6 @@ data_format: "yaml"
 
 export_plots: true
 
-run_modules:
-  - custom_content
-  - fastqc
-  - cutadapt
-  - samtools
-  - picard
-  - preseq
-  - featureCounts
-  - deeptools
-  - phantompeakqualtools
-
 exclude_modules:
   - "general_stats"
 

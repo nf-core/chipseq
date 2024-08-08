@@ -519,7 +519,7 @@ workflow CHIPSEQ {
     // Collate and save software versions
     //
     softwareVersionsToYAML(ch_versions)
-        .collectFile(storeDir: "${params.outdir}/pipeline_info", name: 'nf_core_atacseq_software_mqc_versions.yml', sort: true, newLine: true)
+        .collectFile(storeDir: "${params.outdir}/pipeline_info", name: 'nf_core_chipseq_software_mqc_versions.yml', sort: true, newLine: true)
         .set { ch_collated_versions }
 
     //
