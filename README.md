@@ -74,17 +74,17 @@ You can find numerous talks on the [nf-core events page](https://nf-co.re/events
 
 To run on your data, prepare a tab-separated samplesheet with your input data. Please follow the [documentation on samplesheets](https://nf-co.re/chipseq/usage#samplesheet-input) for more details. An example samplesheet for running the pipeline looks as follows:
 
-```csv
-sample,fastq_1,fastq_2,antibody,control
-WT_BCATENIN_IP_REP1,BLA203A1_S27_L006_R1_001.fastq.gz,,BCATENIN,WT_INPUT_REP1
-WT_BCATENIN_IP_REP2,BLA203A25_S16_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT_REP2
-WT_BCATENIN_IP_REP2,BLA203A25_S16_L002_R1_001.fastq.gz,,BCATENIN,WT_INPUT_REP2
-WT_BCATENIN_IP_REP2,BLA203A25_S16_L003_R1_001.fastq.gz,,BCATENIN,WT_INPUT_REP2
-WT_BCATENIN_IP_REP3,BLA203A49_S40_L001_R1_001.fastq.gz,,BCATENIN,WT_INPUT_REP3
-WT_INPUT_REP1,BLA203A6_S32_L006_R1_001.fastq.gz,,,
-WT_INPUT_REP2,BLA203A30_S21_L001_R1_001.fastq.gz,,,
-WT_INPUT_REP2,BLA203A30_S21_L002_R1_001.fastq.gz,,,
-WT_INPUT_REP3,BLA203A31_S21_L003_R1_001.fastq.gz,,,
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP,BLA203A25_S16_L001_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A25_S16_L002_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A25_S16_L003_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A49_S40_L001_R1_001.fastq.gz,,3,BCATENIN,WT_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L001_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A30_S21_L002_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
 ```
 
 Now, you can run the pipeline using:
@@ -96,8 +96,7 @@ nextflow run nf-core/chipseq --input samplesheet.csv --outdir <OUTDIR> --genome 
 See [usage docs](https://nf-co.re/chipseq/usage) for all of the available options when running the pipeline.
 
 > [!WARNING]
-> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
-> see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
+> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see the [docs](https://nf-co.re/usage/configuration#custom-configuration-files) here.
 
 For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/chipseq/usage) and the [parameter documentation](https://nf-co.re/chipseq/parameters).
 
@@ -113,7 +112,7 @@ These scripts were originally written by Chuan Wang ([@chuan-wang](https://githu
 
 The pipeline workflow diagram was designe by Sarah Guinchard ([@G-Sarah](https://github.com/G-Sarah)).
 
-Many thanks to others who have helped out and contributed along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@bc2zb](https://github.com/bc2zb), [@crickbabs](https://github.com/crickbabs), [@drejom](https://github.com/drejom), [@houghtos](https://github.com/houghtos), [@KevinMenden](https://github.com/KevinMenden), [@mashehu](https://github.com/mashehu), [@pditommaso](https://github.com/pditommaso), [@Rotholandus](https://github.com/Rotholandus), [@sofiahaglund](https://github.com/sofiahaglund), [@tiagochst](https://github.com/tiagochst) and [@winni2k](https://github.com/winni2k).
+Many thanks to others who have helped out and contributed along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@bc2zb](https://github.com/bc2zb), [@bjlang](https://github.com/bjlang), [@crickbabs](https://github.com/crickbabs), [@drejom](https://github.com/drejom), [@houghtos](https://github.com/houghtos), [@KevinMenden](https://github.com/KevinMenden), [@mashehu](https://github.com/mashehu), [@pditommaso](https://github.com/pditommaso), [@Rotholandus](https://github.com/Rotholandus), [@sofiahaglund](https://github.com/sofiahaglund), [@tiagochst](https://github.com/tiagochst) and [@winni2k](https://github.com/winni2k).
 
 ## Contributions and Support
 
