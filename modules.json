@@ -98,7 +98,7 @@
                     },
                     "phantompeakqualtools": {
                         "branch": "master",
-                        "git_sha": "2dfe9afa90fefc70e320140e5f41287f01f324b0",
+                        "git_sha": "ec48f56f6e1571e23800aaaba41cceda13408e02",
                         "installed_by": ["modules"]
                     },
                     "picard/collectmultiplemetrics": {
