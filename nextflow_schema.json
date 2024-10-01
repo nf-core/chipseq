@@ -91,7 +91,7 @@
                     "pattern": "^\\S+\\.gtf(\\.gz)?$",
                     "description": "Path to GTF annotation file.",
                     "fa_icon": "fas fa-code-branch",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified."
+                    "help_text": "Either this parameter or `--gff` is *mandatory* if --genome is not specified."
                 },
                 "gff": {
                     "type": "string",
@@ -101,7 +101,7 @@
                     "pattern": "^\\S+\\.gff(\\.gz)?$",
                     "fa_icon": "fas fa-code-branch",
                     "description": "Path to GFF3 annotation file.",
-                    "help_text": "This parameter must be specified if `--genome` or `--gtf` are not specified."
+                    "help_text": "Either this parameter or `--gtf` is *mandatory* if --genome is not specified."
                 },
                 "bwa_index": {
                     "type": "string",
