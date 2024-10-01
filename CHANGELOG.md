@@ -45,12 +45,10 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `deeptools`             | 3.5.1       | 3.5.5       |
 | `fastqc`                | 0.11.9      | 0.12.1      |
 | `gffread`               | 0.12.1      | 0.12.7      |
-| `gffread`               | 0.12.1      | 0.12.7      |
 | `macs2`                 | 2.2.7.1     |             |
 | `macs3`                 |             | 3.0.1       |
 | `multiqc`               | 1.13        | 1.23        |
 | `picard`                | 2.27.4      | 3.2.0       |
-| `samtools`              | 1.15.1      | 1.20        |
 | `samtools`              | 1.15.1      | 1.20        |
 | `ucsc-bedgraphtobigwig` | 377         | 445         |
 | `umi_tools`             |             | 1.1.5       |
