@@ -5,6 +5,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-02
 
+### Credits
+
+Special thanks to the following for their contributions to the release:
+
+- [Adam Talbot](https://github.com/adamrtalbot)
+- [Björn Langer](https://github.com/bjlang)
+- [Konrad Rokicki](https://github.com/krokicki)
+- [Matthias Hörtenhuber](https://github.com/mashehu)
+- [Maxime Garcia](https://github.com/maxulysse)
+- [Samuel Ruiz Pérez](https://github.com/samuelruizperez)
+- [Sarah Guinchard](https://github.com/g-sarah)
+- [Sateesh Peri](https://github.com/sateeshperi)
+- [Steffen Möller](https://github.com/smoe)
+
+Thank you to everyone else that has contributed by reporting bugs, enhancements or in any other way, shape or form.
+
 ### Enhancements & fixes
 
 - Updated pipeline template to [nf-core/tools 2.7.2](https://github.com/nf-core/tools/releases/tag/2.7.2)
