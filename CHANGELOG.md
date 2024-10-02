@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Credits
 
-Special thanks to the following for their contributions to the release:
+Special thanks to the following people for their contributions to this release:
 
 - [Adam Talbot](https://github.com/adamrtalbot)
 - [Björn Langer](https://github.com/bjlang)
