@@ -49,6 +49,20 @@ Thank you to everyone else that has contributed by reporting bugs, enhancements 
 - [[#409](https://github.com/nf-core/chipseq/issues/409)] - Bulk modules and subworkflows update.
 - [[PR #415](https://github.com/nf-core/chipseq/pull/415)] - Get rid of `oras` in modules.
 
+### Parameters
+
+| Old parameter          | New parameter                        |
+| ---------------------- | ------------------------------------ |
+| `--show_hidden_params` | `--validationShowHiddenParams`       |
+|                        | `--version`                          |
+|                        | `--hook_url`                         |
+|                        | `--multiqc_logo`                     |
+|                        | `--multiqc_methods_description`      |
+|                        | `--pipelines_testdata_base_path`     |
+|                        | `--validationFailUnrecognisedParams` |
+|                        | `--validationLenientMode`            |
+| `--enable_conda`       |                                      |
+
 ### Software dependencies
 
 Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
