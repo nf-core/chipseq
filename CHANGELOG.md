@@ -48,6 +48,7 @@ Thank you to everyone else that has contributed by reporting bugs, enhancements 
 - [[PR #406](https://github.com/nf-core/chipseq/pull/406)] - Update metro map to show macs3 instead of macs2.
 - [[#409](https://github.com/nf-core/chipseq/issues/409)] - Bulk modules and subworkflows update.
 - [[PR #415](https://github.com/nf-core/chipseq/pull/415)] - Get rid of `oras` in modules.
+- [[PR #418](https://github.com/nf-core/chipseq/pull/418)] - Fix bug on how replicates are set for MACS3 downstream analysis.
 
 ### Parameters
 
