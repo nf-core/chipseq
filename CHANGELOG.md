@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#347](https://github.com/nf-core/chipseq/issues/347)] - Add read group tag to bam files processed by bowtie2.
 - [[PR #406](https://github.com/nf-core/chipseq/pull/406)] - Update metro map to show macs3 instead of macs2.
 - [[#409](https://github.com/nf-core/chipseq/issues/409)] - Bulk modules and subworkflows update.
-- [[PR #415](https://github.com/nf-core/chipseq/pull/415)] - Get rid of `oras` in modules.
+- [[PR #419](https://github.com/nf-core/chipseq/pull/419)] - Fix bug on how replicates are set for MACS3 downstream analysis.
 
 ### Software dependencies
 
