@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-02
+## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
 
 ### Credits
 
@@ -48,7 +48,7 @@ Thank you to everyone else that has contributed by reporting bugs, enhancements 
 - [[PR #406](https://github.com/nf-core/chipseq/pull/406)] - Update metro map to show macs3 instead of macs2.
 - [[#409](https://github.com/nf-core/chipseq/issues/409)] - Bulk modules and subworkflows update.
 - [[PR #415](https://github.com/nf-core/chipseq/pull/415)] - Get rid of `oras` in modules.
-- [[PR #418](https://github.com/nf-core/chipseq/pull/418)] - Fix bug on how replicates are set for MACS3 downstream analysis.
+- [[PR #420](https://github.com/nf-core/chipseq/pull/420)] - Fix bug on how replicates are set for MACS3 downstream analysis.
 
 ### Parameters
 
