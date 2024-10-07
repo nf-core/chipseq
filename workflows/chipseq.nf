@@ -425,7 +425,6 @@ workflow CHIPSEQ {
     //
     // MODULE: Calculute genome size with khmer
     //
-    // TODO move to prepare genome
     ch_macs_gsize                     = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
     ch_macs_gsize = params.macs_gsize

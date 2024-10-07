@@ -222,7 +222,7 @@ def check_samplesheet(file_in, file_out):
                             print_error(
                                 f"Control identifier and replicate has to match a provided sample identifier and replicate!",
                                 "Control",
-                                val[4],
+                                val[-1],
                             )
 
                     ## Write to file

@@ -3,7 +3,23 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.1.0 - [date]
+## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-02
+
+### Credits
+
+Special thanks to the following people for their contributions to this release:
+
+- [Adam Talbot](https://github.com/adamrtalbot)
+- [Björn Langer](https://github.com/bjlang)
+- [Konrad Rokicki](https://github.com/krokicki)
+- [Matthias Hörtenhuber](https://github.com/mashehu)
+- [Maxime Garcia](https://github.com/maxulysse)
+- [Samuel Ruiz Pérez](https://github.com/samuelruizperez)
+- [Sarah Guinchard](https://github.com/g-sarah)
+- [Sateesh Peri](https://github.com/sateeshperi)
+- [Steffen Möller](https://github.com/smoe)
+
+Thank you to everyone else that has contributed by reporting bugs, enhancements or in any other way, shape or form.
 
 ### Enhancements & fixes
 
@@ -33,6 +49,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#409](https://github.com/nf-core/chipseq/issues/409)] - Bulk modules and subworkflows update.
 - [[PR #415](https://github.com/nf-core/chipseq/pull/415)] - Get rid of `oras` in modules.
 
+### Parameters
+
+| Old parameter          | New parameter                        |
+| ---------------------- | ------------------------------------ |
+| `--show_hidden_params` | `--validationShowHiddenParams`       |
+|                        | `--version`                          |
+|                        | `--hook_url`                         |
+|                        | `--multiqc_logo`                     |
+|                        | `--multiqc_methods_description`      |
+|                        | `--pipelines_testdata_base_path`     |
+|                        | `--validationFailUnrecognisedParams` |
+|                        | `--validationLenientMode`            |
+| `--enable_conda`       |                                      |
+
 ### Software dependencies
 
 Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
@@ -45,12 +75,10 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `deeptools`             | 3.5.1       | 3.5.5       |
 | `fastqc`                | 0.11.9      | 0.12.1      |
 | `gffread`               | 0.12.1      | 0.12.7      |
-| `gffread`               | 0.12.1      | 0.12.7      |
 | `macs2`                 | 2.2.7.1     |             |
 | `macs3`                 |             | 3.0.1       |
 | `multiqc`               | 1.13        | 1.23        |
 | `picard`                | 2.27.4      | 3.2.0       |
-| `samtools`              | 1.15.1      | 1.20        |
 | `samtools`              | 1.15.1      | 1.20        |
 | `ucsc-bedgraphtobigwig` | 377         | 445         |
 | `umi_tools`             |             | 1.1.5       |
