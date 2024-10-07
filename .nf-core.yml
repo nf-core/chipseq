@@ -1,1 +1,7 @@
 repository_type: pipeline
+nf_core_version: "2.14.1"
+lint:
+  nextflow_config:
+    - config_defaults:
+        - params.bamtools_filter_se_config
+        - params.bamtools_filter_pe_config

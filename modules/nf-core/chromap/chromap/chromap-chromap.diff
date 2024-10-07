@@ -1,0 +1,41 @@
+Changes in module 'nf-core/chromap/chromap'
+'modules/nf-core/chromap/chromap/meta.yml' is unchanged
+Changes in 'chromap/chromap/main.nf':
+--- modules/nf-core/chromap/chromap/main.nf
++++ modules/nf-core/chromap/chromap/main.nf
+@@ -29,6 +29,7 @@
+     script:
+     def args = task.ext.args ?: ''
+     def args2 = task.ext.args2 ?: ''
++    def args3 = task.ext.args3 ?: ''
+     def prefix = task.ext.prefix ?: "${meta.id}"
+     def args_list = args.tokenize()
+ 
+@@ -49,8 +50,10 @@
+     def compression_cmds = "gzip -n ${prefix}.${file_extension}"
+     if (args.contains("--SAM")) {
+         compression_cmds = """
++        samtools addreplacerg $args3 -o ${prefix}.rg.${file_extension} ${prefix}.${file_extension}
+         samtools view $args2 -@ $task.cpus -bh \\
+-            -o ${prefix}.bam ${prefix}.${file_extension}
++            -o ${prefix}.bam ${prefix}.rg.${file_extension}
++        rm ${prefix}.rg.${file_extension}
+         rm ${prefix}.${file_extension}
+         """
+     }
+@@ -63,7 +66,7 @@
+             -r $fasta \\
+             -1 ${reads.join(',')} \\
+             -o ${prefix}.${file_extension}
+-
++        
+         $compression_cmds
+ 
+         cat <<-END_VERSIONS > versions.yml
+
+'modules/nf-core/chromap/chromap/environment.yml' is unchanged
+'modules/nf-core/chromap/chromap/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/chromap/chromap/tests/tags.yml' is unchanged
+'modules/nf-core/chromap/chromap/tests/nextflow.config' is unchanged
+'modules/nf-core/chromap/chromap/tests/main.nf.test' is unchanged
+************************************************************

@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.1.0dev - [date]
+## v2.1.0 - [date]
 
 ### Enhancements & fixes
 
@@ -20,18 +20,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix untar of `chromap` index when using `--chromap_index` param.
 - [nf-core/tools#2286](https://github.com/nf-core/tools/issues/2286) - Set default container registry outside profile scope.
 - [[#343](https://github.com/nf-core/chipseq/issues/343)] - Provide replicate information explicitly in samplesheet.
-- Updated pipeline template to [nf-core/tools 2.10](https://github.com/nf-core/tools/releases/tag/2.10)
+- Updated pipeline template to [nf-core/tools 2.10](https://github.com/nf-core/tools/releases/tag/2.10).
+- [[#367](https://github.com/nf-core/chipseq/issues/367)] - Get rid of `CheckIfExists` for params paths.
+- [[#370](https://github.com/nf-core/chipseq/issues/370)] - Fix stack overflow exceptions in phantompeakqualtools ([see here](https://github.com/kundajelab/phantompeakqualtools/issues/3)).
+- [[#387](https://github.com/nf-core/chipseq/issues/387)] - Get rid of the `lib` folder and rearrange the pipeline accordingly.
+- [[#385](https://github.com/nf-core/chipseq/issues/385)] - Fix `--save_unaligned` description in schema.
+- [[PR #392](https://github.com/nf-core/chipseq/pull/392)] - Adding line numbers to warnings/errors messages in `bin/check_samplesheet.py`.
+- [[#396](https://github.com/nf-core/chipseq/issues/396)] - Check that samplesheet samples IDs do only have alphanumeric characters, dots, dashes or underscores.
+- [[#378](https://github.com/nf-core/chipseq/issues/378)] - Switch from macs2 to macs3.
+- [[#347](https://github.com/nf-core/chipseq/issues/347)] - Add read group tag to bam files processed by bowtie2.
+- [[PR #406](https://github.com/nf-core/chipseq/pull/406)] - Update metro map to show macs3 instead of macs2.
+- [[#409](https://github.com/nf-core/chipseq/issues/409)] - Bulk modules and subworkflows update.
+- [[PR #415](https://github.com/nf-core/chipseq/pull/415)] - Get rid of `oras` in modules.
 
 ### Software dependencies
 
 Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
 
-| Dependency | Old version | New version |
-| ---------- | ----------- | ----------- |
-| `chromap`  | 0.2.1       | 0.2.4       |
-| `multiqc`  | 1.13        | 1.14        |
-| `picard`   | 2.27.4      | 3.0.0       |
-| `samtools` | 1.15.1      | 1.17        |
+| Dependency              | Old version | New version |
+| ----------------------- | ----------- | ----------- |
+| `bowtie2`               | 2.4.4       | 2.5.2       |
+| `bwa`                   | 0.7.17      | 0.7.18      |
+| `chromap`               | 0.2.1       | 0.2.6       |
+| `deeptools`             | 3.5.1       | 3.5.5       |
+| `fastqc`                | 0.11.9      | 0.12.1      |
+| `gffread`               | 0.12.1      | 0.12.7      |
+| `gffread`               | 0.12.1      | 0.12.7      |
+| `macs2`                 | 2.2.7.1     |             |
+| `macs3`                 |             | 3.0.1       |
+| `multiqc`               | 1.13        | 1.23        |
+| `picard`                | 2.27.4      | 3.2.0       |
+| `samtools`              | 1.15.1      | 1.20        |
+| `samtools`              | 1.15.1      | 1.20        |
+| `ucsc-bedgraphtobigwig` | 377         | 445         |
+| `umi_tools`             |             | 1.1.5       |
 
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.

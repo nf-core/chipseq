@@ -2,10 +2,10 @@ process CHROMAP_CHROMAP {
     tag "$meta.id"
     label 'process_medium'
 
-    conda "bioconda::chromap=0.2.4 bioconda::samtools=1.16.1"
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mulled-v2-1f09f39f20b1c4ee36581dc81cc323c70e661633:5b2e433ab8b3d1ef098fc944b567fd98caa23f56-0' :
-        'biocontainers/mulled-v2-1f09f39f20b1c4ee36581dc81cc323c70e661633:5b2e433ab8b3d1ef098fc944b567fd98caa23f56-0' }"
+        'https://depot.galaxyproject.org/singularity/mulled-v2-1f09f39f20b1c4ee36581dc81cc323c70e661633:6500f0fa0c9536821177168555632d9811670937-0' :
+        'biocontainers/mulled-v2-1f09f39f20b1c4ee36581dc81cc323c70e661633:6500f0fa0c9536821177168555632d9811670937-0' }"
 
     input:
     tuple val(meta), path(reads)
@@ -29,6 +29,7 @@ process CHROMAP_CHROMAP {
     script:
     def args = task.ext.args ?: ''
     def args2 = task.ext.args2 ?: ''
+    def args3 = task.ext.args3 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def args_list = args.tokenize()
 
@@ -49,8 +50,10 @@ process CHROMAP_CHROMAP {
     def compression_cmds = "gzip -n ${prefix}.${file_extension}"
     if (args.contains("--SAM")) {
         compression_cmds = """
+        samtools addreplacerg $args3 -o ${prefix}.rg.${file_extension} ${prefix}.${file_extension}
         samtools view $args2 -@ $task.cpus -bh \\
-            -o ${prefix}.bam ${prefix}.${file_extension}
+            -o ${prefix}.bam ${prefix}.rg.${file_extension}
+        rm ${prefix}.rg.${file_extension}
         rm ${prefix}.${file_extension}
         """
     }
@@ -63,7 +66,7 @@ process CHROMAP_CHROMAP {
             -r $fasta \\
             -1 ${reads.join(',')} \\
             -o ${prefix}.${file_extension}
-
+        
         $compression_cmds
 
         cat <<-END_VERSIONS > versions.yml
@@ -92,4 +95,19 @@ process CHROMAP_CHROMAP {
         END_VERSIONS
         """
     }
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    echo "" | gzip > ${prefix}.bed.gz
+    touch ${prefix}.bam
+    echo "" | gzip > ${prefix}.tagAlign.gz
+    echo "" | gzip > ${prefix}.pairs.gz
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        chromap: \$(echo \$(chromap --version 2>&1))
+        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+    END_VERSIONS
+    """
 }

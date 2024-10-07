@@ -62,7 +62,8 @@ workflow BAM_FILTER_BAMTOOLS {
     // Name sort PE BAM before filtering with pysam
     //
     SAMTOOLS_SORT (
-        ch_bam.paired_end
+        ch_bam.paired_end,
+        ch_fasta
     )
     ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
 

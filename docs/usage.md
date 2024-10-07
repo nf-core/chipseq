@@ -34,7 +34,7 @@ WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
 
 Both the `sample` and `replicate` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example where the samples called `WT_BCATENIN_IP` and `WT_INPUT` have been re-sequenced multiple times:
 
-```console
+```csv title="samplesheet.csv"
 sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
 WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
 WT_BCATENIN_IP,BLA203A25_S16_L001_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
@@ -53,7 +53,7 @@ The pipeline will auto-detect whether a sample is single- or paired-end using th
 
 A final design file may look something like the one below. This is for two antibodies and associated controls, where the second replicate of the `WT_BCATENIN_IP` and `NAIVE_BCATENIN_IP` samples have been sequenced twice:
 
-```console
+```csv title="samplesheet.csv"
 sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
 WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
 WT_BCATENIN_IP,BLA203A25_S16_L001_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
@@ -87,13 +87,13 @@ NAIVE_INPUT,BLA203A49_S1_L006_R1_001.fastq.gz,,3,,,
 | `control`           | Sample name for control sample.                                                                                                                                                        |
 | `control_replicate` | Integer representing replicate number for control sample.                                                                                                                              |
 
-Example design files have bee_n provided with the pipeline for [paired-end](../assets/samplesheet_pe.csv) and [single-end](../assets/samplesheet_se.csv) data.
+Example design files have been provided with the pipeline for [paired-end](../assets/samplesheet_pe.csv) and [single-end](../assets/samplesheet_se.csv) data.
 
 > **NB:** The `group` and `replicate` columns were replaced with a single `sample` column as of v2.0 of the pipeline. The `sample` column is essentially a concatenation of the `group` and `replicate` columns. If all values of `sample` have the same number of underscores, fields defined by these underscore-separated names may be used in the PCA plots produced by the pipeline, to regain the ability to represent different groupings.
 
 ## Reference genome files
 
-The minimum reference genome requirements are a FASTA and GTF file, all other files required to run the pipeline can be generated from these files. However, it is more storage and compute friendly if you are able to re-use reference genome files as efficiently as possible. It is recommended to use the `--save_reference` parameter if you are using the pipeline to build new indices (e.g. those unavailable on [AWS iGenomes](https://nf-co.re/usage/reference_genomes)) so that you can save them somewhere locally. The index building step can be quite a time-consuming process and it permits their reuse for future runs of the pipeline to save disk space. You can then either provide the appropriate reference genome files on the command-line via the appropriate parameters (e.g. `--bwa_index '/path/to/bwa/index/'`) or via a custom config file.
+The minimum reference genome requirements are a FASTA and a GTF file, all other files required to run the pipeline can be generated from these files. However, it is more storage and compute friendly if you are able to re-use reference genome files as efficiently as possible. It is recommended to use the `--save_reference` parameter if you are using the pipeline to build new indices (e.g. those unavailable on [AWS iGenomes](https://nf-co.re/usage/reference_genomes)) so that you can save them somewhere locally. The index building step can be quite a time-consuming process and it permits their reuse for future runs of the pipeline to save disk space. You can then either provide the appropriate reference genome files on the command-line via the appropriate parameters (e.g. `--bwa_index '/path/to/bwa/index/'`) or via a [custom config file](https://nf-co.re/usage/configuration#custom-configuration-files).
 
 - If `--genome` is provided then the FASTA and GTF files (and existing indices) will be automatically obtained from AWS-iGenomes unless these have already been downloaded locally in the path specified by `--igenomes_base`.
 - If `--gene_bed` is not provided then it will be generated from the GTF file.
@@ -126,7 +126,7 @@ cd v3.0
 wget -L https://www.encodeproject.org/files/ENCFF356LFX/@@download/ENCFF356LFX.bed.gz && gunzip ENCFF356LFX.bed.gz && mv ENCFF356LFX.bed hg38-blacklist.v3.bed
 ```
 
-> **NB:** A detailed description of the different versions of the files can be found [here](https://sites.google.com/site/anshulkundaje/projects/blacklists). Also, to to see which blacklist bed files are assigned by default to the respective reference genome check the [igenomes.config](https://github.com/nf-core/chipseq/blob/master/conf/igenomes.config).
+> **NB:** A detailed description of the different versions of the files can be found [here](https://github.com/Boyle-Lab/Blacklist/blob/master/README.md). Also, to to see which blacklist bed files are assigned by default to the respective reference genome check the [igenomes.config](https://github.com/nf-core/chipseq/blob/master/conf/igenomes.config).
 
 ## Running the pipeline
 
@@ -232,6 +232,8 @@ If `-profile` is not specified, the pipeline will run locally and expect all sof
   - A generic configuration profile to be used with [Charliecloud](https://hpc.github.io/charliecloud/)
 - `apptainer`
   - A generic configuration profile to be used with [Apptainer](https://apptainer.org/)
+- `wave`
+  - A generic configuration profile to enable [Wave](https://seqera.io/wave/) containers. Use together with one of the above (requires Nextflow ` 24.03.0-edge` or later).
 - `conda`
   - A generic configuration profile to be used with [Conda](https://conda.io/docs/). Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter, Charliecloud, or Apptainer.
 

@@ -12,7 +12,7 @@ The directories listed below will be created in the output directory after the p
 
 ## Pipeline overview
 
-The pipeline is built using [Nextflow](https://www.nextflow.io/). See [`main README.md`](../README.md) for a condensed overview of the steps in the pipeline, and the bioinformatics tools used at each step.
+The pipeline is built using [Nextflow](https://www.nextflow.io/). See [`introduction`](../..) for a condensed overview of the steps in the pipeline, and the bioinformatics tools used at each step.
 
 See [Illumina website](https://emea.illumina.com/techniques/sequencing/dna-sequencing/chip-seq.html) for more information regarding the ChIP-seq protocol, and for an extensive list of publications.
 
@@ -50,7 +50,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 </details>
 
-[Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) is a wrapper tool around Cutadapt and FastQC to consistently apply quality and adapter trimming to FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence. See [`usage.md`](usage.md) for more details about the trimming options.
+[Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) is a wrapper tool around Cutadapt and FastQC to consistently apply quality and adapter trimming to FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence. See [`parameters`](../parameters/#adapter-trimming-options) for more details about the trimming options.
 
 ![MultiQC - Cutadapt trimmed sequence plot](images/mqc_cutadapt_plot.png)
 
@@ -70,11 +70,9 @@ The pipeline has been written in a way where all the files generated downstream 
 
 </details>
 
-Adapter-trimmed reads are mapped to the reference assembly using the aligner set by the `--aligner` parameter. Available aligners are [BWA](http://bio-bwa.sourceforge.net/bwa.shtml) (default), [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml), [Chromap](https://github.com/haowenz/chromap) and [STAR](https://github.com/alexdobin/STAR). A genome index is required to run any of this aligners so if this is not provided explicitly using the corresponding parameter (e.g. `--bwa_index`), then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--save_reference` parameter to save the indices for future pipeline runs, reducing processing times.
+Adapter-trimmed reads are mapped to the reference assembly using the aligner set by the `--aligner` parameter. Available aligners are [BWA](http://bio-bwa.sourceforge.net/bwa.shtml) (default), [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml), [Chromap](https://github.com/haowenz/chromap) and [STAR](https://github.com/alexdobin/STAR). A genome index is required to run any of these aligners so if this is not provided explicitly using the corresponding parameter (e.g. `--bwa_index`), then it will be created automatically from the genome fasta input. The index creation process can be time-consuming for large genomes, so you can use the `--save_reference` parameter to save the indices for future pipeline runs, thereby reducing processing times.
 
 ![MultiQC - SAMtools stats plot](images/mqc_samtools_stats_plot.png)
-
-> **NB:** Currently, paired-end files produced by `Chromap` are excluded from downstream analysis due to [this](https://github.com/nf-core/chipseq/issues/291) issue. Single-end files are processed normally.
 
 #### Unmapped reads
 
@@ -188,21 +186,21 @@ The results from deepTools plotProfile gives you a quick visualisation for the g
 <details markdown="1">
     <summary>Output files</summary>
 
-- `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/`
-  - `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak`, `*summits.bed`: MACS2 output files - the files generated will depend on whether MACS2 has been run in _narrowPeak_ or _broadPeak_ mode.
+- `<ALIGNER>/merged_library/macs3/<PEAK_TYPE>/`
+  - `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak`, `*summits.bed`: MACS3 output files - the files generated will depend on whether MACS3 has been run in _narrowPeak_ or _broadPeak_ mode.
   - `*.annotatePeaks.txt`: HOMER peak-to-gene annotation file.
-- `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/qc/`
-  - `macs2_peak.plots.pdf`: QC plots for MACS2 peaks.
-  - `macs2_annotatePeaks.plots.pdf`: QC plots for peak-to-gene feature annotation.
+- `<ALIGNER>/merged_library/macs3/<PEAK_TYPE>/qc/`
+  - `macs3_peak.plots.pdf`: QC plots for MACS3 peaks.
+  - `macs3_annotatePeaks.plots.pdf`: QC plots for peak-to-gene feature annotation.
   - `*.FRiP_mqc.tsv`, `*.peak_count_mqc.tsv`, `annotatepeaks.summary_mqc.tsv`: MultiQC custom-content files for FRiP score, peak count and peak-to-gene ratios.
 
-> **NB:** `<PEAK_TYPE>` in the directory structure above corresponds to the type of peak that you have specified to call with MACS2 i.e. `broadPeak` or `narrowPeak`. If you so wish, you can call both narrow and broad peaks without redoing the preceding steps in the pipeline such as the alignment and filtering. For example, if you already have broad peaks then just add `--narrow_peak -resume` to the command you used to run the pipeline, and these will be called too! However, resuming the pipeline will only be possible if you have not deleted the `work/` directory generated by the pipeline.
+> **NB:** `<PEAK_TYPE>` in the directory structure above corresponds to the type of peak that you have specified to call with MACS3 i.e. `broadPeak` or `narrowPeak`. If you so wish, you can call both narrow and broad peaks without redoing the preceding steps in the pipeline such as the alignment and filtering. For example, if you already have broad peaks then just add `--narrow_peak -resume` to the command you used to run the pipeline, and these will be called too! However, resuming the pipeline will only be possible if you have not deleted the `work/` directory generated by the pipeline.
 
 </details>
 
-[MACS2](https://github.com/macs3-project/MACS) is one of the most popular peak-calling algorithms for ChIP-seq data. By default, the peaks are called with the MACS2 `--broad` parameter. If, however, you would like to call narrow peaks then please provide the `--narrow_peak` parameter when running the pipeline. See [MACS2 outputs](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md#output-files) for a description of the output files generated by MACS2.
+[MACS3](https://github.com/macs3-project/MACS) is one of the most popular peak-calling algorithms for ChIP-seq data. By default, the peaks are called with the MACS3 `--broad` parameter. If, however, you would like to call narrow peaks then please provide the `--narrow_peak` parameter when running the pipeline. See [MACS3 outputs](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md#output-files) for a description of the output files generated by MACS3.
 
-![MultiQC - MACS2 total peak count plot](images/mqc_macs2_peak_count_plot.png)
+![MultiQC - MACS3 total peak count plot](images/mqc_macs3_peak_count_plot.png)
 
 [HOMER annotatePeaks.pl](http://homer.ucsd.edu/homer/ngs/annotation.html) is used to annotate the peaks relative to known genomic features. HOMER is able to use the `--gtf` annotation file which is provided to the pipeline. Please note that some of the output columns will be blank because the annotation is not provided using HOMER's in-built database format. However, the more important fields required for downstream analysis will be populated i.e. _Annotation_, _Distance to TSS_ and _Nearest Promoter ID_.
 
@@ -210,14 +208,14 @@ The results from deepTools plotProfile gives you a quick visualisation for the g
 
 Various QC plots per sample including number of peaks, fold-change distribution, [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak-to-gene feature annotation are also generated by the pipeline. Where possible these have been integrated into the MultiQC report.
 
-![MultiQC - MACS2 peaks FRiP score plot](images/mqc_frip_score_plot.png)
+![MultiQC - MACS3 peaks FRiP score plot](images/mqc_frip_score_plot.png)
 
 ### Create and quantify consensus set of peaks
 
 <details markdown="1">
     <summary>Output files</summary>
 
-- `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/`
+- `<ALIGNER>/merged_library/macs3/<PEAK_TYPE>/consensus/<ANTIBODY>/`
   - `*.bed`: Consensus peak-set across all samples in BED format.
   - `*.saf`: Consensus peak-set across all samples in SAF format. Required by featureCounts for read quantification.
   - `*.featureCounts.txt`: Read counts across all samples relative to consensus peak-set.
@@ -245,7 +243,7 @@ The [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) tool is used to co
 <details markdown="1">
     <summary>Output files</summary>
 
-- `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/deseq2/`
+- `<ALIGNER>/merged_library/macs3/<PEAK_TYPE>/consensus/<ANTIBODY>/deseq2/`
   - `*.sample.dists.txt`: Spreadsheet containing sample-to-sample distance across each consensus peak.
   - `*.plots.pdf`: File containing PCA and hierarchical clustering plots.
   - `*.dds.RData`: File containing R `DESeqDataSet` object generated by DESeq2, with either
@@ -254,7 +252,7 @@ The [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) tool is used to co
     `readRDS` to give user control of the eventual object name.
   - `*pca.vals.txt`: Matrix of values for the first 2 principal components.
   - `R_sessionInfo.log`: File containing information about R, the OS and attached or loaded packages.
-  - `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/consensus/<ANTIBODY>/sizeFactors/`
+  - `<ALIGNER>/merged_library/macs3/<PEAK_TYPE>/consensus/<ANTIBODY>/sizeFactors/`
   - `*.txt`, `*.RData`: Files containing DESeq2 sizeFactors per sample.
 
 </details>

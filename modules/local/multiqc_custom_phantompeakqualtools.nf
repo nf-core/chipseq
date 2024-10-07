@@ -1,9 +1,9 @@
 process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
     tag "$meta.id"
-    conda "conda-forge::r-base=3.5.1"
+    conda "conda-forge::r-base=4.3.3"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/r-base:3.5.1':
-        'quay.io/biocontainers/r-base:3.5.1' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/45/4569ff9993578b8402d00230ab9dd75ce6e63529731eb24f21579845e6bd5cdb/data':
+        'community.wave.seqera.io/library/r-base:4.3.3--14bb33ac537aea22' }"
 
     input:
     tuple val(meta), path(spp), path(rdata)
