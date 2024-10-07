@@ -30,7 +30,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     ch_peaks
         .map {
             meta, peak ->
-                [ meta.antibody, meta.id - ~/_T\d+$/, peak ]
+                [ meta.antibody, meta.id - ~/_REP\d+$/, peak ]
         }
         .groupTuple()
         .map {
@@ -46,7 +46,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
                 def meta_new = [:]
                 meta_new.id = antibody
                 meta_new.multiple_groups = groups.size() > 1
-                meta_new.replicates_exist = groups.max { groups.value }.value > 1
+                meta_new.replicates_exist = groups.max { it.value }.value > 1
                 [ meta_new, peaks ]
         }
         .set { ch_antibody_peaks }
