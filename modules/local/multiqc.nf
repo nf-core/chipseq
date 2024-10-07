@@ -1,16 +1,16 @@
 process MULTIQC {
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::multiqc=1.13a" : null)
+    conda "bioconda::multiqc=1.23"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/multiqc:1.13a--pyhdfd78af_1':
-        'quay.io/biocontainers/multiqc:1.13a--pyhdfd78af_1' }"
+        'https://depot.galaxyproject.org/singularity/multiqc:1.23--pyhdfd78af_0' :
+        'biocontainers/multiqc:1.23--pyhdfd78af_0' }"
 
     input:
+    path workflow_summary
     path multiqc_config
     path mqc_custom_config
-    path software_versions
-    path workflow_summary
+    path logo
 
     path ('fastqc/*')
     path ('trimgalore/fastqc/*')
@@ -20,15 +20,15 @@ process MULTIQC {
     path ('alignment/library/*')
     path ('alignment/library/*')
 
-    path ('alignment/mergedLibrary/unfiltered/*')
-    path ('alignment/mergedLibrary/unfiltered/*')
-    path ('alignment/mergedLibrary/unfiltered/*')
-    path ('alignment/mergedLibrary/unfiltered/picard_metrics/*')
+    path ('alignment/merged_library/unfiltered/*')
+    path ('alignment/merged_library/unfiltered/*')
+    path ('alignment/merged_library/unfiltered/*')
+    path ('alignment/merged_library/unfiltered/picard_metrics/*')
 
-    path ('alignment/mergedLibrary/filtered/*')
-    path ('alignment/mergedLibrary/filtered/*')
-    path ('alignment/mergedLibrary/filtered/*')
-    path ('alignment/mergedLibrary/filtered/picard_metrics/*')
+    path ('alignment/merged_library/filtered/*')
+    path ('alignment/merged_library/filtered/*')
+    path ('alignment/merged_library/filtered/*')
+    path ('alignment/merged_library/filtered/picard_metrics/*')
 
     path ('preseq/*')
 
@@ -40,10 +40,10 @@ process MULTIQC {
     path ('phantompeakqualtools/*')
     path ('phantompeakqualtools/*')
 
-    path ('macs2/peaks/*')
-    path ('macs2/peaks/*')
-    path ('macs2/annotation/*')
-    path ('macs2/featurecounts/*')
+    path ('macs3/peaks/*')
+    path ('macs3/peaks/*')
+    path ('macs3/annotation/*')
+    path ('macs3/featurecounts/*')
 
     path ('deseq2/*')
     path ('deseq2/*')
@@ -53,6 +53,9 @@ process MULTIQC {
     path "*_data"              , emit: data
     path "*_plots"             , optional:true, emit: plots
     path "versions.yml"        , emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def args          = task.ext.args ?: ''

@@ -1,9 +1,10 @@
 process MULTIQC_CUSTOM_PEAKS {
     tag "$meta.id"
-    conda (params.enable_conda ? "conda-forge::sed=4.7" : null)
+
+    conda "conda-forge::sed=4.7"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/ubuntu:20.04' :
-        'ubuntu:20.04' }"
+        'nf-core/ubuntu:20.04' }"
 
     input:
     tuple val(meta), path(peak), path(frip)
@@ -13,6 +14,10 @@ process MULTIQC_CUSTOM_PEAKS {
     output:
     tuple val(meta), path("*.peak_count_mqc.tsv"), emit: count
     tuple val(meta), path("*.FRiP_mqc.tsv")      , emit: frip
+    path "versions.yml"                          , emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"

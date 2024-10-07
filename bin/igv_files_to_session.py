@@ -55,7 +55,6 @@ args = argParser.parse_args()
 
 
 def makedir(path):
-
     if not len(path) == 0:
         try:
             os.makedirs(path)
@@ -72,7 +71,6 @@ def makedir(path):
 
 
 def igv_files_to_session(XMLOut, ListFile, ReplaceFile, Genome, PathPrefix=""):
-
     makedir(os.path.dirname(XMLOut))
 
     replaceFileDict = {}

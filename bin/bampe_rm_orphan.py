@@ -46,7 +46,6 @@ args = argParser.parse_args()
 
 
 def makedir(path):
-
     if not len(path) == 0:
         try:
             os.makedirs(path)
@@ -63,7 +62,6 @@ def makedir(path):
 
 
 def bampe_rm_orphan(BAMIn, BAMOut, onlyFRPairs=False):
-
     ## SETUP DIRECTORY/FILE STRUCTURE
     OutDir = os.path.dirname(BAMOut)
     makedir(OutDir)
@@ -89,7 +87,6 @@ def bampe_rm_orphan(BAMIn, BAMOut, onlyFRPairs=False):
             ## FILTER FOR READS ON SAME CHROMOSOME IN FR ORIENTATION
             if onlyFRPairs:
                 if pair1.tid == pair2.tid:
-
                     ## READ1 FORWARD AND READ2 REVERSE STRAND
                     if not pair1.is_reverse and pair2.is_reverse:
                         if pair1.reference_start <= pair2.reference_start:

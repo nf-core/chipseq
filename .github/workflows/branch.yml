@@ -13,13 +13,13 @@ jobs:
       - name: Check PRs
         if: github.repository == 'nf-core/chipseq'
         run: |
-          { [[ ${{github.event.pull_request.head.repo.full_name }} == nf-core/chipseq ]] && [[ $GITHUB_HEAD_REF = "dev" ]]; } || [[ $GITHUB_HEAD_REF == "patch" ]]
+          { [[ ${{github.event.pull_request.head.repo.full_name }} == nf-core/chipseq ]] && [[ $GITHUB_HEAD_REF == "dev" ]]; } || [[ $GITHUB_HEAD_REF == "patch" ]]
 
       # If the above check failed, post a comment on the PR explaining the failure
       # NOTE - this doesn't currently work if the PR is coming from a fork, due to limitations in GitHub actions secrets
       - name: Post PR comment
         if: failure()
-        uses: mshick/add-pr-comment@v1
+        uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2
         with:
           message: |
             ## This PR is against the `master` branch :x:

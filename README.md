@@ -1,18 +1,23 @@
-# ![nf-core/chipseq](docs/images/nf-core-chipseq_logo_light.png#gh-light-mode-only) ![nf-core/chipseq](docs/images/nf-core-chipseq_logo_dark.png#gh-dark-mode-only)
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/nf-core-chipseq_logo_dark.png">
+    <img alt="nf-core/chipseq" src="docs/images/nf-core-chipseq_logo_light.png">
+  </picture>
+</h1>
+[![GitHub Actions CI Status](https://github.com/nf-core/chipseq/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/chipseq/actions?query=workflow%3A%22nf-core+CI%22)
+[![GitHub Actions Linting Status](https://github.com/nf-core/chipseq/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/chipseq/actions?query=workflow%3A%22nf-core+linting%22)[![AWS CI](https://img.shields.io/badge/CI%20tests-full%20size-FF9900?labelColor=000000&logo=Amazon%20AWS)](https://nf-co.re/chipseq/results)[![Cite with Zenodo](http://img.shields.io/badge/DOI-10.5281/zenodo.3240506-1073c8?labelColor=000000)](https://doi.org/10.5281/zenodo.3240506)
 
-[![AWS CI](https://img.shields.io/badge/CI%20tests-full%20size-FF9900?labelColor=000000&logo=Amazon%20AWS)](https://nf-co.re/chipseq/results)[![Cite with Zenodo](http://img.shields.io/badge/DOI-10.5281/zenodo.3240506-1073c8?labelColor=000000)](https://doi.org/10.5281/zenodo.3240506)
-
-[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A521.10.3-23aa62.svg)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A523.04.0-23aa62.svg)](https://www.nextflow.io/)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
-[![Launch on Nextflow Tower](https://img.shields.io/badge/Launch%20%F0%9F%9A%80-Nextflow%20Tower-%234256e7)](https://tower.nf/launch?pipeline=https://github.com/nf-core/chipseq)
+[![Launch on Seqera Platform](https://img.shields.io/badge/Launch%20%F0%9F%9A%80-Seqera%20Platform-%234256e7)](https://cloud.seqera.io/launch?pipeline=https://github.com/nf-core/chipseq)
 
-[![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23chipseq-4A154B?labelColor=000000&logo=slack)](https://nfcore.slack.com/channels/chipseq)[![Follow on Twitter](http://img.shields.io/badge/twitter-%40nf__core-1DA1F2?labelColor=000000&logo=twitter)](https://twitter.com/nf_core)[![Watch on YouTube](http://img.shields.io/badge/youtube-nf--core-FF0000?labelColor=000000&logo=youtube)](https://www.youtube.com/c/nf-core)
+[![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23chipseq-4A154B?labelColor=000000&logo=slack)](https://nfcore.slack.com/channels/chipseq)[![Follow on Twitter](http://img.shields.io/badge/twitter-%40nf__core-1DA1F2?labelColor=000000&logo=twitter)](https://twitter.com/nf_core)[![Follow on Mastodon](https://img.shields.io/badge/mastodon-nf__core-6364ff?labelColor=FFFFFF&logo=mastodon)](https://mstdn.science/@nf_core)[![Watch on YouTube](http://img.shields.io/badge/youtube-nf--core-FF0000?labelColor=000000&logo=youtube)](https://www.youtube.com/c/nf-core)
 
 ## Introduction
 
-**nfcore/chipseq** is a bioinformatics analysis pipeline used for Chromatin ImmunopreciPitation sequencing (ChIP-seq) data.
+**nfcore/chipseq** is a bioinformatics analysis pipeline used for Chromatin ImmunoPrecipitation sequencing (ChIP-seq) data.
 
 On release, automated continuous integration tests run the pipeline on a [full-sized dataset](https://github.com/nf-core/test-datasets/tree/chipseq#full-test-dataset-origin) on the AWS cloud infrastructure. The dataset consists of FoxA1 (transcription factor) and EZH2 (histone,mark) IP experiments from _Franco et al. 2015_ ([GEO: GSE59530](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59530), [PMID: 25752574](https://pubmed.ncbi.nlm.nih.gov/25752574/)) and _Popovic et al. 2014_ ([GEO: GSE57632](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE57632), [PMID: 25188243](https://pubmed.ncbi.nlm.nih.gov/25188243/)), respectively. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources. The results obtained from running the full-sized tests can be viewed on the [nf-core website](https://nf-co.re/chipseq/results).
 
@@ -26,11 +31,13 @@ You can find numerous talks on the [nf-core events page](https://nf-co.re/events
 
 ## Pipeline summary
 
+![nf-core/chipseq metro map](docs/images/nf-core-chipseq_metro_map_grey.png)
+
 1. Raw read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 2. Adapter trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
 3. Choice of multiple aligners
    1.([`BWA`](https://sourceforge.net/projects/bio-bwa/files/))
-   2.([`Chromap`](https://github.com/haowenz/chromap)). **For paired-end reads only working until mapping steps, see [here](https://github.com/nf-core/chipseq/issues/291)**
+   2.([`Chromap`](https://github.com/haowenz/chromap))
    3.([`Bowtie2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
    4.([`STAR`](https://github.com/alexdobin/STAR))
 4. Mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
@@ -52,7 +59,7 @@ You can find numerous talks on the [nf-core events page](https://nf-co.re/events
    5. Generate gene-body meta-profile from bigWig files ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html))
    6. Calculate genome-wide IP enrichment relative to control ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html))
    7. Calculate strand cross-correlation peak and ChIP-seq quality measures including NSC and RSC ([`phantompeakqualtools`](https://github.com/kundajelab/phantompeakqualtools))
-   8. Call broad/narrow peaks ([`MACS2`](https://github.com/macs3-project/MACS))
+   8. Call broad/narrow peaks ([`MACS3`](https://github.com/macs3-project/MACS))
    9. Annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
    10. Create consensus peakset across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
    11. Count reads in consensus peaks ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/))
@@ -60,42 +67,52 @@ You can find numerous talks on the [nf-core events page](https://nf-co.re/events
 6. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
 7. Present QC for raw read, alignment, peak-calling and differential binding results ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
 
-## Quick Start
+## Usage
 
-1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation) (`>=21.10.3`)
+> [!NOTE]
+> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
-2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/) (you can follow [this tutorial](https://singularity-tutorial.github.io/01-installation/)), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility _(you can use [`Conda`](https://conda.io/miniconda.html) both to install Nextflow itself and also to manage software within pipelines. Please only use it within pipelines as a last resort; see [docs](https://nf-co.re/usage/configuration#basic-configuration-profiles))_.
+To run on your data, prepare a tab-separated samplesheet with your input data. Please follow the [documentation on samplesheets](https://nf-co.re/chipseq/usage#samplesheet-input) for more details. An example samplesheet for running the pipeline looks as follows:
 
-3. Download the pipeline and test it on a minimal dataset with a single command:
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP,BLA203A25_S16_L001_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A25_S16_L002_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A25_S16_L003_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A49_S40_L001_R1_001.fastq.gz,,3,BCATENIN,WT_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L001_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A30_S21_L002_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
+```
 
-   ```bash
-   nextflow run nf-core/chipseq -profile test,YOURPROFILE --outdir <OUTDIR>
-   ```
+Now, you can run the pipeline using:
 
-   Note that some form of configuration will be needed so that Nextflow knows how to fetch the required software. This is usually done in the form of a config profile (`YOURPROFILE` in the example command above). You can chain multiple config profiles in a comma-separated string.
-
-   > - The pipeline comes with config profiles called `docker`, `singularity`, `podman`, `shifter`, `charliecloud` and `conda` which instruct the pipeline to use the named tool for software management. For example, `-profile test,docker`.
-   > - Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile <institute>` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
-   > - If you are using `singularity`, please use the [`nf-core download`](https://nf-co.re/tools/#downloading-pipelines-for-offline-use) command to download images first, before running the pipeline. Setting the [`NXF_SINGULARITY_CACHEDIR` or `singularity.cacheDir`](https://www.nextflow.io/docs/latest/singularity.html?#singularity-docker-hub) Nextflow options enables you to store and re-use the images from a central location for future pipeline runs.
-   > - If you are using `conda`, it is highly recommended to use the [`NXF_CONDA_CACHEDIR` or `conda.cacheDir`](https://www.nextflow.io/docs/latest/conda.html) settings to store the environments in a central location for future pipeline runs.
-
-4. Start running your own analysis!
-
-   ```bash
-   nextflow run nf-core/chipseq --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
-   ```
+```bash
+nextflow run nf-core/chipseq --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
+```
 
 See [usage docs](https://nf-co.re/chipseq/usage) for all of the available options when running the pipeline.
 
-## Documentation
+> [!WARNING]
+> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see the [docs](https://nf-co.re/usage/configuration#custom-configuration-files) here.
 
-The nf-core/chipseq pipeline comes with documentation about the pipeline: [usage](https://nf-co.re/chipseq/usage) and [output](https://nf-co.re/chipseq/output).
+For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/chipseq/usage) and the [parameter documentation](https://nf-co.re/chipseq/parameters).
+
+## Pipeline output
+
+To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/chipseq/results) tab on the nf-core website pipeline page.
+For more details about the output files and reports, please refer to the
+[output documentation](https://nf-co.re/chipseq/output).
 
 ## Credits
 
 These scripts were originally written by Chuan Wang ([@chuan-wang](https://github.com/chuan-wang)) and Phil Ewels ([@ewels](https://github.com/ewels)) for use at the [National Genomics Infrastructure](https://portal.scilifelab.se/genomics/) at [SciLifeLab](http://www.scilifelab.se/) in Stockholm, Sweden. The pipeline was re-implemented by Harshil Patel ([@drpatelh](https://github.com/drpatelh)) from [Seqera Labs, Spain](https://seqera.io/) and converted to Nextflow DSL2 by Jose Espinosa-Carrasco ([@JoseEspinosa](https://github.com/JoseEspinosa)) from [The Comparative Bioinformatics Group](https://www.crg.eu/en/cedric_notredame) at [The Centre for Genomic Regulation, Spain](https://www.crg.eu/).
 
-Many thanks to others who have helped out and contributed along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@bc2zb](https://github.com/bc2zb), [@crickbabs](https://github.com/crickbabs), [@drejom](https://github.com/drejom), [@houghtos](https://github.com/houghtos), [@KevinMenden](https://github.com/KevinMenden), [@mashehu](https://github.com/mashehu), [@pditommaso](https://github.com/pditommaso), [@Rotholandus](https://github.com/Rotholandus), [@sofiahaglund](https://github.com/sofiahaglund), [@tiagochst](https://github.com/tiagochst) and [@winni2k](https://github.com/winni2k).
+The pipeline workflow diagram was designed by Sarah Guinchard ([@G-Sarah](https://github.com/G-Sarah)).
+
+Many thanks to others who have helped out and contributed along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@bc2zb](https://github.com/bc2zb), [@bjlang](https://github.com/bjlang), [@crickbabs](https://github.com/crickbabs), [@drejom](https://github.com/drejom), [@houghtos](https://github.com/houghtos), [@KevinMenden](https://github.com/KevinMenden), [@mashehu](https://github.com/mashehu), [@pditommaso](https://github.com/pditommaso), [@Rotholandus](https://github.com/Rotholandus), [@sofiahaglund](https://github.com/sofiahaglund), [@tiagochst](https://github.com/tiagochst) and [@winni2k](https://github.com/winni2k).
 
 ## Contributions and Support
 
