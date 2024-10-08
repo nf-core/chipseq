@@ -1,2 +1,20 @@
+bump_version: null
+lint:
+  nextflow_config:
+    - config_defaults:
+        - params.bamtools_filter_se_config
+        - params.bamtools_filter_pe_config
+nf_core_version: 3.0.0
+org_path: null
 repository_type: pipeline
-nf_core_version: "2.14.1"
+template:
+  author: Espinosa-Carrasco J, Patel H, Wang C, Ewels P
+  description: ChIP-seq peak-calling and differential analysis pipeline.
+  force: false
+  is_nfcore: true
+  name: chipseq
+  org: nf-core
+  outdir: .
+  skip_features: null
+  version: 2.1.0
+update: null
