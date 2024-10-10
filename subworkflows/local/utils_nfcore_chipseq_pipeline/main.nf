@@ -34,6 +34,8 @@ workflow PIPELINE_INITIALISATION {
 
     main:
 
+    ch_versions = Channel.empty()
+
     //
     // Print version and exit if required and dump pipeline parameters to JSON file
     //
@@ -48,30 +50,33 @@ workflow PIPELINE_INITIALISATION {
     //
     // Validate parameters and generate parameter summary to stdout
     //
-    pre_help_text = nfCoreLogo(monochrome_logs)
-    post_help_text = '\n' + workflowCitation() + '\n' + dashedLine(monochrome_logs)
-    def String workflow_command = "nextflow run ${workflow.manifest.name} -profile <docker/singularity/.../institute> --input samplesheet.csv --genome GRCh37 --outdir <OUTDIR>"
-    UTILS_NFVALIDATION_PLUGIN (
-        help,
-        workflow_command,
-        pre_help_text,
-        post_help_text,
+    UTILS_NFSCHEMA_PLUGIN (
+        workflow,
         validate_params,
         null
     )
     
-
     //
     // Check config provided to the pipeline
     //
     UTILS_NFCORE_PIPELINE (
         nextflow_cli_args
     )
+
     //
     // Custom validation for pipeline parameters
     //
     validateInputParameters()
 
+    //
+    // Create channel from input file provided through params.input
+    //
+
+    ch_samplesheet = Channel.fromList(samplesheetToList(params.input, "assets/schema_input.json"))
+
+    emit:
+    samplesheet = ch_samplesheet
+    versions    = ch_versions
 }
 
 /*

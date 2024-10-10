@@ -20,14 +20,13 @@ include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_chip
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
 include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
 
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     GENOME PARAMETER VALUES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-params.fasta         = getGenomeAttribute('fasta') // TODO check if the function ways with the include
+params.fasta         = getGenomeAttribute('fasta')
 params.bwa_index     = getGenomeAttribute('bwa')
 params.bowtie2_index = getGenomeAttribute('bowtie2')
 params.chromap_index = getGenomeAttribute('chromap')
@@ -70,10 +69,23 @@ workflow NFCORE_CHIPSEQ {
     ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
-    // WORKFLOW: Run pipeline
+    // WORKFLOW: Run nf-core/chipseq workflow
     //
-    CHIPSEQ (
-        samplesheet
+    ch_input = Channel.value(file(params.input, checkIfExists: true))
+
+    CHIPSEQ(
+        ch_input,
+        ch_versions,
+        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME.out.fai,
+        PREPARE_GENOME.out.gtf,
+        PREPARE_GENOME.out.gene_bed,
+        PREPARE_GENOME.out.chrom_sizes,
+        PREPARE_GENOME.out.filtered_bed,
+        PREPARE_GENOME.out.bwa_index,
+        PREPARE_GENOME.out.bowtie2_index,
+        PREPARE_GENOME.out.chromap_index,
+        PREPARE_GENOME.out.star_index
     )
 
     emit:
@@ -104,9 +116,7 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    NFCORE_CHIPSEQ (
-        PIPELINE_INITIALISATION.out.samplesheet //TODO check whether it works
-    )
+    NFCORE_CHIPSEQ ( )
 
     //
     // SUBWORKFLOW: Run completion tasks
