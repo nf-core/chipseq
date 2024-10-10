@@ -9,25 +9,6 @@
 ----------------------------------------------------------------------------------------
 */
 
-nextflow.enable.dsl = 2
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    GENOME PARAMETER VALUES
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-params.fasta         = getGenomeAttribute('fasta')
-params.bwa_index     = getGenomeAttribute('bwa')
-params.bowtie2_index = getGenomeAttribute('bowtie2')
-params.chromap_index = getGenomeAttribute('chromap')
-params.star_index    = getGenomeAttribute('star')
-params.gtf           = getGenomeAttribute('gtf')
-params.gff           = getGenomeAttribute('gff')
-params.gene_bed      = getGenomeAttribute('gene_bed')
-params.blacklist     = getGenomeAttribute('blacklist')
-params.macs_gsize    = getMacsGsize(params)
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT FUNCTIONS / MODULES / SUBWORKFLOWS / WORKFLOWS
@@ -37,8 +18,25 @@ include { CHIPSEQ                 } from './workflows/chipseq'
 include { PREPARE_GENOME          } from './subworkflows/local/prepare_genome'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
-// include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
-// include { getMacsGsize            } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
+include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
+
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    GENOME PARAMETER VALUES
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+params.fasta         = getGenomeAttribute('fasta') // TODO check if the function ways with the include
+params.bwa_index     = getGenomeAttribute('bwa')
+params.bowtie2_index = getGenomeAttribute('bowtie2')
+params.chromap_index = getGenomeAttribute('chromap')
+params.star_index    = getGenomeAttribute('star')
+params.gtf           = getGenomeAttribute('gtf')
+params.gff           = getGenomeAttribute('gff')
+params.gene_bed      = getGenomeAttribute('gene_bed')
+params.blacklist     = getGenomeAttribute('blacklist')
+params.macs_gsize    = getMacsGsize(params)
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,23 +70,10 @@ workflow NFCORE_CHIPSEQ {
     ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
-    // WORKFLOW: Run nf-core/chipseq workflow
+    // WORKFLOW: Run pipeline
     //
-    ch_input = Channel.value(file(params.input, checkIfExists: true))
-
-    CHIPSEQ(
-        ch_input,
-        ch_versions,
-        PREPARE_GENOME.out.fasta,
-        PREPARE_GENOME.out.fai,
-        PREPARE_GENOME.out.gtf,
-        PREPARE_GENOME.out.gene_bed,
-        PREPARE_GENOME.out.chrom_sizes,
-        PREPARE_GENOME.out.filtered_bed,
-        PREPARE_GENOME.out.bwa_index,
-        PREPARE_GENOME.out.bowtie2_index,
-        PREPARE_GENOME.out.chromap_index,
-        PREPARE_GENOME.out.star_index
+    CHIPSEQ (
+        samplesheet
     )
 
     emit:
@@ -105,23 +90,23 @@ workflow NFCORE_CHIPSEQ {
 workflow {
 
     main:
-
     //
     // SUBWORKFLOW: Run initialisation tasks
     //
     PIPELINE_INITIALISATION (
         params.version,
-        params.help,
         params.validate_params,
         params.monochrome_logs,
         args,
         params.outdir
     )
-
+    
     //
     // WORKFLOW: Run main workflow
     //
-    NFCORE_CHIPSEQ ()
+    NFCORE_CHIPSEQ (
+        PIPELINE_INITIALISATION.out.samplesheet //TODO check whether it works
+    )
 
     //
     // SUBWORKFLOW: Run completion tasks
@@ -142,18 +127,6 @@ workflow {
     FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
-//
-// Get attribute from genome config file e.g. fasta
-//
-def getGenomeAttribute(attribute) {
-    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
-        if (params.genomes[ params.genome ].containsKey(attribute)) {
-            return params.genomes[ params.genome ][ attribute ]
-        }
-    }
-    return null
-}
 
 //
 // Get macs genome size (macs_gsize)

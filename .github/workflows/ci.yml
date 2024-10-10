@@ -7,6 +7,7 @@ on:
   pull_request:
   release:
     types: [published]
+  workflow_dispatch:
 
 env:
   NXF_ANSI_LOG: false
@@ -24,7 +25,7 @@ jobs:
     strategy:
       matrix:
         NXF_VER:
-          - "23.04.0"
+          - "24.04.2"
           - "latest-everything"
     steps:
       - name: Check out pipeline code
@@ -38,13 +39,23 @@ jobs:
       - name: Disk space cleanup
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
 
-      - name: Run pipeline with test data
+      - name: Run pipeline with test data (docker)
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker --outdir ./results
 
+      - name: Run pipeline with test data (singularity)
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile test,singularity --outdir ./results
+        if: "${{ github.base_ref == 'master' }}"
+
+      - name: Run pipeline with test data (conda)
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile test,conda --outdir ./results
+        if: "${{ github.base_ref == 'master' }}"
+
   parameters:
     name: Test workflow parameters
-    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/chipseq') }}
+    if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/chipseq') }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -53,14 +64,30 @@ jobs:
           - "--skip_consensus_peaks"
     steps:
       - name: Check out pipeline code
-        uses: actions/checkout@v2
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
 
       - name: Install Nextflow
-        run: |
-          wget -qO- get.nextflow.io | bash
-          sudo mv nextflow /usr/local/bin/
+        uses: nf-core/setup-nextflow@v2
+        with:
+          version: "${{ matrix.NXF_VER }}"
 
-      - name: Run pipeline with various parameters
+      - name: Disk space cleanup
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
+
+      - name: Run pipeline with various parameters (docker)
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile test,docker --outdir ./results ${{ matrix.parameters }}
+
+      - name: Run pipeline with various parameters (singularity)
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile test,singularity --outdir ./results ${{ matrix.parameters }}
+        if: "${{ github.base_ref == 'master' }}"
+
+      - name: Run pipeline with various parameters (conda)
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile test,conda --outdir ./results ${{ matrix.parameters }} 
+        if: "${{ github.base_ref == 'master' }}"
+
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker ${{ matrix.parameters }} --outdir ./results
 
