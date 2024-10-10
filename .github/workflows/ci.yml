@@ -62,6 +62,9 @@ jobs:
         parameters:
           - "--skip_trimming"
           - "--skip_consensus_peaks"
+          - "--aligner bowtie2"
+          - "--aligner chromap"
+          - "--aligner star"
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
@@ -87,29 +90,3 @@ jobs:
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,conda --outdir ./results ${{ matrix.parameters }} 
         if: "${{ github.base_ref == 'master' }}"
-
-  aligners:
-    name: Test available aligners
-    if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/chipseq') }}"
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        aligner:
-          - "bowtie2"
-          - "chromap"
-          - "star"
-    steps:
-      - name: Check out pipeline code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
-
-      - name: Install Nextflow
-        uses: nf-core/setup-nextflow@v2
-        with:
-          version: "${{ matrix.NXF_VER }}"
-
-      - name: Disk space cleanup
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
-
-      - name: Run pipeline with the different aligners available
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,docker --aligner ${{ matrix.aligner }} --outdir ./results
