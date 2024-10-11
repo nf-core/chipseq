@@ -36,6 +36,8 @@ process IGV {
 
     if [ -d "mappings" ]; then
         cat mappings/* > replace_paths.txt
+    else
+        touch replace_paths.txt
     fi
 
     cat *.igv.txt > igv_files_orig.txt
