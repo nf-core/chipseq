@@ -4,7 +4,7 @@ lint:
     - config_defaults:
         - params.bamtools_filter_se_config
         - params.bamtools_filter_pe_config
-nf_core_version: 3.0.1
+nf_core_version: 3.0.2
 org_path: null
 repository_type: pipeline
 template:
@@ -16,5 +16,5 @@ template:
   org: nf-core
   outdir: .
   skip_features: null
-  version: 2.1.0
+  version: 2.2.0dev
 update: null
