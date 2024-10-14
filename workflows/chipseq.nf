@@ -14,7 +14,7 @@ include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_c
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { paramsSummaryMap       } from 'plugin/nf-validation'
+include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_chipseq_pipeline'
@@ -89,7 +89,7 @@ if (anno_readme && file(anno_readme).exists()) {
 workflow CHIPSEQ {
 
     take:
-    ch_input         // channel: path(sample_sheet.csv)
+    ch_samplesheet   // channel: path(sample_sheet.csv)
     ch_versions      // channel: [ path(versions.yml) ]
     ch_fasta         // channel: path(genome.fa)
     ch_fai           // channel: path(genome.fai)
@@ -104,12 +104,11 @@ workflow CHIPSEQ {
 
     main:
     ch_multiqc_files = Channel.empty()
-
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
     INPUT_CHECK (
-        ch_input,
+        ch_samplesheet,
         params.seq_center
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
@@ -130,6 +129,7 @@ workflow CHIPSEQ {
         10000
     )
     ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
+
 
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
@@ -578,9 +578,9 @@ workflow CHIPSEQ {
         ch_multiqc_report = MULTIQC.out.report
     }
 
-    emit:
-    multiqc_report = ch_multiqc_report  // channel: /path/to/multiqc_report.html
-    versions       = ch_versions       // channel: [ path(versions.yml) ]
+    emit:multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
+    versions       = ch_versions                 // channel: [ path(versions.yml) ]
+
 }
 
 /*

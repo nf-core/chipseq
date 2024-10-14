@@ -63,7 +63,7 @@
                     },
                     "fastqc": {
                         "branch": "master",
-                        "git_sha": "46eca555142d6e597729fcb682adcc791796f514",
+                        "git_sha": "666652151335353eef2fcd58880bcef5bc2928e1",
                         "installed_by": ["fastq_fastqc_umitools_trimgalore", "modules"]
                     },
                     "gffread": {
@@ -93,7 +93,7 @@
                     },
                     "multiqc": {
                         "branch": "master",
-                        "git_sha": "b80f5fd12ff7c43938f424dd76392a2704fa2396",
+                        "git_sha": "b8d36829fa84b6e404364abff787e8b07f6d058c",
                         "installed_by": ["modules"]
                     },
                     "phantompeakqualtools": {
@@ -217,17 +217,17 @@
                     },
                     "utils_nextflow_pipeline": {
                         "branch": "master",
-                        "git_sha": "5caf7640a9ef1d18d765d55339be751bb0969dfa",
+                        "git_sha": "9d05360da397692321d377b6102d2fb22507c6ef",
                         "installed_by": ["subworkflows"]
                     },
                     "utils_nfcore_pipeline": {
                         "branch": "master",
-                        "git_sha": "92de218a329bfc9a9033116eb5f65fd270e72ba3",
+                        "git_sha": "772684d9d66f37b650c8ba5146ac1ee3ecba2acb",
                         "installed_by": ["subworkflows"]
                     },
-                    "utils_nfvalidation_plugin": {
+                    "utils_nfschema_plugin": {
                         "branch": "master",
-                        "git_sha": "5caf7640a9ef1d18d765d55339be751bb0969dfa",
+                        "git_sha": "bbd5a41f4535a8defafe6080e00ea74c45f4f96c",
                         "installed_by": ["subworkflows"]
                     }
                 }

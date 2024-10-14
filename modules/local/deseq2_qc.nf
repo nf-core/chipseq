@@ -44,6 +44,8 @@ process DESEQ2_QC {
     sed -i -e 's/DESeq2 /${meta.id} DESeq2 /g' tmp.txt
     cat tmp.txt ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
 
+    set +C
+
     sed 's/deseq2_clustering/deseq2_clustering_${task.index}/g' <$deseq2_clustering_header >tmp.txt
     sed -i -e 's/DESeq2 /${meta.id} DESeq2 /g' tmp.txt
     cat tmp.txt ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
