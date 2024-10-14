@@ -59,6 +59,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        NXF_VER:
+          - "24.04.2"
+          - "latest-everything"
         parameters:
           - "--skip_trimming"
           - "--skip_consensus_peaks"
@@ -88,5 +91,5 @@ jobs:
 
       - name: Run pipeline with various parameters (conda)
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,conda --outdir ./results ${{ matrix.parameters }} 
+          nextflow run ${GITHUB_WORKSPACE} -profile test,conda --outdir ./results ${{ matrix.parameters }}
         if: "${{ github.base_ref == 'master' }}"
