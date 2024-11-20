@@ -34,9 +34,10 @@ process IGV {
     # Avoid error when consensus not produced
     find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$consensus_dir" || test \$? = 1; } > consensus.igv.txt
 
-    touch replace_paths.txt
     if [ -d "mappings" ]; then
         cat mappings/* > replace_paths.txt
+    else
+        touch replace_paths.txt
     fi
 
     cat *.igv.txt > igv_files_orig.txt

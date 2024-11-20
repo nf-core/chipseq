@@ -1,5 +1,5 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/nf-core/chipseq/master/assets/schema_input.json",
     "title": "nf-core/chipseq pipeline - params.input schema",
     "description": "Schema for the file provided with params.input",
@@ -42,20 +42,17 @@
                 "type": "string",
                 "pattern": "^\\S+$",
                 "errorMessage": "Antibody entry cannot contain spaces",
-                "dependentRequired": ["control"],
                 "meta": ["antibody"]
             },
             "control": {
                 "type": "string",
                 "pattern": "^\\S+$",
                 "errorMessage": "Control entry cannot contain spaces",
-                "dependentRequired": ["antibody", "control_replicate"],
                 "meta": ["control"]
             },
             "control_replicate": {
-                "type": "string",
-                "pattern": "^\\S+$",
-                "errorMessage": "Control entry cannot contain spaces",
+                "type": "integer",
+                "errorMessage": "Replicate id not an integer!",
                 "meta": ["control_replicate"]
             }
         },
