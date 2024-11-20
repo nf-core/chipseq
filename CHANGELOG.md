@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
+[[PR #433](https://github.com/nf-core/chipseq/pull/415)] - Prevent pipeline fails from erroneous param validation of fasta.
+
 ### Parameters
 
 | Old parameter | New parameter |
