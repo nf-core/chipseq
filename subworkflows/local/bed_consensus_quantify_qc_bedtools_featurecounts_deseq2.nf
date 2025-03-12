@@ -90,8 +90,8 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         }
         .join(ch_bams)
         .map {
-            antibody, meta, saf, bams ->
-                [ meta, bams.flatten().sort(), saf ]
+            antibody, meta, saf, bams, meta_single_end ->
+                [ meta + meta_single_end, bams.flatten().sort(), saf ]
         }
         .set { ch_bam_saf }
 
