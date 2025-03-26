@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[PR #444](https://github.com/nf-core/chipseq/pull/444)] - Add empty map to ch_gff so that when provided by the user `GFFREAD` works.
 - Updated pipeline template to [nf-core/tools 3.2.0](https://github.com/nf-core/tools/releases/tag/3.2.0).
 - [[#451](https://github.com/nf-core/chipseq/issues/451)] - Pass `map.single_read` to `SUBREAD_FEATURECOUNTS` as to correctly set parameter `-p`.
+- [PR #459](https://github.com/nf-core/chipseq/pull/459) - Improve JSON schema validation for nextflow_schema.json and schema_input.json
 
 ### Parameters
 

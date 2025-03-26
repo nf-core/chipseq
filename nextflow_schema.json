@@ -347,9 +347,6 @@
                     "type": "number",
                     "description": "Minimum FDR (q-value) cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive.",
                     "fa_icon": "fas fa-sort-amount-down",
-                    "minimum": 0,
-                    "maximum": 1,
-                    "default": 0.05,
                     "help_text": "This is the `--qvalue` threshold passed to MACS3 when calling peaks. Must be between 0 and 1. Common values: 0.05 (default), 0.01, 0.001. Cannot be used together with --macs_pvalue",
                     "errorMessage": "MACS3 FDR must be a number between 0 and 1."
                 },
@@ -357,9 +354,6 @@
                     "type": "number",
                     "description": "p-value cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive. If --macs_pvalue cutoff is set, q-value will not be calculated and reported as -1 in the final .xls file.",
                     "fa_icon": "fas fa-sort-amount-down",
-                    "minimum": 0,
-                    "maximum": 1,
-                    "default": 0.01,
                     "help_text": "This is the `--pvalue` threshold passed to MACS3 when calling peaks. Must be between 0 and 1. Common values: 0.01 (default), 0.001, 0.0001. Cannot be used together with --macs_fdr",
                     "errorMessage": "MACS3 p-value must be a number between 0 and (e.g., 0.01, 1e-5)."
                 },
