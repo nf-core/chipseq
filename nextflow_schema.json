@@ -117,7 +117,6 @@
                     "description": "Path to directory or tar.gz archive for pre-built BWA index.",
                     "fa_icon": "fas fa-bezier-curve",
                     "errorMessage": "BWA index must be a valid path ending in .tar.gz or a directory containing the BWA index files. The BWA index files are typically named with the prefix of the reference genome FASTA file, followed by the suffixes .amb, .ann, .bwt, .pac, and .sa. For example: genome.fa.amb, genome.fa.ann, genome.fa.bwt, genome.fa.pac, and genome.fa.sa."
-
                 },
                 "bowtie2_index": {
                     "type": "string",
@@ -331,7 +330,6 @@
                     "help_text": "MACS3 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.",
                     "fa_icon": "fas fa-arrows-alt-h",
                     "errorMessage": "Narrow peak calling must be a boolean value: true or false."
-
                 },
                 "broad_cutoff": {
                     "type": "number",
