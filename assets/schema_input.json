@@ -22,17 +22,9 @@
             },
             "fastq_2": {
                 "errorMessage": "GZIP-compressed FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'",
-                "anyOf": [
-                    {
-                        "type": "string",
-                        "format": "file-path",
-                        "pattern": "^\\S+\\.f(ast)?q\\.gz$"
-                    },
-                    {
-                        "type": "string",
-                        "maxLength": 0
-                    }
-                ]
+                "type": "string",
+                "format": "file-path",
+                "pattern": "^$|^\\S+\\.f(ast)?q\\.gz$"
             },
             "replicate": {
                 "type": "integer",
