@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[PR #434](https://github.com/nf-core/chipseq/pull/434)] - Prevent pipeline fails from erroneous param validation when igenomes is used.
 - [[#432](https://github.com/nf-core/chipseq/issues/432)] - Fix `GFFREAD` call to have the two expected input channels.
 - [[PR #444](https://github.com/nf-core/chipseq/pull/444)] - Add empty map to ch_gff so that when provided by the user `GFFREAD` works.
-- Updated pipeline template to [nf-core/tools 3.2.0](https://github.com/nf-core/tools/releases/tag/3.2.0).
 - [[#451](https://github.com/nf-core/chipseq/issues/451)] - Pass `map.single_read` to `SUBREAD_FEATURECOUNTS` as to correctly set parameter `-p`.
+- [[PR #462](https://github.com/nf-core/chipseq/pull/462)] - Updated pipeline template to [nf-core/tools 3.2.1](https://github.com/nf-core/tools/releases/tag/3.2.1)
 
 ### Parameters
 
