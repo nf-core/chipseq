@@ -85,12 +85,7 @@ jobs:
       - name: "Run pipeline with test data ${{ matrix.NXF_VER }} | ${{ matrix.test_name }} | ${{ matrix.profile }}"
         continue-on-error: ${{ matrix.NXF_VER == 'latest-everything' }}
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,docker --outdir ./results
-
-      - name: Run pipeline with test data (singularity)
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,singularity --outdir ./results
-        if: "${{ github.base_ref == 'master' }}"
+          nextflow run ${GITHUB_WORKSPACE} -profile test,${{ matrix.profile }} --outdir ./results
 
       - name: Run pipeline with test data (conda)
         run: |
