@@ -33,8 +33,6 @@ jobs:
           - "conda"
           - "docker"
           - "singularity"
-        test_profile:
-          - "test"
         test_name:
           - "test"
           - "skip_trimming"
@@ -99,5 +97,5 @@ jobs:
       - name: "Run pipeline with test data ${{ matrix.NXF_VER }} | ${{ matrix.test_name }} | ${{ matrix.profile }}"
         continue-on-error: ${{ matrix.NXF_VER == 'latest-everything' }}
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile ${{ matrix.test_profile }},${{ matrix.profile }} --outdir ./results ${{ matrix.parameters }}
+          nextflow run ${GITHUB_WORKSPACE} -profile test,${{ matrix.profile }} --outdir ./results ${{ matrix.parameters }}
         if: "${{ github.base_ref == 'master' }}"
