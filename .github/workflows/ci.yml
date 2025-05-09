@@ -87,11 +87,6 @@ jobs:
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,${{ matrix.profile }} --outdir ./results
 
-      - name: Run pipeline with test data (conda)
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,conda --outdir ./results
-        if: "${{ github.base_ref == 'master' }}"
-
   parameters:
     name: Test workflow parameters
     if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/chipseq') }}"
