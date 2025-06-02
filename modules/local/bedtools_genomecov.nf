@@ -29,7 +29,7 @@ process BEDTOOLS_GENOMECOV {
     bedtools \\
         genomecov \\
         -ibam $bam \\
-        -bg \\
+        -bga \\
         -scale \$SCALE_FACTOR \\
         $pe \\
         $args \\
