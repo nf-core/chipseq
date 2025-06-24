@@ -147,6 +147,17 @@ The [Preseq](http://smithlabresearch.org/software/preseq/) package is aimed at p
 
 The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in an indexed binary format useful for displaying dense, continuous data in Genome Browsers such as the [UCSC](https://genome.ucsc.edu/cgi-bin/hgTracks) and [IGV](http://software.broadinstitute.org/software/igv/). This mitigates the need to load the much larger BAM files for data visualisation purposes which will be slower and result in memory issues. The coverage values represented in the bigWig file can also be normalised in order to be able to compare the coverage across multiple samples - this is not possible with BAM files. The bigWig format is also supported by various bioinformatics software for downstream processing such as meta-profile plotting.
 
+> [!IMPORTANT]
+> As of v2.2.0, the pipeline uses the `-bga` option in `bedtools genomecov` instead of `-bg`. This includes zero-coverage bins in the output, resulting in lower background levels and better visualization in IGV. Users who prefer the previous behavior can override this by adding `-bg` to the `ext.args` parameter in their configuration:
+>
+> ```groovy
+> process {
+>     withName: '.*:BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC:BEDTOOLS_GENOMECOV' {
+>         ext.args = '-bg'
+>     }
+> }
+> ```
+
 ### ChIP-seq QC metrics
 
 <details markdown="1">
