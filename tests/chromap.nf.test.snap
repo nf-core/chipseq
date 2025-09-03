@@ -1,0 +1,24 @@
+{
+    "chromap": {
+        "content": [
+            215,
+            false,
+            "multiqc_report.html"
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.6"
+        },
+        "timestamp": "2025-09-03T12:24:13.69564"
+    },
+    "chromap with stub": {
+        "content": [
+            20
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "25.04.6"
+        },
+        "timestamp": "2025-09-03T12:25:08.441176"
+    }
+}

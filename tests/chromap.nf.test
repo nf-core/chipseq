@@ -1,0 +1,48 @@
+nextflow_pipeline {
+
+    name "Test pipeline with chromap aligner"
+    script "../main.nf"
+    tag "chromap"
+
+    test("chromap") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+                aligner = "chromap"
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(
+                    workflow.trace.succeeded().size(),
+                    path("$outputDir/pipeline_info/nf_core_chipseq_software_mqc_versions.yml").readLines().first().contains("Workflow"),
+                    file("$outputDir/multiqc/multiqc_report.html").name
+                ).match() }
+            )
+        }
+    }
+
+    test("chromap with stub") {
+
+        options "-stub"
+
+        when {
+            params {
+                outdir = "$outputDir"
+                aligner = "chromap"
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(
+                    workflow.trace.succeeded().size()
+                ).match() }
+            )
+        }
+    }
+}

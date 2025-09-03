@@ -1,0 +1,48 @@
+nextflow_pipeline {
+
+    name "Test pipeline with STAR aligner"
+    script "../main.nf"
+    tag "star"
+
+    test("star") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+                aligner = "star"
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(
+                    workflow.trace.succeeded().size(),
+                    path("$outputDir/pipeline_info/nf_core_chipseq_software_mqc_versions.yml").readLines().first().contains("Workflow"),
+                    file("$outputDir/multiqc/multiqc_report.html").name
+                ).match() }
+            )
+        }
+    }
+
+    test("star with stub") {
+
+        options "-stub"
+
+        when {
+            params {
+                outdir = "$outputDir"
+                aligner = "star"
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(
+                    workflow.trace.succeeded().size()
+                ).match() }
+            )
+        }
+    }
+}

@@ -1,0 +1,48 @@
+nextflow_pipeline {
+
+    name "Test pipeline with --skip_consensus_peaks"
+    script "../main.nf"
+    tag "skip_consensus_peaks"
+
+    test("skip_consensus_peaks") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+                skip_consensus_peaks = true
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(
+                    workflow.trace.succeeded().size(),
+                    path("$outputDir/pipeline_info/nf_core_chipseq_software_mqc_versions.yml").readLines().first().contains("Workflow"),
+                    file("$outputDir/multiqc/multiqc_report.html").name
+                ).match() }
+            )
+        }
+    }
+
+    test("skip_consensus_peaks with stub") {
+
+        options "-stub"
+
+        when {
+            params {
+                outdir = "$outputDir"
+                skip_consensus_peaks = true
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(
+                    workflow.trace.succeeded().size()
+                ).match() }
+            )
+        }
+    }
+}
