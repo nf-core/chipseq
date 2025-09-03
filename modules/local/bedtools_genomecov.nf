@@ -26,13 +26,9 @@ process BEDTOOLS_GENOMECOV {
     SCALE_FACTOR=\$(grep '[0-9] mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
 
-    # Use --bga instead of -bg to include zero-coverage bins in output
-    # This results in lower background levels and better visualization in IGV
-    # Users can override this by specifying -bg in ext.args if needed
     bedtools \\
         genomecov \\
         -ibam $bam \\
-        --bga \\
         -scale \$SCALE_FACTOR \\
         $pe \\
         $args \\
