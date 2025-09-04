@@ -33,4 +33,17 @@ process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
         r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
     END_VERSIONS
     """
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    touch ${prefix}.spp_nsc_mqc.tsv
+    touch ${prefix}.spp_rsc_mqc.tsv
+    touch ${prefix}.spp_correlation_mqc.tsv
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
+    END_VERSIONS
+    """
 }
