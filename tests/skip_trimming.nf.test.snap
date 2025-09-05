@@ -858,12 +858,12 @@
     },
     "skip_trimming with stub": {
         "content": [
-            137
+            190
         ],
         "meta": {
             "nf-test": "0.9.2",
             "nextflow": "25.04.6"
         },
-        "timestamp": "2025-09-05T10:08:54.671755"
+        "timestamp": "2025-09-05T10:38:29.093856"
     }
 }

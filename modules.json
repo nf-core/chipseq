@@ -129,7 +129,8 @@
                     "samtools/flagstat": {
                         "branch": "master",
                         "git_sha": "46eca555142d6e597729fcb682adcc791796f514",
-                        "installed_by": ["bam_stats_samtools", "modules"]
+                        "installed_by": ["bam_stats_samtools", "modules"],
+                        "patch": "modules/nf-core/samtools/flagstat/samtools-flagstat.diff"
                     },
                     "samtools/idxstats": {
                         "branch": "master",
