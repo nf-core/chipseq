@@ -751,8 +751,6 @@
                 "SPT5_T15_REP1.peak_count_mqc.tsv:md5,b09a3ab94e85d3950755da82133f0920",
                 "SPT5_T15_REP2.FRiP_mqc.tsv:md5,fedde115002f7270d0857a9df170bdcf",
                 "SPT5_T15_REP2.peak_count_mqc.tsv:md5,d79e410476850feb03c3c7c6742f59e0",
-                "macs3_annotatePeaks.summary.txt:md5,9fecf5b62c8acbd8916dafe6461ec759",
-                "macs3_annotatePeaks.summary_mqc.tsv:md5,5fb7f7788934a9ae75c3b075e9d83402",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.flagstat:md5,b72640ccdf91428002029db2c63c1b6f",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.idxstats:md5,ad58d8f8538233584fd3696b3564e0c9",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.stats:md5,9222fb8d6745ea71276bf89bb7a4d0c8",
