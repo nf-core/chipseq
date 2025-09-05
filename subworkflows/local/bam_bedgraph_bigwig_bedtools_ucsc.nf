@@ -21,7 +21,21 @@ workflow BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC {
         .map { meta, bam, flagstat ->
             // Parse flagstat to get mapped reads count
             def flagstat_content = flagstat.text
-            def mapped_reads = (flagstat_content =~ /(\d+) \+ \d+ mapped/)[0][1] as Integer
+            def match = flagstat_content =~ /(\d+) \+ \d+ mapped/
+            if (match.size() == 0) {
+                // Try alternative pattern for different flagstat formats or stub files
+                match = flagstat_content =~ /(\d+) mapped/
+                if (match.size() == 0) {
+                    // For stub tests, use a default scale factor
+                    log.warn "Could not parse mapped reads from flagstat, using default scale factor of 1.0"
+                    return [meta, bam, 1.0]
+                }
+            }
+            def mapped_reads = match[0][1] as Integer
+            if (mapped_reads == 0) {
+                log.warn "Zero mapped reads found in flagstat file, using default scale factor of 1.0"
+                return [meta, bam, 1.0]
+            }
             def scale_factor = 1000000 / mapped_reads
             [meta, bam, scale_factor]
         }
