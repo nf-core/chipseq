@@ -71,4 +71,16 @@ process MULTIQC {
         multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
     END_VERSIONS
     """
+
+    stub:
+    """
+    mkdir -p multiqc_data
+    touch multiqc_report.html
+    touch multiqc_data/multiqc.log
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
+    END_VERSIONS
+    """
 }
