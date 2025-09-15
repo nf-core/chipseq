@@ -128,7 +128,7 @@
                     },
                     "samtools/flagstat": {
                         "branch": "master",
-                        "git_sha": "46eca555142d6e597729fcb682adcc791796f514",
+                        "git_sha": "e334e12a1e985adc5ffc3fc78a68be1de711de45",
                         "installed_by": ["bam_stats_samtools", "modules"],
                         "patch": "modules/nf-core/samtools/flagstat/samtools-flagstat.diff"
                     },
