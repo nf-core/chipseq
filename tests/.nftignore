@@ -12,8 +12,9 @@ multiqc/multiqc_data/BETA-multiqc.parquet
 **/multiqc.log
 **/multiqc_data.json
 **/multiqc_report.html
+**/multiqc_software_versions.txt
+**/multiqc_software_versions.yaml
 multiqc/multiqc_data/multiqc_sources.txt
-multiqc/multiqc_data/multiqc_software_versions.txt
 multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
 
 # === QC TOOL OUTPUTS ===
@@ -52,6 +53,8 @@ fastqc/*_fastqc.{html,zip}
 **/*.annotatePeaks.txt
 **/*.boolean.annotatePeaks.txt
 **/macs3_peak.summary.txt
+**/macs3_annotatePeaks.summary.txt
+**/macs3_annotatePeaks.summary_mqc.tsv
 
 # Feature counting
 **/*.featureCounts.txt

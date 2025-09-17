@@ -14,7 +14,7 @@
                     "samtools": "1.15.1"
                 },
                 "BEDTOOLS_GENOMECOV": {
-                    "bedtools": "2.30.0"
+                    "bedtools": "2.31.1"
                 },
                 "BWA_INDEX": {
                     "bwa": "0.7.18-r1243-dirty"
@@ -93,7 +93,7 @@
                     "python": "3.8.3"
                 },
                 "SAMTOOLS_FLAGSTAT": {
-                    "samtools": 1.2
+                    "samtools": "1.22.1"
                 },
                 "SAMTOOLS_IDXSTATS": {
                     "samtools": 1.2
@@ -137,19 +137,18 @@
                 "bwa/merged_library/SPT5_T15_REP2.mLb.clN.sorted.bam",
                 "bwa/merged_library/SPT5_T15_REP2.mLb.clN.sorted.bam.bai",
                 "bwa/merged_library/bigwig",
+                "bwa/merged_library/bigwig/SPT5_INPUT_REP1.mLB.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_INPUT_REP1.mLb.clN.bigWig",
+                "bwa/merged_library/bigwig/SPT5_INPUT_REP2.mLB.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_INPUT_REP2.mLb.clN.bigWig",
+                "bwa/merged_library/bigwig/SPT5_T0_REP1.mLB.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_T0_REP1.mLb.clN.bigWig",
+                "bwa/merged_library/bigwig/SPT5_T0_REP2.mLB.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_T0_REP2.mLb.clN.bigWig",
+                "bwa/merged_library/bigwig/SPT5_T15_REP1.mLB.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_T15_REP1.mLb.clN.bigWig",
+                "bwa/merged_library/bigwig/SPT5_T15_REP2.mLB.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_T15_REP2.mLb.clN.bigWig",
-                "bwa/merged_library/bigwig/scale",
-                "bwa/merged_library/bigwig/scale/SPT5_INPUT_REP1.mLB.clN.scale_factor.txt",
-                "bwa/merged_library/bigwig/scale/SPT5_INPUT_REP2.mLB.clN.scale_factor.txt",
-                "bwa/merged_library/bigwig/scale/SPT5_T0_REP1.mLB.clN.scale_factor.txt",
-                "bwa/merged_library/bigwig/scale/SPT5_T0_REP2.mLB.clN.scale_factor.txt",
-                "bwa/merged_library/bigwig/scale/SPT5_T15_REP1.mLB.clN.scale_factor.txt",
-                "bwa/merged_library/bigwig/scale/SPT5_T15_REP2.mLB.clN.scale_factor.txt",
                 "bwa/merged_library/deepTools",
                 "bwa/merged_library/deepTools/plotFingerprint",
                 "bwa/merged_library/deepTools/plotFingerprint/SPT5_T0_REP1.mLb.clN.plotFingerprint.pdf",
@@ -820,12 +819,12 @@
                 "trimgalore/logs/SPT5_T15_REP2_T1_2.fastq.gz_trimming_report.txt"
             ],
             [
-                "SPT5_INPUT_REP1.mLB.clN.scale_factor.txt:md5,f7980ab61fb34b0db97506c82a41a9a3",
-                "SPT5_INPUT_REP2.mLB.clN.scale_factor.txt:md5,100f43d477b73fb415f3df3074b6426c",
-                "SPT5_T0_REP1.mLB.clN.scale_factor.txt:md5,732314d7bf803d9d802e869558375897",
-                "SPT5_T0_REP2.mLB.clN.scale_factor.txt:md5,35e93082dd1a1abe9af8c29e2a072695",
-                "SPT5_T15_REP1.mLB.clN.scale_factor.txt:md5,a9fbf5cb0740b352a167dcaeb50c8306",
-                "SPT5_T15_REP2.mLB.clN.scale_factor.txt:md5,45ec3f2793055eba8e20d481098a89a6",
+                "SPT5_INPUT_REP1.mLB.clN.bedGraph:md5,0a93a9e9e1c5c89f62050e0a2c12ca31",
+                "SPT5_INPUT_REP2.mLB.clN.bedGraph:md5,729d6cd9bd4e7a1e8ffc2f1cadc6483e",
+                "SPT5_T0_REP1.mLB.clN.bedGraph:md5,490d0e8ae9d5b64ec5ff8988bc17fc61",
+                "SPT5_T0_REP2.mLB.clN.bedGraph:md5,b6d1bb76e3dcb321d010762ca8046fa6",
+                "SPT5_T15_REP1.mLB.clN.bedGraph:md5,79aa337a5bdf210529e9e97189bc5799",
+                "SPT5_T15_REP2.mLB.clN.bedGraph:md5,e82594c663a3e25539b0c039821df8b7",
                 "SPT5_T0_REP1_peaks.broadPeak:md5,2ce0ad3163d0b2b6f0ee2d310dc3e45a",
                 "SPT5_T0_REP1_peaks.gappedPeak:md5,bdf9295567830a37a1ac36dd5b9ae634",
                 "SPT5_T0_REP1_peaks.xls:md5,f9ee78e3871b340a559f3f2397ef0768",
@@ -856,8 +855,6 @@
                 "SPT5_T15_REP1.peak_count_mqc.tsv:md5,f8ced44d005a1e3ece1afc15679f0bde",
                 "SPT5_T15_REP2.FRiP_mqc.tsv:md5,3755b3f252e26d54af798a2793b415e5",
                 "SPT5_T15_REP2.peak_count_mqc.tsv:md5,9bd63147b11a3502c709c6cf6a034d89",
-                "macs3_annotatePeaks.summary.txt:md5,6955a389d7ef581e857a19fcd6ee0998",
-                "macs3_annotatePeaks.summary_mqc.tsv:md5,85c1fbbf740527708d5f5cb9904e4f7e",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.flagstat:md5,f697eae4421b77f0c98467563e12a7aa",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.idxstats:md5,5aa769ef078f2da2c3891d77bf1398a1",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.stats:md5,97da194b4647a6c730333021f0fff1d3",
@@ -929,7 +926,6 @@
                 "multiqc_samtools_stats.yaml:md5,c75c982cdca8a83186d345bf66b365e0",
                 "multiqc_samtools_stats_1.yaml:md5,33531055d31307925f94f5e6460463fc",
                 "multiqc_samtools_stats_2.yaml:md5,e538f9993283ee9f2a056f279d3a8dca",
-                "multiqc_software_versions.yaml:md5,f1c1f63a7fd92a16ae9ae5659a6ff6c0",
                 "multiqc_strand_shift_correlation.yaml:md5,9a9a859ce75534a8074811ee1ca80f71",
                 "picard-1_alignment_readlength_plot.yaml:md5,fc25da4e9daefd74134d960adde48951",
                 "picard-1_alignment_summary_Aligned_Bases.yaml:md5,c174cd7cabe80cedf2c6e11b0091b7cb",
@@ -972,8 +968,8 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "25.04.6"
+            "nextflow": "25.04.3"
         },
-        "timestamp": "2025-09-04T21:19:39.042131"
+        "timestamp": "2025-09-17T12:59:57.48698662"
     }
 }
