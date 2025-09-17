@@ -13,6 +13,7 @@ multiqc/multiqc_data/BETA-multiqc.parquet
 **/multiqc_data.json
 **/multiqc_report.html
 **/multiqc_software_versions.txt
+**/multiqc_software_versions.yaml
 multiqc/multiqc_data/multiqc_sources.txt
 multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
 
