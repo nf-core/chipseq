@@ -256,3 +256,31 @@ def macsGsizeWarn(log) {
         "  Explicitly provide '--macs_gsize macs3_genome_size' to change this behaviour.\n" +
         "==================================================================================="
 }
+
+//
+// Validate samplesheet rows and apply custom logic
+//
+def validateSamplesheetRow(LinkedHashMap row) {
+    // Check for spaces in sample name and replace with warnings
+    if (row.sample && row.sample.toString().contains(' ')) {
+        log.warn "Sample name '${row.sample}' contains spaces. These will be replaced with underscores in output files."
+        row.sample = row.sample.toString().replace(' ', '_')
+    }
+
+    // Check for spaces in antibody field and warn
+    if (row.antibody && row.antibody.toString().contains(' ')) {
+        log.warn "Antibody name '${row.antibody}' contains spaces. Consider using underscores or hyphens instead."
+        row.antibody = row.antibody.toString().replace(' ', '_')
+    }
+
+    // Check for spaces in control field and warn
+    if (row.control && row.control.toString().contains(' ')) {
+        log.warn "Control name '${row.control}' contains spaces. Consider using underscores or hyphens instead."
+        row.control = row.control.toString().replace(' ', '_')
+    }
+
+    // Compute single_end based on fastq_2 field
+    row.single_end = (row.fastq_2 == null || row.fastq_2.toString().trim() == "")
+
+    return row
+}
