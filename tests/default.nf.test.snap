@@ -93,7 +93,7 @@
                     "python": "3.8.3"
                 },
                 "SAMTOOLS_FLAGSTAT": {
-                    "samtools": 1.2
+                    "samtools": "1.22.1"
                 },
                 "SAMTOOLS_IDXSTATS": {
                     "samtools": 1.2
@@ -926,7 +926,7 @@
                 "multiqc_samtools_stats.yaml:md5,c75c982cdca8a83186d345bf66b365e0",
                 "multiqc_samtools_stats_1.yaml:md5,33531055d31307925f94f5e6460463fc",
                 "multiqc_samtools_stats_2.yaml:md5,e538f9993283ee9f2a056f279d3a8dca",
-                "multiqc_software_versions.yaml:md5,f4178beeddc67db73541ce37df180a3f",
+                "multiqc_software_versions.yaml:md5,fa653edb9d6fddeffd98d2c02fcba271",
                 "multiqc_strand_shift_correlation.yaml:md5,9a9a859ce75534a8074811ee1ca80f71",
                 "picard-1_alignment_readlength_plot.yaml:md5,fc25da4e9daefd74134d960adde48951",
                 "picard-1_alignment_summary_Aligned_Bases.yaml:md5,c174cd7cabe80cedf2c6e11b0091b7cb",
@@ -969,8 +969,8 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "25.04.6"
+            "nextflow": "25.04.3"
         },
-        "timestamp": "2025-09-05T09:37:31.298677"
+        "timestamp": "2025-09-17T12:59:57.48698662"
     }
 }
