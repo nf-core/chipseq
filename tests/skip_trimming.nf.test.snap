@@ -93,7 +93,7 @@
                     "python": "3.8.3"
                 },
                 "SAMTOOLS_FLAGSTAT": {
-                    "samtools": 1.2
+                    "samtools": "1.22.1"
                 },
                 "SAMTOOLS_IDXSTATS": {
                     "samtools": 1.2
@@ -807,7 +807,7 @@
                 "multiqc_samtools_stats.yaml:md5,75a45fdc0dff7bd8e983c26fa1639815",
                 "multiqc_samtools_stats_1.yaml:md5,b1a5b16e9fab0cdb3c81f7ff982e1f23",
                 "multiqc_samtools_stats_2.yaml:md5,0b4e00e27f065e7a056635818735d494",
-                "multiqc_software_versions.yaml:md5,78f1ee9684815c477e1db322f983b475",
+                "multiqc_software_versions.yaml:md5,7a944a9f5e4b1937e872aee1b547caf1",
                 "multiqc_strand_shift_correlation.yaml:md5,d07ccd5f89fe50a98a5e6673c938187c",
                 "picard-1_alignment_readlength_plot.yaml:md5,cd5131a2c38d9dc8072c39ee191d7e0b",
                 "picard-1_alignment_summary_Aligned_Bases.yaml:md5,86717ca1bbeef507046dee670543c763",
@@ -850,9 +850,9 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "25.04.6"
+            "nextflow": "25.04.3"
         },
-        "timestamp": "2025-09-05T10:05:47.259099"
+        "timestamp": "2025-09-17T13:34:31.102064875"
     },
     "skip_trimming with stub": {
         "content": [

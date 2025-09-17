@@ -94,7 +94,7 @@
                     "python": "3.8.3"
                 },
                 "SAMTOOLS_FLAGSTAT": {
-                    "samtools": 1.2
+                    "samtools": "1.22.1"
                 },
                 "SAMTOOLS_IDXSTATS": {
                     "samtools": 1.2
@@ -927,7 +927,7 @@
                 "multiqc_samtools_stats.yaml:md5,c1f753728b7d0d969f1de706989508ea",
                 "multiqc_samtools_stats_1.yaml:md5,ac39dbae7578b4fc13bf2753d9f2d2eb",
                 "multiqc_samtools_stats_2.yaml:md5,1bb38f88e3cf993ffd1c1eca67965f48",
-                "multiqc_software_versions.yaml:md5,a5ecffe0b008ff305869c19dfc011d9b",
+                "multiqc_software_versions.yaml:md5,859734ef8a00c5e3e80d49a8a2a05200",
                 "multiqc_strand_shift_correlation.yaml:md5,87ce7906a3297afe5f5d73fe6e6d86ca",
                 "picard-1_alignment_readlength_plot.yaml:md5,ef8322029669a340b33c3efe78c5df94",
                 "picard-1_alignment_summary_Aligned_Bases.yaml:md5,0f3082cdd9d84f49658e02ab83ecd123",
@@ -970,9 +970,9 @@
         ],
         "meta": {
             "nf-test": "0.9.2",
-            "nextflow": "25.04.6"
+            "nextflow": "25.04.3"
         },
-        "timestamp": "2025-09-05T09:10:46.508532"
+        "timestamp": "2025-09-17T13:11:14.489285555"
     },
     "bowtie2 with stub": {
         "content": [
