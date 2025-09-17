@@ -12,8 +12,8 @@ multiqc/multiqc_data/BETA-multiqc.parquet
 **/multiqc.log
 **/multiqc_data.json
 **/multiqc_report.html
+**/multiqc_software_versions.txt
 multiqc/multiqc_data/multiqc_sources.txt
-multiqc/multiqc_data/multiqc_software_versions.txt
 multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
 
 # === QC TOOL OUTPUTS ===

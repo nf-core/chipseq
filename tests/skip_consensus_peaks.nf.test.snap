@@ -867,7 +867,6 @@
                 "multiqc_samtools_stats.yaml:md5,c75c982cdca8a83186d345bf66b365e0",
                 "multiqc_samtools_stats_1.yaml:md5,33531055d31307925f94f5e6460463fc",
                 "multiqc_samtools_stats_2.yaml:md5,e538f9993283ee9f2a056f279d3a8dca",
-                "multiqc_software_versions.yaml:md5,61b56fed55eccc62e66c6f50478c99f0",
                 "multiqc_strand_shift_correlation.yaml:md5,9a9a859ce75534a8074811ee1ca80f71",
                 "picard-1_alignment_readlength_plot.yaml:md5,fc25da4e9daefd74134d960adde48951",
                 "picard-1_alignment_summary_Aligned_Bases.yaml:md5,c174cd7cabe80cedf2c6e11b0091b7cb",
