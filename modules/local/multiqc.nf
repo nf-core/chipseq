@@ -15,37 +15,37 @@ process MULTIQC {
     path "trimgalore/fastqc/*"
     path "trimgalore/*"
 
-    path "alignment/library/*"
-    path "alignment/library/*"
-    path "alignment/library/*"
+    path "alignment/library/samtools_stats/*"
+    path "alignment/library/samtools_flagstat/*"
+    path "alignment/library/samtools_idxstats/*"
 
-    path "alignment/merged_library/unfiltered/*"
-    path "alignment/merged_library/unfiltered/*"
-    path "alignment/merged_library/unfiltered/*"
+    path "alignment/merged_library/unfiltered/samtools_stats/*"
+    path "alignment/merged_library/unfiltered/samtools_flagstat/*"
+    path "alignment/merged_library/unfiltered/samtools_idxstats/*"
     path "alignment/merged_library/unfiltered/picard_metrics/*"
 
-    path "alignment/merged_library/filtered/*"
-    path "alignment/merged_library/filtered/*"
-    path "alignment/merged_library/filtered/*"
+    path "alignment/merged_library/filtered/samtools_stats/*"
+    path "alignment/merged_library/filtered/samtools_flagstat/*"
+    path "alignment/merged_library/filtered/samtools_idxstats/*"
     path "alignment/merged_library/filtered/picard_metrics/*"
 
     path "preseq/*"
 
-    path "deeptools/*"
-    path "deeptools/*"
+    path "deeptools/plotprofile/*"
+    path "deeptools/plotfingerprint/*"
 
-    path "phantompeakqualtools/*"
-    path "phantompeakqualtools/*"
-    path "phantompeakqualtools/*"
-    path "phantompeakqualtools/*"
+    path "phantompeakqualtools/spp/*"
+    path "phantompeakqualtools/nsc/*"
+    path "phantompeakqualtools/rsc/*"
+    path "phantompeakqualtools/correlation/*"
 
-    path "macs3/peaks/*"
-    path "macs3/peaks/*"
+    path "macs3/peaks/frip/*"
+    path "macs3/peaks/count/*"
     path "macs3/annotation/*"
     path "macs3/featurecounts/*"
 
-    path "deseq2/*"
-    path "deseq2/*"
+    path "deseq2/pca/*"
+    path "deseq2/clustering/*"
 
     output:
     path "*multiqc_report.html", emit: report
