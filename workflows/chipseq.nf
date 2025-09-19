@@ -234,12 +234,16 @@ workflow CHIPSEQ {
             meta, bam ->
                 def meta_clone = meta.clone()
                 meta_clone.remove('read_group')
-                meta_clone.id = meta_clone.id - ~/_T\d+$/
+                // Keep samples separate - no merging for this dataset
+                // Add a unique grouping key to prevent unwanted merging
+                meta_clone.group_key = meta_clone.id
                 [ meta_clone, bam ]
         }
         .groupTuple(by: [0])
         .map {
             meta, bam ->
+                // Remove the temporary grouping key
+                meta.remove('group_key')
                 [ meta, bam.flatten() ]
         }
         .set { ch_sort_bam }

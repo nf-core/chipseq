@@ -320,16 +320,20 @@ def create_fastq_channel(data_list, String seq_center) {
     def meta_from_schema = data_list[0]
     def fastq_1 = data_list[1]
     def fastq_2 = data_list[2]
-    def replicate = data_list[3] ?: 1
-    def antibody = data_list[4] ?: ''
-    def control = data_list[5] ?: ''
-    def control_replicate = data_list[6] ?: 1
+    def replicate = meta_from_schema.replicate ?: 1
+    def antibody = meta_from_schema.antibody ?: ''
+    def control = meta_from_schema.control ?: ''
+    def control_replicate = meta_from_schema.control_replicate ?: 1
+
+    // Debug output can be enabled for troubleshooting
+    // log.info "DEBUG: Processing sample - original_id: ${meta_from_schema.id}, replicate: ${replicate}, control: '${control}', control_replicate: ${control_replicate}"
 
     def meta = [:]
-    meta.id         = meta_from_schema.id
+    meta.id         = "${meta_from_schema.id}_rep${replicate}"
     meta.single_end = (fastq_2 == null || fastq_2.toString().trim() == '' || fastq_2 instanceof List && fastq_2.isEmpty())
     meta.antibody   = antibody
-    meta.control    = control
+    // Transform control reference to include replicate suffix for proper IP/control pairing
+    meta.control    = control ? "${control}_rep${control_replicate}" : control
     meta.replicate  = replicate
     meta.control_replicate = control_replicate
 
