@@ -21,7 +21,7 @@ The `antibody` column is required to separate the downstream consensus peak merg
 The `control` column should be the `sample` identifier for the controls for any given IP. This column together with the `control_replicate` column will set the corresponding control for each of the samples in the table.
 
 ```console
-group,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
 WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
 WT_BCATENIN_IP,BLA203A25_S16_L002_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
 WT_BCATENIN_IP,BLA203A49_S40_L001_R1_001.fastq.gz,,3,BCATENIN,WT_INPUT,3
