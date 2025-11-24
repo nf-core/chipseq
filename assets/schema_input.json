@@ -35,27 +35,33 @@
             },
             "replicate": {
                 "type": "integer",
-                "errorMessage": "Replicate id not an integer!",
+                "minimum": 1,
+                "errorMessage": "Replicate id must be a positive integer!",
                 "meta": ["replicate"]
             },
             "antibody": {
                 "type": "string",
-                "pattern": "^\\S+$",
-                "errorMessage": "Antibody entry cannot contain spaces",
+                "pattern": "^[\\w.-]+$",
+                "errorMessage": "Antibody entry must contain only alphanumeric characters, dots, and hyphens",
                 "meta": ["antibody"]
             },
             "control": {
                 "type": "string",
-                "pattern": "^\\S+$",
-                "errorMessage": "Control entry cannot contain spaces",
+                "pattern": "^[\\w.-]+$",
+                "errorMessage": "Control entry must contain only alphanumeric characters, dots, and hyphens",
                 "meta": ["control"]
             },
             "control_replicate": {
                 "type": "integer",
-                "errorMessage": "Replicate id not an integer!",
+                "minimum": 1,
+                "errorMessage": "Control replicate id must be a positive integer!",
                 "meta": ["control_replicate"]
             }
         },
-        "required": ["sample", "fastq_1"]
+        "required": ["sample", "fastq_1"],
+        "dependentRequired": {
+            "antibody": ["control"],
+            "control": ["antibody"]
+        }
     }
 }

@@ -18,7 +18,7 @@ include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_chipseq_pipeline'
-include { INPUT_CHECK            } from '../subworkflows/local/input_check'
+include { INPUT_CHECK            } from '../subworkflows/local/utils_nfcore_chipseq_pipeline'
 include { ALIGN_STAR             } from '../subworkflows/local/align_star'
 include { BAM_FILTER_BAMTOOLS    } from '../subworkflows/local/bam_filter_bamtools'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC                       } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
@@ -234,12 +234,16 @@ workflow CHIPSEQ {
             meta, bam ->
                 def meta_clone = meta.clone()
                 meta_clone.remove('read_group')
-                meta_clone.id = meta_clone.id - ~/_T\d+$/
+                // Keep samples separate - no merging for this dataset
+                // Add a unique grouping key to prevent unwanted merging
+                meta_clone.group_key = meta_clone.id
                 [ meta_clone, bam ]
         }
         .groupTuple(by: [0])
         .map {
             meta, bam ->
+                // Remove the temporary grouping key
+                meta.remove('group_key')
                 [ meta, bam.flatten() ]
         }
         .set { ch_sort_bam }

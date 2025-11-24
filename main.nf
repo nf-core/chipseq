@@ -48,6 +48,9 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_chip
 //
 workflow NFCORE_CHIPSEQ {
 
+    take:
+    samplesheet // channel: pre-validated samplesheet data from nf-schema
+
     main:
     ch_versions = Channel.empty()
 
@@ -71,10 +74,8 @@ workflow NFCORE_CHIPSEQ {
     //
     // WORKFLOW: Run nf-core/chipseq workflow
     //
-    ch_samplesheet = Channel.value(file(params.input, checkIfExists: true))
-
     CHIPSEQ(
-        ch_samplesheet,
+        samplesheet,
         ch_versions,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.fai,
@@ -120,7 +121,9 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    NFCORE_CHIPSEQ ( )
+    NFCORE_CHIPSEQ (
+        PIPELINE_INITIALISATION.out.samplesheet
+    )
 
     //
     // SUBWORKFLOW: Run completion tasks
