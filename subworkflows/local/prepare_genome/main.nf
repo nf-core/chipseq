@@ -204,5 +204,4 @@ workflow PREPARE_GENOME {
     bowtie2_index = ch_bowtie2_index          //    path: bowtie2/index/
     chromap_index = ch_chromap_index          //    path: genome.index
     star_index    = ch_star_index             //    path: star/index/
-    // versions      = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
 }

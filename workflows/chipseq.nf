@@ -90,7 +90,6 @@ workflow CHIPSEQ {
 
     take:
     ch_samplesheet   // channel: path(sample_sheet.csv)
-    ch_versions      // channel: [ path(versions.yml) ]
     ch_fasta         // channel: path(genome.fa)
     ch_fai           // channel: path(genome.fai)
     ch_gtf           // channel: path(genome.gtf)
@@ -132,7 +131,6 @@ workflow CHIPSEQ {
         ch_samplesheet,
         params.seq_center
     )
-    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions) // This has to be fixed!
     // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
     // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
     // ! There is currently no tooling to help you write a sample sheet schema
@@ -149,7 +147,6 @@ workflow CHIPSEQ {
         0,
         10000
     )
-    ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
@@ -174,7 +171,6 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BWA.out.versions)
     }
 
     //
@@ -196,7 +192,6 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions)
     }
 
     //
@@ -220,7 +215,6 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions)
     }
 
     //
@@ -243,8 +237,6 @@ workflow CHIPSEQ {
         ch_samtools_flagstat = ALIGN_STAR.out.flagstat
         ch_samtools_idxstats = ALIGN_STAR.out.idxstats
         ch_star_multiqc      = ALIGN_STAR.out.log_final
-
-        ch_versions = ch_versions.mix(ALIGN_STAR.out.versions)
     }
 
     //
@@ -268,7 +260,6 @@ workflow CHIPSEQ {
     PICARD_MERGESAMFILES (
         ch_sort_bam
     )
-    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions.first())
 
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
@@ -284,7 +275,6 @@ workflow CHIPSEQ {
                 [ [:], it ]
             }
     )
-    ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD.out.versions)
 
     //
     // SUBWORKFLOW: Filter BAM file with BamTools
@@ -299,7 +289,6 @@ workflow CHIPSEQ {
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(BAM_FILTER_BAMTOOLS.out.versions)
 
     //
     // MODULE: Preseq coverage analysis
@@ -310,7 +299,6 @@ workflow CHIPSEQ {
             BAM_MARKDUPLICATES_PICARD.out.bam
         )
         ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
-        ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
@@ -335,7 +323,6 @@ workflow CHIPSEQ {
                 }
         )
         ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
-        ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
     }
 
     //
@@ -350,7 +337,6 @@ workflow CHIPSEQ {
             BAM_FILTER_BAMTOOLS.out.bam
         )
         ch_phantompeakqualtools_spp_multiqc           = PHANTOMPEAKQUALTOOLS.out.spp
-        ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
 
         //
         // MODULE: MultiQC custom content for Phantompeaktools
@@ -373,7 +359,6 @@ workflow CHIPSEQ {
         BAM_FILTER_BAMTOOLS.out.bam.join(BAM_FILTER_BAMTOOLS.out.flagstat, by: [0]),
         ch_chrom_sizes
     )
-    ch_versions = ch_versions.mix(BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.versions)
 
 
     ch_deeptoolsplotprofile_multiqc = Channel.empty()
@@ -385,7 +370,6 @@ workflow CHIPSEQ {
             BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.bigwig,
             ch_gene_bed
         )
-        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
         //
         // MODULE: deepTools profile plots
@@ -394,7 +378,6 @@ workflow CHIPSEQ {
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
         ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
 
         //
         // MODULE: deepTools heatmaps
@@ -402,7 +385,6 @@ workflow CHIPSEQ {
         DEEPTOOLS_PLOTHEATMAP (
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
     }
 
     //
@@ -439,7 +421,6 @@ workflow CHIPSEQ {
             ch_ip_control_bam_bai
         )
         ch_deeptoolsplotfingerprint_multiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
 
     //
@@ -480,7 +461,6 @@ workflow CHIPSEQ {
         params.skip_peak_annotation,
         params.skip_peak_qc
     )
-    ch_versions = ch_versions.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.versions)
 
     //
     //  Consensus peaks analysis
@@ -520,7 +500,6 @@ workflow CHIPSEQ {
         ch_subreadfeaturecounts_multiqc  = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.featurecounts_summary
         ch_deseq2_pca_multiqc            = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.deseq2_qc_pca_multiqc
         ch_deseq2_clustering_multiqc     = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.deseq2_qc_dists_multiqc
-        ch_versions = ch_versions.mix(BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.versions)
     }
 
     //
@@ -536,7 +515,6 @@ workflow CHIPSEQ {
             ch_macs3_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
             ch_macs3_consensus_txt_lib.collect{it[1]}.ifEmpty([])
         )
-        ch_versions = ch_versions.mix(IGV.out.versions)
     }
 
     //
@@ -612,7 +590,6 @@ workflow CHIPSEQ {
 
     emit:
     multiqc_report = ch_multiqc_report.toList()  // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
 }
 
