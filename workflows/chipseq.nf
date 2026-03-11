@@ -104,6 +104,27 @@ workflow CHIPSEQ {
 
     main:
     ch_multiqc_files = channel.empty()
+
+    //
+    // Collection versions from topic channel
+    //
+    def topic_versions = channel.topic("versions")
+        .distinct()
+        .branch { entry ->
+            versions_file: entry instanceof Path
+            versions_tuple: true
+        }
+
+    def topic_versions_string = topic_versions.versions_tuple
+        .map { process, tool, version ->
+            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
+        }
+        .groupTuple(by:0)
+        .map { process, tool_versions ->
+            tool_versions.unique().sort()
+            "${process}:\n${tool_versions.join('\n')}"
+        }
+
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
@@ -111,7 +132,7 @@ workflow CHIPSEQ {
         ch_samplesheet,
         params.seq_center
     )
-    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions) // This has to be fixed!
     // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
     // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
     // ! There is currently no tooling to help you write a sample sheet schema
@@ -521,31 +542,14 @@ workflow CHIPSEQ {
     //
     // Collate and save software versions
     //
-    def topic_versions = Channel.topic("versions")
-        .distinct()
-        .branch { entry ->
-            versions_file: entry instanceof Path
-            versions_tuple: true
-        }
-
-    def topic_versions_string = topic_versions.versions_tuple
-        .map { process, tool, version ->
-            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
-        }
-        .groupTuple(by:0)
-        .map { process, tool_versions ->
-            tool_versions.unique().sort()
-            "${process}:\n${tool_versions.join('\n')}"
-        }
-
-    softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
+    ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
         .mix(topic_versions_string)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
             name: 'nf_core_'  +  'chipseq_software_'  + 'mqc_'  + 'versions.yml',
             sort: true,
             newLine: true
-        ).set { ch_collated_versions }
+        )
 
     //
     // MODULE: MultiQC
