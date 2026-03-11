@@ -2,13 +2,13 @@
 // Call peaks with MACS3, annotate with HOMER and perform downstream QC
 //
 
-include { MACS3_CALLPEAK           } from '../../modules/nf-core/macs3/callpeak/main'
-include { HOMER_ANNOTATEPEAKS      } from '../../modules/nf-core/homer/annotatepeaks/main'
+include { MACS3_CALLPEAK           } from '../../../modules/nf-core/macs3/callpeak/main'
+include { HOMER_ANNOTATEPEAKS      } from '../../../modules/nf-core/homer/annotatepeaks/main'
 
-include { FRIP_SCORE               } from '../../modules/local/frip_score/main'
-include { MULTIQC_CUSTOM_PEAKS     } from '../../modules/local/multiqc_custom_peaks/main'
-include { PLOT_MACS3_QC            } from '../../modules/local/plot_macs3_qc/main'
-include { PLOT_HOMER_ANNOTATEPEAKS } from '../../modules/local/plot_homer_annotatepeaks/main'
+include { FRIP_SCORE               } from '../../../modules/local/frip_score/main'
+include { MULTIQC_CUSTOM_PEAKS     } from '../../../modules/local/multiqc_custom_peaks/main'
+include { PLOT_MACS3_QC            } from '../../../modules/local/plot_macs3_qc/main'
+include { PLOT_HOMER_ANNOTATEPEAKS } from '../../../modules/local/plot_homer_annotatepeaks/main'
 
 workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     take:

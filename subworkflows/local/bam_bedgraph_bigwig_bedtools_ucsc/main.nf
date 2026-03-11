@@ -2,8 +2,8 @@
 // Convert BAM to normalised bigWig via bedGraph using BEDTools and UCSC
 //
 
-include { BEDTOOLS_GENOMECOV    } from '../../modules/nf-core/bedtools/genomecov/main'
-include { UCSC_BEDGRAPHTOBIGWIG } from '../../modules/nf-core/ucsc/bedgraphtobigwig/main'
+include { BEDTOOLS_GENOMECOV    } from '../../../modules/nf-core/bedtools/genomecov/main'
+include { UCSC_BEDGRAPHTOBIGWIG } from '../../../modules/nf-core/ucsc/bedgraphtobigwig/main'
 
 workflow BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC {
     take:

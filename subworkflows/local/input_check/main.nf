@@ -2,7 +2,7 @@
 // Check input samplesheet and get read channels
 //
 
-include { SAMPLESHEET_CHECK } from '../../modules/local/samplesheet_check/main'
+include { SAMPLESHEET_CHECK } from '../../../modules/local/samplesheet_check/main'
 
 workflow INPUT_CHECK {
     take:

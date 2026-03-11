@@ -8,24 +8,24 @@ include {
     GUNZIP as GUNZIP_GFF ;
     GUNZIP as GUNZIP_GENE_BED ;
     GUNZIP as GUNZIP_BLACKLIST
-} from '../../modules/nf-core/gunzip/main'
+} from '../../../modules/nf-core/gunzip/main'
 
 include {
     UNTAR as UNTAR_BWA_INDEX ;
     UNTAR as UNTAR_BOWTIE2_INDEX ;
     UNTAR as UNTAR_STAR_INDEX
-} from '../../modules/nf-core/untar/main'
+} from '../../../modules/nf-core/untar/main'
 
-include { UNTARFILES                   } from '../../modules/nf-core/untarfiles/main'
-include { GFFREAD                      } from '../../modules/nf-core/gffread/main'
-include { CUSTOM_GETCHROMSIZES         } from '../../modules/nf-core/custom/getchromsizes/main'
-include { BWA_INDEX                    } from '../../modules/nf-core/bwa/index/main'
-include { BOWTIE2_BUILD                } from '../../modules/nf-core/bowtie2/build/main'
-include { CHROMAP_INDEX                } from '../../modules/nf-core/chromap/index/main'
+include { UNTARFILES                   } from '../../../modules/nf-core/untarfiles/main'
+include { GFFREAD                      } from '../../../modules/nf-core/gffread/main'
+include { CUSTOM_GETCHROMSIZES         } from '../../../modules/nf-core/custom/getchromsizes/main'
+include { BWA_INDEX                    } from '../../../modules/nf-core/bwa/index/main'
+include { BOWTIE2_BUILD                } from '../../../modules/nf-core/bowtie2/build/main'
+include { CHROMAP_INDEX                } from '../../../modules/nf-core/chromap/index/main'
 
-include { GTF2BED                      } from '../../modules/local/gtf2bed/main'
-include { GENOME_BLACKLIST_REGIONS     } from '../../modules/local/genome_blacklist_regions/main'
-include { STAR_GENOMEGENERATE          } from '../../modules/local/star_genomegenerate/main'
+include { GTF2BED                      } from '../../../modules/local/gtf2bed/main'
+include { GENOME_BLACKLIST_REGIONS     } from '../../../modules/local/genome_blacklist_regions/main'
+include { STAR_GENOMEGENERATE          } from '../../../modules/local/star_genomegenerate/main'
 
 workflow PREPARE_GENOME {
     take:

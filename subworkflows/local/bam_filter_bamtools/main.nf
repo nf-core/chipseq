@@ -1,10 +1,10 @@
-include { SAMTOOLS_SORT           } from '../../modules/nf-core/samtools/sort/main'
-include { SAMTOOLS_INDEX          } from '../../modules/nf-core/samtools/index/main'
-include { BAM_SORT_STATS_SAMTOOLS } from '../nf-core/bam_sort_stats_samtools/main'
-include { BAM_STATS_SAMTOOLS      } from '../nf-core/bam_stats_samtools/main'
+include { SAMTOOLS_SORT           } from '../../../modules/nf-core/samtools/sort/main'
+include { SAMTOOLS_INDEX          } from '../../../modules/nf-core/samtools/index/main'
+include { BAM_SORT_STATS_SAMTOOLS } from '../../nf-core/bam_sort_stats_samtools/main'
+include { BAM_STATS_SAMTOOLS      } from '../../nf-core/bam_stats_samtools/main'
 
-include { BAMTOOLS_FILTER         } from '../../modules/local/bamtools_filter/main'
-include { BAM_REMOVE_ORPHANS      } from '../../modules/local/bam_remove_orphans/main'
+include { BAMTOOLS_FILTER         } from '../../../modules/local/bamtools_filter/main'
+include { BAM_REMOVE_ORPHANS      } from '../../../modules/local/bam_remove_orphans/main'
 
 workflow BAM_FILTER_BAMTOOLS {
     take:
