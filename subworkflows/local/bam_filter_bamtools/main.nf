@@ -59,7 +59,8 @@ workflow BAM_FILTER_BAMTOOLS {
     //
     SAMTOOLS_SORT (
         ch_bam.paired_end,
-        ch_fasta
+        ch_fasta,
+        ''
     )
 
     //
