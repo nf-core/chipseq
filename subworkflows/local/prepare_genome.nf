@@ -23,9 +23,9 @@ include { BWA_INDEX                    } from '../../modules/nf-core/bwa/index/m
 include { BOWTIE2_BUILD                } from '../../modules/nf-core/bowtie2/build/main'
 include { CHROMAP_INDEX                } from '../../modules/nf-core/chromap/index/main'
 
-include { GTF2BED                      } from '../../modules/local/gtf2bed'
-include { GENOME_BLACKLIST_REGIONS     } from '../../modules/local/genome_blacklist_regions'
-include { STAR_GENOMEGENERATE          } from '../../modules/local/star_genomegenerate'
+include { GTF2BED                      } from '../../modules/local/gtf2bed/main'
+include { GENOME_BLACKLIST_REGIONS     } from '../../modules/local/genome_blacklist_regions/main'
+include { STAR_GENOMEGENERATE          } from '../../modules/local/star_genomegenerate/main'
 
 workflow PREPARE_GENOME {
     take:

@@ -5,9 +5,9 @@
 include { HOMER_ANNOTATEPEAKS    } from '../../modules/nf-core/homer/annotatepeaks/main'
 include { SUBREAD_FEATURECOUNTS  } from '../../modules/nf-core/subread/featurecounts/main'
 
-include { MACS3_CONSENSUS        } from '../../modules/local/macs3_consensus'
-include { ANNOTATE_BOOLEAN_PEAKS } from '../../modules/local/annotate_boolean_peaks'
-include { DESEQ2_QC              } from '../../modules/local/deseq2_qc'
+include { MACS3_CONSENSUS        } from '../../modules/local/macs3_consensus/main'
+include { ANNOTATE_BOOLEAN_PEAKS } from '../../modules/local/annotate_boolean_peaks/main'
+include { DESEQ2_QC              } from '../../modules/local/deseq2_qc/main'
 
 workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     take:
