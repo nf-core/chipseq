@@ -7,9 +7,9 @@
 //
 // MODULE: Loaded from modules/local/
 //
-include { IGV                                 } from '../modules/local/igv'
-include { MULTIQC                             } from '../modules/local/multiqc'
-include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'
+include { IGV                                 } from '../modules/local/igv/main'
+include { MULTIQC                             } from '../modules/local/multiqc/main'
+include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools/main'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -17,13 +17,13 @@ include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_c
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_chipseq_pipeline'
-include { INPUT_CHECK            } from '../subworkflows/local/input_check'
-include { ALIGN_STAR             } from '../subworkflows/local/align_star'
-include { BAM_FILTER_BAMTOOLS    } from '../subworkflows/local/bam_filter_bamtools'
-include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC                       } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER                  } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer.nf'
-include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
+include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_chipseq_pipeline/main'
+include { INPUT_CHECK            } from '../subworkflows/local/input_check/main'
+include { ALIGN_STAR             } from '../subworkflows/local/align_star/main'
+include { BAM_FILTER_BAMTOOLS    } from '../subworkflows/local/bam_filter_bamtools/main'
+include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC                       } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc/main'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER                  } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer/main'
+include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
