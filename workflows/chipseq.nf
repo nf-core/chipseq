@@ -90,6 +90,7 @@ workflow CHIPSEQ {
 
     take:
     ch_samplesheet   // channel: path(sample_sheet.csv)
+    ch_versions      // channel: [ path(versions.yml) ]
     ch_fasta         // channel: path(genome.fa)
     ch_fai           // channel: path(genome.fai)
     ch_gtf           // channel: path(genome.gtf)
