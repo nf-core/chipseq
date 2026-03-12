@@ -115,9 +115,9 @@ workflow PREPARE_GENOME {
     //
     // Create chromosome sizes file
     //
-    SAMTOOLS_FAIDX(ch_fasta.map { [[:], it] }, true)
-    ch_chrom_sizes = SAMTOOLS_FAIDX.out.sizes.map { it[1] }
-    ch_fai         = SAMTOOLS_FAIDX.out.fai.map { it[1] }
+    SAMTOOLS_FAIDX(ch_fasta.map { item -> [ [:], item, [] ] }, true)
+    ch_chrom_sizes = SAMTOOLS_FAIDX.out.sizes.map { tuple -> tuple[1] }
+    ch_fai         = SAMTOOLS_FAIDX.out.fai.map { tuple -> tuple[1] }
 
     //
     // Prepare genome intervals for filtering by removing regions in blacklist file
