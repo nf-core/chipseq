@@ -430,12 +430,15 @@ workflow CHIPSEQ {
     ch_macs_gsize                     = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
     ch_macs_gsize = params.macs_gsize
+
     if (!params.macs_gsize) {
         KHMER_UNIQUEKMERS (
-            ch_fasta,
+            ch_fasta.map { item -> [ [:], item]},
             params.read_length
         )
-        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
+        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { meta, file ->
+        file.text.trim()}
+        ch_macs_gsize.view()
     }
 
     // Create channels: [ meta, ip_bam, control_bam ]
