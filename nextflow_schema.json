@@ -359,7 +359,7 @@
                 },
                 "skip_preseq": {
                     "type": "boolean",
-                    "description": "Skip Preseq.",
+                    "description": "Skip Preseq (true by default).",
                     "fa_icon": "fas fa-fast-forward"
                 },
                 "deseq2_vst": {
