@@ -18,7 +18,8 @@ include {
 
 include { UNTARFILES                   } from '../../../modules/nf-core/untarfiles/main'
 include { GFFREAD                      } from '../../../modules/nf-core/gffread/main'
-include { CUSTOM_GETCHROMSIZES         } from '../../../modules/nf-core/custom/getchromsizes/main'
+// include { CUSTOM_GETCHROMSIZES         } from'../../../modules/nf-core/custom/getchromsizes/main'
+include { SAMTOOLS_FAIDX               } from '../../../modules/nf-core/samtools/faidx/main'
 include { BWA_INDEX                    } from '../../../modules/nf-core/bwa/index/main'
 include { BOWTIE2_BUILD                } from '../../../modules/nf-core/bowtie2/build/main'
 include { CHROMAP_INDEX                } from '../../../modules/nf-core/chromap/index/main'
@@ -114,9 +115,9 @@ workflow PREPARE_GENOME {
     //
     // Create chromosome sizes file
     //
-    CUSTOM_GETCHROMSIZES(ch_fasta.map { [[:], it] })
-    ch_chrom_sizes = CUSTOM_GETCHROMSIZES.out.sizes.map { it[1] }
-    ch_fai         = CUSTOM_GETCHROMSIZES.out.fai.map { it[1] }
+    SAMTOOLS_FAIDX(ch_fasta.map { [[:], it] }, true)
+    ch_chrom_sizes = SAMTOOLS_FAIDX.out.sizes.map { it[1] }
+    ch_fai         = SAMTOOLS_FAIDX.out.fai.map { it[1] }
 
     //
     // Prepare genome intervals for filtering by removing regions in blacklist file
