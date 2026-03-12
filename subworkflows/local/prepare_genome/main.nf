@@ -116,7 +116,7 @@ workflow PREPARE_GENOME {
     // Create chromosome sizes file
     //
     ch_chrom_sizes = channel.empty()
-    ch_fai.        = channel.empty()
+    ch_fai         = channel.empty()
 
     SAMTOOLS_FAIDX(ch_fasta.map { item -> [ [:], item, [] ] }, true)
     ch_chrom_sizes = SAMTOOLS_FAIDX.out.sizes.map { tuple -> tuple[1] }
