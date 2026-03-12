@@ -1,8 +1,7 @@
 lint:
   files_unchanged:
-    - docs/images/nf-core-magmap_logo_light.png
-    - docs/images/nf-core-magmap_logo_dark.png
-    - assets/nf-core-magmap_logo_light.png
+    - docs/images/assets/nf-core-chipseq_logo_light.png
+    - docs/images/docs/images/nf-core-chipseq_logo_dark.png
   nextflow_config:
     - config_defaults:
         - params.bamtools_filter_se_config
