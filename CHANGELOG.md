@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#451](https://github.com/nf-core/chipseq/issues/451)] - Pass `map.single_read` to `SUBREAD_FEATURECOUNTS` as to correctly set parameter `-p`.
 - [[PR #462](https://github.com/nf-core/chipseq/pull/462)] - Updated pipeline template to [nf-core/tools 3.2.1](https://github.com/nf-core/tools/releases/tag/3.2.1)
 - [[#468](https://github.com/nf-core/chipseq/issues/468)] - Changed bigWig generation to use `-bga` option instead of `-bg` in `bedtools genomecov` for lower background levels and better IGV visualization. Users can revert to previous behavior using configuration. See [documentation](https://nf-co.re/chipseq/dev/docs/output/#normalised-bigwig-files) for details.
+- [[#484](https://github.com/nf-core/chipseq/issues/484)] - Updated modules and subworkflows
+- [[#483]] - Updated nf-core related things to topics, still a few nf-core modules are pending and the local modules
+  need to be fixed.
+- CUSTOM_GETCGRINSIZES was switcht to SAMTOOLS_FAIDX
+
 
 ### Parameters
 
