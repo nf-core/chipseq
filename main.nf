@@ -33,9 +33,9 @@ params.macs_gsize    = getMacsGsize(params)
 */
 
 include { CHIPSEQ                 } from './workflows/chipseq'
-include { PREPARE_GENOME          } from './subworkflows/local/prepare_genome/main'
-include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_chipseq_pipeline/main'
-include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_chipseq_pipeline/main'
+include { PREPARE_GENOME          } from './subworkflows/local/prepare_genome'
+include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
+include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
