@@ -15,10 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[PR #462](https://github.com/nf-core/chipseq/pull/462)] - Updated pipeline template to [nf-core/tools 3.2.1](https://github.com/nf-core/tools/releases/tag/3.2.1)
 - [[#468](https://github.com/nf-core/chipseq/issues/468)] - Changed bigWig generation to use `-bga` option instead of `-bg` in `bedtools genomecov` for lower background levels and better IGV visualization. Users can revert to previous behavior using configuration. See [documentation](https://nf-co.re/chipseq/dev/docs/output/#normalised-bigwig-files) for details.
 - [[#484](https://github.com/nf-core/chipseq/issues/484)] - Updated modules and subworkflows
-- [[#483]] - Updated nf-core related things to topics, still a few nf-core modules are pending and the local modules
+- [[#483](https://github.com/nf-core/chipseq/issues/483)] - Updated nf-core related things to topics, still a few nf-core modules are pending and the local modules
   need to be fixed.
-- CUSTOM_GETCHROMSIZES was changed to SAMTOOLS_FAIDX instead, since CUSTOM_GETCHROMSIZES is deprecated.
-
+- [[#489](https://github.com/nf-core/chipseq/issues/489)]CUSTOM_GETCHROMSIZES was changed to SAMTOOLS_FAIDX instead, since CUSTOM_GETCHROMSIZES is deprecated.
 
 ### Parameters
 
