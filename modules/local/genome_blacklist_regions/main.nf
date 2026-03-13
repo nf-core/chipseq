@@ -16,7 +16,7 @@ process GENOME_BLACKLIST_REGIONS {
 
     output:
     path '*.bed'       , emit: bed
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('bedtools'), eval("bedtools --version | sed -e 's/bedtools v//g'"), topic: versions, emit: versions_bedtools
 
     when:
     task.ext.when == null || task.ext.when
@@ -26,20 +26,10 @@ process GENOME_BLACKLIST_REGIONS {
     if (blacklist) {
         """
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
-        END_VERSIONS
         """
     } else {
         """
         awk '{print \$1, '0' , \$2}' OFS='\t' $sizes > $file_out
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
-        END_VERSIONS
         """
     }
 }
