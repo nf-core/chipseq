@@ -3,11 +3,12 @@
  */
 process GENOME_BLACKLIST_REGIONS {
     tag "$sizes"
+    label 'process_single'
 
-    conda "bioconda::bedtools=2.30.0"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0':
-        'biocontainers/bedtools:2.30.0--hc088bd4_0' }"
+    conda "${moduleDir}/environment.yml"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/63/6397750e9730a3fbcc5b4c43f14bd141c64c723fd7dad80e47921a68a7c3cd21/data'
+        : 'community.wave.seqera.io/library/bedtools_coreutils:a623c13f66d5262b'}"
 
     input:
     path sizes
