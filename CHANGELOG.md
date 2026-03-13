@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#484](https://github.com/nf-core/chipseq/issues/484)] - Updated modules and subworkflows
 - [[#483]] - Updated nf-core related things to topics, still a few nf-core modules are pending and the local modules
   need to be fixed.
-- CUSTOM_GETCGRINSIZES was switcht to SAMTOOLS_FAIDX
+- CUSTOM_GETCHROMSIZES was changed to SAMTOOLS_FAIDX instead, since CUSTOM_GETCHROMSIZES is deprecated.
 
 
 ### Parameters

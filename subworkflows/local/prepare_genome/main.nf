@@ -18,7 +18,6 @@ include {
 
 include { UNTARFILES                   } from '../../../modules/nf-core/untarfiles/main'
 include { GFFREAD                      } from '../../../modules/nf-core/gffread/main'
-// include { CUSTOM_GETCHROMSIZES         } from'../../../modules/nf-core/custom/getchromsizes/main'
 include { SAMTOOLS_FAIDX               } from '../../../modules/nf-core/samtools/faidx/main'
 include { BWA_INDEX                    } from '../../../modules/nf-core/bwa/index/main'
 include { BOWTIE2_BUILD                } from '../../../modules/nf-core/bowtie2/build/main'
