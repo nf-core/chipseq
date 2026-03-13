@@ -2,10 +2,10 @@ process BAMTOOLS_FILTER {
     tag "$meta.id"
     label 'process_medium'
 
-    conda "bioconda::bamtools=2.5.2 bioconda::samtools=1.15.1"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:5687a7da26983502d0a8a9a6b05ed727c740ddc4-0' :
-        'biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:5687a7da26983502d0a8a9a6b05ed727c740ddc4-0' }"
+    conda "${moduleDir}/environment.yml"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'community.wave.seqera.io/library/bamtools_samtools:d0efa2e3de1e3441' :
+         'community.wave.seqera.io/library/bamtools_samtools:6efc1b3bc2d6cbc7'}"
 
     input:
     tuple val(meta), path(bam), path(bai)
@@ -15,7 +15,8 @@ process BAMTOOLS_FILTER {
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
-    path "versions.yml"           , emit: versions
+    tuple val("${task.process}"), val('samtools'), eval("samtools version | sed '1!d;s/.* //'"), topic: versions, emit: versions_samtools
+    tuple val("${task.process}"), val('bamtools'), eval("bamtools --version | sed '2!d;s/bamtools //g'"), topic: versions, emit: versions_bamtools
 
     when:
     task.ext.when == null || task.ext.when
@@ -33,23 +34,11 @@ process BAMTOOLS_FILTER {
         | bamtools filter \\
             -out ${prefix}.bam \\
             -script $config
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-        bamtools: \$(echo \$(bamtools --version 2>&1) | sed 's/^.*bamtools //; s/Part .*\$//')
-    END_VERSIONS
     """
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     touch ${prefix}.bam
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-        bamtools: \$(echo \$(bamtools --version 2>&1) | sed 's/^.*bamtools //; s/Part .*\$//')
-    END_VERSIONS
     """
 }
