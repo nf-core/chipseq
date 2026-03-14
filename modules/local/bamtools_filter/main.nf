@@ -4,8 +4,8 @@ process BAMTOOLS_FILTER {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'community.wave.seqera.io/library/bamtools_samtools:d0efa2e3de1e3441' :
-         'community.wave.seqera.io/library/bamtools_samtools:6efc1b3bc2d6cbc7'}"
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/b9/b935ba4da9d5bcaa5b036493218c4d76f4a018751fc6db47f144e88c16128eb5/data' :
+         'community.wave.seqera.io/library/bamtools_samtools:d0efa2e3de1e3441'}"
 
     input:
     tuple val(meta), path(bam), path(bai)
