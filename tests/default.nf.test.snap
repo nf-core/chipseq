@@ -1,7 +1,7 @@
 {
     "-profile test": {
         "content": [
-            1,
+            0,
             {
                 "Workflow": {
                     "nf-core/chipseq": "v2.2.0dev"
@@ -9,17 +9,16 @@
             },
             [
                 "pipeline_info",
-                "pipeline_info/nf_core_chipseq_software_mqc_versions.yml",
-                "pipeline_info/samplesheet.valid.csv"
+                "pipeline_info/nf_core_chipseq_software_mqc_versions.yml"
             ],
             [
-                "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
+                
             ]
         ],
-        "timestamp": "2026-03-14T01:51:20.423194",
         "meta": {
-            "nf-test": "0.9.4",
+            "nf-test": "0.9.3",
             "nextflow": "25.10.4"
-        }
+        },
+        "timestamp": "2026-03-14T15:32:47.833065187"
     }
 }
