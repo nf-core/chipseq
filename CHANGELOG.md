@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.2.0dev - [date]
+## v2.2.0dev - [2026-03-14]
 
 ### Enhancements & fixes
 
@@ -31,12 +31,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Software dependencies
 
-Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own
+[Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the
+pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to
+the last release have been listed below for reference.
+
+### Software update local modules
 
 | Dependency | Old version | New version |
 | ---------- | ----------- | ----------- |
+| bamtools   | 2.5.2       | 2.5.3       |
+| samtools   | 1.15.1      | 1.23        |
+| pysam      | 0.19.0      | 0.23.3      |
 |            |             |             |
-|            |             |             |
+
 
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
 
