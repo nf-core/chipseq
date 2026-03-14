@@ -5,10 +5,10 @@ process BAM_REMOVE_ORPHANS {
     tag "$meta.id"
     label 'process_medium'
 
-    conda "bioconda::pysam=0.19.0 bioconda::samtools=1.15.1"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mulled-v2-57736af1eb98c01010848572c9fec9fff6ffaafd:402e865b8f6af2f3e58c6fc8d57127ff0144b2c7-0' :
-        'biocontainers/mulled-v2-57736af1eb98c01010848572c9fec9fff6ffaafd:402e865b8f6af2f3e58c6fc8d57127ff0144b2c7-0' }"
+    conda "${moduleDir}/environment.yml"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container 
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/87/87b06acf94e50ddd0d4ce705952ecb496a81b6665f7971cd7492f270d921cb6c/data'
+        : 'community.wave.seqera.io/library/pysam_samtools:b9e3a5f6b6caee59'}"
 
     input:
     tuple val(meta), path(bam)
