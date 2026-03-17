@@ -5,8 +5,8 @@ process STAR_GENOMEGENERATE {
     // Note: 2.7X indices incompatible with AWS iGenomes.
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/21/21e85d6408a16feefba7b352e60915dc70c5b01b44d99b23578f570cdf0ae410/data' :
-        'community.wave.seqera.io/library/samtools_star_gawk:fb35d71874d3ad7e' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/52/52097ce908b427400215cbcfbf143810dc2e901b043cc153ea1d4ef5b2b025e9/data' :
+        'community.wave.seqera.io/library/samtools_star_gawk:da63acc62f0ad3b8' }"
 
     input:
     path fasta
