@@ -7,8 +7,8 @@ process MACS3_CONSENSUS {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/57/573950f2d84f1e424be5344ed579deb5082fd23751e4a6142d7c584bb3af2d3e/data':
-        'community.wave.seqera.io/library/bedtools_biopython_r-optparse_r-upsetr:c682828913318fba' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/4e/4e436f4ee12251d8c31265011461931589fd7c2df00779dc58a8a44222f4bd65/data':
+        'community.wave.seqera.io/library/bedtools_biopython_r-optparse_r-upsetr:fcaaffce306c29ed' }"
 
     input:
     tuple val(meta), path(peaks)

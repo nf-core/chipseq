@@ -3,8 +3,8 @@ process PLOT_HOMER_ANNOTATEPEAKS {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/b2/b258138808975f2d51a13c5e4333cc9756eefbe0ce0e39ec90d5e0d69556bb39/data':
-        'community.wave.seqera.io/library/bioconductor-biostrings_bioconductor-complexheatmap_r-base_r-ggplot2_pruned:1182f03e8fce2848' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/23/23e639aceaf0ba484c7d306cbd39c038117c12d35beccfa6e811c96d22bea799/data':
+        'community.wave.seqera.io/library/bioconductor-biostrings_bioconductor-complexheatmap_r-base_r-ggplot2_pruned:d46617a59d25f733' }"
 
     input:
     path annos
