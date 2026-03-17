@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.2.0dev - [2026-03-14]
+## v2.2.0dev - 2026-03-14
 
 ### Enhancements & fixes
 
@@ -36,15 +36,55 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to
 the last release have been listed below for reference.
 
-### Software update local modules
+### Software updates
 
 | Dependency | Old version | New version |
 | ---------- | ----------- | ----------- |
-| bamtools   | 2.5.2       | 2.5.3       |
-| samtools   | 1.15.1      | 1.23        |
-| pysam      | 0.19.0      | 0.23.3      |
-|            |             |             |
+| macs3      | 3.0.1       | 3.0.4       |
 
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
+
+### Software update local modules
+
+| Dependency                  | Old version | New version |
+| --------------------------- | ----------- | ----------- |
+| bamtools                    | 2.5.2       | 2.5.3       |
+| samtools                    | 1.15.1      | 1.23        |
+| pysam                       | 0.19.0      | 0.23.3      |
+| bedtools                    | 2.30.0      | 2.31.1      |
+| bioconductor-biostrings     | 2.58.0      | 2.78.0      |
+| r-base                      | 4.0.3       | 4.5.3       |
+| r-reshape2                  | 1.4.4       | 1.4.5       |
+| r-optparse                  | 1.6.6       | 1.7.5       |
+| r-ggplot2                   | 3.3.3       | 4.0.2       |
+| r-scales                    | 1.1.1       | 1.4.0       |
+| r-viridis                   | 0.5.1       | 0.6.5       |
+| r-tidyverse                 | 1.3.0       | 2.0.0       |
+| bioconductor-complexheatmap | 2.6.2       | 2.26.1      |
+
+### Local modules refactoring and topic channels update
+
+| Module                              | Updated to wave containers (arm) | Topic channel added | refactoring (adding .yml files) |
+| ----------------------------------- | -------------------------------- | ------------------- | ------------------------------- |
+| annotate_boolean_peaks              |                                  |                     |                                 |
+| bam_remove_orphans                  | x                                | x                   | x                               |
+| bamtools_filter                     | x                                | x                   | x                               |
+| deseq2_qc                           |                                  |                     |                                 |
+| frip_score                          | x                                | x                   | x                               |
+| genome_blacklist_regions            | x                                | x                   | x                               |
+| gtf2bed                             |                                  |                     |                                 |
+| igv                                 |                                  |                     |                                 |
+| macs3_consensus                     | x                                | x                   | x                               |
+| multiqc                             |                                  |                     |                                 |
+| multiqc_custom_peaks                |                                  |                     |                                 |
+| multiqc_custom_phantompeakqualtools |                                  |                     |                                 |
+| plot_homer_annotatepeaks            | x                                | x                   | x                               |
+| plot_macs3_qc                       | x                                | x                   | x                               |
+| samplesheet_check                   |                                  |                     |                                 |
+| star_align                          |                                  |                     |                                 |
+| star_genomegenerate                 |                                  |                     |                                 |
 
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
 
