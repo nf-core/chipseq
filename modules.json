@@ -88,7 +88,7 @@
                     },
                     "macs3/callpeak": {
                         "branch": "master",
-                        "git_sha": "fe0ec4b67b1abd71ff9b5ece41fd5a4d8abadad5",
+                        "git_sha": "16e30c88ed0d6b0fb3964513bb83b364e11d9b49",
                         "installed_by": ["modules"]
                     },
                     "multiqc": {
