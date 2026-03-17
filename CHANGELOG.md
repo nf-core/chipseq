@@ -63,6 +63,8 @@ the last release have been listed below for reference.
 | r-viridis                   | 0.5.1       | 0.6.5       |
 | r-tidyverse                 | 1.3.0       | 2.0.0       |
 | bioconductor-complexheatmap | 2.6.2       | 2.26.1      |
+| star                        | 2.6.1d      | 2.7.11b     |
+|                             |             |             |
 
 ### Local modules refactoring and topic channels update
 
@@ -83,8 +85,9 @@ the last release have been listed below for reference.
 | plot_homer_annotatepeaks            | x                                | x                   | x                               |
 | plot_macs3_qc                       | x                                | x                   | x                               |
 | samplesheet_check                   |                                  |                     |                                 |
-| star_align                          |                                  |                     |                                 |
-| star_genomegenerate                 |                                  |                     |                                 |
+| star_align                          | x                                | x                   | x                               |
+| star_genomegenerate                 | x                                | x                   | x                               |
+|                                     |                                  |                     |                                 |
 
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
 
