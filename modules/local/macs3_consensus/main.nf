@@ -23,7 +23,7 @@ process MACS3_CONSENSUS {
     tuple val(meta), path("*.intersect.txt"), emit: intersect_txt
 
     tuple val("${task.process}"), val('python'), eval("python --version | sed 's/Python //'"), topic: versions, emit: versions_python
-    tuple val("${task.process}"), val('R'), eval("R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//'"), topic: versions, emit: versions_r
+    tuple val("${task.process}"), val('R'), eval('R --version | sed "1!d; s/.*version //; s/ .*//"'), topic: versions, emit: versions_r
 
     when:
     task.ext.when == null || task.ext.when

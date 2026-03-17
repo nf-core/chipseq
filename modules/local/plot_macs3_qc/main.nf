@@ -13,7 +13,7 @@ process PLOT_MACS3_QC {
     output:
     path '*.txt'       , emit: txt
     path '*.pdf'       , emit: pdf
-    tuple val("${task.process}"), val('R'), eval("R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//'"), topic: versions, emit: versions_r
+    tuple val("${task.process}"), val('R'), eval('R --version | sed "1!d; s/.*version //; s/ .*//"'), topic: versions, emit: versions_r
 
     when:
     task.ext.when == null || task.ext.when
