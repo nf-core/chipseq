@@ -5,10 +5,10 @@ process MACS3_CONSENSUS {
     tag "$meta.id"
     label 'process_long'
 
-    conda "conda-forge::biopython conda-forge::r-optparse=1.7.1 conda-forge::r-upsetr=1.4.0 bioconda::bedtools=2.30.0"
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0':
-        'biocontainers/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/57/573950f2d84f1e424be5344ed579deb5082fd23751e4a6142d7c584bb3af2d3e/data':
+        'community.wave.seqera.io/library/bedtools_biopython_r-optparse_r-upsetr:c682828913318fba' }"
 
     input:
     tuple val(meta), path(peaks)
@@ -21,7 +21,9 @@ process MACS3_CONSENSUS {
     tuple val(meta), path("*.antibody.txt") , emit: txt
     tuple val(meta), path("*.boolean.txt")  , emit: boolean_txt
     tuple val(meta), path("*.intersect.txt"), emit: intersect_txt
-    path "versions.yml"                     , emit: versions
+
+    tuple val("${task.process}"), val('python'), eval("python --version | sed 's/Python //'"), topic: versions, emit: versions_python
+    tuple val("${task.process}"), val('R'), eval("R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//'"), topic: versions, emit: versions_r
 
     when:
     task.ext.when == null || task.ext.when
@@ -53,12 +55,10 @@ process MACS3_CONSENSUS {
     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
 
     echo "${prefix}.bed\t${meta.id}/${prefix}.bed" > ${prefix}.antibody.txt
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version | sed 's/Python //g')
-        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-    END_VERSIONS
     """
-
+    stub:
+    def prefix       = task.ext.prefix ?: "${meta.id}"
+    """
+    touch ${prefix}.antibody.txt
+    """
 }
