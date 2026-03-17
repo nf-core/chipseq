@@ -5,8 +5,8 @@ process STAR_ALIGN {
     // Note: 2.7X indices incompatible with AWS iGenomes.
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/01/01f10ee98477b8859fa8c3b891319e95ac2c9fe3ce0580bd16668a6371c0c1af/data' :
-        'community.wave.seqera.io/library/star:2.7.11b--adccb46d6f2a92e3' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/9b/9b8ecb2f9a77b5e7573ef6fae2f4c2e771064f7a129ed1329913c1025c33f365/data' :
+        'community.wave.seqera.io/library/star:2.7.11b--822039d47adf19a7' }"
 
     input:
     tuple val(meta) , path(reads)
