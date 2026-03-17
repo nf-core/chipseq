@@ -4,8 +4,8 @@ process FRIP_SCORE {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/ce/ce4d0c0c095451735d0e2d647d44ce3a657162195e70690a615f28d5f0f859d4/data':
-        'community.wave.seqera.io/library/bedtools_samtools:02fb5701bffe3d02' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/92/92ad9212aec8a409dba3ed5468c74d59c93f4eb30a663379f8b405e24fbbf97f/data':
+        'community.wave.seqera.io/library/bedtools_samtools:163d535533d93abd' }"
 
     input:
     tuple val(meta), path(bam), path(peak)
