@@ -3,10 +3,10 @@ process STAR_ALIGN {
     label 'process_high'
 
     // Note: 2.7X indices incompatible with AWS iGenomes.
-    conda "bioconda::star=2.6.1d"
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/star:2.6.1d--0' :
-        'biocontainers/star:2.6.1d--0' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/01/01f10ee98477b8859fa8c3b891319e95ac2c9fe3ce0580bd16668a6371c0c1af/data' :
+        'community.wave.seqera.io/library/star:2.7.11b--adccb46d6f2a92e3' }"
 
     input:
     tuple val(meta) , path(reads)
@@ -18,7 +18,7 @@ process STAR_ALIGN {
     tuple val(meta), path('*Log.final.out')   , emit: log_final
     tuple val(meta), path('*Log.out')         , emit: log_out
     tuple val(meta), path('*Log.progress.out'), emit: log_progress
-    path "versions.yml"                       , emit: versions
+    tuple val("${task.process}"), val('star'), eval('STAR --version | sed -e "s/STAR_//"'), topic: versions, emit: versions_star
 
     tuple val(meta), path('*sortedByCoord.out.bam')  , optional:true, emit: bam_sorted
     tuple val(meta), path('*toTranscriptome.out.bam'), optional:true, emit: bam_transcript
@@ -53,9 +53,5 @@ process STAR_ALIGN {
         mv ${prefix}.Unmapped.out.mate2 ${prefix}.unmapped_2.fastq
         gzip ${prefix}.unmapped_2.fastq
     fi
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        star: \$(STAR --version | sed -e "s/STAR_//g")
-    END_VERSIONS
     """
 }

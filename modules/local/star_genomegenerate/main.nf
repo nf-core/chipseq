@@ -3,10 +3,10 @@ process STAR_GENOMEGENERATE {
     label 'process_high'
 
     // Note: 2.7X indices incompatible with AWS iGenomes.
-    conda "bioconda::star=2.6.1d bioconda::samtools=1.10 conda-forge::gawk=5.1.0"
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mulled-v2-1fa26d1ce03c295fe2fdcf85831a92fbcbd7e8c2:59cdd445419f14abac76b31dd0d71217994cbcc9-0' :
-        'biocontainers/mulled-v2-1fa26d1ce03c295fe2fdcf85831a92fbcbd7e8c2:59cdd445419f14abac76b31dd0d71217994cbcc9-0' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/21/21e85d6408a16feefba7b352e60915dc70c5b01b44d99b23578f570cdf0ae410/data' :
+        'community.wave.seqera.io/library/samtools_star_gawk:fb35d71874d3ad7e' }"
 
     input:
     path fasta
@@ -14,7 +14,8 @@ process STAR_GENOMEGENERATE {
 
     output:
     path "star"        , emit: index
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('samtools'), eval("samtools --version | sed '1!d;s/.* //'"), topic: versions, emit: versions_samtools
+    tuple val("${task.process}"), val('star'), eval('STAR --version | sed -e "s/STAR_//"'), topic: versions, emit: versions_star
 
     when:
     task.ext.when == null || task.ext.when
@@ -52,10 +53,6 @@ process STAR_GENOMEGENERATE {
             --genomeSAindexNbases \$NUM_BASES \\
             $memory \\
             ${args.join(' ')}
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            star: \$(STAR --version | sed -e "s/STAR_//g")
-        END_VERSIONS
         """
     }
 }
