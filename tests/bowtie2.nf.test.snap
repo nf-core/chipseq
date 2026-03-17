@@ -36,8 +36,19 @@
                 "FASTQC": {
                     "fastqc": "0.12.1"
                 },
+                "FRIP_SCORE": {
+                    "bedtools": "2.31.1",
+                    "samtools": 1.23
+                },
                 "GENOME_BLACKLIST_REGIONS": {
                     "bedtools": "2.31.1"
+                },
+                "MACS3_CALLPEAK": {
+                    "macs3": "3.0.4"
+                },
+                "MACS3_CONSENSUS": {
+                    "R": "4.1.3",
+                    "python": "3.14.0"
                 },
                 "PICARD_COLLECTMULTIPLEMETRICS": {
                     "picard": "3.4.0"
@@ -47,6 +58,12 @@
                 },
                 "PICARD_MERGESAMFILES": {
                     "picard": "3.4.0"
+                },
+                "PLOT_HOMER_ANNOTATEPEAKS": {
+                    "R": "4.5.3"
+                },
+                "PLOT_MACS3_QC": {
+                    "R": "4.5.3"
                 },
                 "SAMTOOLS_FAIDX": {
                     "samtools": "1.22.1"
@@ -789,25 +806,25 @@
                 "SPT5_T15_REP1.mLB.clN.bedGraph:md5,6594e02d144dcf85f39b5c7339e11db6",
                 "SPT5_T15_REP2.mLB.clN.bedGraph:md5,3afb695bb7014e0d8df83cda30d4731d",
                 "SPT5_T0_REP1_peaks.broadPeak:md5,27d134afd2953dafa22e35dcf8ec2bcc",
-                "SPT5_T0_REP1_peaks.gappedPeak:md5,2bfc9fe75773b4eeaed6fd39a6efbe34",
-                "SPT5_T0_REP1_peaks.xls:md5,c7c532d673025bcf3bc0a700f354caf8",
+                "SPT5_T0_REP1_peaks.gappedPeak:md5,f221f53d1a6486714ad50664ef440ca7",
+                "SPT5_T0_REP1_peaks.xls:md5,5cd75fde29ae6f23e7eeebd9da4bcfd9",
                 "SPT5_T0_REP2_peaks.broadPeak:md5,116c4501dd8355e4ef100144bb63da02",
-                "SPT5_T0_REP2_peaks.gappedPeak:md5,b44f846ec9fa520fef7bc4de93e910cb",
-                "SPT5_T0_REP2_peaks.xls:md5,5e8f7c09e1c1bde38123290abebe70af",
+                "SPT5_T0_REP2_peaks.gappedPeak:md5,a8a6e65432ec329f677983ff3f122185",
+                "SPT5_T0_REP2_peaks.xls:md5,44283c207158e98a1c148abfa33cf7ae",
                 "SPT5_T15_REP1_peaks.broadPeak:md5,498e8a0ecc08048ef1b65e4a08a994da",
-                "SPT5_T15_REP1_peaks.gappedPeak:md5,39dc55efaa9192c722ba043848d1633c",
-                "SPT5_T15_REP1_peaks.xls:md5,19d77fcac182ff278889486b37d0e62e",
+                "SPT5_T15_REP1_peaks.gappedPeak:md5,6f9e402eecc34aa451505cffd85f2d0e",
+                "SPT5_T15_REP1_peaks.xls:md5,dff9d45804738d950915e187287d699c",
                 "SPT5_T15_REP2_peaks.broadPeak:md5,d2076fea44e872c40f8b85d8997d43d6",
-                "SPT5_T15_REP2_peaks.gappedPeak:md5,27a067221fe21dcaae500a1a954a672f",
-                "SPT5_T15_REP2_peaks.xls:md5,81f408e66d44d5ac4b874791df30dfe8",
+                "SPT5_T15_REP2_peaks.gappedPeak:md5,649be1ea0320201a2ce396cc133321eb",
+                "SPT5_T15_REP2_peaks.xls:md5,62ea3288e18d3a744dd25711eaa19f23",
                 "SPT5.consensus_peaks.antibody.txt:md5,8d7549b0cb2e42ffd5c23879e7f54ce9",
                 "SPT5.consensus_peaks.bed:md5,71f9487dbe77c3ed1422f5a0e5fc5c07",
                 "SPT5.consensus_peaks.boolean.intersect.txt:md5,2cd941a25076b0089df06c37717d1733",
                 "SPT5.consensus_peaks.boolean.txt:md5,f001e5dbca28caf0324109b6e5d369ed",
-                "SPT5.consensus_peaks.featureCounts.tsv:md5,a4fade3b997751a2de56f69c25a3c0f0",
-                "SPT5.consensus_peaks.featureCounts.tsv.summary:md5,d9b0fed147eefac0bf75bdae924521c8",
+                "SPT5.consensus_peaks.featureCounts.tsv:md5,907376f580d2c40896707d4ab3753b40",
+                "SPT5.consensus_peaks.featureCounts.tsv.summary:md5,abe0774e64576f912da9cb1f280e5622",
                 "SPT5.consensus_peaks.saf:md5,b79bdb601486014e09bfaabf987c09a1",
-                "R_sessionInfo.log:md5,fb0da0d7ad6994ed66a8e68348b19676",
+                "R_sessionInfo.log:md5,8807389f7f41b3051e4f62395a26cc87",
                 "SPT5_T0_REP1.txt:md5,a457c22be619786abc2b425fd466af8b",
                 "SPT5_T0_REP2.txt:md5,888f787325d68de344f5b99ec8ebd49e",
                 "SPT5_T15_REP1.txt:md5,de476d906e71b366b6c70d8952d66514",
@@ -820,12 +837,12 @@
                 "SPT5_T15_REP1.peak_count_mqc.tsv:md5,b26d81220921415cae94ee5e1be459e5",
                 "SPT5_T15_REP2.FRiP_mqc.tsv:md5,4fcabfd43666aff985a4abe4257d2cf4",
                 "SPT5_T15_REP2.peak_count_mqc.tsv:md5,c344e0089dc0455c282bb20647c65ab1",
-                "SPT5_INPUT_REP1.mLb.mkD.sorted.metrics.txt:md5,5d7eb64626ae1125d476120f601fe581",
-                "SPT5_INPUT_REP2.mLb.mkD.sorted.metrics.txt:md5,e143882c1b950e5577873a1a628e6aa2",
-                "SPT5_T0_REP1.mLb.mkD.sorted.metrics.txt:md5,31313f0ad4d968667d699b22f8c905a5",
-                "SPT5_T0_REP2.mLb.mkD.sorted.metrics.txt:md5,38f8de0213b02b49ff71141e509665eb",
-                "SPT5_T15_REP1.mLb.mkD.sorted.metrics.txt:md5,8a056fb9cfd8618acbb8858c901239df",
-                "SPT5_T15_REP2.mLb.mkD.sorted.metrics.txt:md5,88a9e257ced89dc5e3b0c4ed87cfd530",
+                "SPT5_INPUT_REP1.mLb.mkD.sorted.metrics.txt:md5,eb446395916dd2137b8744c44c5e8ea9",
+                "SPT5_INPUT_REP2.mLb.mkD.sorted.metrics.txt:md5,9c0229ae98dd7e2f30f71f3e401e18ba",
+                "SPT5_T0_REP1.mLb.mkD.sorted.metrics.txt:md5,28407517e266a0f7e17795139d4f7fd2",
+                "SPT5_T0_REP2.mLb.mkD.sorted.metrics.txt:md5,cc9cfc3d6e8253919546faeaf42bbae9",
+                "SPT5_T15_REP1.mLb.mkD.sorted.metrics.txt:md5,879d9b3660c6065be16fc40a40f16d52",
+                "SPT5_T15_REP2.mLb.mkD.sorted.metrics.txt:md5,25793f31f3b3654d6da538f282f92467",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.flagstat:md5,5789960a9102d6f53433dcdbb9b63940",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.idxstats:md5,20a4ac025979cc12c3e0e6cb0bd9c839",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.stats:md5,982d403c08b2e9da9e2fbdbc091d2966",
@@ -871,7 +888,7 @@
                 "fastqc_top_overrepresented_sequences_table.yaml:md5,443e161371f73cebf63c14f7a9f3580d",
                 "featureCounts_assignment_plot.yaml:md5,4da17bf822e2c2645d81610248f44db3",
                 "multiqc_citations.yaml:md5,fca5dc7cb20162434c714d26b11161f3",
-                "multiqc_cutadapt.yaml:md5,d2e663f5d8770caa6056e2bd425d7159",
+                "multiqc_cutadapt.yaml:md5,c62314c66bd41e040a43a0122fb3c08f",
                 "multiqc_fastqc.yaml:md5,30fe6d1a5e5c04695dda81294b828ec9",
                 "multiqc_fastqc_1.yaml:md5,cd4a85c27c3cf85f1d0612afce793186",
                 "multiqc_featurecounts.yaml:md5,344706a7a1f373f2710ef124f59284e5",
@@ -896,7 +913,7 @@
                 "multiqc_samtools_stats.yaml:md5,fc38617b8f0b70f57bbc591fd77ee77c",
                 "multiqc_samtools_stats_1.yaml:md5,3f040ce9f37db47eb2e7193d52b05182",
                 "multiqc_samtools_stats_2.yaml:md5,15b13d9b289a574d79f79c24e4372721",
-                "multiqc_strand_shift_correlation.yaml:md5,b1138c65c4ae71abd619886678f28086",
+                "multiqc_strand_shift_correlation.yaml:md5,6584a4107db61b5fd11d0619d12ce819",
                 "picard-1_alignment_readlength_plot.yaml:md5,c99d90a720884dfa66f477f7a13e681f",
                 "picard-1_alignment_summary_Aligned_Bases.yaml:md5,b14ee00e59f209cad52b1a07685c38d2",
                 "picard-1_alignment_summary_Aligned_Reads.yaml:md5,7d6c5677c692de58a6491c01367762be",
@@ -938,20 +955,20 @@
                 "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc"
             ]
         ],
+        "timestamp": "2026-03-17T15:14:15.550355",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.10.4"
-        },
-        "timestamp": "2026-03-14T15:13:34.724349774"
+            "nf-test": "0.9.4",
+            "nextflow": "25.04.0"
+        }
     },
     "bowtie2 with stub": {
         "content": [
             20
         ],
+        "timestamp": "2026-03-14T15:14:30.739354966",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.4"
-        },
-        "timestamp": "2026-03-14T15:14:30.739354966"
+        }
     }
 }
