@@ -1,10 +1,10 @@
 process PLOT_HOMER_ANNOTATEPEAKS {
     label 'process_medium'
 
-    conda "conda-forge::r-base=4.0.3 conda-forge::r-reshape2=1.4.4 conda-forge::r-optparse=1.6.6 conda-forge::r-ggplot2=3.3.3 conda-forge::r-scales=1.1.1 conda-forge::r-viridis=0.5.1 conda-forge::r-tidyverse=1.3.0 bioconda::bioconductor-biostrings=2.58.0 bioconda::bioconductor-complexheatmap=2.6.2"
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mulled-v2-ad9dd5f398966bf899ae05f8e7c54d0fb10cdfa7:05678da05b8e5a7a5130e90a9f9a6c585b965afa-0':
-        'biocontainers/mulled-v2-ad9dd5f398966bf899ae05f8e7c54d0fb10cdfa7:05678da05b8e5a7a5130e90a9f9a6c585b965afa-0' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/b2/b258138808975f2d51a13c5e4333cc9756eefbe0ce0e39ec90d5e0d69556bb39/data':
+        'community.wave.seqera.io/library/bioconductor-biostrings_bioconductor-complexheatmap_r-base_r-ggplot2_pruned:1182f03e8fce2848' }"
 
     input:
     path annos
@@ -15,7 +15,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     path '*.txt'       , emit: txt
     path '*.pdf'       , emit: pdf
     path '*.tsv'       , emit: tsv
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('R'), eval("R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//'"), topic: versions, emit: versions_r
 
     when:
     task.ext.when == null || task.ext.when
@@ -31,10 +31,5 @@ process PLOT_HOMER_ANNOTATEPEAKS {
         $args
 
     find ./ -type f -name "*summary.txt" -exec cat {} \\; | cat $mqc_header - > ${prefix}.summary_mqc.tsv
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-    END_VERSIONS
     """
 }
