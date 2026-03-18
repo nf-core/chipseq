@@ -851,7 +851,7 @@
                 "fastqc_top_overrepresented_sequences_table.yaml:md5,443e161371f73cebf63c14f7a9f3580d",
                 "featureCounts_assignment_plot.yaml:md5,af828a63e428826fc5d3ff32647ce0c0",
                 "multiqc_citations.yaml:md5,fca5dc7cb20162434c714d26b11161f3",
-                "multiqc_cutadapt.yaml:md5,c62314c66bd41e040a43a0122fb3c08f",
+                "multiqc_cutadapt.yaml:md5,d2e663f5d8770caa6056e2bd425d7159",
                 "multiqc_fastqc.yaml:md5,30fe6d1a5e5c04695dda81294b828ec9",
                 "multiqc_fastqc_1.yaml:md5,cd4a85c27c3cf85f1d0612afce793186",
                 "multiqc_featurecounts.yaml:md5,f69f606ff89c226af76a314ef8d5c570",
@@ -876,7 +876,7 @@
                 "multiqc_samtools_stats.yaml:md5,8a995db38967f0b5c339078425ac70f9",
                 "multiqc_samtools_stats_1.yaml:md5,255695d4d6ca87b1bc2bb46dee0856fb",
                 "multiqc_samtools_stats_2.yaml:md5,d17c8c8a0c62973f443db09e458a3f30",
-                "multiqc_strand_shift_correlation.yaml:md5,a958a4dad3922be2447026a4dde7d7d8",
+                "multiqc_strand_shift_correlation.yaml:md5,efdd5f9405d580ace90ec519218fb954",
                 "picard-1_alignment_readlength_plot.yaml:md5,43006423c38f9dacc54308a545ce27d6",
                 "picard-1_alignment_summary_Aligned_Bases.yaml:md5,1bfcb93e21b3630f3dba984a190b5c67",
                 "picard-1_alignment_summary_Aligned_Reads.yaml:md5,364411d722c2569b232d8d1f306270f6",
@@ -944,10 +944,10 @@
                 "SPT5.consensus_peaks.bed:md5,d4b24e01db0c16067e8664b09ac82727",
                 "SPT5.consensus_peaks.boolean.intersect.txt:md5,139332a4ef8cc9bb579b59a89a2733d9",
                 "SPT5.consensus_peaks.boolean.txt:md5,64ff738adf7975f9b1dd7856097aa937",
-                "SPT5.consensus_peaks.featureCounts.tsv:md5,60e65c17eee9ddcd5c13c607ad05e891",
-                "SPT5.consensus_peaks.featureCounts.tsv.summary:md5,81ba0c1cf957ac269b0bd188b8dc7971",
+                "SPT5.consensus_peaks.featureCounts.tsv:md5,9aabac0777aed7ad0710f072e2797bc9",
+                "SPT5.consensus_peaks.featureCounts.tsv.summary:md5,1bf363f4bbbac2842a53bfb902a30829",
                 "SPT5.consensus_peaks.saf:md5,a683c45f94a5657267b85079ee255c47",
-                "R_sessionInfo.log:md5,8807389f7f41b3051e4f62395a26cc87",
+                "R_sessionInfo.log:md5,fb0da0d7ad6994ed66a8e68348b19676",
                 "SPT5_T0_REP1.txt:md5,a347c6ec9b54de883eb50c91392b0058",
                 "SPT5_T0_REP2.txt:md5,713fcd986e25427f46dcbb0bc84e1cac",
                 "SPT5_T15_REP1.txt:md5,4486de2a4215767549c5cb1ce00e4627",
@@ -960,46 +960,46 @@
                 "SPT5_T15_REP1.peak_count_mqc.tsv:md5,a410be995115d5395bddad58356c9317",
                 "SPT5_T15_REP2.FRiP_mqc.tsv:md5,375dc140735e345ba2e69ae9d7548487",
                 "SPT5_T15_REP2.peak_count_mqc.tsv:md5,7cf04251bb45fa69667e008221cf9574",
-                "SPT5_INPUT_REP1.mLb.mkD.sorted.metrics.txt:md5,15d0c30cb05f63815ba697c05809b18f",
-                "SPT5_INPUT_REP2.mLb.mkD.sorted.metrics.txt:md5,88e26abc73e8dfca9d43d0936e0afdfe",
-                "SPT5_T0_REP1.mLb.mkD.sorted.metrics.txt:md5,f7202c15685d689e8f260cc660a5913f",
-                "SPT5_T0_REP2.mLb.mkD.sorted.metrics.txt:md5,e8ee3c4f3ecdee5186fc31bf884f96be",
-                "SPT5_T15_REP1.mLb.mkD.sorted.metrics.txt:md5,ca6655d053fee296325dcb4f6e7bb57a",
-                "SPT5_T15_REP2.mLb.mkD.sorted.metrics.txt:md5,2902c7332ed20a8a2ef4eaf818af826d",
+                "SPT5_INPUT_REP1.mLb.mkD.sorted.metrics.txt:md5,a9c5af1444cd3934eefc693ba34dc1a1",
+                "SPT5_INPUT_REP2.mLb.mkD.sorted.metrics.txt:md5,4cdd67942b0b434fbb715e8285227e49",
+                "SPT5_T0_REP1.mLb.mkD.sorted.metrics.txt:md5,ffc6ef462295f5297fcbaed51ed359c4",
+                "SPT5_T0_REP2.mLb.mkD.sorted.metrics.txt:md5,f50685a4b2dce9d9277fbd2fd55cd176",
+                "SPT5_T15_REP1.mLb.mkD.sorted.metrics.txt:md5,6394ebc5cd36a3011752e62a9ebb606e",
+                "SPT5_T15_REP2.mLb.mkD.sorted.metrics.txt:md5,a1c1ee07a9274d13f0131325f0eba243",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.flagstat:md5,eab2d557e005abce4fca95f1393d6821",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.idxstats:md5,c35a726fcffa4b526325847aab379cc5",
-                "SPT5_INPUT_REP1.mLb.clN.sorted.bam.stats:md5,b44a23ac7921291a7ced94268728be78",
+                "SPT5_INPUT_REP1.mLb.clN.sorted.bam.stats:md5,685b2e1e2f39f202be9da57c9a288c09",
                 "SPT5_INPUT_REP2.mLb.clN.sorted.bam.flagstat:md5,a0559f289e9e537c0ea7aff0dc4e747f",
                 "SPT5_INPUT_REP2.mLb.clN.sorted.bam.idxstats:md5,c58de994b339515b810056873cf07d01",
-                "SPT5_INPUT_REP2.mLb.clN.sorted.bam.stats:md5,0c99d1debc796fa39e90d4aa73ff030e",
+                "SPT5_INPUT_REP2.mLb.clN.sorted.bam.stats:md5,3a472cead16e45df42ec0e2c1e45e7e1",
                 "SPT5_T0_REP1.mLb.clN.sorted.bam.flagstat:md5,c88393f02eaea9cbdf5b615ac4616982",
                 "SPT5_T0_REP1.mLb.clN.sorted.bam.idxstats:md5,60eee697e117738370bb9716feb0d227",
-                "SPT5_T0_REP1.mLb.clN.sorted.bam.stats:md5,beb48a675b2e6ff85a063377bf1348db",
+                "SPT5_T0_REP1.mLb.clN.sorted.bam.stats:md5,c033d3b62382ab6f53f5bda6103afab0",
                 "SPT5_T0_REP2.mLb.clN.sorted.bam.flagstat:md5,1667c5ae25ead83bdda8e001d255f2fb",
                 "SPT5_T0_REP2.mLb.clN.sorted.bam.idxstats:md5,cd2cac16f93a1c607957f4dee7a0ad49",
-                "SPT5_T0_REP2.mLb.clN.sorted.bam.stats:md5,077c709ecdd235d5a9a71f9864ec7ce3",
+                "SPT5_T0_REP2.mLb.clN.sorted.bam.stats:md5,dba1ae4ecf82eef5da4876ebec112641",
                 "SPT5_T15_REP1.mLb.clN.sorted.bam.flagstat:md5,96f50b2e37e68b5d3ae7dffb64475875",
                 "SPT5_T15_REP1.mLb.clN.sorted.bam.idxstats:md5,e64affaf9ed80b35b0bbee53a8031168",
-                "SPT5_T15_REP1.mLb.clN.sorted.bam.stats:md5,5febfa58a09a6c5753f69fb887127f6b",
+                "SPT5_T15_REP1.mLb.clN.sorted.bam.stats:md5,930207a34d687cd0e9ce5b9a01f20c9a",
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.flagstat:md5,ef103582d03109c664e11fe368ea3d4d",
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,aa2db2bcb3aa876cfbfe24b49d98aabd",
-                "SPT5_T15_REP2.mLb.clN.sorted.bam.stats:md5,e34ebfa0ab77ec3266330d103a0c8544"
+                "SPT5_T15_REP2.mLb.clN.sorted.bam.stats:md5,fe53a030ca8b1c0f95b8d613fbcc95c6"
             ]
         ],
-        "timestamp": "2026-03-17T16:21:54.496173",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "25.04.7"
+        },
+        "timestamp": "2026-03-18T12:30:17.73717943"
     },
     "star with stub": {
         "content": [
             20
         ],
-        "timestamp": "2026-03-17T16:23:46.465421",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.04.0"
-        }
+        },
+        "timestamp": "2026-03-17T16:23:46.465421"
     }
 }
