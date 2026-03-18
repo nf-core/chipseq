@@ -821,10 +821,10 @@
                 "SPT5.consensus_peaks.bed:md5,71f9487dbe77c3ed1422f5a0e5fc5c07",
                 "SPT5.consensus_peaks.boolean.intersect.txt:md5,2cd941a25076b0089df06c37717d1733",
                 "SPT5.consensus_peaks.boolean.txt:md5,f001e5dbca28caf0324109b6e5d369ed",
-                "SPT5.consensus_peaks.featureCounts.tsv:md5,907376f580d2c40896707d4ab3753b40",
-                "SPT5.consensus_peaks.featureCounts.tsv.summary:md5,abe0774e64576f912da9cb1f280e5622",
+                "SPT5.consensus_peaks.featureCounts.tsv:md5,ad1a7895ab801cc447754068a7a744ec",
+                "SPT5.consensus_peaks.featureCounts.tsv.summary:md5,62be074425e50678da1dc6cc7a53c8d1",
                 "SPT5.consensus_peaks.saf:md5,b79bdb601486014e09bfaabf987c09a1",
-                "R_sessionInfo.log:md5,8807389f7f41b3051e4f62395a26cc87",
+                "R_sessionInfo.log:md5,fb0da0d7ad6994ed66a8e68348b19676",
                 "SPT5_T0_REP1.txt:md5,a457c22be619786abc2b425fd466af8b",
                 "SPT5_T0_REP2.txt:md5,888f787325d68de344f5b99ec8ebd49e",
                 "SPT5_T15_REP1.txt:md5,de476d906e71b366b6c70d8952d66514",
@@ -837,30 +837,30 @@
                 "SPT5_T15_REP1.peak_count_mqc.tsv:md5,b26d81220921415cae94ee5e1be459e5",
                 "SPT5_T15_REP2.FRiP_mqc.tsv:md5,4fcabfd43666aff985a4abe4257d2cf4",
                 "SPT5_T15_REP2.peak_count_mqc.tsv:md5,c344e0089dc0455c282bb20647c65ab1",
-                "SPT5_INPUT_REP1.mLb.mkD.sorted.metrics.txt:md5,eb446395916dd2137b8744c44c5e8ea9",
-                "SPT5_INPUT_REP2.mLb.mkD.sorted.metrics.txt:md5,9c0229ae98dd7e2f30f71f3e401e18ba",
-                "SPT5_T0_REP1.mLb.mkD.sorted.metrics.txt:md5,28407517e266a0f7e17795139d4f7fd2",
-                "SPT5_T0_REP2.mLb.mkD.sorted.metrics.txt:md5,cc9cfc3d6e8253919546faeaf42bbae9",
-                "SPT5_T15_REP1.mLb.mkD.sorted.metrics.txt:md5,879d9b3660c6065be16fc40a40f16d52",
-                "SPT5_T15_REP2.mLb.mkD.sorted.metrics.txt:md5,25793f31f3b3654d6da538f282f92467",
+                "SPT5_INPUT_REP1.mLb.mkD.sorted.metrics.txt:md5,15ebba9dc9ff8bbe8858606c69a229de",
+                "SPT5_INPUT_REP2.mLb.mkD.sorted.metrics.txt:md5,7ca6b4befa9c0465041770f09c70186d",
+                "SPT5_T0_REP1.mLb.mkD.sorted.metrics.txt:md5,b85b1992c491b888b5cccaa06aba699d",
+                "SPT5_T0_REP2.mLb.mkD.sorted.metrics.txt:md5,2d18a023c186416dca220ed973166c6a",
+                "SPT5_T15_REP1.mLb.mkD.sorted.metrics.txt:md5,77a2630194054fe509bd501776f93a33",
+                "SPT5_T15_REP2.mLb.mkD.sorted.metrics.txt:md5,638bbf48dd0281801380b08fc4164ddd",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.flagstat:md5,5789960a9102d6f53433dcdbb9b63940",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.idxstats:md5,20a4ac025979cc12c3e0e6cb0bd9c839",
-                "SPT5_INPUT_REP1.mLb.clN.sorted.bam.stats:md5,982d403c08b2e9da9e2fbdbc091d2966",
+                "SPT5_INPUT_REP1.mLb.clN.sorted.bam.stats:md5,889c63bb3e8c22d2995eb27a9b30eda4",
                 "SPT5_INPUT_REP2.mLb.clN.sorted.bam.flagstat:md5,56fe278c68a4f836efbe239f66b3635e",
                 "SPT5_INPUT_REP2.mLb.clN.sorted.bam.idxstats:md5,f887cfebeaf5ed7d6ce9e140ef25d14d",
-                "SPT5_INPUT_REP2.mLb.clN.sorted.bam.stats:md5,24eba82d5c7430dbf2472b8fe9db8b6c",
+                "SPT5_INPUT_REP2.mLb.clN.sorted.bam.stats:md5,a860e2417e74821fe50eb0eb3b06c48c",
                 "SPT5_T0_REP1.mLb.clN.sorted.bam.flagstat:md5,64b435a3d915a1b678e5fbec6eb68d7d",
                 "SPT5_T0_REP1.mLb.clN.sorted.bam.idxstats:md5,5fbb7b046fbd41c35209fa5f43cfc047",
-                "SPT5_T0_REP1.mLb.clN.sorted.bam.stats:md5,7ae60057ac075677b6caa7ddde47fe33",
+                "SPT5_T0_REP1.mLb.clN.sorted.bam.stats:md5,507db899493c19e487687255348ebafb",
                 "SPT5_T0_REP2.mLb.clN.sorted.bam.flagstat:md5,ee0ff6d897ed617d54ef35bc499baebb",
                 "SPT5_T0_REP2.mLb.clN.sorted.bam.idxstats:md5,71093ea767abc746e484b6f68948406d",
-                "SPT5_T0_REP2.mLb.clN.sorted.bam.stats:md5,012bb74f319f65cc2b782184af8a0492",
+                "SPT5_T0_REP2.mLb.clN.sorted.bam.stats:md5,0f6145a6429578eab5380647e07df414",
                 "SPT5_T15_REP1.mLb.clN.sorted.bam.flagstat:md5,5ceea86d4a1758c59f360c984192801a",
                 "SPT5_T15_REP1.mLb.clN.sorted.bam.idxstats:md5,2917cc064403c8e81656fe5e025bb044",
-                "SPT5_T15_REP1.mLb.clN.sorted.bam.stats:md5,2d0db03ed1ccf47facdc4a8993b1a25b",
+                "SPT5_T15_REP1.mLb.clN.sorted.bam.stats:md5,efb15b821338004495a400b7f80b3ad0",
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.flagstat:md5,f583616ced3accf4c5bb4c144c211104",
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,27f0b7c40dd733b5a9046878a485eb46",
-                "SPT5_T15_REP2.mLb.clN.sorted.bam.stats:md5,15458164242701a49eedbc7cee3c8a7d",
+                "SPT5_T15_REP2.mLb.clN.sorted.bam.stats:md5,fab4deff0127efe5cf01cb2cb87fa09d",
                 "genome.fa:md5,4bad9f4b18056156a81f7f952abbe125",
                 "cutadapt_filtered_reads_plot.yaml:md5,976fdb8049d847c977195863418e3655",
                 "cutadapt_trimmed_sequences_plot_3_Counts.yaml:md5,e6733f4ff773a27d0ab81564913b4b54",
@@ -888,7 +888,7 @@
                 "fastqc_top_overrepresented_sequences_table.yaml:md5,443e161371f73cebf63c14f7a9f3580d",
                 "featureCounts_assignment_plot.yaml:md5,4da17bf822e2c2645d81610248f44db3",
                 "multiqc_citations.yaml:md5,fca5dc7cb20162434c714d26b11161f3",
-                "multiqc_cutadapt.yaml:md5,c62314c66bd41e040a43a0122fb3c08f",
+                "multiqc_cutadapt.yaml:md5,d2e663f5d8770caa6056e2bd425d7159",
                 "multiqc_fastqc.yaml:md5,30fe6d1a5e5c04695dda81294b828ec9",
                 "multiqc_fastqc_1.yaml:md5,cd4a85c27c3cf85f1d0612afce793186",
                 "multiqc_featurecounts.yaml:md5,344706a7a1f373f2710ef124f59284e5",
@@ -913,7 +913,7 @@
                 "multiqc_samtools_stats.yaml:md5,fc38617b8f0b70f57bbc591fd77ee77c",
                 "multiqc_samtools_stats_1.yaml:md5,3f040ce9f37db47eb2e7193d52b05182",
                 "multiqc_samtools_stats_2.yaml:md5,15b13d9b289a574d79f79c24e4372721",
-                "multiqc_strand_shift_correlation.yaml:md5,6584a4107db61b5fd11d0619d12ce819",
+                "multiqc_strand_shift_correlation.yaml:md5,b1138c65c4ae71abd619886678f28086",
                 "picard-1_alignment_readlength_plot.yaml:md5,c99d90a720884dfa66f477f7a13e681f",
                 "picard-1_alignment_summary_Aligned_Bases.yaml:md5,b14ee00e59f209cad52b1a07685c38d2",
                 "picard-1_alignment_summary_Aligned_Reads.yaml:md5,7d6c5677c692de58a6491c01367762be",
@@ -955,20 +955,20 @@
                 "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc"
             ]
         ],
-        "timestamp": "2026-03-17T15:14:15.550355",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "25.04.7"
+        },
+        "timestamp": "2026-03-18T12:11:40.894049027"
     },
     "bowtie2 with stub": {
         "content": [
             20
         ],
-        "timestamp": "2026-03-14T15:14:30.739354966",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.10.4"
-        }
+        },
+        "timestamp": "2026-03-14T15:14:30.739354966"
     }
 }
