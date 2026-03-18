@@ -32,7 +32,10 @@ fastqc/*_fastqc.{html,zip}
 **/*.insert_size_metrics
 **/*.alignment_summary_metrics
 **/*.base_distribution_by_cycle_metrics
-**/*.MarkDuplicates.metrics.txt
+**/*.metrics.txt
+
+# Samtools
+**/*.bam.stats
 
 # Trimming reports
 **/*_trimming_report.txt
@@ -57,8 +60,8 @@ fastqc/*_fastqc.{html,zip}
 **/macs3_annotatePeaks.summary_mqc.tsv
 
 # Feature counting
-**/*.featureCounts.txt
-**/*.featureCounts.txt.summary
+**/*.featureCounts.tsv
+**/*.featureCounts.tsv.summary
 
 # Statistical analysis
 **/*.pca.vals.txt
@@ -68,9 +71,11 @@ fastqc/*_fastqc.{html,zip}
 
 # === YAML CONFIGURATION FILES ===
 **/deeptools_plot_profile_mlib_deeptools.yaml
+**/multiqc_strand_shift_correlation.yaml
 **/multiqc_deseq2_clustering_1.yaml
 **/multiqc_deseq2_pca_1.yaml
 **/multiqc_sources.yaml
+**/multiqc_cutadapt.yaml
 **/read_distribution_profile.yaml
 **/deeptools_fingerprint_plot.yaml
 **/deeptools_plot_fingerprint_counts_mlib_deeptools.yaml
