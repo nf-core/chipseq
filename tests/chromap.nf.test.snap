@@ -816,8 +816,6 @@
                 "SPT5.consensus_peaks.bed:md5,f907ace2725a7640c56659dabdd87325",
                 "SPT5.consensus_peaks.boolean.intersect.txt:md5,ccb9a148841bee735e645ae10a03d5ef",
                 "SPT5.consensus_peaks.boolean.txt:md5,0aa4347a6eaaf04d407ca3c7cbbe2012",
-                "SPT5.consensus_peaks.featureCounts.tsv:md5,93d55d6deac05ede68e14a85dcf6e217",
-                "SPT5.consensus_peaks.featureCounts.tsv.summary:md5,720fe2cccba2ada3767ea1aeab5a25f6",
                 "SPT5.consensus_peaks.saf:md5,084dbc36235b2e47a7deedb1e252305d",
                 "R_sessionInfo.log:md5,fb0da0d7ad6994ed66a8e68348b19676",
                 "SPT5_T0_REP1.txt:md5,19574031268672407c6470c85d893f8a",
@@ -832,30 +830,18 @@
                 "SPT5_T15_REP1.peak_count_mqc.tsv:md5,103b422e3a01ab91de014221c6d0ae7c",
                 "SPT5_T15_REP2.FRiP_mqc.tsv:md5,225bb6df5e5b27cc8df9a577ee684016",
                 "SPT5_T15_REP2.peak_count_mqc.tsv:md5,f798ceafbec8d5e9a52ffebae84c71fe",
-                "SPT5_INPUT_REP1.mLb.mkD.sorted.metrics.txt:md5,960404d6692b706862a8e434a33fb13f",
-                "SPT5_INPUT_REP2.mLb.mkD.sorted.metrics.txt:md5,428cb96842c06bb5d3bb39dba90fbb7a",
-                "SPT5_T0_REP1.mLb.mkD.sorted.metrics.txt:md5,2544df39832f2f235ec2efc1509d5d7a",
-                "SPT5_T0_REP2.mLb.mkD.sorted.metrics.txt:md5,9d1d1f2cc6d9cfafa33cd49e9cc318fe",
-                "SPT5_T15_REP1.mLb.mkD.sorted.metrics.txt:md5,983d38cfa5f21ad076acde9b3d874ba0",
-                "SPT5_T15_REP2.mLb.mkD.sorted.metrics.txt:md5,103f965bbcb144e6c0278295a96cfe45",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.flagstat:md5,e7e595088e284c9bc29cd7198bd54d2c",
                 "SPT5_INPUT_REP1.mLb.clN.sorted.bam.idxstats:md5,0096b9a233e8dda267a26d82e4a38438",
-                "SPT5_INPUT_REP1.mLb.clN.sorted.bam.stats:md5,237254d86ae92c64cf2c044ddd644e32",
                 "SPT5_INPUT_REP2.mLb.clN.sorted.bam.flagstat:md5,4aef254b0aa86eb12f008cf6935b55de",
                 "SPT5_INPUT_REP2.mLb.clN.sorted.bam.idxstats:md5,6d1f4c880ec716e49553b1da0842fb23",
-                "SPT5_INPUT_REP2.mLb.clN.sorted.bam.stats:md5,99725d10d2d501248e2aa1a27d9ff7cf",
                 "SPT5_T0_REP1.mLb.clN.sorted.bam.flagstat:md5,8d8fb06b8fc3404496fa9b48cdda2451",
                 "SPT5_T0_REP1.mLb.clN.sorted.bam.idxstats:md5,668215502e73688fcd0240b1fdc8317c",
-                "SPT5_T0_REP1.mLb.clN.sorted.bam.stats:md5,abbc0c9adae8ef31c43eb38b5619682c",
                 "SPT5_T0_REP2.mLb.clN.sorted.bam.flagstat:md5,ba7275e3bcd280d5e529f37afbe7170e",
                 "SPT5_T0_REP2.mLb.clN.sorted.bam.idxstats:md5,1f4036479acebe98b653a93a224a8555",
-                "SPT5_T0_REP2.mLb.clN.sorted.bam.stats:md5,52d416e0ce60b63b488f3ad295842f84",
                 "SPT5_T15_REP1.mLb.clN.sorted.bam.flagstat:md5,a8dbdf30f25d934680017e142ff8bd9f",
                 "SPT5_T15_REP1.mLb.clN.sorted.bam.idxstats:md5,be29501e6bdf9752a765c40196afb8f0",
-                "SPT5_T15_REP1.mLb.clN.sorted.bam.stats:md5,8f5886ba68682dc681470adab74b336f",
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.flagstat:md5,622e67ab9e5ff5ced62fe139e6229fca",
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,de15f2e5ebc654fd49db1c7a12a53494",
-                "SPT5_T15_REP2.mLb.clN.sorted.bam.stats:md5,7a88f95da6e450e1e879a06366084d41",
                 "genome.fa:md5,4bad9f4b18056156a81f7f952abbe125",
                 "genome.index:md5,377432ea6242989cae4dabb60859f6bd",
                 "cutadapt_filtered_reads_plot.yaml:md5,976fdb8049d847c977195863418e3655",
@@ -884,7 +870,6 @@
                 "fastqc_top_overrepresented_sequences_table.yaml:md5,443e161371f73cebf63c14f7a9f3580d",
                 "featureCounts_assignment_plot.yaml:md5,7ba9bc1659472a0859c527d0f8f10c8b",
                 "multiqc_citations.yaml:md5,fca5dc7cb20162434c714d26b11161f3",
-                "multiqc_cutadapt.yaml:md5,d2e663f5d8770caa6056e2bd425d7159",
                 "multiqc_fastqc.yaml:md5,30fe6d1a5e5c04695dda81294b828ec9",
                 "multiqc_fastqc_1.yaml:md5,cd4a85c27c3cf85f1d0612afce793186",
                 "multiqc_featurecounts.yaml:md5,e8d7d07826b918b9de226607c83ebeab",
@@ -909,7 +894,6 @@
                 "multiqc_samtools_stats.yaml:md5,79c81250f7c13657d3a5410bfb2836cb",
                 "multiqc_samtools_stats_1.yaml:md5,5c197924c6282f82c5d7e154ea6c5dc7",
                 "multiqc_samtools_stats_2.yaml:md5,a08674e1272632fe61880e4aa6b8654c",
-                "multiqc_strand_shift_correlation.yaml:md5,8cc96d468806fa70fe1503d40307f7b6",
                 "picard-1_alignment_readlength_plot.yaml:md5,654f00b7a14220482e4eab35dda2e2a4",
                 "picard-1_alignment_summary_Aligned_Bases.yaml:md5,890df66d27392114a8fff8b92062f884",
                 "picard-1_alignment_summary_Aligned_Reads.yaml:md5,41a9fd39fa4e4cf4874c74d9c3b1b36f",
@@ -951,20 +935,20 @@
                 "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc"
             ]
         ],
+        "timestamp": "2026-03-18T20:24:09.431648",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.04.7"
-        },
-        "timestamp": "2026-03-18T11:51:43.514334093"
+            "nf-test": "0.9.4",
+            "nextflow": "25.04.0"
+        }
     },
     "chromap with stub": {
         "content": [
             20
         ],
+        "timestamp": "2026-03-17T14:23:25.411753",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.04.0"
-        },
-        "timestamp": "2026-03-17T14:23:25.411753"
+        }
     }
 }
