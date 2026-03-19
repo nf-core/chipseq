@@ -7,9 +7,9 @@
 //
 // MODULE: Loaded from modules/local/
 //
-include { IGV                                 } from '../modules/local/igv/main'
-include { MULTIQC                             } from '../modules/local/multiqc/main'
-include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools/main'
+include { IGV                                 } from '../modules/local/igv'
+include { MULTIQC                             } from '../modules/local/multiqc'
+include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -17,13 +17,13 @@ include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_c
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_chipseq_pipeline/main'
-include { INPUT_CHECK            } from '../subworkflows/local/input_check/main'
-include { ALIGN_STAR             } from '../subworkflows/local/align_star/main'
-include { BAM_FILTER_BAMTOOLS    } from '../subworkflows/local/bam_filter_bamtools/main'
-include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC                       } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc/main'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER                  } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer/main'
-include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2/main'
+include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_chipseq_pipeline'
+include { INPUT_CHECK            } from '../subworkflows/local/input_check'
+include { ALIGN_STAR             } from '../subworkflows/local/align_star'
+include { BAM_FILTER_BAMTOOLS    } from '../subworkflows/local/bam_filter_bamtools'
+include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC                       } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER                  } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer'
+include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,25 +35,25 @@ include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../sub
 // MODULE: Installed directly from nf-core/modules
 //
 
-include { PICARD_MERGESAMFILES          } from '../modules/nf-core/picard/mergesamfiles/main'
-include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
-include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap/main'
-include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/phantompeakqualtools/main'
-include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/computematrix/main'
-include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile/main'
-include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
-include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
-include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/khmer/uniquekmers/main'
+include { PICARD_MERGESAMFILES          } from '../modules/nf-core/picard/mergesamfiles'
+include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics'
+include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap'
+include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/phantompeakqualtools'
+include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/computematrix'
+include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile'
+include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap'
+include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint'
+include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/khmer/uniquekmers'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
 //
 
-include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq_fastqc_umitools_trimgalore/main'
-include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq_align_bwa/main'
-include { FASTQ_ALIGN_BOWTIE2              } from '../subworkflows/nf-core/fastq_align_bowtie2/main'
-include { FASTQ_ALIGN_CHROMAP              } from '../subworkflows/nf-core/fastq_align_chromap/main'
-include { BAM_MARKDUPLICATES_PICARD        } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
+include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq_fastqc_umitools_trimgalore'
+include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq_align_bwa'
+include { FASTQ_ALIGN_BOWTIE2              } from '../subworkflows/nf-core/fastq_align_bowtie2'
+include { FASTQ_ALIGN_CHROMAP              } from '../subworkflows/nf-core/fastq_align_chromap'
+include { BAM_MARKDUPLICATES_PICARD        } from '../subworkflows/nf-core/bam_markduplicates_picard'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
