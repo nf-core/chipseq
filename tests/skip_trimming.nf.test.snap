@@ -376,6 +376,8 @@
                 "fastqc/zips/SPT5_T15_REP2_T1_2_fastqc.zip",
                 "genome",
                 "genome/genome.fa",
+                "genome/genome.fa.fai",
+                "genome/genome.fa.sizes",
                 "igv",
                 "igv/broad_peak",
                 "igv/broad_peak/igv_files.txt",
@@ -685,10 +687,7 @@
                 "multiqc/broad_peak/multiqc_report.html",
                 "pipeline_info",
                 "pipeline_info/nf_core_chipseq_software_mqc_versions.yml",
-                "pipeline_info/samplesheet.valid.csv",
-                "samtools",
-                "samtools/genome.fa.fai",
-                "samtools/genome.fa.sizes"
+                "pipeline_info/samplesheet.valid.csv"
             ],
             [
                 "SPT5_INPUT_REP1.mLB.clN.bedGraph:md5,cd382620d1d0b392cc476acb3ee5b64c",
@@ -740,6 +739,8 @@
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.flagstat:md5,19db2ca7bb1d78ab6dfe446667844f50",
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,32990e1b7bc7d52fc68f60b5e766c596",
                 "genome.fa:md5,4bad9f4b18056156a81f7f952abbe125",
+                "genome.fa.fai:md5,6f4c0ce5258e6948135ad006e1f9ee1b",
+                "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc",
                 "fastqc-status-check-heatmap.yaml:md5,1e473e0f9140b718607d8c72cf3c0b45",
                 "fastqc_adapter_content_plot.yaml:md5,591991daf3e3c49873f4a51a3710b072",
                 "fastqc_per_base_n_content_plot.yaml:md5,c16a4af177b9ad9694a9535023906927",
@@ -811,25 +812,23 @@
                 "samtools-idxstats-mapped-reads-plot_Raw_Counts.yaml:md5,c035319353bb52655028940619e48afd",
                 "samtools-stats-dp.yaml:md5,b1858c8488f3c506498726af69965dd6",
                 "samtools_alignment_plot.yaml:md5,a33df285c13ab5b360d9eb5282471908",
-                "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384",
-                "genome.fa.fai:md5,6f4c0ce5258e6948135ad006e1f9ee1b",
-                "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc"
+                "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-03-18T21:03:39.17604",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "25.04.7"
+        },
+        "timestamp": "2026-03-19T21:05:18.304093521"
     },
     "skip_trimming with stub": {
         "content": [
             190
         ],
-        "timestamp": "2026-03-17T14:36:41.411257",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.04.0"
-        }
+        },
+        "timestamp": "2026-03-17T14:36:41.411257"
     }
 }
