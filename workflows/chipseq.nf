@@ -435,8 +435,7 @@ workflow CHIPSEQ {
             params.read_length
         )
         ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { meta, file ->
-        file.text.trim()}
-        ch_macs_gsize.view()
+        file.text.trim() }
     }
 
     // Create channels: [ meta, ip_bam, control_bam ]
