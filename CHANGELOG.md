@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.2.0dev - 2026-03-14
+## v2.2.0dev - [date]
 
 ### Enhancements & fixes
 
@@ -14,10 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#451](https://github.com/nf-core/chipseq/issues/451)] - Pass `map.single_read` to `SUBREAD_FEATURECOUNTS` as to correctly set parameter `-p`.
 - [[PR #462](https://github.com/nf-core/chipseq/pull/462)] - Updated pipeline template to [nf-core/tools 3.2.1](https://github.com/nf-core/tools/releases/tag/3.2.1)
 - [[#468](https://github.com/nf-core/chipseq/issues/468)] - Changed bigWig generation to use `-bga` option instead of `-bg` in `bedtools genomecov` for lower background levels and better IGV visualization. Users can revert to previous behavior using configuration. See [documentation](https://nf-co.re/chipseq/dev/docs/output/#normalised-bigwig-files) for details.
-- [[#484](https://github.com/nf-core/chipseq/issues/484)] - Updated modules and subworkflows
-- [[#483](https://github.com/nf-core/chipseq/issues/483)] - Updated nf-core related things to topics, still a few nf-core modules are pending and the local modules
-  need to be fixed.
-- [[#489](https://github.com/nf-core/chipseq/issues/489)]CUSTOM_GETCHROMSIZES was changed to SAMTOOLS_FAIDX instead, since CUSTOM_GETCHROMSIZES is deprecated.
+- [[#483](https://github.com/nf-core/chipseq/issues/483)] - Partial update to topics channel.
+- [[#484](https://github.com/nf-core/chipseq/issues/484)] - Bul, updated of modules and subworkflows.
+- [[#489](https://github.com/nf-core/chipseq/issues/489)] - Replace deprecated `CUSTOM_GETCHROMSIZES` with `SAMTOOLS_FAIDX`.
 
 ### Parameters
 
@@ -38,18 +37,9 @@ the last release have been listed below for reference.
 
 ### Software updates
 
-| Dependency | Old version | New version |
-| ---------- | ----------- | ----------- |
-| macs3      | 3.0.1       | 3.0.4       |
-
-> **NB:** Dependency has been **updated** if both old and new version information is present.
-> **NB:** Dependency has been **added** if just the new version information is present.
-> **NB:** Dependency has been **removed** if version information isn't present.
-
-### Software update local modules
-
 | Dependency                  | Old version | New version |
 | --------------------------- | ----------- | ----------- |
+| macs3                       | 3.0.1       | 3.0.4       |
 | bamtools                    | 2.5.2       | 2.5.3       |
 | samtools                    | 1.15.1      | 1.23        |
 | pysam                       | 0.19.0      | 0.23.3      |
@@ -64,30 +54,10 @@ the last release have been listed below for reference.
 | r-tidyverse                 | 1.3.0       | 2.0.0       |
 | bioconductor-complexheatmap | 2.6.2       | 2.26.1      |
 | star                        | 2.6.1d      | 2.7.11b     |
-|                             |             |             |
 
-### Local modules refactoring and topic channels update
-
-| Module                              | Updated to wave containers | Topic channel added | refactoring (adding .yml files) |
-| ----------------------------------- | -------------------------- | ------------------- | ------------------------------- |
-| annotate_boolean_peaks              |                            |                     |                                 |
-| bam_remove_orphans                  | x                          | x                   | x                               |
-| bamtools_filter                     | x                          | x                   | x                               |
-| deseq2_qc                           |                            |                     |                                 |
-| frip_score                          | x                          | x                   | x                               |
-| genome_blacklist_regions            | x                          | x                   | x                               |
-| gtf2bed                             |                            |                     |                                 |
-| igv                                 |                            |                     |                                 |
-| macs3_consensus                     | x                          | x                   | x                               |
-| multiqc                             |                            |                     |                                 |
-| multiqc_custom_peaks                |                            |                     |                                 |
-| multiqc_custom_phantompeakqualtools |                            |                     |                                 |
-| plot_homer_annotatepeaks            | x                          | x                   | x                               |
-| plot_macs3_qc                       | x                          | x                   | x                               |
-| samplesheet_check                   |                            |                     |                                 |
-| star_align                          | x                          | x                   | x                               |
-| star_genomegenerate                 | x                          | x                   | x                               |
-|                                     |                            |                     |                                 |
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
 
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
 
