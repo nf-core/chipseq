@@ -7,9 +7,9 @@
 //
 // MODULE: Loaded from modules/local/
 //
-include { IGV                                 } from '../modules/local/igv'
-include { MULTIQC                             } from '../modules/local/multiqc'
-include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools'
+include { IGV                                 } from '../modules/local/igv/main'
+include { MULTIQC                             } from '../modules/local/multiqc/main'
+include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_custom_phantompeakqualtools/main'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -17,13 +17,13 @@ include { MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS } from '../modules/local/multiqc_c
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_chipseq_pipeline'
-include { INPUT_CHECK            } from '../subworkflows/local/input_check'
-include { ALIGN_STAR             } from '../subworkflows/local/align_star'
-include { BAM_FILTER_BAMTOOLS    } from '../subworkflows/local/bam_filter_bamtools'
-include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC                       } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER                  } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer.nf'
-include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
+include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_chipseq_pipeline/main'
+include { INPUT_CHECK            } from '../subworkflows/local/input_check/main'
+include { ALIGN_STAR             } from '../subworkflows/local/align_star/main'
+include { BAM_FILTER_BAMTOOLS    } from '../subworkflows/local/bam_filter_bamtools/main'
+include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC                       } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc/main'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER                  } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer/main'
+include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -104,6 +104,27 @@ workflow CHIPSEQ {
 
     main:
     ch_multiqc_files = channel.empty()
+
+    //
+    // Collection versions from topic channel
+    //
+    def topic_versions = channel.topic("versions")
+        .distinct()
+        .branch { entry ->
+            versions_file: entry instanceof Path
+            versions_tuple: true
+        }
+
+    def topic_versions_string = topic_versions.versions_tuple
+        .map { process, tool, version ->
+            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
+        }
+        .groupTuple(by:0)
+        .map { process, tool_versions ->
+            tool_versions.unique().sort()
+            "${process}:\n${tool_versions.join('\n')}"
+        }
+
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
@@ -111,7 +132,6 @@ workflow CHIPSEQ {
         ch_samplesheet,
         params.seq_center
     )
-    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
     // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
     // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
     // ! There is currently no tooling to help you write a sample sheet schema
@@ -128,7 +148,6 @@ workflow CHIPSEQ {
         0,
         10000
     )
-    ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
@@ -153,7 +172,6 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BWA.out.versions)
     }
 
     //
@@ -175,7 +193,6 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions)
     }
 
     //
@@ -199,7 +216,6 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions)
     }
 
     //
@@ -222,8 +238,6 @@ workflow CHIPSEQ {
         ch_samtools_flagstat = ALIGN_STAR.out.flagstat
         ch_samtools_idxstats = ALIGN_STAR.out.idxstats
         ch_star_multiqc      = ALIGN_STAR.out.log_final
-
-        ch_versions = ch_versions.mix(ALIGN_STAR.out.versions)
     }
 
     //
@@ -247,7 +261,6 @@ workflow CHIPSEQ {
     PICARD_MERGESAMFILES (
         ch_sort_bam
     )
-    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions.first())
 
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
@@ -263,7 +276,6 @@ workflow CHIPSEQ {
                 [ [:], it ]
             }
     )
-    ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD.out.versions)
 
     //
     // SUBWORKFLOW: Filter BAM file with BamTools
@@ -278,7 +290,6 @@ workflow CHIPSEQ {
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(BAM_FILTER_BAMTOOLS.out.versions)
 
     //
     // MODULE: Preseq coverage analysis
@@ -289,7 +300,6 @@ workflow CHIPSEQ {
             BAM_MARKDUPLICATES_PICARD.out.bam
         )
         ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
-        ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
@@ -314,7 +324,6 @@ workflow CHIPSEQ {
                 }
         )
         ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
-        ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
     }
 
     //
@@ -329,7 +338,6 @@ workflow CHIPSEQ {
             BAM_FILTER_BAMTOOLS.out.bam
         )
         ch_phantompeakqualtools_spp_multiqc           = PHANTOMPEAKQUALTOOLS.out.spp
-        ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
 
         //
         // MODULE: MultiQC custom content for Phantompeaktools
@@ -352,7 +360,6 @@ workflow CHIPSEQ {
         BAM_FILTER_BAMTOOLS.out.bam.join(BAM_FILTER_BAMTOOLS.out.flagstat, by: [0]),
         ch_chrom_sizes
     )
-    ch_versions = ch_versions.mix(BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.versions)
 
 
     ch_deeptoolsplotprofile_multiqc = Channel.empty()
@@ -364,7 +371,6 @@ workflow CHIPSEQ {
             BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.bigwig,
             ch_gene_bed
         )
-        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
         //
         // MODULE: deepTools profile plots
@@ -373,7 +379,6 @@ workflow CHIPSEQ {
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
         ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
 
         //
         // MODULE: deepTools heatmaps
@@ -381,7 +386,6 @@ workflow CHIPSEQ {
         DEEPTOOLS_PLOTHEATMAP (
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
     }
 
     //
@@ -418,7 +422,6 @@ workflow CHIPSEQ {
             ch_ip_control_bam_bai
         )
         ch_deeptoolsplotfingerprint_multiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
 
     //
@@ -427,12 +430,15 @@ workflow CHIPSEQ {
     ch_macs_gsize                     = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
     ch_macs_gsize = params.macs_gsize
+
     if (!params.macs_gsize) {
         KHMER_UNIQUEKMERS (
-            ch_fasta,
+            ch_fasta.map { item -> [ [:], item]},
             params.read_length
         )
-        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
+        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { meta, file ->
+        file.text.trim()}
+        ch_macs_gsize.view()
     }
 
     // Create channels: [ meta, ip_bam, control_bam ]
@@ -459,7 +465,6 @@ workflow CHIPSEQ {
         params.skip_peak_annotation,
         params.skip_peak_qc
     )
-    ch_versions = ch_versions.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.versions)
 
     //
     //  Consensus peaks analysis
@@ -499,7 +504,6 @@ workflow CHIPSEQ {
         ch_subreadfeaturecounts_multiqc  = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.featurecounts_summary
         ch_deseq2_pca_multiqc            = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.deseq2_qc_pca_multiqc
         ch_deseq2_clustering_multiqc     = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.deseq2_qc_dists_multiqc
-        ch_versions = ch_versions.mix(BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.versions)
     }
 
     //
@@ -515,37 +519,19 @@ workflow CHIPSEQ {
             ch_macs3_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
             ch_macs3_consensus_txt_lib.collect{it[1]}.ifEmpty([])
         )
-        ch_versions = ch_versions.mix(IGV.out.versions)
     }
 
     //
     // Collate and save software versions
     //
-    def topic_versions = Channel.topic("versions")
-        .distinct()
-        .branch { entry ->
-            versions_file: entry instanceof Path
-            versions_tuple: true
-        }
-
-    def topic_versions_string = topic_versions.versions_tuple
-        .map { process, tool, version ->
-            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
-        }
-        .groupTuple(by:0)
-        .map { process, tool_versions ->
-            tool_versions.unique().sort()
-            "${process}:\n${tool_versions.join('\n')}"
-        }
-
-    softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
+    ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
         .mix(topic_versions_string)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
             name: 'nf_core_'  +  'chipseq_software_'  + 'mqc_'  + 'versions.yml',
             sort: true,
             newLine: true
-        ).set { ch_collated_versions }
+        )
 
     //
     // MODULE: MultiQC
@@ -608,7 +594,6 @@ workflow CHIPSEQ {
 
     emit:
     multiqc_report = ch_multiqc_report.toList()  // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
 }
 

@@ -14,7 +14,6 @@ include { samplesheetToList         } from 'plugin/nf-schema'
 include { paramsHelp                } from 'plugin/nf-schema'
 include { completionEmail           } from '../../nf-core/utils_nfcore_pipeline'
 include { completionSummary         } from '../../nf-core/utils_nfcore_pipeline'
-include { imNotification            } from '../../nf-core/utils_nfcore_pipeline'
 include { UTILS_NFCORE_PIPELINE     } from '../../nf-core/utils_nfcore_pipeline'
 include { UTILS_NEXTFLOW_PIPELINE   } from '../../nf-core/utils_nextflow_pipeline'
 
@@ -39,7 +38,6 @@ workflow PIPELINE_INITIALISATION {
 
     main:
 
-    ch_versions = channel.empty()
 
     //
     // Print version and exit if required and dump pipeline parameters to JSON file
@@ -105,7 +103,6 @@ workflow PIPELINE_INITIALISATION {
 
     emit:
     samplesheet = ch_samplesheet
-    versions    = ch_versions
 }
 
 /*
@@ -146,9 +143,7 @@ workflow PIPELINE_COMPLETION {
         }
 
         completionSummary(monochrome_logs)
-        if (hook_url) {
-            imNotification(summary_params, hook_url)
-        }
+
     }
 
     workflow.onError {
