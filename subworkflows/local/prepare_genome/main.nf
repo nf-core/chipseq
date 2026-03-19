@@ -2,19 +2,15 @@
 // Uncompress and prepare reference genome files
 //
 
-include {
-    GUNZIP as GUNZIP_FASTA ;
-    GUNZIP as GUNZIP_GTF ;
-    GUNZIP as GUNZIP_GFF ;
-    GUNZIP as GUNZIP_GENE_BED ;
-    GUNZIP as GUNZIP_BLACKLIST
-} from '../../../modules/nf-core/gunzip'
+include { GUNZIP as GUNZIP_FASTA     } from '../../../modules/nf-core/gunzip'
+include { GUNZIP as GUNZIP_GTF       } from '../../../modules/nf-core/gunzip'
+include { GUNZIP as GUNZIP_GFF       } from '../../../modules/nf-core/gunzip'
+include { GUNZIP as GUNZIP_GENE_BED  } from '../../../modules/nf-core/gunzip'
+include { GUNZIP as GUNZIP_BLACKLIST } from '../../../modules/nf-core/gunzip'
 
-include {
-    UNTAR as UNTAR_BWA_INDEX ;
-    UNTAR as UNTAR_BOWTIE2_INDEX ;
-    UNTAR as UNTAR_STAR_INDEX
-} from '../../../modules/nf-core/untar'
+include { UNTAR as UNTAR_BWA_INDEX     } from '../../../modules/nf-core/untar'
+include { UNTAR as UNTAR_BOWTIE2_INDEX } from '../../../modules/nf-core/untar'
+include { UNTAR as UNTAR_STAR_INDEX    } from '../../../modules/nf-core/untar'
 
 include { UNTARFILES                   } from '../../../modules/nf-core/untarfiles'
 include { GFFREAD                      } from '../../../modules/nf-core/gffread'
