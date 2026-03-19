@@ -49,7 +49,7 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_chip
 workflow NFCORE_CHIPSEQ {
 
     main:
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     // SUBWORKFLOW: Prepare genome files
     PREPARE_GENOME (
@@ -70,7 +70,7 @@ workflow NFCORE_CHIPSEQ {
     //
     // WORKFLOW: Run nf-core/chipseq workflow
     //
-    ch_samplesheet = Channel.value(file(params.input, checkIfExists: true))
+    ch_samplesheet = channel.value(file(params.input, checkIfExists: true))
 
     CHIPSEQ(
         ch_samplesheet,

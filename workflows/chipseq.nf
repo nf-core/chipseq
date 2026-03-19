@@ -91,8 +91,8 @@ workflow CHIPSEQ {
     ch_peak_count_header        = file("$projectDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
     ch_frip_score_header        = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
     ch_peak_annotation_header   = file("$projectDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
-    ch_deseq2_pca_header        = Channel.value(file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true))
-    ch_deseq2_clustering_header = Channel.value(file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true))
+    ch_deseq2_pca_header        = channel.value(file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true))
+    ch_deseq2_clustering_header = channel.value(file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true))
 
     // Save AWS IGenomes file containing annotation version
     def anno_readme = params.genomes[ params.genome ]?.readme
@@ -150,11 +150,11 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
     //
-    ch_genome_bam        = Channel.empty()
-    ch_genome_bam_index  = Channel.empty()
-    ch_samtools_stats    = Channel.empty()
-    ch_samtools_flagstat = Channel.empty()
-    ch_samtools_idxstats = Channel.empty()
+    ch_genome_bam        = channel.empty()
+    ch_genome_bam_index  = channel.empty()
+    ch_samtools_stats    = channel.empty()
+    ch_samtools_flagstat = channel.empty()
+    ch_samtools_idxstats = channel.empty()
     if (params.aligner == 'bwa') {
         FASTQ_ALIGN_BWA (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
@@ -292,7 +292,7 @@ workflow CHIPSEQ {
     //
     // MODULE: Preseq coverage analysis
     //
-    ch_preseq_multiqc = Channel.empty()
+    ch_preseq_multiqc = channel.empty()
     if (!params.skip_preseq) {
         PRESEQ_LCEXTRAP (
             BAM_MARKDUPLICATES_PICARD.out.bam
@@ -303,7 +303,7 @@ workflow CHIPSEQ {
     //
     // MODULE: Picard post alignment QC
     //
-    ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
+    ch_picardcollectmultiplemetrics_multiqc = channel.empty()
     if (!params.skip_picard_metrics) {
         PICARD_COLLECTMULTIPLEMETRICS (
             BAM_FILTER_BAMTOOLS
@@ -327,10 +327,10 @@ workflow CHIPSEQ {
     //
     // MODULE: Phantompeaktools strand cross-correlation and QC metrics
     //
-    ch_phantompeakqualtools_spp_multiqc                 = Channel.empty()
-    ch_multiqc_phantompeakqualtools_nsc_multiqc         = Channel.empty()
-    ch_multiqc_phantompeakqualtools_rsc_multiqc         = Channel.empty()
-    ch_multiqc_phantompeakqualtools_correlation_multiqc = Channel.empty()
+    ch_phantompeakqualtools_spp_multiqc                 = channel.empty()
+    ch_multiqc_phantompeakqualtools_nsc_multiqc         = channel.empty()
+    ch_multiqc_phantompeakqualtools_rsc_multiqc         = channel.empty()
+    ch_multiqc_phantompeakqualtools_correlation_multiqc = channel.empty()
     if (!params.skip_spp) {
         PHANTOMPEAKQUALTOOLS (
             BAM_FILTER_BAMTOOLS.out.bam
@@ -360,7 +360,7 @@ workflow CHIPSEQ {
     )
 
 
-    ch_deeptoolsplotprofile_multiqc = Channel.empty()
+    ch_deeptoolsplotprofile_multiqc = channel.empty()
     if (!params.skip_plot_profile) {
         //
         // MODULE: deepTools matrix generation for plotting
@@ -414,7 +414,7 @@ workflow CHIPSEQ {
     //
     // MODULE: deepTools plotFingerprint joint QC for IP and control
     //
-    ch_deeptoolsplotfingerprint_multiqc = Channel.empty()
+    ch_deeptoolsplotfingerprint_multiqc = channel.empty()
     if (!params.skip_plot_fingerprint) {
         DEEPTOOLS_PLOTFINGERPRINT (
             ch_ip_control_bam_bai
@@ -425,8 +425,8 @@ workflow CHIPSEQ {
     //
     // MODULE: Calculute genome size with khmer
     //
-    ch_macs_gsize                     = Channel.empty()
-    ch_subreadfeaturecounts_multiqc   = Channel.empty()
+    ch_macs_gsize                     = channel.empty()
+    ch_subreadfeaturecounts_multiqc   = channel.empty()
     ch_macs_gsize = params.macs_gsize
 
     if (!params.macs_gsize) {
@@ -467,10 +467,10 @@ workflow CHIPSEQ {
     //
     //  Consensus peaks analysis
     //
-    ch_macs3_consensus_bed_lib   = Channel.empty()
-    ch_macs3_consensus_txt_lib   = Channel.empty()
-    ch_deseq2_pca_multiqc        = Channel.empty()
-    ch_deseq2_clustering_multiqc = Channel.empty()
+    ch_macs3_consensus_bed_lib   = channel.empty()
+    ch_macs3_consensus_txt_lib   = channel.empty()
+    ch_deseq2_pca_multiqc        = channel.empty()
+    ch_deseq2_clustering_multiqc = channel.empty()
     if (!params.skip_consensus_peaks) {
         // Create channels: [ antibody, [ ip_bams ], single_end_map ]
         ch_ip_control_bam
@@ -534,14 +534,14 @@ workflow CHIPSEQ {
     //
     // MODULE: MultiQC
     //
-    ch_multiqc_report = Channel.empty()
+    ch_multiqc_report = channel.empty()
 
     if (!params.skip_multiqc) {
-        ch_multiqc_config        = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-        ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath( params.multiqc_config ): Channel.empty()
-        ch_multiqc_logo          = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo )  : Channel.empty()
+        ch_multiqc_config        = channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+        ch_multiqc_custom_config = params.multiqc_config ? channel.fromPath( params.multiqc_config ): channel.empty()
+        ch_multiqc_logo          = params.multiqc_logo   ? channel.fromPath( params.multiqc_logo )  : channel.empty()
         summary_params           = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
-        ch_workflow_summary      = Channel.value(paramsSummaryMultiqc(summary_params))
+        ch_workflow_summary      = channel.value(paramsSummaryMultiqc(summary_params))
         ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
         ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
 

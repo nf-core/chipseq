@@ -80,12 +80,12 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
         ch_frip_score_multiqc
     )
 
-    ch_homer_annotatepeaks          = Channel.empty()
-    ch_plot_macs3_qc_txt            = Channel.empty()
-    ch_plot_macs3_qc_pdf            = Channel.empty()
-    ch_plot_homer_annotatepeaks_txt = Channel.empty()
-    ch_plot_homer_annotatepeaks_pdf = Channel.empty()
-    ch_plot_homer_annotatepeaks_tsv = Channel.empty()
+    ch_homer_annotatepeaks          = channel.empty()
+    ch_plot_macs3_qc_txt            = channel.empty()
+    ch_plot_macs3_qc_pdf            = channel.empty()
+    ch_plot_homer_annotatepeaks_txt = channel.empty()
+    ch_plot_homer_annotatepeaks_pdf = channel.empty()
+    ch_plot_homer_annotatepeaks_tsv = channel.empty()
     if (!skip_peak_annotation) {
         //
         // Annotate peaks with HOMER

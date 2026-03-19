@@ -101,15 +101,15 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     //
     // Generate QC plots with DESeq2
     //
-    ch_deseq2_qc_pdf           = Channel.empty()
-    ch_deseq2_qc_rdata         = Channel.empty()
-    ch_deseq2_qc_rds           = Channel.empty()
-    ch_deseq2_qc_pca_txt       = Channel.empty()
-    ch_deseq2_qc_pca_multiqc   = Channel.empty()
-    ch_deseq2_qc_dists_txt     = Channel.empty()
-    ch_deseq2_qc_dists_multiqc = Channel.empty()
-    ch_deseq2_qc_log           = Channel.empty()
-    ch_deseq2_qc_size_factors  = Channel.empty()
+    ch_deseq2_qc_pdf           = channel.empty()
+    ch_deseq2_qc_rdata         = channel.empty()
+    ch_deseq2_qc_rds           = channel.empty()
+    ch_deseq2_qc_pca_txt       = channel.empty()
+    ch_deseq2_qc_pca_multiqc   = channel.empty()
+    ch_deseq2_qc_dists_txt     = channel.empty()
+    ch_deseq2_qc_dists_multiqc = channel.empty()
+    ch_deseq2_qc_log           = channel.empty()
+    ch_deseq2_qc_size_factors  = channel.empty()
     if (!skip_deseq2_qc) {
         DESEQ2_QC (
             SUBREAD_FEATURECOUNTS.out.counts,
