@@ -2,8 +2,8 @@
 // Alignment with BWA
 //
 
-include { BWA_MEM                 } from '../../../modules/nf-core/bwa/mem'
-include { BAM_SORT_STATS_SAMTOOLS } from '../bam_sort_stats_samtools'
+include { BWA_MEM                 } from '../../../modules/nf-core/bwa/mem/main'
+include { BAM_SORT_STATS_SAMTOOLS } from '../bam_sort_stats_samtools/main'
 
 workflow FASTQ_ALIGN_BWA {
     take:
