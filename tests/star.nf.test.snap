@@ -124,6 +124,8 @@
                 "fastqc/zips/SPT5_T15_REP2_T1_2_fastqc.zip",
                 "genome",
                 "genome/genome.fa",
+                "genome/genome.fa.fai",
+                "genome/genome.fa.sizes",
                 "igv",
                 "igv/broad_peak",
                 "igv/broad_peak/igv_files.txt",
@@ -498,9 +500,6 @@
                 "pipeline_info",
                 "pipeline_info/nf_core_chipseq_software_mqc_versions.yml",
                 "pipeline_info/samplesheet.valid.csv",
-                "samtools",
-                "samtools/genome.fa.fai",
-                "samtools/genome.fa.sizes",
                 "star",
                 "star/library",
                 "star/library/log",
@@ -825,6 +824,8 @@
             ],
             [
                 "genome.fa:md5,4bad9f4b18056156a81f7f952abbe125",
+                "genome.fa.fai:md5,6f4c0ce5258e6948135ad006e1f9ee1b",
+                "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc",
                 "cutadapt_filtered_reads_plot.yaml:md5,976fdb8049d847c977195863418e3655",
                 "cutadapt_trimmed_sequences_plot_3_Counts.yaml:md5,e6733f4ff773a27d0ab81564913b4b54",
                 "cutadapt_trimmed_sequences_plot_3_Obs_Exp.yaml:md5,9ffcfe37c02af14b8eddd4746066e56a",
@@ -912,8 +913,6 @@
                 "samtools-stats-dp.yaml:md5,3334c53a05a1f70ee4bd06226479a1a5",
                 "samtools_alignment_plot.yaml:md5,e78658bf88e7d795367a1c1323d96b62",
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384",
-                "genome.fa.fai:md5,6f4c0ce5258e6948135ad006e1f9ee1b",
-                "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc",
                 "SPT5_INPUT_REP1_T1.SJ.out.tab:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "SPT5_INPUT_REP2_T1.SJ.out.tab:md5,a9622ab87264c0ebeafce71db1307c8d",
                 "SPT5_T0_REP1_T1.SJ.out.tab:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -970,20 +969,20 @@
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,aa2db2bcb3aa876cfbfe24b49d98aabd"
             ]
         ],
-        "timestamp": "2026-03-18T21:19:45.013713",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "25.04.7"
+        },
+        "timestamp": "2026-03-19T21:26:59.364670758"
     },
     "star with stub": {
         "content": [
             20
         ],
-        "timestamp": "2026-03-17T16:23:46.465421",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.04.0"
-        }
+        },
+        "timestamp": "2026-03-17T16:23:46.465421"
     }
 }

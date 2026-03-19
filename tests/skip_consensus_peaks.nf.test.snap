@@ -3,11 +3,11 @@
         "content": [
             20
         ],
-        "timestamp": "2026-03-17T14:29:41.990841",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.04.0"
-        }
+        },
+        "timestamp": "2026-03-17T14:29:41.990841"
     },
     "skip_consensus_peaks": {
         "content": [
@@ -355,6 +355,8 @@
                 "fastqc/zips/SPT5_T15_REP2_T1_2_fastqc.zip",
                 "genome",
                 "genome/genome.fa",
+                "genome/genome.fa.fai",
+                "genome/genome.fa.sizes",
                 "igv",
                 "igv/broad_peak",
                 "igv/broad_peak/igv_files.txt",
@@ -713,9 +715,6 @@
                 "pipeline_info",
                 "pipeline_info/nf_core_chipseq_software_mqc_versions.yml",
                 "pipeline_info/samplesheet.valid.csv",
-                "samtools",
-                "samtools/genome.fa.fai",
-                "samtools/genome.fa.sizes",
                 "trimgalore",
                 "trimgalore/fastqc",
                 "trimgalore/fastqc/SPT5_INPUT_REP1_T1_1_val_1_fastqc.html",
@@ -797,6 +796,8 @@
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.flagstat:md5,0f28a70d15ed2500bd27e857a0027a4c",
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,53730b0be4c786651b2c59cc0c1de186",
                 "genome.fa:md5,4bad9f4b18056156a81f7f952abbe125",
+                "genome.fa.fai:md5,6f4c0ce5258e6948135ad006e1f9ee1b",
+                "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc",
                 "cutadapt_filtered_reads_plot.yaml:md5,976fdb8049d847c977195863418e3655",
                 "cutadapt_trimmed_sequences_plot_3_Counts.yaml:md5,e6733f4ff773a27d0ab81564913b4b54",
                 "cutadapt_trimmed_sequences_plot_3_Obs_Exp.yaml:md5,9ffcfe37c02af14b8eddd4746066e56a",
@@ -881,15 +882,13 @@
                 "samtools-idxstats-mapped-reads-plot_Raw_Counts.yaml:md5,c944d25812a73c4ce9de9834943e6732",
                 "samtools-stats-dp.yaml:md5,ba5ad95c00d0bcef0d7aa32f941a813d",
                 "samtools_alignment_plot.yaml:md5,c1b5b60c3c83928275df7f720c5b1697",
-                "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384",
-                "genome.fa.fai:md5,6f4c0ce5258e6948135ad006e1f9ee1b",
-                "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc"
+                "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-03-18T20:48:13.334633",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "25.04.7"
+        },
+        "timestamp": "2026-03-19T20:51:59.309137572"
     }
 }

@@ -372,6 +372,8 @@
                 "fastqc/zips/SPT5_T15_REP2_T1_2_fastqc.zip",
                 "genome",
                 "genome/genome.fa",
+                "genome/genome.fa.fai",
+                "genome/genome.fa.sizes",
                 "genome/index",
                 "genome/index/chromap",
                 "genome/index/chromap/genome.index",
@@ -749,9 +751,6 @@
                 "pipeline_info",
                 "pipeline_info/nf_core_chipseq_software_mqc_versions.yml",
                 "pipeline_info/samplesheet.valid.csv",
-                "samtools",
-                "samtools/genome.fa.fai",
-                "samtools/genome.fa.sizes",
                 "trimgalore",
                 "trimgalore/fastqc",
                 "trimgalore/fastqc/SPT5_INPUT_REP1_T1_1_val_1_fastqc.html",
@@ -843,6 +842,8 @@
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.flagstat:md5,622e67ab9e5ff5ced62fe139e6229fca",
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,de15f2e5ebc654fd49db1c7a12a53494",
                 "genome.fa:md5,4bad9f4b18056156a81f7f952abbe125",
+                "genome.fa.fai:md5,6f4c0ce5258e6948135ad006e1f9ee1b",
+                "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc",
                 "genome.index:md5,377432ea6242989cae4dabb60859f6bd",
                 "cutadapt_filtered_reads_plot.yaml:md5,976fdb8049d847c977195863418e3655",
                 "cutadapt_trimmed_sequences_plot_3_Counts.yaml:md5,e6733f4ff773a27d0ab81564913b4b54",
@@ -930,25 +931,23 @@
                 "samtools-idxstats-mapped-reads-plot_Raw_Counts.yaml:md5,9a9403f14725273c8b44d90937ef0aa6",
                 "samtools-stats-dp.yaml:md5,a6bf11b91c4d80c11d84fe7f5cab8cb7",
                 "samtools_alignment_plot.yaml:md5,861b787bfca0dac75cb2d9467ee21f36",
-                "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384",
-                "genome.fa.fai:md5,6f4c0ce5258e6948135ad006e1f9ee1b",
-                "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc"
+                "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-03-18T20:24:09.431648",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "25.04.7"
+        },
+        "timestamp": "2026-03-19T20:24:48.730771365"
     },
     "chromap with stub": {
         "content": [
             20
         ],
-        "timestamp": "2026-03-17T14:23:25.411753",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.04.0"
-        }
+        },
+        "timestamp": "2026-03-17T14:23:25.411753"
     }
 }
