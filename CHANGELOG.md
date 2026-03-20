@@ -64,13 +64,14 @@ the last release have been listed below for reference.
 | r-tidyverse                 | 1.3.0       | 2.0.0       |
 | bioconductor-complexheatmap | 2.6.2       | 2.26.1      |
 | star                        | 2.6.1d      | 2.7.11b     |
+| python                      | 3.8.3       | 3.12.12     |
 |                             |             |             |
 
 ### Local modules refactoring and topic channels update
 
 | Module                              | Updated to wave containers | Topic channel added | refactoring (adding .yml files) |
 | ----------------------------------- | -------------------------- | ------------------- | ------------------------------- |
-| annotate_boolean_peaks              |                            |                     |                                 |
+| annotate_boolean_peaks              |                            | x                   | x                               |
 | bam_remove_orphans                  | x                          | x                   | x                               |
 | bamtools_filter                     | x                          | x                   | x                               |
 | deseq2_qc                           |                            |                     |                                 |
@@ -84,7 +85,7 @@ the last release have been listed below for reference.
 | multiqc_custom_phantompeakqualtools |                            |                     |                                 |
 | plot_homer_annotatepeaks            | x                          | x                   | x                               |
 | plot_macs3_qc                       | x                          | x                   | x                               |
-| samplesheet_check                   |                            |                     |                                 |
+| samplesheet_check                   | x                          | x                   | x                               |
 | star_align                          | x                          | x                   | x                               |
 | star_genomegenerate                 | x                          | x                   | x                               |
 |                                     |                            |                     |                                 |
