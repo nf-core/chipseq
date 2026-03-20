@@ -1,9 +1,10 @@
 process MULTIQC {
     label 'process_medium'
-    conda "bioconda::multiqc=1.25.1"
+
+    conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'https://depot.galaxyproject.org/singularity/multiqc:1.25.1--pyhdfd78af_0'
-        : 'biocontainers/multiqc:1.25.1--pyhdfd78af_0'}"
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/34/34e733a9ae16a27e80fe00f863ea1479c96416017f24a907996126283e7ecd4d/data'
+        : 'community.wave.seqera.io/library/multiqc:1.33--ee7739d47738383b'}"
 
     input:
     path workflow_summary
@@ -52,6 +53,8 @@ process MULTIQC {
     path "*_data"              , emit: data
     path "*_plots"             , optional: true, emit: plots
     path "versions.yml"        , emit: versions
+    // From the nf-core/moduel: MultiQC should not push its versions to the `versions` topic. Its input depends on the versions topic to be resolved thus outputting to the topic will let the pipeline hang forever
+    tuple val("${task.process}"), val('multiqc'), eval('multiqc --version | sed "s/.* //g"'), emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -65,11 +68,6 @@ process MULTIQC {
         ${args} \\
         ${custom_config} \\
         .
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
-    END_VERSIONS
     """
 
     stub:
@@ -77,10 +75,5 @@ process MULTIQC {
     mkdir -p multiqc_data
     touch multiqc_report.html
     touch multiqc_data/multiqc.log
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
-    END_VERSIONS
     """
 }
