@@ -65,6 +65,7 @@ the last release have been listed below for reference.
 | bioconductor-complexheatmap | 2.6.2       | 2.26.1      |
 | star                        | 2.6.1d      | 2.7.11b     |
 | python                      | 3.8.3       | 3.12.12     |
+| multiqc                     | 1.25.1      | 1.33        |
 |                             |             |             |
 
 ### Local modules refactoring and topic channels update
@@ -74,15 +75,15 @@ the last release have been listed below for reference.
 | annotate_boolean_peaks              |                            | x                   | x                               |
 | bam_remove_orphans                  | x                          | x                   | x                               |
 | bamtools_filter                     | x                          | x                   | x                               |
-| deseq2_qc                           |                            |                     |                                 |
+| deseq2_qc                           |                            | x                   | x                               |
 | frip_score                          | x                          | x                   | x                               |
 | genome_blacklist_regions            | x                          | x                   | x                               |
-| gtf2bed                             |                            |                     |                                 |
-| igv                                 |                            |                     |                                 |
+| gtf2bed                             |                            | x                   | x                               |
+| igv                                 | x                          | x                   | x                               |
 | macs3_consensus                     | x                          | x                   | x                               |
-| multiqc                             |                            |                     |                                 |
-| multiqc_custom_peaks                |                            |                     |                                 |
-| multiqc_custom_phantompeakqualtools |                            |                     |                                 |
+| multiqc                             | x                          | x                   | x                               |
+| multiqc_custom_peaks                |                            | x                   | x                               |
+| multiqc_custom_phantompeakqualtools | x                          | x                   | x                               |
 | plot_homer_annotatepeaks            | x                          | x                   | x                               |
 | plot_macs3_qc                       | x                          | x                   | x                               |
 | samplesheet_check                   | x                          | x                   | x                               |
