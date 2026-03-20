@@ -66,6 +66,7 @@ workflow NFCORE_CHIPSEQ {
         params.chromap_index,
         params.star_index,
     )
+    ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
     // WORKFLOW: Run nf-core/chipseq workflow
@@ -89,7 +90,6 @@ workflow NFCORE_CHIPSEQ {
 
     emit:
     multiqc_report = CHIPSEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                // channel: [version1, version2, ...]
 }
 
 /*
