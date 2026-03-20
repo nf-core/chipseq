@@ -54,6 +54,7 @@ workflow PREPARE_GENOME {
     //
     // Uncompress GTF annotation file or create from GFF3 if required
     //
+    ch_gtf = channel.empty()
     if (gtf) {
         if (gtf.endsWith('.gz')) {
             ch_gtf      = GUNZIP_GTF([[:], gtf]).gunzip.map { it[1] }
