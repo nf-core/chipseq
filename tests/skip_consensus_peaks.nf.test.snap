@@ -52,8 +52,20 @@
                 "GENOME_BLACKLIST_REGIONS": {
                     "bedtools": "2.31.1"
                 },
+                "GTF2BED": {
+                    "perl": "5.26.2"
+                },
+                "HOMER_ANNOTATEPEAKS": {
+                    "homer": 4.11
+                },
+                "IGV": {
+                    "python": "3.8.3"
+                },
                 "MACS3_CALLPEAK": {
                     "macs3": "3.0.4"
+                },
+                "MULTIQC_CUSTOM_PEAKS": {
+                    "sed": 4.7
                 },
                 "PICARD_COLLECTMULTIPLEMETRICS": {
                     "picard": "3.4.0"
@@ -69,6 +81,9 @@
                 },
                 "PLOT_MACS3_QC": {
                     "R": "4.5.3"
+                },
+                "SAMPLESHEET_CHECK": {
+                    "python": "3.8.3"
                 },
                 "SAMTOOLS_FAIDX": {
                     "samtools": "1.22.1"
@@ -889,6 +904,6 @@
             "nf-test": "0.9.3",
             "nextflow": "25.04.7"
         },
-        "timestamp": "2026-03-19T20:51:59.309137572"
+        "timestamp": "2026-03-20T23:11:22.404678758"
     }
 }
