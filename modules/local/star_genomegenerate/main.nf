@@ -13,7 +13,7 @@ process STAR_GENOMEGENERATE {
     path gtf
 
     output:
-    path "star"        , emit: index
+    path "star", emit: index
     tuple val("${task.process}"), val('samtools'), eval("samtools --version | sed '1!d;s/.* //'"), topic: versions, emit: versions_samtools
     tuple val("${task.process}"), val('star'), eval('STAR --version | sed -e "s/STAR_//"'), topic: versions, emit: versions_star
 
@@ -34,10 +34,6 @@ process STAR_GENOMEGENERATE {
             --runThreadN $task.cpus \\
             $memory \\
             ${args.join(' ')}
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            star: \$(STAR --version | sed -e "s/STAR_//g")
-        END_VERSIONS
         """
     } else {
         """

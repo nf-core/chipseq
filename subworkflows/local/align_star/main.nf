@@ -2,8 +2,8 @@
  * Map reads, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-include { STAR_ALIGN              } from '../../../modules/local/star_align/main'
-include { BAM_SORT_STATS_SAMTOOLS } from '../../nf-core/bam_sort_stats_samtools/main'
+include { STAR_ALIGN              } from '../../../modules/local/star_align'
+include { BAM_SORT_STATS_SAMTOOLS } from '../../nf-core/bam_sort_stats_samtools'
 
 workflow ALIGN_STAR {
     take:
