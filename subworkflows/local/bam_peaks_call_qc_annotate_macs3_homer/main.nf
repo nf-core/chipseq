@@ -2,13 +2,13 @@
 // Call peaks with MACS3, annotate with HOMER and perform downstream QC
 //
 
-include { MACS3_CALLPEAK           } from '../../../modules/nf-core/macs3/callpeak/main'
-include { HOMER_ANNOTATEPEAKS      } from '../../../modules/nf-core/homer/annotatepeaks/main'
+include { MACS3_CALLPEAK           } from '../../../modules/nf-core/macs3/callpeak'
+include { HOMER_ANNOTATEPEAKS      } from '../../../modules/nf-core/homer/annotatepeaks'
 
-include { FRIP_SCORE               } from '../../../modules/local/frip_score/main'
-include { MULTIQC_CUSTOM_PEAKS     } from '../../../modules/local/multiqc_custom_peaks/main'
-include { PLOT_MACS3_QC            } from '../../../modules/local/plot_macs3_qc/main'
-include { PLOT_HOMER_ANNOTATEPEAKS } from '../../../modules/local/plot_homer_annotatepeaks/main'
+include { FRIP_SCORE               } from '../../../modules/local/frip_score'
+include { MULTIQC_CUSTOM_PEAKS     } from '../../../modules/local/multiqc_custom_peaks'
+include { PLOT_MACS3_QC            } from '../../../modules/local/plot_macs3_qc'
+include { PLOT_HOMER_ANNOTATEPEAKS } from '../../../modules/local/plot_homer_annotatepeaks'
 
 workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     take:
@@ -25,6 +25,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     skip_peak_qc                      // boolean: true/false
 
     main:
+
+    ch_versions = channel.empty()
 
     //
     // Call peaks with MACS3
@@ -79,13 +81,14 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
         ch_peak_count_header_multiqc,
         ch_frip_score_multiqc
     )
+    ch_versions = ch_versions.mix(MULTIQC_CUSTOM_PEAKS.out.versions.first())
 
-    ch_homer_annotatepeaks          = Channel.empty()
-    ch_plot_macs3_qc_txt            = Channel.empty()
-    ch_plot_macs3_qc_pdf            = Channel.empty()
-    ch_plot_homer_annotatepeaks_txt = Channel.empty()
-    ch_plot_homer_annotatepeaks_pdf = Channel.empty()
-    ch_plot_homer_annotatepeaks_tsv = Channel.empty()
+    ch_homer_annotatepeaks          = channel.empty()
+    ch_plot_macs3_qc_txt            = channel.empty()
+    ch_plot_macs3_qc_pdf            = channel.empty()
+    ch_plot_homer_annotatepeaks_txt = channel.empty()
+    ch_plot_homer_annotatepeaks_pdf = channel.empty()
+    ch_plot_homer_annotatepeaks_tsv = channel.empty()
     if (!skip_peak_annotation) {
         //
         // Annotate peaks with HOMER
@@ -96,6 +99,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             ch_gtf
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
+        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
 
         if (!skip_peak_qc) {
             //
@@ -142,4 +146,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     plot_homer_annotatepeaks_txt = ch_plot_homer_annotatepeaks_txt  // channel: [ txt ]
     plot_homer_annotatepeaks_pdf = ch_plot_homer_annotatepeaks_pdf  // channel: [ pdf ]
     plot_homer_annotatepeaks_tsv = ch_plot_homer_annotatepeaks_tsv  // channel: [ tsv ]
+
+    versions                     = ch_versions                      // channel: [ versions.yml ]
 }
