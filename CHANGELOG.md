@@ -59,29 +59,6 @@ the last release have been listed below for reference.
 | multiqc                     | 1.25.1      | 1.33        |
 |                             |             |             |
 
-### Local modules refactoring and topic channels update
-
-| Module                              | Updated to wave containers | Topic channel added | refactoring (adding .yml files) |
-| ----------------------------------- | -------------------------- | ------------------- | ------------------------------- |
-| annotate_boolean_peaks              |                            | x                   | x                               |
-| bam_remove_orphans                  | x                          | x                   | x                               |
-| bamtools_filter                     | x                          | x                   | x                               |
-| deseq2_qc                           |                            | x                   | x                               |
-| frip_score                          | x                          | x                   | x                               |
-| genome_blacklist_regions            | x                          | x                   | x                               |
-| gtf2bed                             |                            | x                   | x                               |
-| igv                                 | x                          | x                   | x                               |
-| macs3_consensus                     | x                          | x                   | x                               |
-| multiqc                             | x                          | x                   | x                               |
-| multiqc_custom_peaks                |                            | x                   | x                               |
-| multiqc_custom_phantompeakqualtools | x                          | x                   | x                               |
-| plot_homer_annotatepeaks            | x                          | x                   | x                               |
-| plot_macs3_qc                       | x                          | x                   | x                               |
-| samplesheet_check                   | x                          | x                   | x                               |
-| star_align                          | x                          | x                   | x                               |
-| star_genomegenerate                 | x                          | x                   | x                               |
-|                                     |                            |                     |                                 |
-
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
 
 ### Credits
