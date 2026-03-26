@@ -12,8 +12,8 @@ process GTF2BED {
 
     output:
     path '*.bed'       , emit: bed
-    tuple val({"${task.process}"}), val('perl'), eval("perl --version 2>&1 | sed 's/.*v\\(.*\\)) built.*/\\1/'"), topic:versions, emit: versions_perl
-
+    tuple val({"${task.process}"}), val('perl'), eval("perl -V:version | sed \"s/version='//; s/';//\""), topic:versions, emit: versions_perl
+                                                      
 
     when:
     task.ext.when == null || task.ext.when
