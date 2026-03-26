@@ -81,7 +81,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
         ch_peak_count_header_multiqc,
         ch_frip_score_multiqc
     )
-    ch_versions = ch_versions.mix(MULTIQC_CUSTOM_PEAKS.out.versions.first())
 
     ch_homer_annotatepeaks          = channel.empty()
     ch_plot_macs3_qc_txt            = channel.empty()
@@ -99,7 +98,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             ch_gtf
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
 
         if (!skip_peak_qc) {
             //
@@ -146,6 +144,4 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     plot_homer_annotatepeaks_txt = ch_plot_homer_annotatepeaks_txt  // channel: [ txt ]
     plot_homer_annotatepeaks_pdf = ch_plot_homer_annotatepeaks_pdf  // channel: [ pdf ]
     plot_homer_annotatepeaks_tsv = ch_plot_homer_annotatepeaks_tsv  // channel: [ tsv ]
-
-    versions                     = ch_versions                      // channel: [ versions.yml ]
 }

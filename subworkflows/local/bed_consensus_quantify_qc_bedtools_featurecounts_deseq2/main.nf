@@ -68,7 +68,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
             ch_fasta,
             ch_gtf
         )
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions)
 
         //
         // MODULE: Add boolean fields to annotated consensus peaks to aid filtering
@@ -76,7 +75,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         ANNOTATE_BOOLEAN_PEAKS (
             MACS3_CONSENSUS.out.boolean_txt.join(HOMER_ANNOTATEPEAKS.out.txt, by: [0]),
         )
-        ch_versions = ch_versions.mix(ANNOTATE_BOOLEAN_PEAKS.out.versions)
     }
 
     // Create channels: [ meta, [ ip_bams ], saf ]
@@ -128,7 +126,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         ch_deseq2_qc_dists_multiqc = DESEQ2_QC.out.dists_multiqc
         ch_deseq2_qc_log           = DESEQ2_QC.out.log
         ch_deseq2_qc_size_factors  = DESEQ2_QC.out.size_factors
-        ch_versions = ch_versions.mix(DESEQ2_QC.out.versions)
     }
 
     emit:
@@ -151,6 +148,4 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     deseq2_qc_dists_multiqc = ch_deseq2_qc_dists_multiqc        // channel: [ txt ]
     deseq2_qc_log           = ch_deseq2_qc_log                  // channel: [ txt ]
     deseq2_qc_size_factors  = ch_deseq2_qc_size_factors         // channel: [ txt ]
-
-    versions                = ch_versions                       // channel: [ versions.yml ]
 }
