@@ -825,8 +825,6 @@
                 "fastqc_sequence_duplication_levels_plot.yaml:md5,e5532eac263c0b33ed3c024eca5fce94",
                 "fastqc_sequence_length_distribution_plot.yaml:md5,e701cb601de4693ab09473b849e4f110",
                 "fastqc_top_overrepresented_sequences_table.yaml:md5,443e161371f73cebf63c14f7a9f3580d",
-                "llms-full.txt:md5,d4acf16d6ba49180502b0019bcd2d6c9",
-                "multiqc.parquet:md5,97238dcfd7d08cf243e3dca203123076",
                 "multiqc_citations.yaml:md5,c4cdebc20cfc52eb2eee741a36323b3e",
                 "multiqc_fastqc.yaml:md5,30fe6d1a5e5c04695dda81294b828ec9",
                 "multiqc_fastqc_fastqc-1.yaml:md5,cd4a85c27c3cf85f1d0612afce793186",
@@ -888,7 +886,7 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-03-26T10:03:56.500035",
+        "timestamp": "2026-03-26T14:06:46.726058",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.04.0"

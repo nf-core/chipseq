@@ -861,8 +861,6 @@
                 "fastqc_sequence_length_distribution_plot.yaml:md5,e701cb601de4693ab09473b849e4f110",
                 "fastqc_top_overrepresented_sequences_table.yaml:md5,443e161371f73cebf63c14f7a9f3580d",
                 "featureCounts_assignment_plot.yaml:md5,af828a63e428826fc5d3ff32647ce0c0",
-                "llms-full.txt:md5,cf1a888e785c555f81ae929eb1f86296",
-                "multiqc.parquet:md5,6eafc65636c9eade9616e16f5f279c69",
                 "multiqc_citations.yaml:md5,fca5dc7cb20162434c714d26b11161f3",
                 "multiqc_fastqc.yaml:md5,30fe6d1a5e5c04695dda81294b828ec9",
                 "multiqc_fastqc_fastqc-1.yaml:md5,cd4a85c27c3cf85f1d0612afce793186",
@@ -979,7 +977,7 @@
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,aa2db2bcb3aa876cfbfe24b49d98aabd"
             ]
         ],
-        "timestamp": "2026-03-26T10:33:51.882819",
+        "timestamp": "2026-03-26T14:28:39.102565",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.04.0"
