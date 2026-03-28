@@ -98,6 +98,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             ch_gtf
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
+        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
 
         if (!skip_peak_qc) {
             //

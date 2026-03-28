@@ -1,6 +1,6 @@
 process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
     tag "$meta.id"
-    conda "conda-forge::r-base=4.3.3"
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/c7/c73daa0b0040137fbea15fc8ee54c9bf4e0a9c5e9412cc7c13f7b38cc9c8bbd9/data':
         'community.wave.seqera.io/library/r-base:4.5.3--6814a4ccafc04d08' }"
