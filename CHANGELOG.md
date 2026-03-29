@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#484](https://github.com/nf-core/chipseq/issues/484)] - Bulk, updated of modules and subworkflows.
 - [[#489](https://github.com/nf-core/chipseq/issues/489)] - Replace deprecated `CUSTOM_GETCHROMSIZES` with `SAMTOOLS_FAIDX`.
 - [[PR #493](https://github.com/nf-core/chipseq/pull/493)] - Follow up to #487.
+- [[PR #493](https://github.com/nf-core/chipseq/pull/493)] - Follow up to #487.
+- [[#492](https://github.com/nf-core/chipseq/issues/492), [#417](https://github.com/nf-core/chipseq/issues/417)] - Refactor local modules to nf-core standard.
 
 ### Parameters
 
