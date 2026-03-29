@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#484](https://github.com/nf-core/chipseq/issues/484)] - Bulk, updated of modules and subworkflows.
 - [[#489](https://github.com/nf-core/chipseq/issues/489)] - Replace deprecated `CUSTOM_GETCHROMSIZES` with `SAMTOOLS_FAIDX`.
 - [[PR #493](https://github.com/nf-core/chipseq/pull/493)] - Follow up to #487.
+- [[PR #493](https://github.com/nf-core/chipseq/pull/493)] - Follow up to #487.
+- [[#492](https://github.com/nf-core/chipseq/issues/492), [#417](https://github.com/nf-core/chipseq/issues/417)] - Refactor local modules to nf-core standard.
 
 ### Parameters
 
@@ -55,10 +57,9 @@ the last release have been listed below for reference.
 | r-tidyverse                 | 1.3.0       | 2.0.0       |
 | bioconductor-complexheatmap | 2.6.2       | 2.26.1      |
 | star                        | 2.6.1d      | 2.7.11b     |
-
-> **NB:** Dependency has been **updated** if both old and new version information is present.
-> **NB:** Dependency has been **added** if just the new version information is present.
-> **NB:** Dependency has been **removed** if version information isn't present.
+| python                      | 3.8.3       | 3.12.12     |
+| multiqc                     | 1.25.1      | 1.33        |
+|                             |             |             |
 
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
 

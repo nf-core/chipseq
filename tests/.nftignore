@@ -16,6 +16,8 @@ multiqc/multiqc_data/BETA-multiqc.parquet
 **/multiqc_software_versions.yaml
 multiqc/multiqc_data/multiqc_sources.txt
 multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
+**/multiqc_data/llms-full.txt
+**/multiqc_data/multiqc.parquet
 
 # === QC TOOL OUTPUTS ===
 fastqc/*_fastqc.{html,zip}

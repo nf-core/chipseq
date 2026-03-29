@@ -3,10 +3,10 @@
  */
 process IGV {
 
-    conda "conda-forge::python=3.8.3"
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/python:3.8.3':
-        'biocontainers/python:3.8.3' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/62/622d8944750bc95bb56b4c3ed5c2b827e677c14073d48a5231e0f2bec0718add/data' :
+        'community.wave.seqera.io/library/python:3.12.12--74abbf3898230efd' }"
 
     input:
     val aligner_dir
@@ -21,7 +21,7 @@ process IGV {
     path "*files.txt"  , emit: txt
     path "*.xml"       , emit: xml
     path fasta         , emit: fasta
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('python'), eval("python --version | sed 's/Python //'"), topic: versions, emit: versions_python
 
     when:
     task.ext.when == null || task.ext.when
@@ -42,10 +42,5 @@ process IGV {
 
     cat *.igv.txt > igv_files_orig.txt
     igv_files_to_session.py igv_session.xml igv_files_orig.txt replace_paths.txt ../../genome/${fasta.getName()} --path_prefix '../../'
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version | sed 's/Python //g')
-    END_VERSIONS
     """
 }

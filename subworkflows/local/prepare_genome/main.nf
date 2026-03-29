@@ -102,7 +102,6 @@ workflow PREPARE_GENOME {
 
     if (make_bed) {
         ch_gene_bed = GTF2BED(ch_gtf).bed
-        ch_versions = ch_versions.mix(GTF2BED.out.versions)
     } else {
         if (gene_bed.endsWith('.gz')) {
             ch_gene_bed = GUNZIP_GENE_BED([[:], gene_bed]).gunzip.map { it[1] }
@@ -207,5 +206,4 @@ workflow PREPARE_GENOME {
     bowtie2_index = ch_bowtie2_index          //    path: bowtie2/index/
     chromap_index = ch_chromap_index          //    path: genome.index
     star_index    = ch_star_index             //    path: star/index/
-    versions      = ch_versions       //    path: versions.yml
 }

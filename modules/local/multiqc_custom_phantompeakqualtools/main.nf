@@ -1,9 +1,9 @@
 process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
     tag "$meta.id"
-    conda "conda-forge::r-base=4.3.3"
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/45/4569ff9993578b8402d00230ab9dd75ce6e63529731eb24f21579845e6bd5cdb/data':
-        'community.wave.seqera.io/library/r-base:4.3.3--14bb33ac537aea22' }"
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/c7/c73daa0b0040137fbea15fc8ee54c9bf4e0a9c5e9412cc7c13f7b38cc9c8bbd9/data':
+        'community.wave.seqera.io/library/r-base:4.5.3--6814a4ccafc04d08' }"
 
     input:
     tuple val(meta), path(spp), path(rdata)
@@ -15,6 +15,7 @@ process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
     tuple val(meta), path("*.spp_nsc_mqc.tsv")        , emit: nsc
     tuple val(meta), path("*.spp_rsc_mqc.tsv")        , emit: rsc
     tuple val(meta), path("*.spp_correlation_mqc.tsv"), emit: correlation
+    tuple val("${task.process}"), val('R'), eval('R --version | sed "1!d; s/.*version //; s/ .*//"'), topic: versions, emit: versions_r
 
     when:
     task.ext.when == null || task.ext.when
@@ -27,11 +28,6 @@ process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
 
     awk -v OFS='\t' '{print "${meta.id}", \$9}'  $spp | cat $nsc_header - > ${prefix}.spp_nsc_mqc.tsv
     awk -v OFS='\t' '{print "${meta.id}", \$10}' $spp | cat $rsc_header - > ${prefix}.spp_rsc_mqc.tsv
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-    END_VERSIONS
     """
 
     stub:
@@ -40,10 +36,5 @@ process MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS {
     touch ${prefix}.spp_nsc_mqc.tsv
     touch ${prefix}.spp_rsc_mqc.tsv
     touch ${prefix}.spp_correlation_mqc.tsv
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-    END_VERSIONS
     """
 }
