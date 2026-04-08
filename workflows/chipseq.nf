@@ -508,9 +508,15 @@ workflow CHIPSEQ {
     //
     if (!params.skip_igv) {
 
-        // Separate IP samples (have a control) from control samples (control == null)
+        // Separate IP samples (have a non-empty control) from control samples
         ch_genome_bam_bai
-            .filter { meta, bam, bai -> meta.control != null }
+            .branch { meta, bam, bai ->
+                ip:      meta.control   // truthy = non-null, non-empty
+                control: true
+            }
+            .set { ch_bam_bai_branched }
+
+        ch_bam_bai_branched.ip
             .multiMap { meta, bam, bai ->
                 bam:  bam
                 bai:  bai
@@ -518,8 +524,7 @@ workflow CHIPSEQ {
             }
             .set { ch_ip_for_igv }
 
-        ch_genome_bam_bai
-            .filter { meta, bam, bai -> meta.control == null }
+        ch_bam_bai_branched.control
             .multiMap { meta, bam, bai ->
                 bam:  bam
                 bai:  bai
@@ -536,10 +541,10 @@ workflow CHIPSEQ {
             BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.peaks.collect{it[1]}.ifEmpty([]),
             ch_macs3_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
             ch_macs3_consensus_txt_lib.collect{it[1]}.ifEmpty([]),
-            ch_ip_for_igv.bam.collect().ifEmpty( file('NO_IP_BAMS') ),
-            ch_ip_for_igv.bai.collect().ifEmpty( file('NO_IP_BAIS') ),
-            ch_ctrl_for_igv.bam.collect().ifEmpty( file('NO_CTRL_BAMS') ),
-            ch_ctrl_for_igv.bai.collect().ifEmpty( file('NO_CTRL_BAIS') ),
+            ch_ip_for_igv.bam.collect().ifEmpty([]),
+            ch_ip_for_igv.bai.collect().ifEmpty([]),
+            ch_ctrl_for_igv.bam.collect().ifEmpty([]),
+            ch_ctrl_for_igv.bai.collect().ifEmpty([]),
             ch_ip_for_igv.name.collect().ifEmpty([]),
             ch_ctrl_for_igv.name.collect().ifEmpty([])
         )

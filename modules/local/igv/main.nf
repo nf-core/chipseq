@@ -37,11 +37,16 @@ process IGV {
     script: // scripts are bundled with the pipeline in nf-core/chipseq/bin/
     def consensus_dir = "${aligner_dir}/merged_library/macs3/${peak_dir}/consensus/*"
 
-    // Build space-separated file lists for the Python script
-    def ip_bam_args     = ip_bams.name     != 'NO_IP_BAMS'     ? "--bam_files ${ip_bams.collect{ it.name }.join(' ')}"         : ''
-    def ip_bai_args     = ip_bais.name     != 'NO_IP_BAIS'     ? "--bai_files ${ip_bais.collect{ it.name }.join(' ')}"         : ''
-    def ctrl_bam_args   = control_bams.name != 'NO_CTRL_BAMS'  ? "--control_bam_files ${control_bams.collect{ it.name }.join(' ')}" : ''
-    def ctrl_bai_args   = control_bais.name != 'NO_CTRL_BAIS'  ? "--control_bai_files ${control_bais.collect{ it.name }.join(' ')}" : ''
+    // Build space-separated file lists for the Python script.
+    // Inputs may be single files, lists of files, or empty lists [].
+    def ip_bam_list     = ip_bams instanceof List ? ip_bams : (ip_bams.name != 'input' ? [ip_bams] : [])
+    def ip_bai_list     = ip_bais instanceof List ? ip_bais : (ip_bais.name != 'input' ? [ip_bais] : [])
+    def ctrl_bam_list   = control_bams instanceof List ? control_bams : (control_bams.name != 'input' ? [control_bams] : [])
+    def ctrl_bai_list   = control_bais instanceof List ? control_bais : (control_bais.name != 'input' ? [control_bais] : [])
+    def ip_bam_args     = ip_bam_list   ? "--bam_files ${ip_bam_list.collect{ it.name }.join(' ')}"           : ''
+    def ip_bai_args     = ip_bai_list   ? "--bai_files ${ip_bai_list.collect{ it.name }.join(' ')}"           : ''
+    def ctrl_bam_args   = ctrl_bam_list ? "--control_bam_files ${ctrl_bam_list.collect{ it.name }.join(' ')}" : ''
+    def ctrl_bai_args   = ctrl_bai_list ? "--control_bai_files ${ctrl_bai_list.collect{ it.name }.join(' ')}" : ''
     def sample_id_args  = ip_sample_ids     ? "--sample_ids ${ip_sample_ids.join(' ')}"      : ''
     def control_id_args = control_sample_ids ? "--control_ids ${control_sample_ids.join(' ')}" : ''
     """
