@@ -3,12 +3,16 @@
 #######################################################################
 #######################################################################
 ## Created on July 4th 2018 to create IGV session file from file list
+## Extended 2025 to also produce an IGV.js JSON session for Seqera
+## Data Explorer
 #######################################################################
 #######################################################################
 
 import os
 import errno
 import argparse
+import json
+import re
 
 ############################################
 ############################################
@@ -16,8 +20,12 @@ import argparse
 ############################################
 ############################################
 
-Description = 'Create IGV session file from a list of files and associated colours - ".bed", ".bw", ".bigwig", ".tdf", ".gtf" files currently supported.'
-Epilog = """Example usage: python igv_files_to_session.py <XML_OUT> <LIST_FILE> <GENOME>"""
+Description = (
+    "Create IGV session file from a list of files and associated colours - "
+    '".bed", ".bw", ".bigwig", ".tdf", ".gtf" files currently supported. '
+    "Optionally emits an IGV.js-compatible JSON session."
+)
+Epilog = """Example usage: python igv_files_to_session.py <XML_OUT> <LIST_FILE> <REPLACE_FILE> <GENOME>"""
 
 argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 
@@ -25,11 +33,11 @@ argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 argParser.add_argument("XML_OUT", help="XML output file.")
 argParser.add_argument(
     "LIST_FILE",
-    help="Tab-delimited file containing two columns i.e. file_name\tcolour. Header isnt required.",
+    help="Tab-delimited file containing two columns i.e. file_name\\tcolour. Header isnt required.",
 )
 argParser.add_argument(
     "REPLACE_FILE",
-    help="Tab-delimited file containing two columns i.e. file_name\treplacement_file_name. Header isnt required.",
+    help="Tab-delimited file containing two columns i.e. file_name\\treplacement_file_name. Header isnt required.",
 )
 argParser.add_argument(
     "GENOME",
@@ -44,6 +52,59 @@ argParser.add_argument(
     dest="PATH_PREFIX",
     default="",
     help="Path prefix to be added at beginning of all files in input list file.",
+)
+argParser.add_argument(
+    "--json_out",
+    type=str,
+    dest="JSON_OUT",
+    default="",
+    help="If provided, also write an IGV.js-compatible JSON session to this path.",
+)
+argParser.add_argument(
+    "--genome_id",
+    type=str,
+    dest="GENOME_ID",
+    default="",
+    help="Genome identifier for IGV.js (e.g. hg38, mm10). "
+    "Used in the JSON output.  Falls back to GENOME if not set.",
+)
+argParser.add_argument(
+    "--bam_files",
+    nargs="*",
+    default=[],
+    help="BAM files to include in the JSON session (IP samples).",
+)
+argParser.add_argument(
+    "--bai_files",
+    nargs="*",
+    default=[],
+    help="BAM index files (same order as --bam_files).",
+)
+argParser.add_argument(
+    "--control_bam_files",
+    nargs="*",
+    default=[],
+    help="Input/control BAM files to include in the JSON session.",
+)
+argParser.add_argument(
+    "--control_bai_files",
+    nargs="*",
+    default=[],
+    help="Input/control BAM index files (same order as --control_bam_files).",
+)
+argParser.add_argument(
+    "--sample_ids",
+    nargs="*",
+    default=[],
+    help="Sample names for IP BAMs (same order as --bam_files). "
+    "Derived from filenames when omitted.",
+)
+argParser.add_argument(
+    "--control_ids",
+    nargs="*",
+    default=[],
+    help="Sample names for control BAMs (same order as --control_bam_files). "
+    "Derived from filenames when omitted.",
 )
 args = argParser.parse_args()
 
@@ -63,9 +124,83 @@ def makedir(path):
                 raise
 
 
+# ---- IGV.js genome name mapping -----------------------------------------
+
+GENOME_MAP = {
+    # Human
+    "GRCh38": "hg38", "GRCh37": "hg19", "hg38": "hg38", "hg19": "hg19",
+    "hg18": "hg18", "hs1": "hs1",
+    # Mouse
+    "GRCm39": "mm39", "GRCm38": "mm10", "mm39": "mm39", "mm10": "mm10",
+    "mm9": "mm9",
+    # Rat
+    "Rnor_6.0": "rn6", "rn6": "rn6", "rn7": "rn7",
+    # Fly / worm / fish / yeast
+    "BDGP6": "dm6", "dm6": "dm6", "dm3": "dm3",
+    "WBcel235": "ce11", "ce11": "ce11",
+    "GRCz11": "danRer11", "GRCz10": "danRer10",
+    "danRer11": "danRer11", "danRer10": "danRer10",
+    "R64-1-1": "sacCer3", "sacCer3": "sacCer3",
+    # Plant
+    "TAIR10": "tair10", "tair10": "tair10",
+    # Dog / cow
+    "CanFam3.1": "canFam3", "canFam3": "canFam3",
+    "UMD3.1": "bosTau8", "bosTau9": "bosTau9", "bosTau8": "bosTau8",
+}
+
+
+def resolve_genome_id(genome_key):
+    """Return the IGV.js-compatible genome id for a given key."""
+    return GENOME_MAP.get(genome_key, genome_key)
+
+
+# ---- Per-sample colour palette (12 distinct, accessible colours) ---------
+
+COLOUR_PALETTE = [
+    "rgb(31,120,180)",   # blue
+    "rgb(227,26,28)",    # red
+    "rgb(51,160,44)",    # green
+    "rgb(255,127,0)",    # orange
+    "rgb(106,61,154)",   # purple
+    "rgb(177,89,40)",    # brown
+    "rgb(166,206,227)",  # light blue
+    "rgb(251,154,153)",  # pink
+    "rgb(178,223,138)",  # light green
+    "rgb(253,191,111)",  # light orange
+    "rgb(202,178,214)",  # light purple
+    "rgb(255,255,153)",  # yellow
+]
+
+CONTROL_COLOUR = "rgb(128,128,128)"
+
+
+def sample_name_from_bam(bam_path):
+    """
+    Derive a human-friendly sample name from a BAM / bigWig filename.
+
+    nf-core/chipseq convention:  <sample>.mLb.clN.sorted.bam
+    Falls back to the filename stem when the pattern doesn't match.
+    """
+    base = os.path.basename(bam_path)
+    name = re.sub(r"\.mLb\..*$", "", base)
+    name = re.sub(r"\.mLB\..*$", "", name)
+    name = re.sub(r"\.sorted\.bam$", "", name)
+    name = re.sub(r"\.bam$", "", name)
+    name = re.sub(r"\.bigWig$", "", name)
+    name = re.sub(r"\.bw$", "", name)
+    return name
+
+
+def sample_name_from_peak(peak_path):
+    """Derive sample name from a MACS3 peak filename."""
+    base = os.path.basename(peak_path)
+    name = re.sub(r"_peaks\.(narrow|broad)Peak$", "", base)
+    return name
+
+
 ############################################
 ############################################
-## MAIN FUNCTION
+## MAIN FUNCTION — XML (original)
 ############################################
 ############################################
 
@@ -160,11 +295,222 @@ def igv_files_to_session(XMLOut, ListFile, ReplaceFile, Genome, PathPrefix=""):
                 % (ifile, os.path.basename(ifile))
             )
     XMLStr += "\t</Panel>\n"
-    # XMLStr += '\t<HiddenAttributes>\n\t\t<Attribute name="DATA FILE"/>\n\t\t<Attribute name="DATA TYPE"/>\n\t\t<Attribute name="NAME"/>\n\t</HiddenAttributes>\n'
     XMLStr += "</Session>"
     XMLOut = open(XMLOut, "w")
     XMLOut.write(XMLStr)
     XMLOut.close()
+
+    return fileList
+
+
+############################################
+############################################
+## IGV.js JSON SESSION BUILDER
+############################################
+############################################
+
+
+def build_igvjs_session(
+    genome_id,
+    file_list,
+    bam_files,
+    bai_files,
+    control_bam_files,
+    control_bai_files,
+    sample_ids,
+    control_ids,
+):
+    """
+    Build an IGV.js ``createBrowser()``-compatible configuration dict.
+
+    Parameters
+    ----------
+    genome_id : str
+        IGV.js genome identifier (e.g. "hg38").
+    file_list : list[tuple[str, str]]
+        (relative_path, colour) pairs already resolved by the XML builder
+        for bigWigs, peaks, and consensus BEDs.
+    bam_files / bai_files : list[str]
+        IP / treatment BAM and index *filenames* (basenames — relative
+        paths are constructed from the file_list prefix convention).
+    control_bam_files / control_bai_files : list[str]
+        Input / control BAM and index filenames (optional).
+    sample_ids / control_ids : list[str]
+        Explicit sample names; derived from filenames when empty.
+    """
+    igv_genome = resolve_genome_id(genome_id)
+    tracks = []
+    order = 1
+
+    # ------------------------------------------------------------------
+    # Discover the path prefix used for the existing file_list entries
+    # so we can construct matching relative URLs for the BAMs.
+    # The file_list paths look like "../../bwa/merged_library/bigwig/X.bigWig".
+    # We want to express BAM paths with the same prefix & aligner directory,
+    # e.g. "../../bwa/merged_library/X.bam".
+    #
+    # For the JSON session (targeted at Data Explorer) we strip any leading
+    # "../../" prefix so all paths are relative to the output root, e.g.
+    # "bwa/merged_library/bigwig/X.bigWig".
+    # ------------------------------------------------------------------
+
+    def _strip_dotdot(p):
+        """Remove leading ../../ prefixes — give path relative to outdir root."""
+        return re.sub(r"^(\.\./)+", "", p)
+
+    # Build a lookup of already-resolved relative paths by basename so we
+    # can reuse them for naming tracks.
+    resolved_by_basename = {}
+    for fpath, colour in file_list:
+        resolved_by_basename[os.path.basename(fpath)] = _strip_dotdot(fpath)
+
+    # Determine aligner dir from existing paths (first bigWig or peak path)
+    aligner_prefix = ""
+    for fpath, _ in file_list:
+        clean = _strip_dotdot(fpath)
+        # e.g. "bwa/merged_library/bigwig/X.bigWig"
+        parts = clean.split("/")
+        if len(parts) >= 2:
+            aligner_prefix = parts[0] + "/merged_library"
+            break
+
+    # ---- Group bigWig / peak paths by sample name ----
+    bw_tracks = {}
+    peak_tracks = {}
+    consensus_tracks = []
+
+    for fpath, colour in file_list:
+        clean = _strip_dotdot(fpath)
+        base = os.path.basename(fpath)
+        ext = os.path.splitext(base)[1].lower()
+
+        if ext in (".bw", ".bigwig"):
+            name = sample_name_from_bam(base)
+            bw_tracks[name] = (clean, colour)
+        elif ext in (".narrowpeak", ".broadpeak"):
+            name = sample_name_from_peak(base)
+            peak_tracks[name] = (clean, colour)
+        elif ext == ".bed":
+            # consensus BEDs — include as-is
+            consensus_tracks.append((clean, colour, base))
+
+    # ---- Determine sample ordering ----
+    if sample_ids:
+        ip_names = list(sample_ids)
+    elif bam_files:
+        ip_names = [sample_name_from_bam(b) for b in bam_files]
+    else:
+        # Fall back to names found in bigWig tracks
+        ip_names = sorted(bw_tracks.keys())
+
+    if control_ids:
+        ctrl_names = list(control_ids)
+    elif control_bam_files:
+        ctrl_names = [sample_name_from_bam(b) for b in control_bam_files]
+    else:
+        ctrl_names = []
+
+    # Detect peak format
+    peak_format = "narrowPeak"
+    for fpath, _ in file_list:
+        if fpath.endswith(".broadPeak"):
+            peak_format = "broadPeak"
+            break
+
+    # ---- Per-sample tracks ----
+    for idx, sample in enumerate(ip_names):
+        colour = COLOUR_PALETTE[idx % len(COLOUR_PALETTE)]
+
+        # Alignment track (BAM + BAI)
+        if idx < len(bam_files) and idx < len(bai_files):
+            bam_base = os.path.basename(bam_files[idx])
+            bai_base = os.path.basename(bai_files[idx])
+            bam_url = "{}/{}".format(aligner_prefix, bam_base) if aligner_prefix else bam_base
+            bai_url = "{}/{}".format(aligner_prefix, bai_base) if aligner_prefix else bai_base
+
+            tracks.append({
+                "name": "{} - Alignments".format(sample),
+                "type": "alignment",
+                "format": "bam",
+                "url": bam_url,
+                "indexURL": bai_url,
+                "height": 200,
+                "color": colour,
+                "order": order,
+            })
+            order += 1
+
+        # BigWig signal track
+        if sample in bw_tracks:
+            bw_url, _ = bw_tracks[sample]
+            tracks.append({
+                "name": "{} - Signal".format(sample),
+                "type": "wig",
+                "format": "bigwig",
+                "url": bw_url,
+                "height": 100,
+                "autoscale": True,
+                "color": colour,
+                "order": order,
+            })
+            order += 1
+
+        # Peaks track
+        if sample in peak_tracks:
+            pk_url, _ = peak_tracks[sample]
+            tracks.append({
+                "name": "{} - Peaks".format(sample),
+                "type": "annotation",
+                "format": peak_format,
+                "url": pk_url,
+                "height": 50,
+                "color": colour,
+                "displayMode": "EXPANDED",
+                "order": order,
+            })
+            order += 1
+
+    # ---- Control / input BAM tracks ----
+    for idx in range(len(control_bam_files)):
+        if idx >= len(control_bai_files):
+            break
+        ctrl_name = ctrl_names[idx] if idx < len(ctrl_names) else sample_name_from_bam(control_bam_files[idx])
+        cbam_base = os.path.basename(control_bam_files[idx])
+        cbai_base = os.path.basename(control_bai_files[idx])
+        cbam_url = "{}/{}".format(aligner_prefix, cbam_base) if aligner_prefix else cbam_base
+        cbai_url = "{}/{}".format(aligner_prefix, cbai_base) if aligner_prefix else cbai_base
+
+        tracks.append({
+            "name": "{} - Input Control".format(ctrl_name),
+            "type": "alignment",
+            "format": "bam",
+            "url": cbam_url,
+            "indexURL": cbai_url,
+            "height": 150,
+            "color": CONTROL_COLOUR,
+            "order": order,
+        })
+        order += 1
+
+    # ---- Consensus peak tracks ----
+    for clean_path, colour, basename in consensus_tracks:
+        tracks.append({
+            "name": "{} - Consensus".format(os.path.splitext(basename)[0]),
+            "type": "annotation",
+            "format": "bed",
+            "url": clean_path,
+            "height": 50,
+            "color": "rgb(0,100,0)",
+            "displayMode": "EXPANDED",
+            "order": order,
+        })
+        order += 1
+
+    session = {
+        "genome": igv_genome,
+        "tracks": tracks,
+    }
+    return session
 
 
 ############################################
@@ -173,7 +519,7 @@ def igv_files_to_session(XMLOut, ListFile, ReplaceFile, Genome, PathPrefix=""):
 ############################################
 ############################################
 
-igv_files_to_session(
+file_list = igv_files_to_session(
     XMLOut=args.XML_OUT,
     ListFile=args.LIST_FILE,
     ReplaceFile=args.REPLACE_FILE,
@@ -181,7 +527,24 @@ igv_files_to_session(
     PathPrefix=args.PATH_PREFIX,
 )
 
-############################################
-############################################
-############################################
-############################################
+# ---- Optionally emit IGV.js JSON session ----
+if args.JSON_OUT:
+    genome_key = args.GENOME_ID if args.GENOME_ID else args.GENOME
+    session = build_igvjs_session(
+        genome_id=genome_key,
+        file_list=file_list if file_list else [],
+        bam_files=args.bam_files,
+        bai_files=args.bai_files,
+        control_bam_files=args.control_bam_files,
+        control_bai_files=args.control_bai_files,
+        sample_ids=args.sample_ids,
+        control_ids=args.control_ids,
+    )
+    makedir(os.path.dirname(args.JSON_OUT))
+    with open(args.JSON_OUT, "w") as fh:
+        json.dump(session, fh, indent=2)
+    print(
+        "Wrote IGV.js session to {} (genome={}, {} tracks)".format(
+            args.JSON_OUT, session["genome"], len(session["tracks"])
+        )
+    )
