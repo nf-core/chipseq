@@ -504,17 +504,44 @@ workflow CHIPSEQ {
     }
 
     //
-    // MODULE: Create IGV session
+    // MODULE: Create IGV session (XML + JSON for Seqera Data Explorer)
     //
     if (!params.skip_igv) {
+
+        // Separate IP samples (have a control) from control samples (control == null)
+        ch_genome_bam_bai
+            .filter { meta, bam, bai -> meta.control != null }
+            .multiMap { meta, bam, bai ->
+                bam:  bam
+                bai:  bai
+                name: meta.id
+            }
+            .set { ch_ip_for_igv }
+
+        ch_genome_bam_bai
+            .filter { meta, bam, bai -> meta.control == null }
+            .multiMap { meta, bam, bai ->
+                bam:  bam
+                bai:  bai
+                name: meta.id
+            }
+            .set { ch_ctrl_for_igv }
+
         IGV (
             params.aligner,
             params.narrow_peak ? 'narrow_peak' : 'broad_peak',
+            params.genome ?: '',
             ch_fasta,
             BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.bigwig.collect{it[1]}.ifEmpty([]),
             BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.peaks.collect{it[1]}.ifEmpty([]),
             ch_macs3_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
-            ch_macs3_consensus_txt_lib.collect{it[1]}.ifEmpty([])
+            ch_macs3_consensus_txt_lib.collect{it[1]}.ifEmpty([]),
+            ch_ip_for_igv.bam.collect().ifEmpty( file('NO_IP_BAMS') ),
+            ch_ip_for_igv.bai.collect().ifEmpty( file('NO_IP_BAIS') ),
+            ch_ctrl_for_igv.bam.collect().ifEmpty( file('NO_CTRL_BAMS') ),
+            ch_ctrl_for_igv.bai.collect().ifEmpty( file('NO_CTRL_BAIS') ),
+            ch_ip_for_igv.name.collect().ifEmpty([]),
+            ch_ctrl_for_igv.name.collect().ifEmpty([])
         )
     }
 
