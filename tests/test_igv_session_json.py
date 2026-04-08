@@ -117,16 +117,22 @@ def test_correct_number_of_tracks():
     assert len(session["tracks"]) == 7
 
 
-def test_tracks_have_only_name_and_url():
-    """Data Explorer schema: tracks only need name + url."""
+def test_tracks_are_minimal():
+    """Data Explorer schema: tracks need name + url, BAMs also get indexURL."""
     with tempfile.TemporaryDirectory() as tmp:
         session, _ = _run(tmp)
     for t in session["tracks"]:
         assert "name" in t
         assert "url" in t
-        # Should NOT have type, format, color, height, order, indexURL etc.
-        for forbidden in ("type", "format", "color", "height", "order", "indexURL", "autoscale", "displayMode"):
+        # Should NOT have type, format, color, height, order, autoscale, displayMode
+        for forbidden in ("type", "format", "color", "height", "order", "autoscale", "displayMode"):
             assert forbidden not in t, f"track should not have '{forbidden}': {t}"
+        # BAM tracks must have indexURL, non-BAM tracks must not
+        if t["url"].endswith(".bam"):
+            assert "indexURL" in t, f"BAM track missing indexURL: {t}"
+            assert t["indexURL"].endswith(".bai"), f"indexURL should end with .bai: {t}"
+        else:
+            assert "indexURL" not in t, f"non-BAM track should not have indexURL: {t}"
 
 
 def test_urls_are_relative_no_dotdot():

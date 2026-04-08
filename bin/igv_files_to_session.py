@@ -402,13 +402,16 @@ def build_igvjs_session(
 
     # ---- Per-sample tracks ----
     for idx, sample in enumerate(ip_names):
-        # BAM alignment
+        # BAM alignment — indexURL is required for IGV.js to load BAMs
         if idx < len(bam_files) and idx < len(bai_files):
             bam_base = os.path.basename(bam_files[idx])
+            bai_base = os.path.basename(bai_files[idx])
             bam_url = "{}/{}".format(aligner_prefix, bam_base) if aligner_prefix else bam_base
+            bai_url = "{}/{}".format(aligner_prefix, bai_base) if aligner_prefix else bai_base
             tracks.append({
                 "name": "{} - Alignments".format(sample),
                 "url": bam_url,
+                "indexURL": bai_url,
             })
 
         # BigWig signal
@@ -431,10 +434,13 @@ def build_igvjs_session(
             break
         ctrl_name = ctrl_names[idx] if idx < len(ctrl_names) else sample_name_from_bam(control_bam_files[idx])
         cbam_base = os.path.basename(control_bam_files[idx])
+        cbai_base = os.path.basename(control_bai_files[idx])
         cbam_url = "{}/{}".format(aligner_prefix, cbam_base) if aligner_prefix else cbam_base
+        cbai_url = "{}/{}".format(aligner_prefix, cbai_base) if aligner_prefix else cbai_base
         tracks.append({
             "name": "{} - Input Control".format(ctrl_name),
             "url": cbam_url,
+            "indexURL": cbai_url,
         })
 
     # ---- Consensus peak tracks ----
