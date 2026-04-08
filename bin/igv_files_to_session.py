@@ -506,10 +506,9 @@ def build_igvjs_session(
         })
         order += 1
 
-    session = {
-        "genome": igv_genome,
-        "tracks": tracks,
-    }
+    session = {"tracks": tracks}
+    if igv_genome:
+        session["genome"] = igv_genome
     return session
 
 
@@ -529,7 +528,15 @@ file_list = igv_files_to_session(
 
 # ---- Optionally emit IGV.js JSON session ----
 if args.JSON_OUT:
-    genome_key = args.GENOME_ID if args.GENOME_ID else args.GENOME
+    # Prefer the explicit --genome_id; fall back to GENOME arg only if it
+    # looks like a known genome name (not a file path).
+    genome_key = args.GENOME_ID
+    if not genome_key:
+        candidate = os.path.basename(args.GENOME).replace(".fa", "").replace(".fasta", "")
+        if candidate in GENOME_MAP:
+            genome_key = candidate
+    # If we still have nothing, leave it empty — the JSON will omit the
+    # genome field and IGV.js will show a blank reference.
     session = build_igvjs_session(
         genome_id=genome_key,
         file_list=file_list if file_list else [],
@@ -545,6 +552,6 @@ if args.JSON_OUT:
         json.dump(session, fh, indent=2)
     print(
         "Wrote IGV.js session to {} (genome={}, {} tracks)".format(
-            args.JSON_OUT, session["genome"], len(session["tracks"])
+            args.JSON_OUT, session.get("genome", "unset"), len(session["tracks"])
         )
     )
