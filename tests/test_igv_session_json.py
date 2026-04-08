@@ -10,9 +10,6 @@ import os
 import sys
 import tempfile
 
-# Ensure bin/ is importable
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "bin"))
-
 # We can't import the script directly (it runs at module level) so we test via
 # subprocess invocation — which is exactly how Nextflow calls it.
 import subprocess
@@ -80,6 +77,39 @@ def test_genome_is_resolved():
     assert session["genome"] == "hg38"
 
 
+def test_genome_always_present():
+    """genome key must always be present — Data Explorer requires it."""
+    with tempfile.TemporaryDirectory() as tmp:
+        session, _ = _run(tmp)
+    assert "genome" in session
+
+
+def test_genome_defaults_to_hg38_when_empty():
+    """When --genome_id is empty, genome should default to hg38."""
+    with tempfile.TemporaryDirectory() as tmp:
+        list_file = os.path.join(tmp, "igv_files_orig.txt")
+        with open(list_file, "w") as fh:
+            fh.write("../../bwa/merged_library/bigwig/X.mLb.clN.bigWig\t0,0,178\n")
+        replace_file = os.path.join(tmp, "replace_paths.txt")
+        open(replace_file, "w").close()
+        xml_out = os.path.join(tmp, "igv_session.xml")
+        json_out = os.path.join(tmp, "igv_session.json")
+
+        cmd = [
+            sys.executable, SCRIPT, xml_out, list_file, replace_file,
+            "../../genome/genome.fa",
+            "--path_prefix", "../../",
+            "--json_out", json_out,
+            "--genome_id", "",
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=tmp)
+        assert result.returncode == 0
+
+        with open(json_out) as fh:
+            session = json.load(fh)
+        assert session["genome"] == "hg38"
+
+
 def test_correct_number_of_tracks():
     """2 samples × 3 tracks + 1 control = 7 tracks total."""
     with tempfile.TemporaryDirectory() as tmp:
@@ -87,22 +117,16 @@ def test_correct_number_of_tracks():
     assert len(session["tracks"]) == 7
 
 
-def test_track_types():
-    with tempfile.TemporaryDirectory() as tmp:
-        session, _ = _run(tmp)
-    types = [t["type"] for t in session["tracks"]]
-    assert types.count("alignment") == 3  # 2 IP + 1 control
-    assert types.count("wig") == 2
-    assert types.count("annotation") == 2
-
-
-def test_alignment_tracks_have_index_url():
+def test_tracks_have_only_name_and_url():
+    """Data Explorer schema: tracks only need name + url."""
     with tempfile.TemporaryDirectory() as tmp:
         session, _ = _run(tmp)
     for t in session["tracks"]:
-        if t["type"] == "alignment":
-            assert "indexURL" in t
-            assert t["indexURL"].endswith(".bai")
+        assert "name" in t
+        assert "url" in t
+        # Should NOT have type, format, color, height, order, indexURL etc.
+        for forbidden in ("type", "format", "color", "height", "order", "indexURL", "autoscale", "displayMode"):
+            assert forbidden not in t, f"track should not have '{forbidden}': {t}"
 
 
 def test_urls_are_relative_no_dotdot():
@@ -111,42 +135,22 @@ def test_urls_are_relative_no_dotdot():
         session, _ = _run(tmp)
     for t in session["tracks"]:
         assert not t["url"].startswith("../"), f"url still has ../ prefix: {t['url']}"
-        if "indexURL" in t:
-            assert not t["indexURL"].startswith("../"), f"indexURL still has ../ prefix: {t['indexURL']}"
 
 
-def test_control_track_is_grey():
+def test_control_track_present():
     with tempfile.TemporaryDirectory() as tmp:
         session, _ = _run(tmp)
     ctrl = [t for t in session["tracks"] if "Input Control" in t["name"]]
     assert len(ctrl) == 1
-    assert ctrl[0]["color"] == "rgb(128,128,128)"
 
 
-def test_heights():
+def test_sample_names_in_track_names():
     with tempfile.TemporaryDirectory() as tmp:
         session, _ = _run(tmp)
-    for t in session["tracks"]:
-        if t["type"] == "alignment" and "Input Control" not in t["name"]:
-            assert t["height"] == 200
-        elif t["type"] == "wig":
-            assert t["height"] == 100
-        elif t["type"] == "annotation":
-            assert t["height"] == 50
-        elif "Input Control" in t["name"]:
-            assert t["height"] == 150
-
-
-def test_distinct_colours_per_sample():
-    with tempfile.TemporaryDirectory() as tmp:
-        session, _ = _run(tmp)
-    ip_tracks = [t for t in session["tracks"] if "Input Control" not in t["name"]]
-    # Tracks for sample 1 should share a colour, different from sample 2
-    rep1 = [t["color"] for t in ip_tracks if "REP1" in t["name"]]
-    rep2 = [t["color"] for t in ip_tracks if "REP2" in t["name"]]
-    assert len(set(rep1)) == 1, "REP1 tracks should share the same colour"
-    assert len(set(rep2)) == 1, "REP2 tracks should share the same colour"
-    assert rep1[0] != rep2[0], "Different samples should have different colours"
+    names = [t["name"] for t in session["tracks"]]
+    assert any("SPT5_T0_REP1" in n for n in names)
+    assert any("SPT5_T0_REP2" in n for n in names)
+    assert any("SPT5_INPUT" in n for n in names)
 
 
 def test_xml_still_produced():
@@ -177,8 +181,8 @@ def test_no_json_when_flag_omitted():
         assert not os.path.exists(os.path.join(tmp, "igv_session.json"))
 
 
-def test_broad_peak_format():
-    """When input files are broadPeak, the format should be set correctly."""
+def test_broad_peak_url():
+    """broadPeak files should be included as tracks with correct URL."""
     with tempfile.TemporaryDirectory() as tmp:
         list_file = os.path.join(tmp, "igv_files_orig.txt")
         with open(list_file, "w") as fh:
@@ -206,6 +210,6 @@ def test_broad_peak_format():
             session = json.load(fh)
 
         assert session["genome"] == "mm10"
-        peaks = [t for t in session["tracks"] if t["type"] == "annotation"]
+        peaks = [t for t in session["tracks"] if "Peaks" in t["name"]]
         assert len(peaks) == 1
-        assert peaks[0]["format"] == "broadPeak"
+        assert peaks[0]["url"].endswith(".broadPeak")

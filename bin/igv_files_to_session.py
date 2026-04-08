@@ -338,31 +338,21 @@ def build_igvjs_session(
     sample_ids / control_ids : list[str]
         Explicit sample names; derived from filenames when empty.
     """
-    igv_genome = resolve_genome_id(genome_id)
+    igv_genome = resolve_genome_id(genome_id) if genome_id else "hg38"
     tracks = []
-    order = 1
 
     # ------------------------------------------------------------------
-    # Discover the path prefix used for the existing file_list entries
-    # so we can construct matching relative URLs for the BAMs.
-    # The file_list paths look like "../../bwa/merged_library/bigwig/X.bigWig".
-    # We want to express BAM paths with the same prefix & aligner directory,
-    # e.g. "../../bwa/merged_library/X.bam".
+    # Seqera Data Explorer renders IGV.js sessions with a minimal schema:
+    #   { "genome": "...", "tracks": [{ "name": "...", "url": "..." }, ...] }
     #
-    # For the JSON session (targeted at Data Explorer) we strip any leading
-    # "../../" prefix so all paths are relative to the output root, e.g.
-    # "bwa/merged_library/bigwig/X.bigWig".
+    # All URLs are relative paths from the output directory root.  Data
+    # Explorer resolves them against the bucket/directory containing the
+    # JSON file.  Type and format are inferred from the file extension.
     # ------------------------------------------------------------------
 
     def _strip_dotdot(p):
         """Remove leading ../../ prefixes — give path relative to outdir root."""
         return re.sub(r"^(\.\./)+", "", p)
-
-    # Build a lookup of already-resolved relative paths by basename so we
-    # can reuse them for naming tracks.
-    resolved_by_basename = {}
-    for fpath, colour in file_list:
-        resolved_by_basename[os.path.basename(fpath)] = _strip_dotdot(fpath)
 
     # Determine aligner dir from existing paths (first bigWig or peak path)
     aligner_prefix = ""
@@ -387,12 +377,12 @@ def build_igvjs_session(
         if ext in (".bw", ".bigwig"):
             name = sample_name_from_bam(base)
             bw_tracks[name] = (clean, colour)
+            bw_tracks[name] = clean
         elif ext in (".narrowpeak", ".broadpeak"):
             name = sample_name_from_peak(base)
-            peak_tracks[name] = (clean, colour)
+            peak_tracks[name] = clean
         elif ext == ".bed":
-            # consensus BEDs — include as-is
-            consensus_tracks.append((clean, colour, base))
+            consensus_tracks.append((clean, base))
 
     # ---- Determine sample ordering ----
     if sample_ids:
@@ -410,65 +400,30 @@ def build_igvjs_session(
     else:
         ctrl_names = []
 
-    # Detect peak format
-    peak_format = "narrowPeak"
-    for fpath, _ in file_list:
-        if fpath.endswith(".broadPeak"):
-            peak_format = "broadPeak"
-            break
-
     # ---- Per-sample tracks ----
     for idx, sample in enumerate(ip_names):
-        colour = COLOUR_PALETTE[idx % len(COLOUR_PALETTE)]
-
-        # Alignment track (BAM + BAI)
+        # BAM alignment
         if idx < len(bam_files) and idx < len(bai_files):
             bam_base = os.path.basename(bam_files[idx])
-            bai_base = os.path.basename(bai_files[idx])
             bam_url = "{}/{}".format(aligner_prefix, bam_base) if aligner_prefix else bam_base
-            bai_url = "{}/{}".format(aligner_prefix, bai_base) if aligner_prefix else bai_base
-
             tracks.append({
                 "name": "{} - Alignments".format(sample),
-                "type": "alignment",
-                "format": "bam",
                 "url": bam_url,
-                "indexURL": bai_url,
-                "height": 200,
-                "color": colour,
-                "order": order,
             })
-            order += 1
 
-        # BigWig signal track
+        # BigWig signal
         if sample in bw_tracks:
-            bw_url, _ = bw_tracks[sample]
             tracks.append({
                 "name": "{} - Signal".format(sample),
-                "type": "wig",
-                "format": "bigwig",
-                "url": bw_url,
-                "height": 100,
-                "autoscale": True,
-                "color": colour,
-                "order": order,
+                "url": bw_tracks[sample],
             })
-            order += 1
 
-        # Peaks track
+        # Peaks
         if sample in peak_tracks:
-            pk_url, _ = peak_tracks[sample]
             tracks.append({
                 "name": "{} - Peaks".format(sample),
-                "type": "annotation",
-                "format": peak_format,
-                "url": pk_url,
-                "height": 50,
-                "color": colour,
-                "displayMode": "EXPANDED",
-                "order": order,
+                "url": peak_tracks[sample],
             })
-            order += 1
 
     # ---- Control / input BAM tracks ----
     for idx in range(len(control_bam_files)):
@@ -476,39 +431,23 @@ def build_igvjs_session(
             break
         ctrl_name = ctrl_names[idx] if idx < len(ctrl_names) else sample_name_from_bam(control_bam_files[idx])
         cbam_base = os.path.basename(control_bam_files[idx])
-        cbai_base = os.path.basename(control_bai_files[idx])
         cbam_url = "{}/{}".format(aligner_prefix, cbam_base) if aligner_prefix else cbam_base
-        cbai_url = "{}/{}".format(aligner_prefix, cbai_base) if aligner_prefix else cbai_base
-
         tracks.append({
             "name": "{} - Input Control".format(ctrl_name),
-            "type": "alignment",
-            "format": "bam",
             "url": cbam_url,
-            "indexURL": cbai_url,
-            "height": 150,
-            "color": CONTROL_COLOUR,
-            "order": order,
         })
-        order += 1
 
     # ---- Consensus peak tracks ----
-    for clean_path, colour, basename in consensus_tracks:
+    for clean_path, basename in consensus_tracks:
         tracks.append({
             "name": "{} - Consensus".format(os.path.splitext(basename)[0]),
-            "type": "annotation",
-            "format": "bed",
             "url": clean_path,
-            "height": 50,
-            "color": "rgb(0,100,0)",
-            "displayMode": "EXPANDED",
-            "order": order,
         })
-        order += 1
 
-    session = {"tracks": tracks}
-    if igv_genome:
-        session["genome"] = igv_genome
+    session = {
+        "genome": igv_genome,
+        "tracks": tracks,
+    }
     return session
 
 
@@ -528,15 +467,7 @@ file_list = igv_files_to_session(
 
 # ---- Optionally emit IGV.js JSON session ----
 if args.JSON_OUT:
-    # Prefer the explicit --genome_id; fall back to GENOME arg only if it
-    # looks like a known genome name (not a file path).
-    genome_key = args.GENOME_ID
-    if not genome_key:
-        candidate = os.path.basename(args.GENOME).replace(".fa", "").replace(".fasta", "")
-        if candidate in GENOME_MAP:
-            genome_key = candidate
-    # If we still have nothing, leave it empty — the JSON will omit the
-    # genome field and IGV.js will show a blank reference.
+    genome_key = args.GENOME_ID if args.GENOME_ID else ""
     session = build_igvjs_session(
         genome_id=genome_key,
         file_list=file_list if file_list else [],
@@ -552,6 +483,6 @@ if args.JSON_OUT:
         json.dump(session, fh, indent=2)
     print(
         "Wrote IGV.js session to {} (genome={}, {} tracks)".format(
-            args.JSON_OUT, session.get("genome", "unset"), len(session["tracks"])
+            args.JSON_OUT, session["genome"], len(session["tracks"])
         )
     )
