@@ -141,7 +141,7 @@
                     "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
                 },
                 "macs_gsize": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "Effective genome size parameter required by MACS3.",
                     "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3. If using an iGenomes reference these have been provided for any of the genomes available in the igenomes.config, and for the following read lengths (50,75,100,150,200) that should be set using the `--read_length` parameter. For other genomes, if this parameter is not specified it will be inferred using the provided `--read_length` or otherwise the pipeline execution will stop with an error.",
                     "fa_icon": "fas fa-arrows-alt-h"
