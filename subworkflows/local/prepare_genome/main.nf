@@ -50,7 +50,7 @@ workflow PREPARE_GENOME {
     //
     ch_fasta = channel.empty()
     if (fasta.endsWith('.gz')) {
-        ch_fasta    = GUNZIP_FASTA([[:], fasta]).gunzip.map { it[1] }
+        ch_fasta = GUNZIP_FASTA([[:], fasta]).gunzip.map { it[1] }
     }
     else {
         ch_fasta = channel.value(file(fasta, checkIfExists: true))
@@ -62,18 +62,18 @@ workflow PREPARE_GENOME {
     ch_gtf = channel.empty()
     if (gtf) {
         if (gtf.endsWith('.gz')) {
-            ch_gtf      = GUNZIP_GTF([[:], gtf]).gunzip.map { it[1] }
+            ch_gtf = GUNZIP_GTF([[:], gtf]).gunzip.map { it[1] }
         } else {
             ch_gtf = channel.value(file(gtf, checkIfExists: true))
         }
     } else if (gff) {
         if (gff.endsWith('.gz')) {
-            ch_gff      = GUNZIP_GFF([[:], file(gff, checkIfExists: true)]).gunzip.map { it[1] }
+            ch_gff = GUNZIP_GFF([[:], file(gff, checkIfExists: true)]).gunzip.map { it[1] }
         } else {
             ch_gff = channel.value(file(gff, checkIfExists: true)).map { [ [:], it ] }
         }
 
-        ch_gtf      = GFFREAD(ch_gff, []).gtf.map { it[1] }
+        ch_gtf = GFFREAD(ch_gff, []).gtf.map { it[1] }
     }
 
     //
