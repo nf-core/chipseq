@@ -22,6 +22,7 @@ include { CHROMAP_INDEX                } from '../../../modules/nf-core/chromap/
 include { GTF2BED                      } from '../../../modules/local/gtf2bed'
 include { GENOME_BLACKLIST_REGIONS     } from '../../../modules/local/genome_blacklist_regions'
 include { STAR_GENOMEGENERATE          } from '../../../modules/local/star_genomegenerate'
+include { KHMER_UNIQUEKMERS            } from '../../../modules/nf-core/khmer/uniquekmers'
 
 workflow PREPARE_GENOME {
     take:
@@ -37,6 +38,8 @@ workflow PREPARE_GENOME {
     bowtie2_index      //    file: /path/to/bowtie2/index/
     chromap_index      //    file: /path/to/chromap/index/
     star_index         //    file: /path/to/star/index/
+    macs_gsize         // integer: effective_genome_size
+    read_length        // integer: read length
 
     main:
 
@@ -195,6 +198,22 @@ workflow PREPARE_GENOME {
         }
     }
 
+    //
+    // Calculate genome size with khmer
+    //
+    ch_macs_gsize = channel.empty()
+    ch_macs_gsize = macs_gsize
+
+    if (!macs_gsize) {
+        KHMER_UNIQUEKMERS (
+            ch_fasta.map { item -> [ [:], item]},
+            read_length
+        )
+        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { meta, file ->
+        file.text.trim() }
+    }
+
+
     emit:
     fasta         = ch_fasta                  //    path: genome.fasta
     fai           = ch_fai                    //    path: genome.fai
@@ -206,4 +225,5 @@ workflow PREPARE_GENOME {
     bowtie2_index = ch_bowtie2_index          //    path: bowtie2/index/
     chromap_index = ch_chromap_index          //    path: genome.index
     star_index    = ch_star_index             //    path: star/index/
+    macs_gsize    = ch_macs_gsize             // integer: macs_gsize
 }

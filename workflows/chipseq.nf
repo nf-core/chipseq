@@ -43,7 +43,6 @@ include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/com
 include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile'
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap'
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint'
-include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/khmer/uniquekmers'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -77,6 +76,7 @@ workflow CHIPSEQ {
     ch_bowtie2_index // channel: path(bowtie2/index)
     ch_chromap_index // channel: path(chromap.index)
     ch_star_index    // channel: path(star/index/)
+    ch_macs_gsize    // channel: integer(macs_gsize)
 
     main:
 
@@ -422,22 +422,6 @@ workflow CHIPSEQ {
         ch_deeptoolsplotfingerprint_multiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
     }
 
-    //
-    // MODULE: Calculute genome size with khmer
-    //
-    ch_macs_gsize                     = channel.empty()
-    ch_subreadfeaturecounts_multiqc   = channel.empty()
-    ch_macs_gsize = params.macs_gsize
-
-    if (!params.macs_gsize) {
-        KHMER_UNIQUEKMERS (
-            ch_fasta.map { item -> [ [:], item]},
-            params.read_length
-        )
-        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { meta, file ->
-        file.text.trim() }
-    }
-
     // Create channels: [ meta, ip_bam, control_bam ]
     ch_ip_control_bam_bai
         .map {
@@ -466,10 +450,12 @@ workflow CHIPSEQ {
     //
     //  Consensus peaks analysis
     //
-    ch_macs3_consensus_bed_lib   = channel.empty()
-    ch_macs3_consensus_txt_lib   = channel.empty()
-    ch_deseq2_pca_multiqc        = channel.empty()
-    ch_deseq2_clustering_multiqc = channel.empty()
+    ch_macs3_consensus_bed_lib        = channel.empty()
+    ch_macs3_consensus_txt_lib        = channel.empty()
+    ch_deseq2_pca_multiqc             = channel.empty()
+    ch_deseq2_clustering_multiqc      = channel.empty()
+    ch_subreadfeaturecounts_multiqc   = channel.empty()
+
     if (!params.skip_consensus_peaks) {
         // Create channels: [ antibody, [ ip_bams ], single_end_map ]
         ch_ip_control_bam
