@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[PR #493](https://github.com/nf-core/chipseq/pull/493)] - Follow up to #487.
 - [[#492](https://github.com/nf-core/chipseq/issues/492), [#417](https://github.com/nf-core/chipseq/issues/417)] - Refactor local modules to nf-core standard.
 - [[#416](https://github.com/nf-core/chipseq/issues/416)] - Moved the KHMER_UNIQUEKMERS logic to prepare_genome
+- [[#510](https://github.com/nf-core/chipseq/issues/510)] - Restrict the usage to one IP replicate against one control see: [#440](https://github.com/nf-core/chipseq/issues/440)
+  replicate.
 
 ### Parameters
 

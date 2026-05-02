@@ -212,9 +212,12 @@ def check_samplesheet(file_in, file_out):
                             sample,
                         )
 
+                    set_control_replicates = set()
                     for idx, val in enumerate(sample_mapping_dict[sample][replicate]):
                         control = "_REP".join(val[-1].split("_REP")[:-1])
                         control_replicate = val[-1].split("_REP")[-1]
+                        set_control_replicates.update(control_replicate)
+
                         if control and (
                             control not in sample_mapping_dict.keys()
                             or int(control_replicate) not in sample_mapping_dict[control].keys()
@@ -224,6 +227,12 @@ def check_samplesheet(file_in, file_out):
                                 "Control",
                                 val[-1],
                             )
+
+                    # Check that a given sample-replicate have only one control replicate
+                    if len(set_control_replicates) > 1:
+                        print_error(
+                            f"Sample: {sample}, replicate {replicate} has more than one control replicate! Revise the experimental design, see: 'Note on IP and control replicates'"
+                        )
 
                     ## Write to file
                     for idx in range(len(sample_mapping_dict[sample][replicate])):

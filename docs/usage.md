@@ -47,6 +47,48 @@ WT_INPUT,BLA203A30_S21_L002_R1_001.fastq.gz,,2,,,
 WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
 ```
 
+### Note on IP and control replicates
+
+The pipeline is designed to handle one IP and matching control replicate, see section above. However there can be
+situations where one might want to make multiple comparisons of the IP sample against several different controls. In
+those cases it is advisable to encode these comparisons either in the sample column or as another replicate.
+
+- Encoding in sample names:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP_CONTROL_2,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP_CONTROL_3,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L001_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
+```
+
+- Encoding as new biological replicates:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,3,BCATENIN,WT_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L001_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
+```
+
+- The following design, one IP replicate against more than one control replicate, is not allowed:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L001_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
+```
+
 ### Full design
 
 The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 7 columns to match those defined in the table below.
