@@ -116,7 +116,13 @@ These scripts were originally written by Chuan Wang ([@chuan-wang](https://githu
 
 The pipeline workflow diagram was designed by Sarah Guinchard ([@G-Sarah](https://github.com/G-Sarah)).
 
-Many thanks to others who have helped out and contributed along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@bc2zb](https://github.com/bc2zb), [@bjlang](https://github.com/bjlang), [@crickbabs](https://github.com/crickbabs), [@drejom](https://github.com/drejom), [@houghtos](https://github.com/houghtos), [@KevinMenden](https://github.com/KevinMenden), [@mashehu](https://github.com/mashehu), [@pditommaso](https://github.com/pditommaso), [@Rotholandus](https://github.com/Rotholandus), [@sofiahaglund](https://github.com/sofiahaglund), [@tiagochst](https://github.com/tiagochst) and [@winni2k](https://github.com/winni2k).
+Many thanks to others who have helped out and contributed along the way too, including (but not limited to):
+[@apeltzer](https://github.com/apeltzer), [@bc2zb](https://github.com/bc2zb), [@bjlang](https://github.com/bjlang),
+[@crickbabs](https://github.com/crickbabs), [@drejom](https://github.com/drejom),
+[@houghtos](https://github.com/houghtos), [@KevinMenden](https://github.com/KevinMenden),
+[@mashehu](https://github.com/mashehu), [@pditommaso](https://github.com/pditommaso),
+[@Rotholandus](https://github.com/Rotholandus), [@sofiahaglund](https://github.com/sofiahaglund),
+[@tiagochst](https://github.com/tiagochst), [@winni2k](https://github.com/winni2k) and [@Kevin-Brockers](https://github.com/Kevin-Brockers).
 
 ## Contributions and Support
 
