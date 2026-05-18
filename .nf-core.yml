@@ -1,4 +1,6 @@
 lint:
+  files_unchanged:
+    - .gitignore
   nextflow_config:
     - config_defaults:
         - params.bamtools_filter_se_config
