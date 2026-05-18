@@ -65,7 +65,6 @@ workflow CHIPSEQ {
 
     take:
     ch_samplesheet   // channel: path(sample_sheet.csv)
-    ch_versions      // channel: [ path(versions.yml) ]
     ch_fasta         // channel: path(genome.fa)
     ch_fai           // channel: path(genome.fai)
     ch_gtf           // channel: path(genome.gtf)
@@ -77,9 +76,15 @@ workflow CHIPSEQ {
     ch_chromap_index // channel: path(chromap.index)
     ch_star_index    // channel: path(star/index/)
     ch_macs_gsize    // channel: integer(macs_gsize)
+    multiqc_config   // string: path to MultiQC config file or list of paths if multiple config files
+    multiqc_logo     // string: path to MultiQC logo file
+    multiqc_methods_description // string: path to MultiQC methods description file
+    outdir           // path: output directory
 
     main:
-
+    def ch_versions = channel.empty()
+    def ch_multiqc_files = channel.empty()
+    
     // JSON files required by BAMTools for alignment filtering
     ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config)
     ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
@@ -100,8 +105,6 @@ workflow CHIPSEQ {
         file("${params.outdir}/genome/").mkdirs()
         file(anno_readme).copyTo("${params.outdir}/genome/")
     }
-
-    ch_multiqc_files = channel.empty()
 
     //
     // Collection versions from topic channel
@@ -508,10 +511,10 @@ workflow CHIPSEQ {
     // Collate and save software versions
     //
 
-    ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
+    def ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
         .mix(topic_versions_string)
         .collectFile(
-            storeDir: "${params.outdir}/pipeline_info",
+            storeDir: "${outdir}/pipeline_info",
             name: 'nf_core_'  +  'chipseq_software_'  + 'mqc_'  + 'versions.yml',
             sort: true,
             newLine: true
@@ -524,12 +527,17 @@ workflow CHIPSEQ {
 
     if (!params.skip_multiqc) {
         ch_multiqc_config        = channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-        ch_multiqc_custom_config = params.multiqc_config ? channel.fromPath( params.multiqc_config ): channel.empty()
-        ch_multiqc_logo          = params.multiqc_logo   ? channel.fromPath( params.multiqc_logo )  : channel.empty()
-        summary_params           = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
-        ch_workflow_summary      = channel.value(paramsSummaryMultiqc(summary_params))
-        ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        ch_multiqc_custom_config = multiqc_config ? channel.fromPath(multiqc_config) : channel.empty()
+        ch_multiqc_logo          = multiqc_logo   ? channel.fromPath(multiqc_logo)   : channel.empty()
+        def ch_summary_params    = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
+        def ch_workflow_summary  = channel.value(paramsSummaryMultiqc(ch_summary_params))
         ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
+        ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        def ch_multiqc_custom_methods_description = multiqc_methods_description
+            ? file(multiqc_methods_description, checkIfExists: true)
+            : file("${projectDir}/assets/methods_description_template.yml", checkIfExists: true)
+        def ch_methods_description = channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: true))
 
         MULTIQC (
             ch_multiqc_files.collect(),
@@ -577,8 +585,8 @@ workflow CHIPSEQ {
     }
 
     emit:
-    multiqc_report = ch_multiqc_report.toList()  // channel: /path/to/multiqc_report.html
-
+    multiqc_report = ch_multiqc_report // channel: /path/to/multiqc_report.html
+    versions       = ch_versions       // channel: [ path(versions.yml) ]
 }
 
 /*
