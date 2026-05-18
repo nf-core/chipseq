@@ -1,6 +1,8 @@
 lint:
   files_unchanged:
     - .gitignore
+    - assets/nf-core-chipseq_logo_light.png
+    - assets/nf-core-chipseq_logo_dark.png
   nextflow_config:
     - config_defaults:
         - params.bamtools_filter_se_config
