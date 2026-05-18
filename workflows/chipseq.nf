@@ -84,7 +84,7 @@ workflow CHIPSEQ {
     main:
     def ch_versions = channel.empty()
     def ch_multiqc_files = channel.empty()
-    
+
     // JSON files required by BAMTools for alignment filtering
     ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config)
     ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
