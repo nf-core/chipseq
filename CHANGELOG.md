@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#440](https://github.com/nf-core/chipseq/issues/440), [#510](https://github.com/nf-core/chipseq/issues/510)] - Fix
   naming collisions when sample and replicate combination is identical for multiple antibodies see.
 - [[#467](https://github.com/nf-core/chipseq/issues/467), [#510](https://github.com/nf-core/chipseq/issues/510)] - Restrict the usage to one IP against one control replicate.
+- [[#479](https://github.com/nf-core/chipseq/issues/479)] - Changed the usage documentation for antibodies to be
+  required for IP samples. Since a ChIP IP sample will always have an antibody, it should be specified to distinguish
+  the sample from input/controls.
 - [[PR #514](https://github.com/nf-core/chipseq/pull/514)] - Updated pipeline template to [nf-core/tools 4.0.2](https://github.com/nf-core/tools/releases/tag/4.0.2)
 
 ### Parameters
