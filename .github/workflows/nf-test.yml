@@ -30,7 +30,6 @@ jobs:
     runs-on: # use self-hosted runners
       - runs-on=${{ github.run_id }}-nf-test-changes
       - runner=4cpu-linux-x64
-      - volume=40gb
     outputs:
       shard: ${{ steps.set-shards.outputs.shard }}
       total_shards: ${{ steps.set-shards.outputs.total_shards }}
@@ -66,6 +65,7 @@ jobs:
       - runs-on=${{ github.run_id }}-nf-test
       - runner=4cpu-linux-x64
       - disk=large
+      - volume=40gb
     strategy:
       fail-fast: false
       matrix:
