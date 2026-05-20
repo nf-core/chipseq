@@ -49,7 +49,6 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_chip
 workflow NFCORE_CHIPSEQ {
 
     main:
-    ch_versions = channel.empty()
 
     // SUBWORKFLOW: Prepare genome files
     PREPARE_GENOME (
@@ -76,7 +75,6 @@ workflow NFCORE_CHIPSEQ {
 
     CHIPSEQ(
         ch_samplesheet,
-        ch_versions,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.fai,
         PREPARE_GENOME.out.gtf,
@@ -87,7 +85,11 @@ workflow NFCORE_CHIPSEQ {
         PREPARE_GENOME.out.bowtie2_index,
         PREPARE_GENOME.out.chromap_index,
         PREPARE_GENOME.out.star_index,
-        PREPARE_GENOME.out.macs_gsize
+        PREPARE_GENOME.out.macs_gsize,
+        params.multiqc_config,
+        params.multiqc_logo,
+        params.multiqc_methods_description,
+        params.outdir
     )
 
     emit:
@@ -132,7 +134,6 @@ workflow {
         params.plaintext_email,
         params.outdir,
         params.monochrome_logs,
-        params.hook_url,
         NFCORE_CHIPSEQ.out.multiqc_report
     )
 }

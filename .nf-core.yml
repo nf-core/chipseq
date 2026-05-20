@@ -1,9 +1,13 @@
 lint:
+  files_unchanged:
+    - .gitignore
+    - assets/nf-core-chipseq_logo_light.png
+    - docs/images/nf-core-chipseq_logo_dark.png
   nextflow_config:
     - config_defaults:
         - params.bamtools_filter_se_config
         - params.bamtools_filter_pe_config
-nf_core_version: 3.5.2
+nf_core_version: 4.0.2
 repository_type: pipeline
 template:
   author: Espinosa-Carrasco J, Patel H, Wang C, Ewels P
