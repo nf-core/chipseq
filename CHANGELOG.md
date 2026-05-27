@@ -67,6 +67,7 @@ the last release have been listed below for reference.
 | star                        | 2.6.1d      | 2.7.11b     |
 | python                      | 3.8.3       | 3.12.12     |
 | multiqc                     | 1.25.1      | 1.33        |
+| deeptools                   | 3.5.5       | 3.5.6       |
 |                             |             |             |
 
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
