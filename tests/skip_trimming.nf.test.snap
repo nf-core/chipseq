@@ -130,17 +130,17 @@
                 "bwa/merged_library/SPT5_T15_REP2.mLb.clN.sorted.bam",
                 "bwa/merged_library/SPT5_T15_REP2.mLb.clN.sorted.bam.bai",
                 "bwa/merged_library/bigwig",
-                "bwa/merged_library/bigwig/SPT5_INPUT_REP1.mLB.clN.bedGraph",
+                "bwa/merged_library/bigwig/SPT5_INPUT_REP1.mLb.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_INPUT_REP1.mLb.clN.bigWig",
-                "bwa/merged_library/bigwig/SPT5_INPUT_REP2.mLB.clN.bedGraph",
+                "bwa/merged_library/bigwig/SPT5_INPUT_REP2.mLb.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_INPUT_REP2.mLb.clN.bigWig",
-                "bwa/merged_library/bigwig/SPT5_T0_REP1.mLB.clN.bedGraph",
+                "bwa/merged_library/bigwig/SPT5_T0_REP1.mLb.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_T0_REP1.mLb.clN.bigWig",
-                "bwa/merged_library/bigwig/SPT5_T0_REP2.mLB.clN.bedGraph",
+                "bwa/merged_library/bigwig/SPT5_T0_REP2.mLb.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_T0_REP2.mLb.clN.bigWig",
-                "bwa/merged_library/bigwig/SPT5_T15_REP1.mLB.clN.bedGraph",
+                "bwa/merged_library/bigwig/SPT5_T15_REP1.mLb.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_T15_REP1.mLb.clN.bigWig",
-                "bwa/merged_library/bigwig/SPT5_T15_REP2.mLB.clN.bedGraph",
+                "bwa/merged_library/bigwig/SPT5_T15_REP2.mLb.clN.bedGraph",
                 "bwa/merged_library/bigwig/SPT5_T15_REP2.mLb.clN.bigWig",
                 "bwa/merged_library/deepTools",
                 "bwa/merged_library/deepTools/plotFingerprint",
@@ -700,12 +700,12 @@
                 "pipeline_info/samplesheet.valid.csv"
             ],
             [
-                "SPT5_INPUT_REP1.mLB.clN.bedGraph:md5,cd382620d1d0b392cc476acb3ee5b64c",
-                "SPT5_INPUT_REP2.mLB.clN.bedGraph:md5,adeb44bad86ea7074ac4900b8d04e1e9",
-                "SPT5_T0_REP1.mLB.clN.bedGraph:md5,9169ca9f49eb70a6d282b00d94e8bbb0",
-                "SPT5_T0_REP2.mLB.clN.bedGraph:md5,0155d0171022e7cef596facf4d4f12f7",
-                "SPT5_T15_REP1.mLB.clN.bedGraph:md5,53acbef45032a4c58766c9d220e1a761",
-                "SPT5_T15_REP2.mLB.clN.bedGraph:md5,d2fbf8ad95d452e738f36081d51e4d22",
+                "SPT5_INPUT_REP1.mLb.clN.bedGraph:md5,cd382620d1d0b392cc476acb3ee5b64c",
+                "SPT5_INPUT_REP2.mLb.clN.bedGraph:md5,adeb44bad86ea7074ac4900b8d04e1e9",
+                "SPT5_T0_REP1.mLb.clN.bedGraph:md5,9169ca9f49eb70a6d282b00d94e8bbb0",
+                "SPT5_T0_REP2.mLb.clN.bedGraph:md5,0155d0171022e7cef596facf4d4f12f7",
+                "SPT5_T15_REP1.mLb.clN.bedGraph:md5,53acbef45032a4c58766c9d220e1a761",
+                "SPT5_T15_REP2.mLb.clN.bedGraph:md5,d2fbf8ad95d452e738f36081d51e4d22",
                 "SPT5_T0_REP1_peaks.broadPeak:md5,ddf2e346dd0b80bd433c09312d31cb51",
                 "SPT5_T0_REP1_peaks.gappedPeak:md5,38996ca713aeb8069165e347e69bed89",
                 "SPT5_T0_REP1_peaks.xls:md5,d68f4b095c466fccb5c65c8807f142a2",
@@ -823,10 +823,10 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-03-26T14:16:04.604869",
+        "timestamp": "2026-06-20T09:44:50.992423",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.04.0"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.0"
         }
     },
     "skip_trimming with stub": {
