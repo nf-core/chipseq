@@ -126,17 +126,17 @@
                 "chromap/merged_library/SPT5_T15_REP2.mLb.clN.sorted.bam",
                 "chromap/merged_library/SPT5_T15_REP2.mLb.clN.sorted.bam.bai",
                 "chromap/merged_library/bigwig",
-                "chromap/merged_library/bigwig/SPT5_INPUT_REP1.mLB.clN.bedGraph",
+                "chromap/merged_library/bigwig/SPT5_INPUT_REP1.mLb.clN.bedGraph",
                 "chromap/merged_library/bigwig/SPT5_INPUT_REP1.mLb.clN.bigWig",
-                "chromap/merged_library/bigwig/SPT5_INPUT_REP2.mLB.clN.bedGraph",
+                "chromap/merged_library/bigwig/SPT5_INPUT_REP2.mLb.clN.bedGraph",
                 "chromap/merged_library/bigwig/SPT5_INPUT_REP2.mLb.clN.bigWig",
-                "chromap/merged_library/bigwig/SPT5_T0_REP1.mLB.clN.bedGraph",
+                "chromap/merged_library/bigwig/SPT5_T0_REP1.mLb.clN.bedGraph",
                 "chromap/merged_library/bigwig/SPT5_T0_REP1.mLb.clN.bigWig",
-                "chromap/merged_library/bigwig/SPT5_T0_REP2.mLB.clN.bedGraph",
+                "chromap/merged_library/bigwig/SPT5_T0_REP2.mLb.clN.bedGraph",
                 "chromap/merged_library/bigwig/SPT5_T0_REP2.mLb.clN.bigWig",
-                "chromap/merged_library/bigwig/SPT5_T15_REP1.mLB.clN.bedGraph",
+                "chromap/merged_library/bigwig/SPT5_T15_REP1.mLb.clN.bedGraph",
                 "chromap/merged_library/bigwig/SPT5_T15_REP1.mLb.clN.bigWig",
-                "chromap/merged_library/bigwig/SPT5_T15_REP2.mLB.clN.bedGraph",
+                "chromap/merged_library/bigwig/SPT5_T15_REP2.mLb.clN.bedGraph",
                 "chromap/merged_library/bigwig/SPT5_T15_REP2.mLb.clN.bigWig",
                 "chromap/merged_library/deepTools",
                 "chromap/merged_library/deepTools/plotFingerprint",
@@ -803,12 +803,12 @@
                 "trimgalore/logs/SPT5_T15_REP2_T1_2.fastq.gz_trimming_report.txt"
             ],
             [
-                "SPT5_INPUT_REP1.mLB.clN.bedGraph:md5,e18a171dc9e71782335f2ca933da0773",
-                "SPT5_INPUT_REP2.mLB.clN.bedGraph:md5,3155c2b26db574cfccbb0388dea6617a",
-                "SPT5_T0_REP1.mLB.clN.bedGraph:md5,2497e5d9197400d42d51641f82c017b3",
-                "SPT5_T0_REP2.mLB.clN.bedGraph:md5,552f2dc1010cea4e1d822081409bb11b",
-                "SPT5_T15_REP1.mLB.clN.bedGraph:md5,52c8de5177ed6d20c2e598d9d9717de4",
-                "SPT5_T15_REP2.mLB.clN.bedGraph:md5,66db76ce702dea56dd5fb9a8b261a7fb",
+                "SPT5_INPUT_REP1.mLb.clN.bedGraph:md5,e18a171dc9e71782335f2ca933da0773",
+                "SPT5_INPUT_REP2.mLb.clN.bedGraph:md5,3155c2b26db574cfccbb0388dea6617a",
+                "SPT5_T0_REP1.mLb.clN.bedGraph:md5,2497e5d9197400d42d51641f82c017b3",
+                "SPT5_T0_REP2.mLb.clN.bedGraph:md5,552f2dc1010cea4e1d822081409bb11b",
+                "SPT5_T15_REP1.mLb.clN.bedGraph:md5,52c8de5177ed6d20c2e598d9d9717de4",
+                "SPT5_T15_REP2.mLb.clN.bedGraph:md5,66db76ce702dea56dd5fb9a8b261a7fb",
                 "SPT5_T0_REP1_peaks.broadPeak:md5,b4a7e2305ed63853b04d5e18678ea27a",
                 "SPT5_T0_REP1_peaks.gappedPeak:md5,2765b191811a573296f0122b9a270e4b",
                 "SPT5_T0_REP1_peaks.xls:md5,c98206fe98326026daf9f76a72de3e5b",
@@ -942,10 +942,10 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-03-26T13:48:17.847211",
+        "timestamp": "2026-06-20T09:16:06.518313",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.04.0"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.0"
         }
     },
     "chromap with stub": {
