@@ -28,8 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   required for IP samples. Since a ChIP IP sample will always have an antibody, it should be specified to distinguish
   the sample from input/controls.
 - [[PR #514](https://github.com/nf-core/chipseq/pull/514)] - Updated pipeline template to [nf-core/tools
-  4.0.2](https://github.com/nf-core/tools/releases/tag/4.0.2)
-- [[#519] (https://github.com/nf-core/chipseq/issues/519)] - Changed merged libraries suffix to `.mLb.`
+  4.0.2](https://github.com/nf-core/tools/releases/tag/4.0.2).
+- [[#519] (https://github.com/nf-core/chipseq/issues/519)] - Changed merged libraries suffix to `.mLb.`.
 
 ### Parameters
 
