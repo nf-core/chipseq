@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the sample from input/controls.
 - [[PR #514](https://github.com/nf-core/chipseq/pull/514)] - Updated pipeline template to [nf-core/tools
   4.0.2](https://github.com/nf-core/tools/releases/tag/4.0.2)
-- [[PR #520] (https://github.com/nf-core/chipseq/pull/520)] - Changed merged librarie suffix to `.mLb.`
+- [[#519] (https://github.com/nf-core/chipseq/issues/519)] - Changed merged libraries suffix to `.mLb.`
 
 ### Parameters
 
