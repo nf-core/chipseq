@@ -22,8 +22,8 @@ include { INPUT_CHECK            } from '../subworkflows/local/input_check'
 include { ALIGN_STAR             } from '../subworkflows/local/align_star'
 include { BAM_FILTER_BAMTOOLS    } from '../subworkflows/local/bam_filter_bamtools'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC                       } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER                  } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer.nf'
-include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER                  } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer'
+include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,25 +35,24 @@ include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 } from '../sub
 // MODULE: Installed directly from nf-core/modules
 //
 
-include { PICARD_MERGESAMFILES          } from '../modules/nf-core/picard/mergesamfiles/main'
-include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
-include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap/main'
-include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/phantompeakqualtools/main'
-include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/computematrix/main'
-include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile/main'
-include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
-include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
-include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/khmer/uniquekmers/main'
+include { PICARD_MERGESAMFILES          } from '../modules/nf-core/picard/mergesamfiles'
+include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics'
+include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap'
+include { PHANTOMPEAKQUALTOOLS          } from '../modules/nf-core/phantompeakqualtools'
+include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/computematrix'
+include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile'
+include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap'
+include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
 //
 
-include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq_fastqc_umitools_trimgalore/main'
-include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq_align_bwa/main'
-include { FASTQ_ALIGN_BOWTIE2              } from '../subworkflows/nf-core/fastq_align_bowtie2/main'
-include { FASTQ_ALIGN_CHROMAP              } from '../subworkflows/nf-core/fastq_align_chromap/main'
-include { BAM_MARKDUPLICATES_PICARD        } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
+include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq_fastqc_umitools_trimgalore'
+include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq_align_bwa'
+include { FASTQ_ALIGN_BOWTIE2              } from '../subworkflows/nf-core/fastq_align_bowtie2'
+include { FASTQ_ALIGN_CHROMAP              } from '../subworkflows/nf-core/fastq_align_chromap'
+include { BAM_MARKDUPLICATES_PICARD        } from '../subworkflows/nf-core/bam_markduplicates_picard'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -61,36 +60,11 @@ include { BAM_MARKDUPLICATES_PICARD        } from '../subworkflows/nf-core/bam_m
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// JSON files required by BAMTools for alignment filtering
-ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config)
-ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
-
-// Header files for MultiQC
-ch_spp_nsc_header           = file("$projectDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
-ch_spp_rsc_header           = file("$projectDir/assets/multiqc/spp_rsc_header.txt", checkIfExists: true)
-ch_spp_correlation_header   = file("$projectDir/assets/multiqc/spp_correlation_header.txt", checkIfExists: true)
-ch_peak_count_header        = file("$projectDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
-ch_frip_score_header        = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
-ch_peak_annotation_header   = file("$projectDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
-ch_deseq2_pca_header        = Channel.value(file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true))
-ch_deseq2_clustering_header = Channel.value(file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true))
-
-// Save AWS IGenomes file containing annotation version
-def anno_readme = params.genomes[ params.genome ]?.readme
-if (anno_readme && file(anno_readme).exists()) {
-    file("${params.outdir}/genome/").mkdirs()
-    file(anno_readme).copyTo("${params.outdir}/genome/")
-}
-
-
-// // Info required for completion email and summary
-// def multiqc_report = []
 
 workflow CHIPSEQ {
 
     take:
     ch_samplesheet   // channel: path(sample_sheet.csv)
-    ch_versions      // channel: [ path(versions.yml) ]
     ch_fasta         // channel: path(genome.fa)
     ch_fai           // channel: path(genome.fai)
     ch_gtf           // channel: path(genome.gtf)
@@ -101,9 +75,57 @@ workflow CHIPSEQ {
     ch_bowtie2_index // channel: path(bowtie2/index)
     ch_chromap_index // channel: path(chromap.index)
     ch_star_index    // channel: path(star/index/)
+    ch_macs_gsize    // channel: integer(macs_gsize)
+    multiqc_config   // string: path to MultiQC config file or list of paths if multiple config files
+    multiqc_logo     // string: path to MultiQC logo file
+    multiqc_methods_description // string: path to MultiQC methods description file
+    outdir           // path: output directory
 
     main:
-    ch_multiqc_files = Channel.empty()
+    def ch_versions = channel.empty()
+    def ch_multiqc_files = channel.empty()
+
+    // JSON files required by BAMTools for alignment filtering
+    ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config)
+    ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
+
+    // Header files for MultiQC
+    ch_spp_nsc_header           = file("$projectDir/assets/multiqc/spp_nsc_header.txt", checkIfExists: true)
+    ch_spp_rsc_header           = file("$projectDir/assets/multiqc/spp_rsc_header.txt", checkIfExists: true)
+    ch_spp_correlation_header   = file("$projectDir/assets/multiqc/spp_correlation_header.txt", checkIfExists: true)
+    ch_peak_count_header        = file("$projectDir/assets/multiqc/peak_count_header.txt", checkIfExists: true)
+    ch_frip_score_header        = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
+    ch_peak_annotation_header   = file("$projectDir/assets/multiqc/peak_annotation_header.txt", checkIfExists: true)
+    ch_deseq2_pca_header        = channel.value(file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true))
+    ch_deseq2_clustering_header = channel.value(file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true))
+
+    // Save AWS IGenomes file containing annotation version
+    def anno_readme = params.genomes[ params.genome ]?.readme
+    if (anno_readme && file(anno_readme).exists()) {
+        file("${params.outdir}/genome/").mkdirs()
+        file(anno_readme).copyTo("${params.outdir}/genome/")
+    }
+
+    //
+    // Collection versions from topic channel
+    //
+    def topic_versions = channel.topic("versions")
+        .distinct()
+        .branch { entry ->
+            versions_file: entry instanceof Path
+            versions_tuple: true
+        }
+
+    def topic_versions_string = topic_versions.versions_tuple
+        .map { process, tool, version ->
+            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
+        }
+        .groupTuple(by:0)
+        .map { process, tool_versions ->
+            tool_versions.unique().sort()
+            "${process}:\n${tool_versions.join('\n')}"
+        }
+
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
@@ -111,7 +133,6 @@ workflow CHIPSEQ {
         ch_samplesheet,
         params.seq_center
     )
-    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
     // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
     // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
     // ! There is currently no tooling to help you write a sample sheet schema
@@ -128,16 +149,15 @@ workflow CHIPSEQ {
         0,
         10000
     )
-    ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
     //
-    ch_genome_bam        = Channel.empty()
-    ch_genome_bam_index  = Channel.empty()
-    ch_samtools_stats    = Channel.empty()
-    ch_samtools_flagstat = Channel.empty()
-    ch_samtools_idxstats = Channel.empty()
+    ch_genome_bam        = channel.empty()
+    ch_genome_bam_index  = channel.empty()
+    ch_samtools_stats    = channel.empty()
+    ch_samtools_flagstat = channel.empty()
+    ch_samtools_idxstats = channel.empty()
     if (params.aligner == 'bwa') {
         FASTQ_ALIGN_BWA (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
@@ -153,7 +173,6 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BWA.out.versions)
     }
 
     //
@@ -175,7 +194,6 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions)
     }
 
     //
@@ -199,7 +217,6 @@ workflow CHIPSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions)
     }
 
     //
@@ -222,8 +239,6 @@ workflow CHIPSEQ {
         ch_samtools_flagstat = ALIGN_STAR.out.flagstat
         ch_samtools_idxstats = ALIGN_STAR.out.idxstats
         ch_star_multiqc      = ALIGN_STAR.out.log_final
-
-        ch_versions = ch_versions.mix(ALIGN_STAR.out.versions)
     }
 
     //
@@ -247,7 +262,6 @@ workflow CHIPSEQ {
     PICARD_MERGESAMFILES (
         ch_sort_bam
     )
-    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES.out.versions.first())
 
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
@@ -263,7 +277,6 @@ workflow CHIPSEQ {
                 [ [:], it ]
             }
     )
-    ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD.out.versions)
 
     //
     // SUBWORKFLOW: Filter BAM file with BamTools
@@ -278,24 +291,22 @@ workflow CHIPSEQ {
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(BAM_FILTER_BAMTOOLS.out.versions)
 
     //
     // MODULE: Preseq coverage analysis
     //
-    ch_preseq_multiqc = Channel.empty()
+    ch_preseq_multiqc = channel.empty()
     if (!params.skip_preseq) {
         PRESEQ_LCEXTRAP (
             BAM_MARKDUPLICATES_PICARD.out.bam
         )
         ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
-        ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
     // MODULE: Picard post alignment QC
     //
-    ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
+    ch_picardcollectmultiplemetrics_multiqc = channel.empty()
     if (!params.skip_picard_metrics) {
         PICARD_COLLECTMULTIPLEMETRICS (
             BAM_FILTER_BAMTOOLS
@@ -314,22 +325,20 @@ workflow CHIPSEQ {
                 }
         )
         ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
-        ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
     }
 
     //
     // MODULE: Phantompeaktools strand cross-correlation and QC metrics
     //
-    ch_phantompeakqualtools_spp_multiqc                 = Channel.empty()
-    ch_multiqc_phantompeakqualtools_nsc_multiqc         = Channel.empty()
-    ch_multiqc_phantompeakqualtools_rsc_multiqc         = Channel.empty()
-    ch_multiqc_phantompeakqualtools_correlation_multiqc = Channel.empty()
+    ch_phantompeakqualtools_spp_multiqc                 = channel.empty()
+    ch_multiqc_phantompeakqualtools_nsc_multiqc         = channel.empty()
+    ch_multiqc_phantompeakqualtools_rsc_multiqc         = channel.empty()
+    ch_multiqc_phantompeakqualtools_correlation_multiqc = channel.empty()
     if (!params.skip_spp) {
         PHANTOMPEAKQUALTOOLS (
             BAM_FILTER_BAMTOOLS.out.bam
         )
         ch_phantompeakqualtools_spp_multiqc           = PHANTOMPEAKQUALTOOLS.out.spp
-        ch_versions = ch_versions.mix(PHANTOMPEAKQUALTOOLS.out.versions.first())
 
         //
         // MODULE: MultiQC custom content for Phantompeaktools
@@ -352,10 +361,9 @@ workflow CHIPSEQ {
         BAM_FILTER_BAMTOOLS.out.bam.join(BAM_FILTER_BAMTOOLS.out.flagstat, by: [0]),
         ch_chrom_sizes
     )
-    ch_versions = ch_versions.mix(BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.versions)
 
 
-    ch_deeptoolsplotprofile_multiqc = Channel.empty()
+    ch_deeptoolsplotprofile_multiqc = channel.empty()
     if (!params.skip_plot_profile) {
         //
         // MODULE: deepTools matrix generation for plotting
@@ -364,7 +372,6 @@ workflow CHIPSEQ {
             BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC.out.bigwig,
             ch_gene_bed
         )
-        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
 
         //
         // MODULE: deepTools profile plots
@@ -373,7 +380,6 @@ workflow CHIPSEQ {
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
         ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
 
         //
         // MODULE: deepTools heatmaps
@@ -381,7 +387,6 @@ workflow CHIPSEQ {
         DEEPTOOLS_PLOTHEATMAP (
             DEEPTOOLS_COMPUTEMATRIX.out.matrix
         )
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
     }
 
     //
@@ -412,27 +417,12 @@ workflow CHIPSEQ {
     //
     // MODULE: deepTools plotFingerprint joint QC for IP and control
     //
-    ch_deeptoolsplotfingerprint_multiqc = Channel.empty()
+    ch_deeptoolsplotfingerprint_multiqc = channel.empty()
     if (!params.skip_plot_fingerprint) {
         DEEPTOOLS_PLOTFINGERPRINT (
             ch_ip_control_bam_bai
         )
         ch_deeptoolsplotfingerprint_multiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
-    }
-
-    //
-    // MODULE: Calculute genome size with khmer
-    //
-    ch_macs_gsize                     = Channel.empty()
-    ch_subreadfeaturecounts_multiqc   = Channel.empty()
-    ch_macs_gsize = params.macs_gsize
-    if (!params.macs_gsize) {
-        KHMER_UNIQUEKMERS (
-            ch_fasta,
-            params.read_length
-        )
-        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
     }
 
     // Create channels: [ meta, ip_bam, control_bam ]
@@ -459,15 +449,16 @@ workflow CHIPSEQ {
         params.skip_peak_annotation,
         params.skip_peak_qc
     )
-    ch_versions = ch_versions.mix(BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER.out.versions)
 
     //
     //  Consensus peaks analysis
     //
-    ch_macs3_consensus_bed_lib   = Channel.empty()
-    ch_macs3_consensus_txt_lib   = Channel.empty()
-    ch_deseq2_pca_multiqc        = Channel.empty()
-    ch_deseq2_clustering_multiqc = Channel.empty()
+    ch_macs3_consensus_bed_lib        = channel.empty()
+    ch_macs3_consensus_txt_lib        = channel.empty()
+    ch_deseq2_pca_multiqc             = channel.empty()
+    ch_deseq2_clustering_multiqc      = channel.empty()
+    ch_subreadfeaturecounts_multiqc   = channel.empty()
+
     if (!params.skip_consensus_peaks) {
         // Create channels: [ antibody, [ ip_bams ], single_end_map ]
         ch_ip_control_bam
@@ -499,7 +490,6 @@ workflow CHIPSEQ {
         ch_subreadfeaturecounts_multiqc  = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.featurecounts_summary
         ch_deseq2_pca_multiqc            = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.deseq2_qc_pca_multiqc
         ch_deseq2_clustering_multiqc     = BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.deseq2_qc_dists_multiqc
-        ch_versions = ch_versions.mix(BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2.out.versions)
     }
 
     //
@@ -515,33 +505,39 @@ workflow CHIPSEQ {
             ch_macs3_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
             ch_macs3_consensus_txt_lib.collect{it[1]}.ifEmpty([])
         )
-        ch_versions = ch_versions.mix(IGV.out.versions)
     }
 
     //
     // Collate and save software versions
     //
-    softwareVersionsToYAML(ch_versions)
+
+    def ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
+        .mix(topic_versions_string)
         .collectFile(
-            storeDir: "${params.outdir}/pipeline_info",
+            storeDir: "${outdir}/pipeline_info",
             name: 'nf_core_'  +  'chipseq_software_'  + 'mqc_'  + 'versions.yml',
             sort: true,
             newLine: true
-        ).set { ch_collated_versions }
+        )
 
     //
     // MODULE: MultiQC
     //
-    ch_multiqc_report = Channel.empty()
+    ch_multiqc_report = channel.empty()
 
     if (!params.skip_multiqc) {
-        ch_multiqc_config        = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-        ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath( params.multiqc_config ): Channel.empty()
-        ch_multiqc_logo          = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo )  : Channel.empty()
-        summary_params           = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
-        ch_workflow_summary      = Channel.value(paramsSummaryMultiqc(summary_params))
-        ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        ch_multiqc_config        = channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+        ch_multiqc_custom_config = multiqc_config ? channel.fromPath(multiqc_config) : channel.empty()
+        ch_multiqc_logo          = multiqc_logo   ? channel.fromPath(multiqc_logo)   : channel.empty()
+        def ch_summary_params    = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
+        def ch_workflow_summary  = channel.value(paramsSummaryMultiqc(ch_summary_params))
         ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
+        ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        def ch_multiqc_custom_methods_description = multiqc_methods_description
+            ? file(multiqc_methods_description, checkIfExists: true)
+            : file("${projectDir}/assets/methods_description_template.yml", checkIfExists: true)
+        def ch_methods_description = channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: true))
 
         MULTIQC (
             ch_multiqc_files.collect(),
@@ -589,9 +585,8 @@ workflow CHIPSEQ {
     }
 
     emit:
-    multiqc_report = ch_multiqc_report.toList()  // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                 // channel: [ path(versions.yml) ]
-
+    multiqc_report = ch_multiqc_report // channel: /path/to/multiqc_report.html
+    versions       = ch_versions       // channel: [ path(versions.yml) ]
 }
 
 /*

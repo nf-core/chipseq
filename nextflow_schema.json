@@ -153,7 +153,7 @@
                     "errorMessage": "BED file must be a valid path ending in .bed, or its .gz compressed version (e.g., genome.bed.gz)"
                 },
                 "macs_gsize": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "Effective genome size parameter required by MACS3.",
                     "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3. If using an iGenomes reference these have been provided for any of the genomes available in the igenomes.config, and for the following read lengths (50,75,100,150,200) that should be set using the `--read_length` parameter. For other genomes, if this parameter is not specified it will be inferred using the provided `--read_length` or otherwise the pipeline execution will stop with an error.",
                     "fa_icon": "fas fa-arrows-alt-h",
@@ -175,7 +175,6 @@
                 },
                 "igenomes_base": {
                     "type": "string",
-                    "format": "directory-path",
                     "description": "The base path to the igenomes reference files",
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
@@ -561,13 +560,6 @@
                     "fa_icon": "fas fa-palette",
                     "hidden": true
                 },
-                "hook_url": {
-                    "type": "string",
-                    "description": "Incoming hook URL for messaging service",
-                    "fa_icon": "fas fa-people-group",
-                    "help_text": "Incoming hook URL for messaging service. Currently, MS Teams and Slack are supported.",
-                    "hidden": true
-                },
                 "multiqc_config": {
                     "type": "string",
                     "format": "file-path",
@@ -614,6 +606,18 @@
                     "fa_icon": "far calendar",
                     "description": "Suffix to add to the trace report filename. Default is the date and time in the format yyyy-MM-dd_HH-mm-ss.",
                     "hidden": true
+                },
+                "help": {
+                    "type": ["boolean", "string"],
+                    "description": "Display the help message."
+                },
+                "help_full": {
+                    "type": "boolean",
+                    "description": "Display the full detailed help message."
+                },
+                "show_hidden": {
+                    "type": "boolean",
+                    "description": "Display hidden parameters in the help message (only works when --help or --help_full are provided)."
                 }
             }
         }
