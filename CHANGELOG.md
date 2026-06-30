@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#484](https://github.com/nf-core/chipseq/issues/484)] - Bulk, updated of modules and subworkflows.
 - [[#489](https://github.com/nf-core/chipseq/issues/489)] - Replace deprecated `CUSTOM_GETCHROMSIZES` with `SAMTOOLS_FAIDX`.
 - [[PR #493](https://github.com/nf-core/chipseq/pull/493)] - Follow up to #487.
-- [[PR #493](https://github.com/nf-core/chipseq/pull/493)] - Follow up to #487.
 - [[#492](https://github.com/nf-core/chipseq/issues/492), [#417](https://github.com/nf-core/chipseq/issues/417)] - Refactor local modules to nf-core standard.
 - [[#416](https://github.com/nf-core/chipseq/issues/416)] - Moved the `KHMER_UNIQUEKMERS` logic to prepare_genome
 - [[#440](https://github.com/nf-core/chipseq/issues/440), [#510](https://github.com/nf-core/chipseq/issues/510)] - Fix
@@ -30,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[PR #514](https://github.com/nf-core/chipseq/pull/514)] - Updated pipeline template to [nf-core/tools
   4.0.2](https://github.com/nf-core/tools/releases/tag/4.0.2).
 - [[#519] (https://github.com/nf-core/chipseq/issues/519)] - Changed merged libraries suffix to `.mLb.`.
+- [[#456] (https://github.com/nf-core/chipseq/issues/456)] - - Use `--skip_preseq` by default.
 
 ### Parameters
 
