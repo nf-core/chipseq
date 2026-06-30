@@ -360,7 +360,7 @@
                     "type": "boolean",
                     "description": "Skip Preseq.",
                     "fa_icon": "fas fa-fast-forward",
-                    "default": false
+                    "default": true
                 },
                 "deseq2_vst": {
                     "type": "boolean",
