@@ -12,9 +12,7 @@ process ANNOTATE_BOOLEAN_PEAKS {
 
     output:
     path '*.boolean.annotatePeaks.txt', emit: annotate_peaks_txt
-
     tuple val("${task.process}"), val('sed'), eval("sed --version 2>&1 | sed '1!d;s/^.*) //'"), topic: versions, emit: versions_sed
-
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
