@@ -23,6 +23,7 @@ Thank you to everyone else that has contributed by reporting bugs, enhancements 
 
 ### Enhancements & fixes
 
+- [[PR #518](https://github.com/nf-core/chipseq/pull/518)] - Remove docker.io in container address in `annotate_boolean_peaks`
 - Updated pipeline template to [nf-core/tools 2.7.2](https://github.com/nf-core/tools/releases/tag/2.7.2)
 - [[#317](https://github.com/nf-core/chipseq/issues/317)] - Added metro map
 - [[#288](https://github.com/nf-core/chipseq/issues/291)] - Bump `chromap` version 2 and enable all the steps below chromap again when paired-end data is processed.
