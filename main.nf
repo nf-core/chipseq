@@ -9,8 +9,6 @@
 ----------------------------------------------------------------------------------------
 */
 
-nextflow.enable.dsl = 2
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     GENOME PARAMETER VALUES
@@ -33,12 +31,11 @@ params.macs_gsize    = getMacsGsize(params)
     IMPORT FUNCTIONS / MODULES / SUBWORKFLOWS / WORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
 include { CHIPSEQ                 } from './workflows/chipseq'
 include { PREPARE_GENOME          } from './subworkflows/local/prepare_genome'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
-// include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
-// include { getMacsGsize            } from './subworkflows/local/utils_nfcore_chipseq_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -52,7 +49,6 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_chip
 workflow NFCORE_CHIPSEQ {
 
     main:
-    ch_versions = Channel.empty()
 
     // SUBWORKFLOW: Prepare genome files
     PREPARE_GENOME (
@@ -68,17 +64,17 @@ workflow NFCORE_CHIPSEQ {
         params.bowtie2_index,
         params.chromap_index,
         params.star_index,
+        params.macs_gsize,
+        params.read_length
     )
-    ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
     // WORKFLOW: Run nf-core/chipseq workflow
     //
-    ch_input = Channel.value(file(params.input, checkIfExists: true))
+    ch_samplesheet = channel.value(file(params.input, checkIfExists: true))
 
     CHIPSEQ(
-        ch_input,
-        ch_versions,
+        ch_samplesheet,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.fai,
         PREPARE_GENOME.out.gtf,
@@ -88,12 +84,16 @@ workflow NFCORE_CHIPSEQ {
         PREPARE_GENOME.out.bwa_index,
         PREPARE_GENOME.out.bowtie2_index,
         PREPARE_GENOME.out.chromap_index,
-        PREPARE_GENOME.out.star_index
+        PREPARE_GENOME.out.star_index,
+        PREPARE_GENOME.out.macs_gsize,
+        params.multiqc_config,
+        params.multiqc_logo,
+        params.multiqc_methods_description,
+        params.outdir
     )
 
     emit:
     multiqc_report = CHIPSEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                // channel: [version1, version2, ...]
 }
 
 /*
@@ -105,23 +105,25 @@ workflow NFCORE_CHIPSEQ {
 workflow {
 
     main:
-
     //
     // SUBWORKFLOW: Run initialisation tasks
     //
     PIPELINE_INITIALISATION (
         params.version,
-        params.help,
         params.validate_params,
         params.monochrome_logs,
         args,
-        params.outdir
+        params.outdir,
+        params.input,
+        params.help,
+        params.help_full,
+        params.show_hidden
     )
 
     //
     // WORKFLOW: Run main workflow
     //
-    NFCORE_CHIPSEQ ()
+    NFCORE_CHIPSEQ ( )
 
     //
     // SUBWORKFLOW: Run completion tasks
@@ -132,7 +134,6 @@ workflow {
         params.plaintext_email,
         params.outdir,
         params.monochrome_logs,
-        params.hook_url,
         NFCORE_CHIPSEQ.out.multiqc_report
     )
 }
@@ -148,8 +149,8 @@ workflow {
 //
 def getGenomeAttribute(attribute) {
     if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
-        if (params.genomes[ params.genome ].containsKey(attribute)) {
-            return params.genomes[ params.genome ][ attribute ]
+        if (params.genomes[params.genome].containsKey(attribute)) {
+            return params.genomes[params.genome][attribute]
         }
     }
     return null

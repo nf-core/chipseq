@@ -1,0 +1,94 @@
+# === SYSTEM FILES ===
+.DS_Store
+**/.DS_Store
+
+# === PIPELINE EXECUTION METADATA ===
+pipeline_info/*.{html,json,txt,yml}
+
+# === MULTIQC OUTPUTS ===
+# MultiQC files contain timestamps, system paths, and run-specific data
+multiqc/multiqc_data/fastqc_top_overrepresented_sequences_table.txt
+multiqc/multiqc_data/BETA-multiqc.parquet
+**/multiqc.log
+**/multiqc_data.json
+**/multiqc_report.html
+**/multiqc_software_versions.txt
+**/multiqc_software_versions.yaml
+multiqc/multiqc_data/multiqc_sources.txt
+multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
+**/multiqc_data/llms-full.txt
+**/multiqc_data/multiqc.parquet
+
+# === QC TOOL OUTPUTS ===
+fastqc/*_fastqc.{html,zip}
+**/*_fastqc.html
+**/*_val_*_fastqc.html
+
+# === BINARY AND COMPRESSED FILES ===
+**/*.{pdf,png,svg,gz,bam,bai,bigWig,zip,RData,rds}
+
+# === TOOL-SPECIFIC METRICS FILES ===
+# Picard metrics
+**/*.quality_distribution_metrics
+**/*.quality_by_cycle_metrics
+**/*.insert_size_metrics
+**/*.alignment_summary_metrics
+**/*.base_distribution_by_cycle_metrics
+**/*.metrics.txt
+
+# Samtools
+**/*.bam.stats
+
+# Trimming reports
+**/*_trimming_report.txt
+
+# Generic outputs
+**/*.out
+
+# === ANALYSIS RESULTS (FLOATING-POINT VARIATIONS) ===
+# DeepTools outputs
+**/*.plotFingerprint.raw.txt
+**/*.plotFingerprint.qcmetrics.txt
+**/*.computeMatrix.vals.mat.tab
+**/*.plotHeatmap.mat.tab
+**/*.computeMatrix.mat.gz
+**/*.plotProfile.tab
+
+# Peak calling and annotation
+**/*.annotatePeaks.txt
+**/*.boolean.annotatePeaks.txt
+**/macs3_peak.summary.txt
+**/macs3_annotatePeaks.summary.txt
+**/macs3_annotatePeaks.summary_mqc.tsv
+
+# Feature counting
+**/*.featureCounts.tsv
+**/*.featureCounts.tsv.summary
+
+# Statistical analysis
+**/*.pca.vals.txt
+**/*.pca.vals_mqc.tsv
+**/*.sample.dists.txt
+**/*.sample.dists_mqc.tsv
+
+# === YAML CONFIGURATION FILES ===
+**/deeptools_plot_profile_mlib_deeptools.yaml
+**/multiqc_strand_shift_correlation.yaml
+**/multiqc_deseq2_clustering_1.yaml
+**/multiqc_deseq2_pca_1.yaml
+**/multiqc_sources.yaml
+**/multiqc_cutadapt.yaml
+**/read_distribution_profile.yaml
+**/deeptools_fingerprint_plot.yaml
+**/deeptools_plot_fingerprint_counts_mlib_deeptools.yaml
+
+# === CHIP-SEQ SPECIFIC OUTPUTS ===
+# PhantomPeakQualTools outputs (contain variable correlation data)
+**/*.spp_correlation_mqc.tsv
+**/*.spp_nsc_mqc.tsv
+**/*.spp_rsc_mqc.tsv
+
+# === IGV SESSION FILES ===
+# IGV session files contain absolute paths and timestamps
+**/igv_files.txt
+**/igv_session.xml
