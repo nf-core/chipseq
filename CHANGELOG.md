@@ -73,6 +73,8 @@ the last release have been listed below for reference.
 | bowtie2                     | 2.5.2       | 2.5.4       |
 | picard                      | 3.2.0       | 3.4.0       |
 | samtools                    | 1.15.1      | 1.20        |
+| bwa                         | 0.7.18      | 0.7.19      |
+| chromap                     | 0.2.6       | 0.3.2       |
 |                             |             |             |
 
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
