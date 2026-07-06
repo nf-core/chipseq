@@ -208,8 +208,8 @@ workflow CHIPSEQ {
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             ch_chromap_index,
             ch_fasta
-                .map {
-                    [ [:], it ]
+                .map { fasta ->
+                    [ [:], fasta, [] ]
                 },
             [],
             [],
@@ -217,7 +217,7 @@ workflow CHIPSEQ {
             []
         )
         ch_genome_bam        = FASTQ_ALIGN_CHROMAP.out.bam
-        ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.bai
+        ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.index
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
