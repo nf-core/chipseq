@@ -151,13 +151,17 @@ workflow CHIPSEQ {
     )
 
     //
-    // SUBWORKFLOW: Alignment with BWA & BAM QC
+    // Initialize common channels
     //
     ch_genome_bam        = channel.empty()
     ch_genome_bam_index  = channel.empty()
     ch_samtools_stats    = channel.empty()
     ch_samtools_flagstat = channel.empty()
     ch_samtools_idxstats = channel.empty()
+
+    //
+    // SUBWORKFLOW: Alignment with BWA & BAM QC
+    //
     if (params.aligner == 'bwa') {
         FASTQ_ALIGN_BWA (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
@@ -185,12 +189,12 @@ workflow CHIPSEQ {
             params.save_unaligned,
             false,
             ch_fasta
-                .map {
-                    [ [:], it ]
+                .map { fasta ->
+                    [ [:], fasta, [] ]
                 }
         )
         ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
-        ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
+        ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.index
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
@@ -266,23 +270,19 @@ workflow CHIPSEQ {
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
     //
+    ch_fasta_fai = ch_fasta.combine(ch_fai)
+        .map {fasta, fai -> [ [:], fasta, fai]}
+    ch_fasta_fai.view()
     BAM_MARKDUPLICATES_PICARD (
         PICARD_MERGESAMFILES.out.bam,
-        ch_fasta
-            .map {
-                [ [:], it ]
-            },
-        ch_fai
-            .map {
-                [ [:], it ]
-            }
+        ch_fasta_fai
     )
 
     //
     // SUBWORKFLOW: Filter BAM file with BamTools
     //
     BAM_FILTER_BAMTOOLS (
-        BAM_MARKDUPLICATES_PICARD.out.bam.join(BAM_MARKDUPLICATES_PICARD.out.bai, by: [0]),
+        BAM_MARKDUPLICATES_PICARD.out.bam.join(BAM_MARKDUPLICATES_PICARD.out.index, by: [0]),
         ch_filtered_bed.first(),
         ch_fasta
             .map {
