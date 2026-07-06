@@ -3,9 +3,9 @@ process CHROMAP_CHROMAP {
     label 'process_medium'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/mulled-v2-1f09f39f20b1c4ee36581dc81cc323c70e661633:6500f0fa0c9536821177168555632d9811670937-0' :
-        'biocontainers/mulled-v2-1f09f39f20b1c4ee36581dc81cc323c70e661633:6500f0fa0c9536821177168555632d9811670937-0' }"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/5d/5d39e0b3f00c5469ffc2ceef4bd76959fba6313064ed2408dd4ccac498022ad6/data' :
+        'community.wave.seqera.io/library/chromap_samtools:b975c17adf0096ba' }"
 
     input:
     tuple val(meta), path(reads)
@@ -21,7 +21,8 @@ process CHROMAP_CHROMAP {
     tuple val(meta), path("*.bam")        , optional:true, emit: bam
     tuple val(meta), path("*.tagAlign.gz"), optional:true, emit: tagAlign
     tuple val(meta), path("*.pairs.gz")   , optional:true, emit: pairs
-    path "versions.yml"                                  , emit: versions
+    tuple val("${task.process}"), val('chromap'), eval("chromap --version 2>&1"), topic: versions, emit: versions_chromap
+    tuple val("${task.process}"), val('samtools'), eval("samtools version | sed '1!d;s/.* //'"), topic: versions, emit: versions_samtools
 
     when:
     task.ext.when == null || task.ext.when
@@ -29,7 +30,6 @@ process CHROMAP_CHROMAP {
     script:
     def args = task.ext.args ?: ''
     def args2 = task.ext.args2 ?: ''
-    def args3 = task.ext.args3 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def args_list = args.tokenize()
 
@@ -50,10 +50,8 @@ process CHROMAP_CHROMAP {
     def compression_cmds = "gzip -n ${prefix}.${file_extension}"
     if (args.contains("--SAM")) {
         compression_cmds = """
-        samtools addreplacerg $args3 -o ${prefix}.rg.${file_extension} ${prefix}.${file_extension}
         samtools view $args2 -@ $task.cpus -bh \\
-            -o ${prefix}.bam ${prefix}.rg.${file_extension}
-        rm ${prefix}.rg.${file_extension}
+            -o ${prefix}.bam ${prefix}.${file_extension}
         rm ${prefix}.${file_extension}
         """
     }
@@ -66,14 +64,8 @@ process CHROMAP_CHROMAP {
             -r $fasta \\
             -1 ${reads.join(',')} \\
             -o ${prefix}.${file_extension}
-        
-        $compression_cmds
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            chromap: \$(echo \$(chromap --version 2>&1))
-            samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-        END_VERSIONS
+        $compression_cmds
         """
     } else {
         """
@@ -87,12 +79,6 @@ process CHROMAP_CHROMAP {
             -o ${prefix}.${file_extension}
 
         $compression_cmds
-
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            chromap: \$(echo \$(chromap --version 2>&1))
-            samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-        END_VERSIONS
         """
     }
 
@@ -103,11 +89,5 @@ process CHROMAP_CHROMAP {
     touch ${prefix}.bam
     echo "" | gzip > ${prefix}.tagAlign.gz
     echo "" | gzip > ${prefix}.pairs.gz
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        chromap: \$(echo \$(chromap --version 2>&1))
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-    END_VERSIONS
     """
 }
