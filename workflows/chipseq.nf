@@ -168,12 +168,12 @@ workflow CHIPSEQ {
             ch_bwa_index,
             false,
             ch_fasta
-                .map {
-                    [ [:], it ]
+                .map { fasta ->
+                    [ [:], fasta, [] ]
                 }
         )
         ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
-        ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
+        ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.index
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
