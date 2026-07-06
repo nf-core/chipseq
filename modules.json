@@ -27,7 +27,7 @@
                     },
                     "bwa/mem": {
                         "branch": "master",
-                        "git_sha": "707241c72951f24fd89982c4c80c5983a4c437ef",
+                        "git_sha": "2fb127c8fd13de0adaa676df7169131e45c0b114",
                         "installed_by": ["fastq_align_bwa", "modules"]
                     },
                     "chromap/chromap": {
@@ -207,7 +207,7 @@
                     },
                     "fastq_align_bwa": {
                         "branch": "master",
-                        "git_sha": "9afa0584136287aa20fc18296f45f103c0c4e69a",
+                        "git_sha": "cbb7a6362981f07d2c26e43f8186025320569ffd",
                         "installed_by": ["subworkflows"]
                     },
                     "fastq_align_chromap": {
