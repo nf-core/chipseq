@@ -272,10 +272,10 @@ workflow CHIPSEQ {
     //
     ch_fasta_fai = ch_fasta.combine(ch_fai)
         .map {fasta, fai -> [ [:], fasta, fai]}
-    ch_fasta_fai.view()
+
     BAM_MARKDUPLICATES_PICARD (
         PICARD_MERGESAMFILES.out.bam,
-        ch_fasta_fai
+        ch_fasta_fai.first()
     )
 
     //
@@ -285,8 +285,8 @@ workflow CHIPSEQ {
         BAM_MARKDUPLICATES_PICARD.out.bam.join(BAM_MARKDUPLICATES_PICARD.out.index, by: [0]),
         ch_filtered_bed.first(),
         ch_fasta
-            .map {
-                [ [:], it ]
+            .map { fasta ->
+                [ [:], fasta ]
             },
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
