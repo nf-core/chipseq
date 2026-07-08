@@ -18,6 +18,7 @@ multiqc/multiqc_data/multiqc_sources.txt
 multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
 **/multiqc_data/llms-full.txt
 **/multiqc_data/multiqc.parquet
+**/multiqc/**/multiqc_plots/pdf/*.{pdf}
 
 # === QC TOOL OUTPUTS ===
 fastqc/*_fastqc.{html,zip}
