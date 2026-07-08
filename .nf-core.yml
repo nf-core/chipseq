@@ -7,6 +7,8 @@ lint:
     - config_defaults:
         - params.bamtools_filter_se_config
         - params.bamtools_filter_pe_config
+  merge_markers:
+    - modules/nf-core/bowtie2/align/tests/main.nf.test.snap
 nf_core_version: 4.0.2
 repository_type: pipeline
 template:
