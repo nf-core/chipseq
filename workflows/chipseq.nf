@@ -228,14 +228,15 @@ workflow CHIPSEQ {
     // SUBWORKFLOW: Alignment with STAR & BAM QC
     //
     if (params.aligner == 'star') {
+        def seq_center = params.seq_center ?: ''
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             ch_star_index,
             ch_fasta
-                .map {
-                        [ [:], it ]
+                .map { fasta ->
+                        [ [:], fasta, [] ]
                 },
-            params.seq_center ?: ''
+            seq_center
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
         ch_genome_bam_index  = ALIGN_STAR.out.bai
