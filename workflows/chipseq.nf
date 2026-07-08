@@ -214,7 +214,8 @@ workflow CHIPSEQ {
             [],
             [],
             [],
-            []
+            [],
+            true
         )
         ch_genome_bam        = FASTQ_ALIGN_CHROMAP.out.bam
         ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.index
