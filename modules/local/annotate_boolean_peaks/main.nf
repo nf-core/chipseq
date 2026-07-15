@@ -5,7 +5,7 @@ process ANNOTATE_BOOLEAN_PEAKS {
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/ubuntu:20.04' :
-        'library/ubuntu:20.04' }"
+        'nf-core/ubuntu:20.04' }"
 
     input:
     tuple val(meta), path(boolean_txt), path(homer_peaks)
