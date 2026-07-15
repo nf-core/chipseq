@@ -235,7 +235,7 @@
                     },
                     "fastq_align_chromap": {
                         "branch": "master",
-                        "git_sha": "928a982b8467b0feecd7094ee754fbf4822e6ef9",
+                        "git_sha": "d92e0f8276a79d316fd324eae0edefeaf680804c",
                         "installed_by": ["subworkflows"]
                     },
                     "fastq_fastqc_umitools_trimgalore": {
