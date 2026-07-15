@@ -87,22 +87,22 @@
                     "python": "3.12.12"
                 },
                 "SAMTOOLS_FAIDX": {
-                    "samtools": "1.22.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_FLAGSTAT": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_IDXSTATS": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_INDEX": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_SORT": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_STATS": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SUBREAD_FEATURECOUNTS": {
                     "subread": "2.1.1"
@@ -951,7 +951,7 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-07-15T11:45:39.473638",
+        "timestamp": "2026-07-15T21:00:21.29521",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"
@@ -961,7 +961,7 @@
         "content": [
             20
         ],
-        "timestamp": "2026-07-15T11:46:07.963583",
+        "timestamp": "2026-07-15T21:01:14.850758",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"

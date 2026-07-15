@@ -80,22 +80,22 @@
                     "python": "3.12.12"
                 },
                 "SAMTOOLS_FAIDX": {
-                    "samtools": "1.22.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_FLAGSTAT": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_IDXSTATS": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_INDEX": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_SORT": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_STATS": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "STAR_ALIGN": {
                     "star": "2.7.11b"
@@ -977,7 +977,7 @@
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,aa2db2bcb3aa876cfbfe24b49d98aabd"
             ]
         ],
-        "timestamp": "2026-07-15T12:28:14.404035",
+        "timestamp": "2026-07-15T21:45:03.362972",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"
@@ -987,7 +987,7 @@
         "content": [
             20
         ],
-        "timestamp": "2026-07-15T12:28:44.226288",
+        "timestamp": "2026-07-15T21:46:01.239702",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"
