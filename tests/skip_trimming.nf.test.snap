@@ -52,6 +52,9 @@
                 "GTF2BED": {
                     "perl": "5.26.2"
                 },
+                "HOMER_ANNOTATEPEAKS": {
+                    "homer": 4.11
+                },
                 "IGV": {
                     "python": "3.12.12"
                 },
@@ -823,20 +826,20 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-06-20T09:44:50.992423",
         "meta": {
-            "nf-test": "0.9.5",
-            "nextflow": "26.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "26.04.1"
+        },
+        "timestamp": "2026-07-15T23:17:15.190122205"
     },
     "skip_trimming with stub": {
         "content": [
             190
         ],
-        "timestamp": "2026-03-17T14:36:41.411257",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.04.0"
-        }
+        },
+        "timestamp": "2026-03-17T14:36:41.411257"
     }
 }
