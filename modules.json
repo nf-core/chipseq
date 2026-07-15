@@ -12,7 +12,7 @@
                     },
                     "bowtie2/align": {
                         "branch": "master",
-                        "git_sha": "a0961c41021561ac7cf139f86bd7812a2f99e994",
+                        "git_sha": "0cd85f32cf1a1828205b16e4267277ba9457570b",
                         "installed_by": ["fastq_align_bowtie2", "modules"]
                     },
                     "bowtie2/build": {
@@ -104,7 +104,25 @@
                     "picard/addorreplacereadgroups": {
                         "branch": "master",
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
-                        "installed_by": ["_", "a", "c", "f", "g", "h", "i", "l", "m", "n", "o", "p", "q", "r", "s", "t"]
+                        "installed_by": [
+                            "_",
+                            "a",
+                            "c",
+                            "f",
+                            "g",
+                            "h",
+                            "i",
+                            "l",
+                            "m",
+                            "n",
+                            "o",
+                            "p",
+                            "q",
+                            "r",
+                            "s",
+                            "t",
+                            "fastq_align_chromap"
+                        ]
                     },
                     "picard/collectmultiplemetrics": {
                         "branch": "master",
