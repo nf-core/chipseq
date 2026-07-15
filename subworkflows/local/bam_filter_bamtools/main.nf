@@ -10,7 +10,7 @@ workflow BAM_FILTER_BAMTOOLS {
     take:
     ch_bam_bai                   // channel: [ val(meta), [ bam ], [bai] ]
     ch_bed                       // channel: [ bed ]
-    ch_fasta                     // channel: [ fasta ]
+    ch_fasta                     // channel: [ val(meta), fasta ]
     ch_bamtools_filter_se_config // channel: [ config_file ]
     ch_bamtools_filter_pe_config // channel: [ config_file ]
 
@@ -27,39 +27,35 @@ workflow BAM_FILTER_BAMTOOLS {
         ch_bamtools_filter_pe_config
     )
 
-    BAMTOOLS_FILTER
-        .out
-        .bam
-        .branch {
-            meta, bam ->
-                single_end: meta.single_end
-                    return [ meta, bam ]
-                paired_end: !meta.single_end
-                    return [ meta, bam ]
-        }
-        .set { ch_bam }
+    ch_bam_single_end = BAMTOOLS_FILTER.out.bam
+        .filter { meta, _bam -> meta.single_end == true }
+        .map { meta, bam -> [meta, bam] }
+
+    ch_bam_paired_end = BAMTOOLS_FILTER.out.bam
+        .filter { meta, _bam -> meta.single_end != true }
+        .map { meta, bam -> [meta, bam] }
 
     //
     // Index SE BAM file
     //
-    SAMTOOLS_INDEX {
-        ch_bam.single_end
-    }
+    SAMTOOLS_INDEX (
+        ch_bam_single_end
+    )
 
     //
     // Run samtools stats, flagstat and idxstats on SE BAM
     //
     BAM_STATS_SAMTOOLS (
-        ch_bam.single_end.join(SAMTOOLS_INDEX.out.bai),
-        ch_fasta
+        ch_bam_single_end.join(SAMTOOLS_INDEX.out.index),
+        ch_fasta.map { meta, fasta -> [ meta, fasta, [] ] }
     )
 
     //
     // Name sort PE BAM before filtering with pysam
     //
     SAMTOOLS_SORT (
-        ch_bam.paired_end,
-        ch_fasta,
+        ch_bam_paired_end,
+        ch_fasta.map { meta, fasta -> [ meta, fasta, [] ] },
         ''
     )
 
@@ -75,14 +71,14 @@ workflow BAM_FILTER_BAMTOOLS {
     //
     BAM_SORT_STATS_SAMTOOLS (
         BAM_REMOVE_ORPHANS.out.bam,
-        ch_fasta
+        ch_fasta.map { meta, fasta -> [ meta, fasta, [] ] }
     )
 
     emit:
-    name_bam = SAMTOOLS_SORT.out.bam                                                     // channel: [ val(meta), [ bam ] ]
-    bam      = BAM_SORT_STATS_SAMTOOLS.out.bam.mix(ch_bam.single_end)                    // channel: [ val(meta), [ bam ] ]
-    bai      = BAM_SORT_STATS_SAMTOOLS.out.bai.mix(SAMTOOLS_INDEX.out.bai)               // channel: [ val(meta), [ bai ] ]
-    stats    = BAM_SORT_STATS_SAMTOOLS.out.stats.mix(BAM_STATS_SAMTOOLS.out.stats)       // channel: [ val(meta), [ stats ] ]
-    flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat.mix(BAM_STATS_SAMTOOLS.out.flagstat) // channel: [ val(meta), [ flagstat ] ]
-    idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats.mix(BAM_STATS_SAMTOOLS.out.idxstats) // channel: [ val(meta), [ idxstats ] ]
+    name_bam = SAMTOOLS_SORT.out.bam                                                       // channel: [ val(meta), [ bam ] ]
+    bam      = BAM_SORT_STATS_SAMTOOLS.out.bam.mix(ch_bam_single_end)                      // channel: [ val(meta), [ bam ] ]
+    bai      = BAM_SORT_STATS_SAMTOOLS.out.index.mix(SAMTOOLS_INDEX.out.index)             // channel: [ val(meta), [ bai ] ]
+    stats    = BAM_SORT_STATS_SAMTOOLS.out.stats.mix(BAM_STATS_SAMTOOLS.out.stats)         // channel: [ val(meta), [ stats ] ]
+    flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat.mix(BAM_STATS_SAMTOOLS.out.flagstat)   // channel: [ val(meta), [ flagstat ] ]
+    idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats.mix(BAM_STATS_SAMTOOLS.out.idxstats)   // channel: [ val(meta), [ idxstats ] ]
 }

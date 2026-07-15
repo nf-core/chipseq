@@ -4,5 +4,5 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - bioconda::chromap=0.3.2
-  - bioconda::samtools=1.23.1
+  # renovate: datasource=conda depName=bioconda/picard
+  - bioconda::picard=3.4.0

@@ -1,6 +1,6 @@
-process PICARD_MARKDUPLICATES {
+process PICARD_ADDORREPLACEREADGROUPS {
     tag "${meta.id}"
-    label 'process_medium'
+    label 'process_low'
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
@@ -15,8 +15,7 @@ process PICARD_MARKDUPLICATES {
     tuple val(meta), path("*.bam"), emit: bam, optional: true
     tuple val(meta), path("*.bai"), emit: bai, optional: true
     tuple val(meta), path("*.cram"), emit: cram, optional: true
-    tuple val(meta), path("*.metrics.txt"), emit: metrics
-    tuple val("${task.process}"), val('picard'), eval("picard MarkDuplicates --version 2>&1 | sed -n 's/.*Version://p'"), topic: versions, emit: versions_picard
+    tuple val("${task.process}"), val('picard'), eval("picard AddOrReplaceReadGroups --version 2>&1 | sed -n 's/.*Version://p'"), topic: versions, emit: versions_picard
 
     when:
     task.ext.when == null || task.ext.when
@@ -28,7 +27,7 @@ process PICARD_MARKDUPLICATES {
     def reference = fasta ? "--REFERENCE_SEQUENCE ${fasta}" : ""
     def avail_mem = 3072
     if (!task.memory) {
-        log.info('[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.')
+        log.info('[Picard AddOrReplaceReadGroups] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.')
     }
     else {
         avail_mem = (task.memory.mega * 0.8).intValue()
@@ -40,12 +39,11 @@ process PICARD_MARKDUPLICATES {
     """
     picard \\
         -Xmx${avail_mem}M \\
-        MarkDuplicates \\
+        AddOrReplaceReadGroups \\
         ${args} \\
-        --INPUT ${reads} \\
-        --OUTPUT ${prefix}.${suffix} \\
         ${reference} \\
-        --METRICS_FILE ${prefix}.metrics.txt
+        --INPUT ${reads} \\
+        --OUTPUT ${prefix}.${suffix}
     """
 
     stub:
@@ -56,7 +54,5 @@ process PICARD_MARKDUPLICATES {
     }
     """
     touch ${prefix}.${suffix}
-    touch ${prefix}.${suffix}.bai
-    touch ${prefix}.metrics.txt
     """
 }

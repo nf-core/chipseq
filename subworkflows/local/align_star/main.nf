@@ -36,7 +36,7 @@ workflow ALIGN_STAR {
     tab            = STAR_ALIGN.out.tab                   // channel: [ val(meta), tab            ]
 
     bam            = BAM_SORT_STATS_SAMTOOLS.out.bam      // channel: [ val(meta), [ bam ] ]
-    bai            = BAM_SORT_STATS_SAMTOOLS.out.bai      // channel: [ val(meta), [ bai ] ]
+    bai            = BAM_SORT_STATS_SAMTOOLS.out.index      // channel: [ val(meta), [ bai ] ]
     stats          = BAM_SORT_STATS_SAMTOOLS.out.stats    // channel: [ val(meta), [ stats ] ]
     flagstat       = BAM_SORT_STATS_SAMTOOLS.out.flagstat // channel: [ val(meta), [ flagstat ] ]
     idxstats       = BAM_SORT_STATS_SAMTOOLS.out.idxstats // channel: [ val(meta), [ idxstats ] ]

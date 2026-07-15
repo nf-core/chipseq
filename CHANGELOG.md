@@ -72,6 +72,11 @@ the last release have been listed below for reference.
 | python                      | 3.8.3       | 3.12.12     |
 | multiqc                     | 1.25.1      | 1.33        |
 | deeptools                   | 3.5.5       | 3.5.6       |
+| bowtie2                     | 2.5.2       | 2.5.4       |
+| picard                      | 3.2.0       | 3.4.0       |
+| samtools                    | 1.15.1      | 1.20        |
+| bwa                         | 0.7.18      | 0.7.19      |
+| chromap                     | 0.2.6       | 0.3.2       |
 |                             |             |             |
 
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
