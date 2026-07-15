@@ -18,8 +18,8 @@
                     "exists": true,
                     "schema": "assets/schema_input.json",
                     "mimetype": "text/csv",
-                    "pattern": "^\\S+\\.csv$",
-                    "description": "Path to comma-separated file containing information about the samples in the experiment.",
+                    "pattern": "^\\S+\\.(csv|tsv)$",
+                    "description": "Path to a samplesheet file containing information about the samples in the experiment.",
                     "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row. See [usage docs](https://nf-co.re/chipseq/docs/usage#introduction).",
                     "fa_icon": "fas fa-file-csv"
                 },
@@ -27,12 +27,16 @@
                     "type": "integer",
                     "description": "Estimated fragment size used to extend single-end reads.",
                     "fa_icon": "fas fa-chart-area",
-                    "default": 200
+                    "default": 200,
+                    "minimum": 1,
+                    "errorMessage": "Fragment size must be a positive integer.",
+                    "help_text": "This parameter is used to extend single-end reads to the estimated fragment size. This is important for peak calling and downstream analysis. If you are using paired-end data, this parameter will be ignored."
                 },
                 "seq_center": {
                     "type": "string",
                     "description": "Sequencing center information to be added to read group of BAM files.",
-                    "fa_icon": "fas fa-synagogue"
+                    "fa_icon": "fas fa-synagogue",
+                    "help_text": "This parameter is used to add the sequencing center information to the read group of the BAM files."
                 },
                 "read_length": {
                     "type": "integer",
@@ -81,7 +85,8 @@
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "description": "Path to FASTA genome file.",
                     "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have the appropriate alignment index available this will be generated for you automatically. Combine with `--save_reference` to save alignment index for future runs.",
-                    "fa_icon": "far fa-file-code"
+                    "fa_icon": "far fa-file-code",
+                    "errorMessage": "FASTA file must be a valid path ending in .fa, .fna, .fasta, or their .gz compressed versions (e.g., genome.fa.gz)"
                 },
                 "gtf": {
                     "type": "string",
@@ -91,7 +96,8 @@
                     "pattern": "^\\S+\\.gtf(\\.gz)?$",
                     "description": "Path to GTF annotation file.",
                     "fa_icon": "fas fa-code-branch",
-                    "help_text": "Either this parameter or `--gff` is *mandatory* if --genome is not specified."
+                    "help_text": "Either this parameter or `--gff` is *mandatory* if --genome is not specified.",
+                    "errorMessage": "GTF file must be a valid path ending in .gtf, or its .gz compressed version (e.g., genome.gtf.gz)"
                 },
                 "gff": {
                     "type": "string",
@@ -101,35 +107,40 @@
                     "pattern": "^\\S+\\.gff(\\.gz)?$",
                     "fa_icon": "fas fa-code-branch",
                     "description": "Path to GFF3 annotation file.",
-                    "help_text": "Either this parameter or `--gtf` is *mandatory* if --genome is not specified."
+                    "help_text": "Either this parameter or `--gtf` is *mandatory* if --genome is not specified.",
+                    "errorMessage": "GFF file must be a valid path ending in .gff, or its .gz compressed version (e.g., genome.gff.gz)"
                 },
                 "bwa_index": {
                     "type": "string",
                     "format": "path",
                     "exists": true,
                     "description": "Path to directory or tar.gz archive for pre-built BWA index.",
-                    "fa_icon": "fas fa-bezier-curve"
+                    "fa_icon": "fas fa-bezier-curve",
+                    "errorMessage": "BWA index must be a valid path ending in .tar.gz or a directory containing the BWA index files. The BWA index files are typically named with the prefix of the reference genome FASTA file, followed by the suffixes .amb, .ann, .bwt, .pac, and .sa. For example: genome.fa.amb, genome.fa.ann, genome.fa.bwt, genome.fa.pac, and genome.fa.sa."
                 },
                 "bowtie2_index": {
                     "type": "string",
                     "format": "path",
                     "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
-                    "description": "Path to directory or tar.gz archive for pre-built Bowtie2 index."
+                    "description": "Path to directory or tar.gz archive for pre-built Bowtie2 index.",
+                    "errorMessage": "Bowtie2 index must be a valid path ending in .tar.gz or a directory containing the Bowtie2 index files. The Bowtie2 index files are typically named with the prefix of the reference genome FASTA file, followed by the suffixes .1.bt2, .2.bt2, .3.bt2, .4.bt2, and .rev.1.bt2. For example: genome.fa.1.bt2, genome.fa.2.bt2, genome.fa.3.bt2, genome.fa.4.bt2, and genome.fa.rev.1.bt2."
                 },
                 "chromap_index": {
                     "type": "string",
                     "format": "path",
                     "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
-                    "description": "Path to directory or tar.gz archive for pre-built Chromap index."
+                    "description": "Path to directory or tar.gz archive for pre-built Chromap index.",
+                    "errorMessage": "Chromap index must be a valid path ending in .tar.gz or a directory containing the Chromap index files. The Chromap index files are typically named with the prefix of the reference genome FASTA file, followed by the suffixes .chromap.idx and .chromap.idx2. For example: genome.fa.chromap.idx and genome.fa.chromap.idx2."
                 },
                 "star_index": {
                     "type": "string",
                     "format": "path",
                     "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
-                    "description": "Path to directory or tar.gz archive for pre-built STAR index."
+                    "description": "Path to directory or tar.gz archive for pre-built STAR index.",
+                    "errorMessage": "STAR index must be a valid path ending in .tar.gz or a directory containing the STAR index files. The STAR index files are typically named with the prefix of the reference genome FASTA file, followed by the suffixes .genomeParameters.txt, .SA, .SAindex, and .chrNameLength.txt. For example: genome.fa.genomeParameters.txt, genome.fa.SA, genome.fa.SAindex."
                 },
                 "gene_bed": {
                     "type": "string",
@@ -138,13 +149,15 @@
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.bed(\\.gz)?$",
                     "fa_icon": "fas fa-procedures",
-                    "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
+                    "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified.",
+                    "errorMessage": "BED file must be a valid path ending in .bed, or its .gz compressed version (e.g., genome.bed.gz)"
                 },
                 "macs_gsize": {
                     "type": "integer",
                     "description": "Effective genome size parameter required by MACS3.",
                     "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3. If using an iGenomes reference these have been provided for any of the genomes available in the igenomes.config, and for the following read lengths (50,75,100,150,200) that should be set using the `--read_length` parameter. For other genomes, if this parameter is not specified it will be inferred using the provided `--read_length` or otherwise the pipeline execution will stop with an error.",
-                    "fa_icon": "fas fa-arrows-alt-h"
+                    "fa_icon": "fas fa-arrows-alt-h",
+                    "errorMessage": "MACS3 effective genome size must be a positive number."
                 },
                 "blacklist": {
                     "type": "string",
@@ -186,28 +199,42 @@
                 "clip_r1": {
                     "type": "integer",
                     "description": "Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads).",
-                    "fa_icon": "fas fa-cut"
+                    "fa_icon": "fas fa-cut",
+                    "help_text": "Use this to trim adapter or low-quality bases from the 5' end of read 1. A value of 0 means no trimming.",
+                    "minimum": 0,
+                    "errorMessage": "5' end trimming must be a positive integer."
                 },
                 "clip_r2": {
                     "type": "integer",
                     "description": "Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only).",
-                    "fa_icon": "fas fa-cut"
+                    "fa_icon": "fas fa-cut",
+                    "help_text": "Use this to trim adapter or low-quality bases from the 5' end of read 2. A value of 0 means no trimming.",
+                    "minimum": 0,
+                    "errorMessage": "5' end trimming must be a positive integer."
                 },
                 "three_prime_clip_r1": {
                     "type": "integer",
                     "description": "Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed.",
-                    "fa_icon": "fas fa-cut"
+                    "fa_icon": "fas fa-cut",
+                    "help_text": "Use this to trim adapter or low-quality bases from the 3' end of read 1. A value of 0 means no trimming.",
+                    "minimum": 0,
+                    "errorMessage": "3' end trimming must be a positive integer."
                 },
                 "three_prime_clip_r2": {
                     "type": "integer",
                     "description": "Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed.",
-                    "fa_icon": "fas fa-cut"
+                    "fa_icon": "fas fa-cut",
+                    "help_text": "Use this to trim adapter or low-quality bases from the 3' end of read 2. A value of 0 means no trimming.",
+                    "minimum": 0,
+                    "errorMessage": "3' end trimming must be a positive integer."
                 },
                 "trim_nextseq": {
                     "type": "integer",
                     "description": "Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails.",
                     "help_text": "This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases.",
-                    "fa_icon": "fas fa-cut"
+                    "fa_icon": "fas fa-cut",
+                    "minimum": 0,
+                    "errorMessage": "NextSeq trimming must be a positive integer."
                 },
                 "skip_trimming": {
                     "type": "boolean",
@@ -232,9 +259,10 @@
                 "aligner": {
                     "type": "string",
                     "default": "bwa",
-                    "description": "Specifies the alignment algorithm to use - available options are 'bwa', 'bowtie2' and 'star'.",
+                    "description": "Specifies the alignment algorithm to use - available options are 'bwa', 'bowtie2', 'star' and 'chromap'.",
                     "fa_icon": "fas fa-map-signs",
-                    "enum": ["bwa", "bowtie2", "chromap", "star"]
+                    "enum": ["bwa", "bowtie2", "chromap", "star"],
+                    "errorMessage": "Aligner must be one of the following: bwa, bowtie2, chromap, star."
                 },
                 "keep_dups": {
                     "type": "boolean",
@@ -248,8 +276,10 @@
                 },
                 "bwa_min_score": {
                     "type": "integer",
-                    "description": "Don\u2019t output BWA MEM alignments with score lower than this parameter.",
-                    "fa_icon": "fas fa-hand-paper"
+                    "description": "Do not output BWA MEM alignments with score lower than this parameter.",
+                    "fa_icon": "fas fa-hand-paper",
+                    "help_text": "This sets the -T option in BWA MEM. Alignments with a lower score will be discarded. The default is 30. Increase to reduce false positives.",
+                    "errorMessage": "BWA minimum score must be a positive integer."
                 },
                 "save_align_intermeds": {
                     "type": "boolean",
@@ -270,7 +300,9 @@
                     "default": "$projectDir/assets/bamtools_filter_pe.json",
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for paired-end data.",
-                    "fa_icon": "fas fa-cog"
+                    "fa_icon": "fas fa-cog",
+                    "pattern": "^\\S+\\.json$",
+                    "errorMessage": "Path must point to an existing .json file for paired-end BAMTools filtering."
                 },
                 "bamtools_filter_se_config": {
                     "type": "string",
@@ -279,7 +311,9 @@
                     "default": "$projectDir/assets/bamtools_filter_se.json",
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for single-end data.",
-                    "fa_icon": "fas fa-cog"
+                    "fa_icon": "fas fa-cog",
+                    "pattern": "^\\S+\\.json$",
+                    "errorMessage": "Path must point to an existing .json file for single-end BAMTools filtering."
                 }
             }
         },
@@ -293,30 +327,40 @@
                     "type": "boolean",
                     "description": "Run MACS3 in narrowPeak mode.",
                     "help_text": "MACS3 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.",
-                    "fa_icon": "fas fa-arrows-alt-h"
+                    "fa_icon": "fas fa-arrows-alt-h",
+                    "errorMessage": "Narrow peak calling must be a boolean value: true or false."
                 },
                 "broad_cutoff": {
                     "type": "number",
                     "default": 0.1,
                     "description": "Specifies broad cutoff value for MACS3. Only used when --narrow_peak isnt specified.",
-                    "fa_icon": "fas fa-hand-scissors"
+                    "fa_icon": "fas fa-hand-scissors",
+                    "help_text": "This is the `--broad-cutoff` threshold passed to MACS3 when calling broad peaks. Must be between 0 and 1. Common values: 0.1 (default), 0.05, 0.01.",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "errorMessage": "Broad cutoff must be a number between 0 and 1."
                 },
                 "macs_fdr": {
                     "type": "number",
                     "description": "Minimum FDR (q-value) cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive.",
-                    "fa_icon": "fas fa-sort-amount-down"
+                    "fa_icon": "fas fa-sort-amount-down",
+                    "help_text": "This is the `--qvalue` threshold passed to MACS3 when calling peaks. Must be between 0 and 1. Common values: 0.05 (default), 0.01, 0.001. Cannot be used together with --macs_pvalue",
+                    "errorMessage": "MACS3 FDR must be a number between 0 and 1."
                 },
                 "macs_pvalue": {
                     "type": "number",
                     "description": "p-value cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive. If --macs_pvalue cutoff is set, q-value will not be calculated and reported as -1 in the final .xls file.",
-                    "fa_icon": "fas fa-sort-amount-down"
+                    "fa_icon": "fas fa-sort-amount-down",
+                    "help_text": "This is the `--pvalue` threshold passed to MACS3 when calling peaks. Must be between 0 and 1. Common values: 0.01 (default), 0.001, 0.0001. Cannot be used together with --macs_fdr",
+                    "errorMessage": "MACS3 p-value must be a number between 0 and (e.g., 0.01, 1e-5)."
                 },
                 "min_reps_consensus": {
                     "type": "integer",
                     "default": 1,
                     "description": "Number of biological replicates required from a given condition for a peak to contribute to a consensus peak.",
                     "help_text": "If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a 'reproducible' set of consensus peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded.",
-                    "fa_icon": "fas fa-sort-numeric-down"
+                    "fa_icon": "fas fa-sort-numeric-down",
+                    "errorMessage": "Minimum number of replicates for consensus peak calling must be a positive integer."
                 },
                 "save_macs_pileup": {
                     "type": "boolean",
@@ -422,6 +466,7 @@
                 },
                 "custom_config_base": {
                     "type": "string",
+                    "format": "directory-path",
                     "description": "Base directory for Institutional configs.",
                     "default": "https://raw.githubusercontent.com/nf-core/configs/master",
                     "hidden": true,
@@ -465,7 +510,8 @@
                     "type": "boolean",
                     "description": "Display version and exit.",
                     "fa_icon": "fas fa-question-circle",
-                    "hidden": true
+                    "hidden": true,
+                    "errorMessage": "Version must be a boolean value: true or false."
                 },
                 "publish_dir_mode": {
                     "type": "string",
@@ -474,14 +520,17 @@
                     "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
                     "fa_icon": "fas fa-copy",
                     "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
-                    "hidden": true
+                    "hidden": true,
+                    "errorMessage": "Publish dir mode must be one of the following: symlink, rellink, link, copy, copyNoFollow, move."
                 },
                 "fingerprint_bins": {
                     "type": "integer",
                     "default": 500000,
                     "description": "Number of genomic bins to use when calculating deepTools fingerprint plot.",
                     "fa_icon": "fas fa-dumpster",
-                    "hidden": true
+                    "hidden": true,
+                    "help_text": "This is the `--bins` parameter passed to deepTools plotFingerprint. The default is 500000, which is a good compromise between speed and resolution. Increase for more resolution, decrease for faster processing.",
+                    "errorMessage": "Fingerprint bins must be a positive integer."
                 },
                 "email_on_fail": {
                     "type": "string",
@@ -489,7 +538,8 @@
                     "fa_icon": "fas fa-exclamation-triangle",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$",
                     "help_text": "An email address to send a summary email to when the pipeline is completed - ONLY sent if the pipeline does not exit successfully.",
-                    "hidden": true
+                    "hidden": true,
+                    "errorMessage": "Email address must be a valid email address."
                 },
                 "plaintext_email": {
                     "type": "boolean",
@@ -533,8 +583,10 @@
                     "format": "file-path",
                     "exists": true,
                     "mimetype": "text/plain",
-                    "description": "Custom MultiQC yaml file containing HTML including a methods description.",
-                    "fa_icon": "fas fa-cog"
+                    "description": "Custom MultiQC YAML file containing a methods description in HTML format.",
+                    "fa_icon": "fas fa-cog",
+                    "pattern": "^\\S+\\.yaml$",
+                    "errorMessage": "Path must point to an existing .yaml file."
                 },
                 "validate_params": {
                     "type": "boolean",
