@@ -945,7 +945,7 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-07-15T11:55:46.742037",
+        "timestamp": "2026-07-21T13:00:00.044632",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"
