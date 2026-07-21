@@ -980,6 +980,7 @@
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,aa2db2bcb3aa876cfbfe24b49d98aabd"
             ]
         ],
+        "timestamp": "2026-07-21T13:32:52.982946",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "26.04.1"
@@ -990,6 +991,7 @@
         "content": [
             20
         ],
+        "timestamp": "2026-07-21T13:33:34.284729",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"
