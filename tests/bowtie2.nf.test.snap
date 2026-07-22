@@ -53,6 +53,9 @@
                 "GTF2BED": {
                     "perl": "5.26.2"
                 },
+                "HOMER_ANNOTATEPEAKS": {
+                    "homer": 4.11
+                },
                 "IGV": {
                     "python": "3.12.12"
                 },
@@ -948,9 +951,10 @@
         ],
         "timestamp": "2026-07-21T12:38:39.799024",
         "meta": {
-            "nf-test": "0.9.5",
-            "nextflow": "26.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "26.04.1"
+        },
+        "timestamp": "2026-07-15T22:14:42.929516361"
     },
     "bowtie2 with stub": {
         "content": [
