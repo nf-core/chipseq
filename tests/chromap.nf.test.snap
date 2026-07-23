@@ -58,6 +58,9 @@
                 "IGV": {
                     "python": "3.12.12"
                 },
+                "KHMER_UNIQUEKMERS": {
+                    "khmer": "3.0.0a3"
+                },
                 "MACS3_CALLPEAK": {
                     "macs3": "3.0.4"
                 },
@@ -955,21 +958,20 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-07-21T12:49:50.568622",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "26.04.1"
         },
-        "timestamp": "2026-07-15T22:31:46.117520522"
+        "timestamp": "2026-07-23T13:29:13.96008322"
     },
     "chromap with stub": {
         "content": [
             20
         ],
-        "timestamp": "2026-07-21T12:50:29.057511",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"
-        }
+        },
+        "timestamp": "2026-07-21T12:50:29.057511"
     }
 }
