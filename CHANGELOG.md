@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#519] (https://github.com/nf-core/chipseq/issues/519)] - Changed merged libraries suffix to `.mLb.`.
 - [[#456] (https://github.com/nf-core/chipseq/issues/456)] - Use `--skip_preseq` by default.
 - [[#526] (https://github.com/nf-core/chipseq/issues/526)] - Bump Samtools version to 1.24
+- [[#530] (https://github.com/nf-core/chipseq/issues/530)] - Update `hommer/annotatepeaks` to topic channels.
+- [[#531] (https://github.com/nf-core/chipseq/issues/531)] - Changed chromap decompression - untarfiles (depreciated) to untar modules
 
 ### Parameters
 
