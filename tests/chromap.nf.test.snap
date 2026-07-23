@@ -20,6 +20,9 @@
                     "chromap": "0.3.2-r518",
                     "samtools": "1.23.1"
                 },
+                "CHROMAP_INDEX": {
+                    "chromap": "0.3.2-r518"
+                },
                 "DEEPTOOLS_COMPUTEMATRIX": {
                     "deeptools": "3.5.6"
                 },
@@ -90,22 +93,22 @@
                     "python": "3.12.12"
                 },
                 "SAMTOOLS_FAIDX": {
-                    "samtools": "1.22.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_FLAGSTAT": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_IDXSTATS": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_INDEX": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_SORT": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_STATS": {
-                    "samtools": "1.23.1"
+                    "samtools": 1.24
                 },
                 "SUBREAD_FEATURECOUNTS": {
                     "subread": "2.1.1"
@@ -409,7 +412,6 @@
                 "genome/index",
                 "genome/index/chromap",
                 "genome/index/chromap/genome.index",
-                "genome/index/chromap/versions.yml",
                 "igv",
                 "igv/broad_peak",
                 "igv/broad_peak/igv_files.txt",
@@ -866,7 +868,6 @@
                 "genome.fa.fai:md5,6f4c0ce5258e6948135ad006e1f9ee1b",
                 "genome.fa.sizes:md5,e122f8021a5ef14104c32785cb9b7adc",
                 "genome.index:md5,377432ea6242989cae4dabb60859f6bd",
-                "versions.yml:md5,f4e3f5d26dba5b7ed6a0badc6f156d07",
                 "cutadapt_filtered_reads_plot.yaml:md5,976fdb8049d847c977195863418e3655",
                 "cutadapt_trimmed_sequences_plot_3_Counts.yaml:md5,1dba61b1d90518e1f020b71c4cfa04c4",
                 "cutadapt_trimmed_sequences_plot_3_Obs_Exp.yaml:md5,42335c2990d3a991e2bd0716f80b0515",
