@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#432](https://github.com/nf-core/chipseq/issues/432)] - Fix `GFFREAD` call to have the two expected input channels.
 - [[PR #444](https://github.com/nf-core/chipseq/pull/444)] - Add empty map to ch_gff so that when provided by the user `GFFREAD` works.
 - [[#451](https://github.com/nf-core/chipseq/issues/451)] - Pass `map.single_read` to `SUBREAD_FEATURECOUNTS` as to correctly set parameter `-p`.
+- [PR #459](https://github.com/nf-core/chipseq/pull/459) - Improve JSON schema validation for nextflow_schema.json and schema_input.json
 - [[PR #462](https://github.com/nf-core/chipseq/pull/462)] - Updated pipeline template to [nf-core/tools 3.2.1](https://github.com/nf-core/tools/releases/tag/3.2.1)
 - [[#468](https://github.com/nf-core/chipseq/issues/468)] - Changed bigWig generation to use `-bga` option instead of `-bg` in `bedtools genomecov` for lower background levels and better IGV visualization. Users can revert to previous behavior using configuration. See [documentation](https://nf-co.re/chipseq/dev/docs/output/#normalised-bigwig-files) for details.
 - [[#483](https://github.com/nf-core/chipseq/issues/483)] - Partial update to topics channel.
@@ -30,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   4.0.2](https://github.com/nf-core/tools/releases/tag/4.0.2).
 - [[#519] (https://github.com/nf-core/chipseq/issues/519)] - Changed merged libraries suffix to `.mLb.`.
 - [[#456] (https://github.com/nf-core/chipseq/issues/456)] - Use `--skip_preseq` by default.
+- [[#530] (https://github.com/nf-core/chipseq/issues/530)] - Update `hommer/annotatepeaks` to topic channels.
+- [[#531] (https://github.com/nf-core/chipseq/issues/531)] - Changed chromap decompression - untarfiles (depreciated) to untar modules
 
 ### Parameters
 
@@ -70,6 +73,11 @@ the last release have been listed below for reference.
 | python                      | 3.8.3       | 3.12.12     |
 | multiqc                     | 1.25.1      | 1.33        |
 | deeptools                   | 3.5.5       | 3.5.6       |
+| bowtie2                     | 2.5.2       | 2.5.4       |
+| picard                      | 3.2.0       | 3.4.0       |
+| samtools                    | 1.15.1      | 1.20        |
+| bwa                         | 0.7.18      | 0.7.19      |
+| chromap                     | 0.2.6       | 0.3.2       |
 |                             |             |             |
 
 ## [[2.1.0](https://github.com/nf-core/chipseq/releases/tag/2.1.0)] - 2024-10-07
@@ -92,6 +100,7 @@ Thank you to everyone else that has contributed by reporting bugs, enhancements 
 
 ### Enhancements & fixes
 
+- [[PR #518](https://github.com/nf-core/chipseq/pull/518)] - Remove docker.io in container address in `annotate_boolean_peaks`
 - Updated pipeline template to [nf-core/tools 2.7.2](https://github.com/nf-core/tools/releases/tag/2.7.2)
 - [[#317](https://github.com/nf-core/chipseq/issues/317)] - Added metro map
 - [[#288](https://github.com/nf-core/chipseq/issues/291)] - Bump `chromap` version 2 and enable all the steps below chromap again when paired-end data is processed.

@@ -1,0 +1,73 @@
+{
+    "homo_sapiens - cram": {
+        "content": [
+            "test.replaced.cram",
+            {
+                "versions_picard": [
+                    [
+                        "PICARD_ADDORREPLACEREADGROUPS",
+                        "picard",
+                        "3.4.0"
+                    ]
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2026-02-02T09:36:16.966842212"
+    },
+    "sarscov2 - bam - stub": {
+        "content": [
+            {
+                "bai": [
+                    
+                ],
+                "bam": [
+                    [
+                        {
+                            
+                        },
+                        "null.replaced.bam:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "cram": [
+                    
+                ],
+                "versions_picard": [
+                    [
+                        "PICARD_ADDORREPLACEREADGROUPS",
+                        "picard",
+                        "3.4.0"
+                    ]
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        },
+        "timestamp": "2026-02-19T17:34:40.3572859"
+    },
+    "sarscov2 - bam": {
+        "content": [
+            "null.replaced.bam",
+            "null.replaced.bai",
+            {
+                "versions_picard": [
+                    [
+                        "PICARD_ADDORREPLACEREADGROUPS",
+                        "picard",
+                        "3.4.0"
+                    ]
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.2"
+        },
+        "timestamp": "2026-02-02T09:36:00.935196996"
+    }
+}

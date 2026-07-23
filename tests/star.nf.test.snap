@@ -45,6 +45,9 @@
                 "GTF2BED": {
                     "perl": "5.26.2"
                 },
+                "HOMER_ANNOTATEPEAKS": {
+                    "homer": 4.11
+                },
                 "IGV": {
                     "python": "3.12.12"
                 },
@@ -83,19 +86,19 @@
                     "samtools": "1.22.1"
                 },
                 "SAMTOOLS_FLAGSTAT": {
-                    "samtools": "1.22.1"
+                    "samtools": "1.23.1"
                 },
                 "SAMTOOLS_IDXSTATS": {
-                    "samtools": "1.22.1"
+                    "samtools": "1.23.1"
                 },
                 "SAMTOOLS_INDEX": {
-                    "samtools": "1.22.1"
+                    "samtools": "1.23.1"
                 },
                 "SAMTOOLS_SORT": {
-                    "samtools": "1.22.1"
+                    "samtools": "1.23.1"
                 },
                 "SAMTOOLS_STATS": {
-                    "samtools": "1.22.1"
+                    "samtools": "1.23.1"
                 },
                 "STAR_ALIGN": {
                     "star": "2.7.11b"
@@ -977,20 +980,22 @@
                 "SPT5_T15_REP2.mLb.clN.sorted.bam.idxstats:md5,aa2db2bcb3aa876cfbfe24b49d98aabd"
             ]
         ],
-        "timestamp": "2026-06-20T09:59:04.660863",
+        "timestamp": "2026-07-21T13:32:52.982946",
         "meta": {
-            "nf-test": "0.9.5",
-            "nextflow": "26.04.0"
-        }
+            "nf-test": "0.9.3",
+            "nextflow": "26.04.1"
+        },
+        "timestamp": "2026-07-16T10:41:11.175438003"
     },
     "star with stub": {
         "content": [
             20
         ],
-        "timestamp": "2026-03-17T16:23:46.465421",
+        "timestamp": "2026-07-21T13:33:34.284729",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.04.0"
-        }
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.0"
+        },
+        "timestamp": "2026-07-15T12:28:44.226288"
     }
 }
