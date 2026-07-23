@@ -3,11 +3,11 @@
         "content": [
             20
         ],
+        "timestamp": "2026-07-23T23:30:51.610401",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"
-        },
-        "timestamp": "2026-07-21T13:10:05.459362"
+        }
     },
     "skip_consensus_peaks": {
         "content": [
@@ -72,6 +72,10 @@
                 },
                 "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS": {
                     "R": "4.5.3"
+                },
+                "PHANTOMPEAKQUALTOOLS": {
+                    "R": "4.3.3",
+                    "phantompeakqualtools": "1.2.2"
                 },
                 "PICARD_COLLECTMULTIPLEMETRICS": {
                     "picard": "3.4.0"
@@ -485,7 +489,6 @@
                 "multiqc/broad_peak/multiqc_plots/pdf/cutadapt_filtered_reads_plot-pct.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/cutadapt_trimmed_sequences_plot_3_Counts.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/cutadapt_trimmed_sequences_plot_3_Obs_Exp.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/deeptools_fingerprint_plot.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/fastqc-1-status-check-heatmap.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/fastqc-1_adapter_content_plot.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/fastqc-1_per_base_n_content_plot.pdf",
@@ -509,14 +512,6 @@
                 "multiqc/broad_peak/multiqc_plots/pdf/fastqc_sequence_duplication_levels_plot.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/fastqc_sequence_length_distribution_plot.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/fastqc_top_overrepresented_sequences_table.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/frip_score-cnt.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/frip_score-pct.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/nsc_coefficient-cnt.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/nsc_coefficient-pct.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/peak_annotation-cnt.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/peak_annotation-pct.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/peak_count-cnt.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/peak_count-pct.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/picard-1_alignment_readlength_plot.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/picard-1_alignment_summary_Aligned_Bases-cnt.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/picard-1_alignment_summary_Aligned_Bases-pct.pdf",
@@ -533,9 +528,6 @@
                 "multiqc/broad_peak/multiqc_plots/pdf/picard_base_distribution_by_cycle__Undetermined.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/picard_deduplication-cnt.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/picard_deduplication-pct.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/read_distribution_profile.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/rsc_coefficient-cnt.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/rsc_coefficient-pct.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/samtools-flagstat-pct-table.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/samtools-flagstat-table.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/samtools-idxstats-mapped-reads-plot_Normalised_Counts-1-cnt.pdf",
@@ -559,13 +551,11 @@
                 "multiqc/broad_peak/multiqc_plots/pdf/samtools-stats-dp.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/samtools_alignment_plot-cnt.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/samtools_alignment_plot-pct.pdf",
-                "multiqc/broad_peak/multiqc_plots/pdf/strand_shift_correlation.pdf",
                 "multiqc/broad_peak/multiqc_plots/png",
                 "multiqc/broad_peak/multiqc_plots/png/cutadapt_filtered_reads_plot-cnt.png",
                 "multiqc/broad_peak/multiqc_plots/png/cutadapt_filtered_reads_plot-pct.png",
                 "multiqc/broad_peak/multiqc_plots/png/cutadapt_trimmed_sequences_plot_3_Counts.png",
                 "multiqc/broad_peak/multiqc_plots/png/cutadapt_trimmed_sequences_plot_3_Obs_Exp.png",
-                "multiqc/broad_peak/multiqc_plots/png/deeptools_fingerprint_plot.png",
                 "multiqc/broad_peak/multiqc_plots/png/fastqc-1-status-check-heatmap.png",
                 "multiqc/broad_peak/multiqc_plots/png/fastqc-1_adapter_content_plot.png",
                 "multiqc/broad_peak/multiqc_plots/png/fastqc-1_per_base_n_content_plot.png",
@@ -589,14 +579,6 @@
                 "multiqc/broad_peak/multiqc_plots/png/fastqc_sequence_duplication_levels_plot.png",
                 "multiqc/broad_peak/multiqc_plots/png/fastqc_sequence_length_distribution_plot.png",
                 "multiqc/broad_peak/multiqc_plots/png/fastqc_top_overrepresented_sequences_table.png",
-                "multiqc/broad_peak/multiqc_plots/png/frip_score-cnt.png",
-                "multiqc/broad_peak/multiqc_plots/png/frip_score-pct.png",
-                "multiqc/broad_peak/multiqc_plots/png/nsc_coefficient-cnt.png",
-                "multiqc/broad_peak/multiqc_plots/png/nsc_coefficient-pct.png",
-                "multiqc/broad_peak/multiqc_plots/png/peak_annotation-cnt.png",
-                "multiqc/broad_peak/multiqc_plots/png/peak_annotation-pct.png",
-                "multiqc/broad_peak/multiqc_plots/png/peak_count-cnt.png",
-                "multiqc/broad_peak/multiqc_plots/png/peak_count-pct.png",
                 "multiqc/broad_peak/multiqc_plots/png/picard-1_alignment_readlength_plot.png",
                 "multiqc/broad_peak/multiqc_plots/png/picard-1_alignment_summary_Aligned_Bases-cnt.png",
                 "multiqc/broad_peak/multiqc_plots/png/picard-1_alignment_summary_Aligned_Bases-pct.png",
@@ -605,7 +587,6 @@
                 "multiqc/broad_peak/multiqc_plots/png/picard-1_insert_size_Counts.png",
                 "multiqc/broad_peak/multiqc_plots/png/picard-1_insert_size_Percentages.png",
                 "multiqc/broad_peak/multiqc_plots/png/picard-1_quality_by_cycle.png",
-                "multiqc/broad_peak/multiqc_plots/png/picard-1_quality_score_distribution.png",
                 "multiqc/broad_peak/multiqc_plots/png/picard_base_distribution_by_cycle__Adenine.png",
                 "multiqc/broad_peak/multiqc_plots/png/picard_base_distribution_by_cycle__Cytosine.png",
                 "multiqc/broad_peak/multiqc_plots/png/picard_base_distribution_by_cycle__Guanine.png",
@@ -613,9 +594,6 @@
                 "multiqc/broad_peak/multiqc_plots/png/picard_base_distribution_by_cycle__Undetermined.png",
                 "multiqc/broad_peak/multiqc_plots/png/picard_deduplication-cnt.png",
                 "multiqc/broad_peak/multiqc_plots/png/picard_deduplication-pct.png",
-                "multiqc/broad_peak/multiqc_plots/png/read_distribution_profile.png",
-                "multiqc/broad_peak/multiqc_plots/png/rsc_coefficient-cnt.png",
-                "multiqc/broad_peak/multiqc_plots/png/rsc_coefficient-pct.png",
                 "multiqc/broad_peak/multiqc_plots/png/samtools-flagstat-pct-table.png",
                 "multiqc/broad_peak/multiqc_plots/png/samtools-flagstat-table.png",
                 "multiqc/broad_peak/multiqc_plots/png/samtools-idxstats-mapped-reads-plot_Normalised_Counts-1-cnt.png",
@@ -639,13 +617,11 @@
                 "multiqc/broad_peak/multiqc_plots/png/samtools-stats-dp.png",
                 "multiqc/broad_peak/multiqc_plots/png/samtools_alignment_plot-cnt.png",
                 "multiqc/broad_peak/multiqc_plots/png/samtools_alignment_plot-pct.png",
-                "multiqc/broad_peak/multiqc_plots/png/strand_shift_correlation.png",
                 "multiqc/broad_peak/multiqc_plots/svg",
                 "multiqc/broad_peak/multiqc_plots/svg/cutadapt_filtered_reads_plot-cnt.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/cutadapt_filtered_reads_plot-pct.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/cutadapt_trimmed_sequences_plot_3_Counts.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/cutadapt_trimmed_sequences_plot_3_Obs_Exp.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/deeptools_fingerprint_plot.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/fastqc-1-status-check-heatmap.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/fastqc-1_adapter_content_plot.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/fastqc-1_per_base_n_content_plot.svg",
@@ -669,14 +645,6 @@
                 "multiqc/broad_peak/multiqc_plots/svg/fastqc_sequence_duplication_levels_plot.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/fastqc_sequence_length_distribution_plot.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/fastqc_top_overrepresented_sequences_table.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/frip_score-cnt.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/frip_score-pct.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/nsc_coefficient-cnt.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/nsc_coefficient-pct.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/peak_annotation-cnt.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/peak_annotation-pct.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/peak_count-cnt.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/peak_count-pct.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/picard-1_alignment_readlength_plot.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/picard-1_alignment_summary_Aligned_Bases-cnt.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/picard-1_alignment_summary_Aligned_Bases-pct.svg",
@@ -693,9 +661,6 @@
                 "multiqc/broad_peak/multiqc_plots/svg/picard_base_distribution_by_cycle__Undetermined.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/picard_deduplication-cnt.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/picard_deduplication-pct.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/read_distribution_profile.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/rsc_coefficient-cnt.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/rsc_coefficient-pct.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/samtools-flagstat-pct-table.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/samtools-flagstat-table.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/samtools-idxstats-mapped-reads-plot_Normalised_Counts-1-cnt.svg",
@@ -719,7 +684,6 @@
                 "multiqc/broad_peak/multiqc_plots/svg/samtools-stats-dp.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/samtools_alignment_plot-cnt.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/samtools_alignment_plot-pct.svg",
-                "multiqc/broad_peak/multiqc_plots/svg/strand_shift_correlation.svg",
                 "multiqc/broad_peak/multiqc_report.html",
                 "pipeline_info",
                 "pipeline_info/nf_core_chipseq_software_mqc_versions.yml",
@@ -892,10 +856,10 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
+        "timestamp": "2026-07-23T23:29:39.590565",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "26.04.1"
-        },
-        "timestamp": "2026-07-23T14:02:02.337853806"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.0"
+        }
     }
 }
