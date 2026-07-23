@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[PR #530](https://github.com/nf-core/chipseq/pull/530)] - Update `hommer/annotatepeaks` to topic channels.
 - [[#531] (https://github.com/nf-core/chipseq/issues/531)] - Changed chromap decompression - untarfiles (deprecated) to untar modules.
 - [[PR #533](https://github.com/nf-core/chipseq/pull/533)] - Update `khmers/uniquekmers` to topic channels.
+- [[PR #534](https://github.com/nf-core/chipseq/pull/534)] - Update `phantompeakqualtools` to topic channels.
 
 ### Parameters
 
