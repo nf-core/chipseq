@@ -23,8 +23,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
 
     main:
 
-    ch_versions = channel.empty()
-
     // Create channels: [ meta , [ peaks ] ]
     // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
     ch_peaks

@@ -10,9 +10,9 @@ include { GUNZIP as GUNZIP_BLACKLIST } from '../../../modules/nf-core/gunzip'
 
 include { UNTAR as UNTAR_BWA_INDEX     } from '../../../modules/nf-core/untar'
 include { UNTAR as UNTAR_BOWTIE2_INDEX } from '../../../modules/nf-core/untar'
+include { UNTAR as UNTAR_CHROMAP_INDEX } from '../../../modules/nf-core/untar'
 include { UNTAR as UNTAR_STAR_INDEX    } from '../../../modules/nf-core/untar'
 
-include { UNTARFILES                   } from '../../../modules/nf-core/untarfiles'
 include { GFFREAD                      } from '../../../modules/nf-core/gffread'
 include { SAMTOOLS_FAIDX               } from '../../../modules/nf-core/samtools/faidx'
 include { BWA_INDEX                    } from '../../../modules/nf-core/bwa/index'
@@ -146,7 +146,7 @@ workflow PREPARE_GENOME {
                 ch_bwa_index = [[:], file(bwa_index)]
             }
         } else {
-            ch_bwa_index = BWA_INDEX(ch_fasta.map { [[:], it] }).index
+            ch_bwa_index = BWA_INDEX(ch_fasta.map { it -> [[:], it] }).index
         }
     }
 
@@ -162,7 +162,7 @@ workflow PREPARE_GENOME {
                 ch_bowtie2_index = [[:], file(bowtie2_index)]
             }
         } else {
-            ch_bowtie2_index = BOWTIE2_BUILD(ch_fasta.map { [[:], it] }).index
+            ch_bowtie2_index = BOWTIE2_BUILD(ch_fasta.map { it -> [[:], it] }).index
         }
     }
 
@@ -173,12 +173,12 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'chromap') {
         if (chromap_index) {
             if (chromap_index.endsWith('.tar.gz')) {
-                ch_chromap_index = UNTARFILES([[:], chromap_index]).files
+                ch_chromap_index = UNTAR_CHROMAP_INDEX([[:], chromap_index]).untar
             } else {
                 ch_chromap_index = [[:], file(chromap_index)]
             }
         } else {
-            ch_chromap_index = CHROMAP_INDEX(ch_fasta.map { [[:], it] }).index
+            ch_chromap_index = CHROMAP_INDEX(ch_fasta.map { it -> [[:], it] }).index
         }
     }
 
@@ -189,7 +189,7 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'star') {
         if (star_index) {
             if (star_index.endsWith('.tar.gz')) {
-                ch_star_index = UNTAR_STAR_INDEX([[:], star_index]).untar.map { it[1] }
+                ch_star_index = UNTAR_STAR_INDEX([[:], star_index]).untar.map { it -> it[1] }
             } else {
                 ch_star_index = channel.value(file(star_index))
             }
