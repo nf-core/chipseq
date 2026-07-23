@@ -31,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   4.0.2](https://github.com/nf-core/tools/releases/tag/4.0.2).
 - [[#519] (https://github.com/nf-core/chipseq/issues/519)] - Changed merged libraries suffix to `.mLb.`.
 - [[#456] (https://github.com/nf-core/chipseq/issues/456)] - Use `--skip_preseq` by default.
-- [[#530] (https://github.com/nf-core/chipseq/issues/456)] - Update `hommer/annotatepeaks` to topic channels.
+- [[#526] (https://github.com/nf-core/chipseq/issues/526)] - Bump Samtools version to 1.24.
+- [[#530] (https://github.com/nf-core/chipseq/issues/530)] - Update `hommer/annotatepeaks` to topic channels.
 - [[#531] (https://github.com/nf-core/chipseq/issues/531)] - Changed chromap decompression - untarfiles (depreciated) to untar modules
 
 ### Parameters
@@ -75,7 +76,7 @@ the last release have been listed below for reference.
 | deeptools                   | 3.5.5       | 3.5.6       |
 | bowtie2                     | 2.5.2       | 2.5.4       |
 | picard                      | 3.2.0       | 3.4.0       |
-| samtools                    | 1.15.1      | 1.20        |
+| samtools                    | 1.23.1      | 1.24        |
 | bwa                         | 0.7.18      | 0.7.19      |
 | chromap                     | 0.2.6       | 0.3.2       |
 |                             |             |             |
