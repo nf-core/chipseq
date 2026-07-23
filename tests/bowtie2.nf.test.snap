@@ -75,6 +75,10 @@
                 "MULTIQC_CUSTOM_PHANTOMPEAKQUALTOOLS": {
                     "R": "4.5.3"
                 },
+                "PHANTOMPEAKQUALTOOLS": {
+                    "R": "4.3.3",
+                    "phantompeakqualtools": "1.2.2"
+                },
                 "PICARD_COLLECTMULTIPLEMETRICS": {
                     "picard": "3.4.0"
                 },
@@ -952,20 +956,20 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
+        "timestamp": "2026-07-23T15:06:33.000055512",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "26.04.1"
-        },
-        "timestamp": "2026-07-23T13:13:17.36470343"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
     },
     "bowtie2 with stub": {
         "content": [
             20
         ],
+        "timestamp": "2026-07-23T15:07:14.072562255",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.0"
-        },
-        "timestamp": "2026-07-21T12:39:15.303231"
+            "nextflow": "26.04.6"
+        }
     }
 }
