@@ -98,7 +98,7 @@
                     },
                     "phantompeakqualtools": {
                         "branch": "master",
-                        "git_sha": "afd8b415b67d972a6ac0d4c0a7830e3666871335",
+                        "git_sha": "003c45ac19e684cae37402d54a56e85b0e626b90",
                         "installed_by": ["modules"]
                     },
                     "picard/addorreplacereadgroups": {
