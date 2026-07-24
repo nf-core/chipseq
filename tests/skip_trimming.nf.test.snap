@@ -502,6 +502,7 @@
                 "multiqc/broad_peak/multiqc_plots",
                 "multiqc/broad_peak/multiqc_plots/pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/deeptools_fingerprint_plot.pdf",
+                "multiqc/broad_peak/multiqc_plots/pdf/deseq2_clustering_1.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/deseq2_pca_1.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/fastqc-status-check-heatmap.pdf",
                 "multiqc/broad_peak/multiqc_plots/pdf/fastqc_adapter_content_plot.pdf",
@@ -569,6 +570,7 @@
                 "multiqc/broad_peak/multiqc_plots/pdf/strand_shift_correlation.pdf",
                 "multiqc/broad_peak/multiqc_plots/png",
                 "multiqc/broad_peak/multiqc_plots/png/deeptools_fingerprint_plot.png",
+                "multiqc/broad_peak/multiqc_plots/png/deseq2_clustering_1.png",
                 "multiqc/broad_peak/multiqc_plots/png/deseq2_pca_1.png",
                 "multiqc/broad_peak/multiqc_plots/png/fastqc-status-check-heatmap.png",
                 "multiqc/broad_peak/multiqc_plots/png/fastqc_adapter_content_plot.png",
@@ -636,6 +638,7 @@
                 "multiqc/broad_peak/multiqc_plots/png/strand_shift_correlation.png",
                 "multiqc/broad_peak/multiqc_plots/svg",
                 "multiqc/broad_peak/multiqc_plots/svg/deeptools_fingerprint_plot.svg",
+                "multiqc/broad_peak/multiqc_plots/svg/deseq2_clustering_1.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/deseq2_pca_1.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/fastqc-status-check-heatmap.svg",
                 "multiqc/broad_peak/multiqc_plots/svg/fastqc_adapter_content_plot.svg",
@@ -830,7 +833,7 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-07-23T23:42:33.228734",
+        "timestamp": "2026-07-24T09:58:33.92544",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"
@@ -840,7 +843,7 @@
         "content": [
             190
         ],
-        "timestamp": "2026-07-23T23:47:09.588064",
+        "timestamp": "2026-07-24T10:02:44.695311",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.0"
