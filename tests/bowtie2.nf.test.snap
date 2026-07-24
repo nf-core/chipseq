@@ -956,20 +956,20 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-07-23T15:06:33.000055512",
+        "timestamp": "2026-07-24T09:13:20.719045",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.0"
         }
     },
     "bowtie2 with stub": {
         "content": [
             20
         ],
-        "timestamp": "2026-07-23T15:07:14.072562255",
+        "timestamp": "2026-07-24T09:14:19.141863",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.6"
+            "nextflow": "26.04.0"
         }
     }
 }
