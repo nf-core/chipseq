@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#531] (https://github.com/nf-core/chipseq/issues/531)] - Changed chromap decompression - untarfiles (deprecated) to untar modules.
 - [[PR #533](https://github.com/nf-core/chipseq/pull/533)] - Update `khmers/uniquekmers` to topic channels.
 - [[PR #534](https://github.com/nf-core/chipseq/pull/534)] - Update `phantompeakqualtools` to topic channels.
-- [[PR #535](https://github.com/nf-core/chipseq/pull/535)] - Updated pipeline template to [nf-core/tools 4.0.3](https://github.com/nf-core/tools/releases/tag/4.0.3)
+- [[PR #537](https://github.com/nf-core/chipseq/pull/537)] - Updated pipeline template to [nf-core/tools 4.0.3](https://github.com/nf-core/tools/releases/tag/4.0.3)
 
 ### Parameters
 
