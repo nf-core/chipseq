@@ -99,7 +99,7 @@
             },
             "mentions": [
                 {
-                    "@id": "#ea0ac36e-383c-4529-95b9-b899ff51d4f6"
+                    "@id": "#ae189df8-48e8-4144-bc93-d10d9657e4c0"
                 }
             ],
             "name": "nf-core/chipseq"
@@ -128,20 +128,20 @@
             ],
             "contributor": [
                 {
-                    "@id": "#e692d0bd-48a1-49a8-b913-65eefc747832"
+                    "@id": "#b1ab7281-1abc-4c66-b480-589406eb106f"
                 },
                 {
-                    "@id": "#b415b9ca-03cf-493d-b9b4-51da22004162"
+                    "@id": "#de7b5854-5a68-4f03-9f6d-8b755f213dbf"
                 },
                 {
-                    "@id": "#ac2a9f71-4f44-4e8c-ae13-f81fe238567a"
+                    "@id": "#551b2bbf-60ce-47d9-877d-05f7f2becfb2"
                 },
                 {
-                    "@id": "#7ab020c0-cfa1-482d-b84a-0a1bb9410c77"
+                    "@id": "#60eb23e7-70cb-4e78-b900-5abf77359535"
                 }
             ],
             "dateCreated": "",
-            "dateModified": "2026-04-30T13:33:09Z",
+            "dateModified": "2026-07-24T12:35:40Z",
             "dct:conformsTo": "https://bioschemas.org/profiles/ComputationalWorkflow/1.0-RELEASE/",
             "keywords": [
                 "nf-core",
@@ -185,11 +185,11 @@
             "version": "!>=25.10.4"
         },
         {
-            "@id": "#ea0ac36e-383c-4529-95b9-b899ff51d4f6",
+            "@id": "#ae189df8-48e8-4144-bc93-d10d9657e4c0",
             "@type": "TestSuite",
             "instance": [
                 {
-                    "@id": "#2c5bc320-faaf-4aaf-865e-1b3f7e37cb6e"
+                    "@id": "#52f62cb1-f63c-4fd4-a119-c8ba0efae9c0"
                 }
             ],
             "mainEntity": {
@@ -198,7 +198,7 @@
             "name": "Test suite for nf-core/chipseq"
         },
         {
-            "@id": "#2c5bc320-faaf-4aaf-865e-1b3f7e37cb6e",
+            "@id": "#52f62cb1-f63c-4fd4-a119-c8ba0efae9c0",
             "@type": "TestInstance",
             "name": "GitHub Actions workflow for testing nf-core/chipseq",
             "resource": "repos/nf-core/chipseq/actions/workflows/ci.yml",
@@ -327,22 +327,22 @@
             "url": "https://nf-co.re/"
         },
         {
-            "@id": "#e692d0bd-48a1-49a8-b913-65eefc747832",
+            "@id": "#b1ab7281-1abc-4c66-b480-589406eb106f",
             "@type": "Person",
             "name": "Espinosa-Carrasco J"
         },
         {
-            "@id": "#b415b9ca-03cf-493d-b9b4-51da22004162",
+            "@id": "#de7b5854-5a68-4f03-9f6d-8b755f213dbf",
             "@type": "Person",
             "name": "Patel H"
         },
         {
-            "@id": "#ac2a9f71-4f44-4e8c-ae13-f81fe238567a",
+            "@id": "#551b2bbf-60ce-47d9-877d-05f7f2becfb2",
             "@type": "Person",
             "name": "Wang C"
         },
         {
-            "@id": "#7ab020c0-cfa1-482d-b84a-0a1bb9410c77",
+            "@id": "#60eb23e7-70cb-4e78-b900-5abf77359535",
             "@type": "Person",
             "name": "Ewels P"
         }
