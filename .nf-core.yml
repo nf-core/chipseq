@@ -5,3 +5,8 @@ lint:
     - config_defaults:
         - params.bamtools_filter_se_config
         - params.bamtools_filter_pe_config
+  files_exist:
+    - .github/workflows/linting_comment.yml
+  files_unchanged:
+    - .github/workflows/branch.yml
+    - .github/workflows/linting.yml
