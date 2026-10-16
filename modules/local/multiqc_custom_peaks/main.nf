@@ -1,0 +1,28 @@
+process MULTIQC_CUSTOM_PEAKS {
+    tag "$meta.id"
+
+    conda "${moduleDir}/environment.yml"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/ubuntu:20.04' :
+        'nf-core/ubuntu:20.04' }"
+
+    input:
+    tuple val(meta), path(peak), path(frip)
+    path peak_count_header
+    path frip_score_header
+
+    output:
+    tuple val(meta), path("*.peak_count_mqc.tsv"), emit: count
+    tuple val(meta), path("*.FRiP_mqc.tsv")      , emit: frip
+    tuple val("${task.process}"), val('sed'), eval("sed --version 2>&1 | sed '1!d;s/^.*) //'"), topic: versions, emit: versions_sed
+
+    when:
+    task.ext.when == null || task.ext.when
+
+    script:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    cat $peak | wc -l | awk -v OFS='\t' '{ print "${prefix}", \$1 }' | cat $peak_count_header - > ${prefix}.peak_count_mqc.tsv
+    cat $frip_score_header $frip > ${prefix}.FRiP_mqc.tsv
+    """
+}

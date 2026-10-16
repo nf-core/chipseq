@@ -17,15 +17,36 @@
                 "type": "string",
                 "format": "file-path",
                 "exists": true,
-                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
+                "errorMessage": "GZIP-compressed FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
             },
             "fastq_2": {
+                "errorMessage": "GZIP-compressed FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'",
                 "type": "string",
                 "format": "file-path",
-                "exists": true,
-                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "pattern": "^$|^\\S+\\.f(ast)?q\\.gz$"
+            },
+            "replicate": {
+                "type": "integer",
+                "errorMessage": "Replicate id not an integer!",
+                "meta": ["replicate"]
+            },
+            "antibody": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Antibody entry cannot contain spaces",
+                "meta": ["antibody"]
+            },
+            "control": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Control entry cannot contain spaces",
+                "meta": ["control"]
+            },
+            "control_replicate": {
+                "type": "integer",
+                "errorMessage": "Replicate id not an integer!",
+                "meta": ["control_replicate"]
             }
         },
         "required": ["sample", "fastq_1"]

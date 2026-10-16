@@ -38,7 +38,6 @@ workflow PIPELINE_INITIALISATION {
 
     main:
 
-    ch_versions = channel.empty()
 
     //
     // Print version and exit if required and dump pipeline parameters to JSON file
@@ -105,32 +104,13 @@ workflow PIPELINE_INITIALISATION {
     validateInputParameters()
 
     //
-    // Create channel from input file provided through params.input
+    // Create channel from input file provided through input
     //
 
-    channel
-        .fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
-        .map {
-            meta, fastq_1, fastq_2 ->
-                if (!fastq_2) {
-                    return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
-                } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
-                }
-        }
-        .groupTuple()
-        .map { samplesheet ->
-            validateInputSamplesheet(samplesheet)
-        }
-        .map {
-            meta, fastqs ->
-                return [ meta, fastqs.flatten() ]
-        }
-        .set { ch_samplesheet }
+    ch_samplesheet = channel.fromList(samplesheetToList(input, "assets/schema_input.json"))
 
     emit:
     samplesheet = ch_samplesheet
-    versions    = ch_versions
 }
 
 /*
@@ -187,33 +167,28 @@ workflow PIPELINE_COMPLETION {
 // Check and validate pipeline parameters
 //
 def validateInputParameters() {
+
     genomeExistsError()
-}
 
-//
-// Validate channels from input samplesheet
-//
-def validateInputSamplesheet(input) {
-    def (metas, fastqs) = input[1..2]
-
-    // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
-    def endedness_ok = metas.collect{ meta -> meta.single_end }.unique().size == 1
-    if (!endedness_ok) {
-        error("Please check input samplesheet -> Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end: ${metas[0].id}")
+    if (!params.fasta) {
+        error("Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file.")
     }
 
-    return [ metas[0], fastqs ]
-}
-//
-// Get attribute from genome config file e.g. fasta
-//
-def getGenomeAttribute(attribute) {
-    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
-        if (params.genomes[ params.genome ].containsKey(attribute)) {
-            return params.genomes[ params.genome ][ attribute ]
-        }
+    if (!params.gtf && !params.gff) {
+        error("No GTF or GFF3 annotation specified! The pipeline requires at least one of these files.")
     }
-    return null
+
+    if (params.gtf && params.gff) {
+        gtfGffWarn(log)
+    }
+
+    if (!params.macs_gsize) {
+        macsGsizeWarn(log)
+    }
+
+    if (!params.read_length && !params.macs_gsize) {
+        error ("Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS3 genome size for peak calling.")
+    }
 }
 
 //
@@ -285,12 +260,31 @@ def methodsDescriptionText(mqc_methods_yaml) {
     // TODO nf-core: Only uncomment below if logic in toolCitationText/toolBibliographyText has been filled!
     // meta["tool_citations"] = toolCitationText().replaceAll(", \\.", ".").replaceAll("\\. \\.", ".").replaceAll(", \\.", ".")
     // meta["tool_bibliography"] = toolBibliographyText()
-
-
     def methods_text = mqc_methods_yaml.text
 
     def engine =  new groovy.text.SimpleTemplateEngine()
     def description_html = engine.createTemplate(methods_text).make(meta)
 
     return description_html.toString()
+}
+
+//
+// Print a warning if both GTF and GFF have been provided
+//
+def gtfGffWarn(log) {
+    log.warn "=============================================================================\n" +
+        "  Both '--gtf' and '--gff' parameters have been provided.\n" +
+        "  Using GTF file as priority.\n" +
+        "==================================================================================="
+}
+
+//
+// Print a warning if macs_gsize parameter has not been provided
+//
+def macsGsizeWarn(log) {
+    log.warn "=============================================================================\n" +
+        "  --macs_gsize parameter has not been provided.\n" +
+        "  It will be auto-calculated by 'khmer unique-kmers.py' using the '--read_length' parameter.\n" +
+        "  Explicitly provide '--macs_gsize macs3_genome_size' to change this behaviour.\n" +
+        "==================================================================================="
 }

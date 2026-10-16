@@ -1,0 +1,9 @@
+#id: 'peak_count'
+#section_name: 'MERGED LIB: MACS3 peak count'
+#description: "is calculated from total number of peaks called by
+#	       <a href='https://github.com/taoliu/MACS' target='_blank'>MACS3</a>"
+#plot_type: 'bargraph'
+#anchor: 'peak_count'
+#pconfig:
+#    title: 'Total peak count'
+#    ylab: 'Peak count'

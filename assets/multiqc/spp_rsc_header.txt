@@ -1,0 +1,11 @@
+#id: 'rsc_coefficient'
+#section_name: 'MERGED LIB: spp RSC coefficient'
+#description: "generated using run_spp.R script from
+#              <a href='https://github.com/kundajelab/phantompeakqualtools' target='_blank'>phantompeakqualtools</a>."
+#plot_type: 'bargraph'
+#anchor: 'rsc_coefficient'
+#pconfig:
+#    title: 'Relative strand cross-correlation coefficient'
+#    ylab: 'RSC coefficient'
+#    ymin: 0
+#    tt_decimals: 1

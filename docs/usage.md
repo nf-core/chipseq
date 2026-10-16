@@ -4,53 +4,173 @@
 
 > _Documentation of pipeline parameters is generated automatically from the pipeline schema and can no longer be found in markdown files._
 
-## Introduction
-
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
-
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below.
+You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 7 columns, and a header row as shown in the examples below.
 
 ```bash
 --input '[path to samplesheet file]'
 ```
 
-### Multiple runs of the same sample
+### Multiple replicates
 
-The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
+The `sample` identifier should be identical when you have multiple replicates from the same experimental group; just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1.
 
-```csv title="samplesheet.csv"
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
+The `antibody` column is required to separate the downstream consensus peak merging for different antibodies. It is not advisable to generate a consensus peak set across different antibodies especially if their binding patterns are inherently different e.g. narrow transcription factors and broad histone marks.
+
+The `control` column should be the `sample` identifier for the controls for any given IP. This column together with the `control_replicate` column will set the corresponding control for each of the samples in the table.
+
+```console
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP,BLA203A25_S16_L002_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A49_S40_L001_R1_001.fastq.gz,,3,BCATENIN,WT_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L002_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
 ```
 
-### Full samplesheet
+### Multiple runs of the same library
 
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
-
-A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
+Both the `sample` and `replicate` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example where the samples called `WT_BCATENIN_IP` and `WT_INPUT` have been re-sequenced multiple times:
 
 ```csv title="samplesheet.csv"
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
-TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,
-TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP,BLA203A25_S16_L001_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A25_S16_L002_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A25_S16_L003_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A49_S40_L001_R1_001.fastq.gz,,3,BCATENIN,WT_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L001_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A30_S21_L002_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
 ```
 
-| Column    | Description                                                                                                                                                                            |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sample`  | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
-| `fastq_1` | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
-| `fastq_2` | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+### Note on IP and control replicates - Comparisons of one IP sample against multiple controls
 
-An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+The pipeline is designed to handle one IP and matching control replicate, see section above. However there can be
+situations where one might want to make multiple comparisons of the IP sample against several different controls. In
+those cases it is advisable to encode these comparisons either in the sample column or as another replicate. Since it is
+rather unusual in ChIP-Seq experiments, this feature is considered experimental. Please open a github issue in case you
+need further assistance.
+
+- Encoding in sample names:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP_CONTROL_2,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP_CONTROL_3,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L001_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
+```
+
+- Encoding as new biological replicates:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,3,BCATENIN,WT_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L001_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
+```
+
+- The following design, one IP replicate against more than one control replicate, is not allowed:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L001_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
+```
+
+### Full design
+
+The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 7 columns to match those defined in the table below.
+
+A final design file may look something like the one below. This is for two antibodies and associated controls, where the second replicate of the `WT_BCATENIN_IP` and `NAIVE_BCATENIN_IP` samples have been sequenced twice:
+
+```csv title="samplesheet.csv"
+sample,fastq_1,fastq_2,replicate,antibody,control,control_replicate
+WT_BCATENIN_IP,BLA203A1_S27_L006_R1_001.fastq.gz,,1,BCATENIN,WT_INPUT,1
+WT_BCATENIN_IP,BLA203A25_S16_L001_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A25_S16_L002_R1_001.fastq.gz,,2,BCATENIN,WT_INPUT,2
+WT_BCATENIN_IP,BLA203A49_S40_L001_R1_001.fastq.gz,,3,BCATENIN,WT_INPUT,3
+NAIVE_BCATENIN_IP,BLA203A7_S60_L001_R1_001.fastq.gz,,1,BCATENIN,NAIVE_INPUT,1
+NAIVE_BCATENIN_IP,BLA203A43_S34_L001_R1_001.fastq.gz,,2,BCATENIN,NAIVE_INPUT,2
+NAIVE_BCATENIN_IP,BLA203A43_S34_L002_R1_001.fastq.gz,,2,BCATENIN,NAIVE_INPUT,2
+NAIVE_BCATENIN_IP,BLA203A64_S55_L001_R1_001.fastq.gz,,3,BCATENIN,NAIVE_INPUT,3
+WT_TCF4_IP,BLA203A3_S29_L006_R1_001.fastq.gz,,1,TCF4,WT_INPUT,1
+WT_TCF4_IP,BLA203A27_S18_L001_R1_001.fastq.gz,,2,TCF4,WT_INPUT,2
+WT_TCF4_IP,BLA203A51_S42_L001_R1_001.fastq.gz,,3,TCF4,WT_INPUT,3
+NAIVE_TCF4_IP,BLA203A9_S62_L001_R1_001.fastq.gz,,1,TCF4,NAIVE_INPUT,1
+NAIVE_TCF4_IP,BLA203A45_S36_L001_R1_001.fastq.gz,,2,TCF4,NAIVE_INPUT,2
+NAIVE_TCF4_IP,BLA203A66_S57_L001_R1_001.fastq.gz,,3,TCF4,NAIVE_INPUT,3
+WT_INPUT,BLA203A6_S32_L006_R1_001.fastq.gz,,1,,,
+WT_INPUT,BLA203A30_S21_L001_R1_001.fastq.gz,,2,,,
+WT_INPUT,BLA203A31_S21_L003_R1_001.fastq.gz,,3,,,
+NAIVE_INPUT,BLA203A12_S3_L001_R1_001.fastq.gz,,1,,,
+NAIVE_INPUT,BLA203A48_S39_L001_R1_001.fastq.gz,,2,,,
+NAIVE_INPUT,BLA203A49_S1_L006_R1_001.fastq.gz,,3,,,
+```
+
+| Column              | Description                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sample`            | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). It should be unique per sample and contain sufficient informations, such as the antibody name. E.g: `{Treatment or cell type}_{antibody}_IP` -> `{WT/NAIVE}_{BCATENIN}_IP` |
+| `fastq_1`           | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                                                                                                                                                                                                        |
+| `fastq_2`           | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                                                                                                                                                                                                        |
+| `replicate`         | Integer representing replicate number. This will be identical for re-sequenced libraries. Must start from `1..<number of replicates>`.                                                                                                                                                                                                                            |
+| `antibody`          | Antibody name. This is required to segregate downstream analysis for different antibodies. Required for IP samples (i.e. when `control` is specified).                                                                                                                                                                                                            |
+| `control`           | Sample name for control sample.                                                                                                                                                                                                                                                                                                                                   |
+| `control_replicate` | Integer representing replicate number for control sample.                                                                                                                                                                                                                                                                                                         |
+
+Example design files have been provided with the pipeline for [paired-end](../assets/samplesheet_pe.csv) and [single-end](../assets/samplesheet_se.csv) data.
+
+> **NB:** The `group` and `replicate` columns were replaced with a single `sample` column as of v2.0 of the pipeline. The `sample` column is essentially a concatenation of the `group` and `replicate` columns. If all values of `sample` have the same number of underscores, fields defined by these underscore-separated names may be used in the PCA plots produced by the pipeline, to regain the ability to represent different groupings.
+
+## Reference genome files
+
+The minimum reference genome requirements are a FASTA and a GTF file, all other files required to run the pipeline can be generated from these files. However, it is more storage and compute friendly if you are able to re-use reference genome files as efficiently as possible. It is recommended to use the `--save_reference` parameter if you are using the pipeline to build new indices (e.g. those unavailable on [AWS iGenomes](https://nf-co.re/usage/reference_genomes)) so that you can save them somewhere locally. The index building step can be quite a time-consuming process and it permits their reuse for future runs of the pipeline to save disk space. You can then either provide the appropriate reference genome files on the command-line via the appropriate parameters (e.g. `--bwa_index '/path/to/bwa/index/'`) or via a [custom config file](https://nf-co.re/usage/configuration#custom-configuration-files).
+
+- If `--genome` is provided then the FASTA and GTF files (and existing indices) will be automatically obtained from AWS-iGenomes unless these have already been downloaded locally in the path specified by `--igenomes_base`.
+- If `--gene_bed` is not provided then it will be generated from the GTF file.
+
+> **NB:** Compressed reference files are also supported by the pipeline i.e. standard files with the `.gz` extension and indices folders with the `tar.gz` extension.
+
+## Blacklist bed files
+
+The blacklist bed files where obtained using the commands below:
+
+```console
+cd ..
+mkdir -p v1.0
+cd v1.0
+wget -L https://www.encodeproject.org/files/ENCFF001TDO/@@download/ENCFF001TDO.bed.gz && gunzip ENCFF001TDO.bed.gz && mv ENCFF001TDO.bed hg19-blacklist.v1.bed
+
+mkdir -p assets/blacklists/v2.0/
+cd assets/blacklists/v2.0/
+wget -L https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists/ce10-blacklist.v2.bed.gz && gunzip ce10-blacklist.v2.bed.gz
+wget -L https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists/ce11-blacklist.v2.bed.gz && gunzip ce11-blacklist.v2.bed.gz
+wget -L https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists/dm3-blacklist.v2.bed.gz && gunzip dm3-blacklist.v2.bed.gz
+wget -L https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists/dm6-blacklist.v2.bed.gz && gunzip dm6-blacklist.v2.bed.gz
+wget -L https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists/hg19-blacklist.v2.bed.gz && gunzip hg19-blacklist.v2.bed.gz
+wget -L https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists/hg38-blacklist.v2.bed.gz && gunzip hg38-blacklist.v2.bed.gz
+wget -L https://raw.githubusercontent.com/Boyle-Lab/Blacklist/master/lists/mm10-blacklist.v2.bed.gz && gunzip mm10-blacklist.v2.bed.gz
+
+cd ..
+mkdir -p v3.0
+cd v3.0
+wget -L https://www.encodeproject.org/files/ENCFF356LFX/@@download/ENCFF356LFX.bed.gz && gunzip ENCFF356LFX.bed.gz && mv ENCFF356LFX.bed hg38-blacklist.v3.bed
+```
+
+> **NB:** A detailed description of the different versions of the files can be found [here](https://github.com/Boyle-Lab/Blacklist/blob/master/README.md). Also, to to see which blacklist bed files are assigned by default to the respective reference genome check the [igenomes.config](https://github.com/nf-core/chipseq/blob/master/conf/igenomes.config).
 
 ## Running the pipeline
 
@@ -107,7 +227,7 @@ nextflow pull nf-core/chipseq
 
 It is a good idea to specify the pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-First, go to the [nf-core/chipseq releases page](https://github.com/nf-core/chipseq/releases) and find the latest pipeline version - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`. Of course, you can switch to another version by changing the number after the `-r` flag.
+First, go to the [nf-core/chipseq releases page](https://github.com/nf-core/chipseq/releases) and find the latest pipeline version - numeric only (eg. `2.1.0`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 2.1.0`. Of course, you can switch to another version by changing the number after the `-r` flag.
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future. For example, at the bottom of the MultiQC reports.
 
