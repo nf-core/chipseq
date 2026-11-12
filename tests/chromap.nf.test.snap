@@ -40,7 +40,7 @@
                     "R": "4.0.3"
                 },
                 "FASTQC": {
-                    "fastqc": "0.12.1"
+                    "fastqc": "0.13.0"
                 },
                 "FRIP_SCORE": {
                     "bedtools": "2.31.1",
@@ -901,7 +901,7 @@
                 "fastqc_top_overrepresented_sequences_table.yaml:md5,443e161371f73cebf63c14f7a9f3580d",
                 "featureCounts_assignment_plot.yaml:md5,7ba9bc1659472a0859c527d0f8f10c8b",
                 "multiqc_citations.yaml:md5,fca5dc7cb20162434c714d26b11161f3",
-                "multiqc_fastqc.yaml:md5,30fe6d1a5e5c04695dda81294b828ec9",
+                "multiqc_fastqc.yaml:md5,e467e7e9876f0c75189eccc3a0becd8f",
                 "multiqc_fastqc_fastqc-1.yaml:md5,cd4a85c27c3cf85f1d0612afce793186",
                 "multiqc_featurecounts.yaml:md5,e8d7d07826b918b9de226607c83ebeab",
                 "multiqc_frip_score.yaml:md5,bb0959532068d1639a75c7d9c49d492b",
@@ -962,10 +962,10 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-07-24T09:24:27.701718",
+        "timestamp": "2026-11-11T23:15:02.316996",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.0"
+            "nextflow": "26.04.6"
         }
     },
     "chromap with stub": {

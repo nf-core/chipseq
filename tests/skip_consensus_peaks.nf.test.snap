@@ -43,7 +43,7 @@
                     "deeptools": "3.5.6"
                 },
                 "FASTQC": {
-                    "fastqc": "0.12.1"
+                    "fastqc": "0.13.0"
                 },
                 "FRIP_SCORE": {
                     "bedtools": "2.31.1",
@@ -836,7 +836,7 @@
                 "fastqc_sequence_length_distribution_plot.yaml:md5,e701cb601de4693ab09473b849e4f110",
                 "fastqc_top_overrepresented_sequences_table.yaml:md5,443e161371f73cebf63c14f7a9f3580d",
                 "multiqc_citations.yaml:md5,c4cdebc20cfc52eb2eee741a36323b3e",
-                "multiqc_fastqc.yaml:md5,30fe6d1a5e5c04695dda81294b828ec9",
+                "multiqc_fastqc.yaml:md5,e467e7e9876f0c75189eccc3a0becd8f",
                 "multiqc_fastqc_fastqc-1.yaml:md5,cd4a85c27c3cf85f1d0612afce793186",
                 "multiqc_frip_score.yaml:md5,a12e53352fb861b27e22fada20d4a352",
                 "multiqc_nsc_coefficient.yaml:md5,2f98bade263dddff526bc627bd956f94",
@@ -896,10 +896,10 @@
                 "samplesheet.valid.csv:md5,276425084544b3baf533e2f17207a384"
             ]
         ],
-        "timestamp": "2026-07-24T09:47:16.170912",
+        "timestamp": "2026-11-11T23:36:07.518769",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.0"
+            "nextflow": "26.04.6"
         }
     }
 }

@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[PR #537](https://github.com/nf-core/chipseq/pull/537)] - Updated pipeline template to [nf-core/tools 4.0.3](https://github.com/nf-core/tools/releases/tag/4.0.3)
 - [[PR #542](https://github.com/nf-core/chipseq/pull/542)] - Updated pipeline template to [nf-core/tools 4.1.0](https://github.com/nf-core/tools/releases/tag/4.1.0),
   increased nf-test selfhosted runners volume to 60gb
+- [[PR #547](https://github.com/nf-core/chipseq/pull/547)] - Updated pipeline template to [nf-core/tools 4.2.2](https://github.com/nf-core/tools/releases/tag/4.2.2)
 
 ### Parameters
 
