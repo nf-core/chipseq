@@ -153,11 +153,20 @@
                     "errorMessage": "BED file must be a valid path ending in .bed, or its .gz compressed version (e.g., genome.bed.gz)"
                 },
                 "macs_gsize": {
-                    "type": "integer",
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "pattern": "^[0-9]+(\\.[0-9]+)?[eE]\\+?[0-9]+$"
+                        }
+                    ],
                     "description": "Effective genome size parameter required by MACS3.",
-                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS3. If using an iGenomes reference these have been provided for any of the genomes available in the igenomes.config, and for the following read lengths (50,75,100,150,200) that should be set using the `--read_length` parameter. For other genomes, if this parameter is not specified it will be inferred using the provided `--read_length` or otherwise the pipeline execution will stop with an error.",
+                    "help_text": "[Effective genome size](https://macs3-project.github.io/MACS/docs/callpeak.html#options-controling-peak-calling-behaviors) parameter required by MACS3, given as a positive integer (e.g. `2701262066`) or in scientific notation (e.g. `2.7e9`). If this parameter is set it always takes precedence. Otherwise, when using `--genome`, a pre-computed value is taken from `igenomes.config` for the read length given with `--read_length` (50, 75, 100, 150 or 200). For other genomes it is calculated with `khmer` from the genome FASTA and `--read_length`. If neither `--macs_gsize` nor `--read_length` are provided the pipeline will stop with an error. See the usage documentation for details.",
                     "fa_icon": "fas fa-arrows-alt-h",
-                    "errorMessage": "MACS3 effective genome size must be a positive number."
+                    "errorMessage": "MACS3 effective genome size must be a positive integer (e.g. 2701262066) or in scientific notation (e.g. 2.7e9)."
                 },
                 "blacklist": {
                     "type": "string",
