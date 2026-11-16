@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[PR #542](https://github.com/nf-core/chipseq/pull/542)] - Updated pipeline template to [nf-core/tools 4.1.0](https://github.com/nf-core/tools/releases/tag/4.1.0),
   increased nf-test selfhosted runners volume to 60gb
 - [[PR #547](https://github.com/nf-core/chipseq/pull/547)] - Updated pipeline template to [nf-core/tools 4.2.2](https://github.com/nf-core/tools/releases/tag/4.2.2)
+- [ ] - Allow `--macs_gsize` in scientific notation (e.g. `2.7e9`), clarify the MACS3 genome size warning/error messages and document `--macs_gsize` and `--read_length` in the usage docs.
 
 ### Parameters
 
