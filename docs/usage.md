@@ -144,6 +144,32 @@ The minimum reference genome requirements are a FASTA and a GTF file, all other 
 
 > **NB:** Compressed reference files are also supported by the pipeline i.e. standard files with the `.gz` extension and indices folders with the `tar.gz` extension.
 
+## MACS3 effective genome size
+
+MACS3 requires an [effective genome size](https://macs3-project.github.io/MACS/docs/callpeak.html#options-controling-peak-calling-behaviors) for peak calling. This value depends on the read length, since longer reads can be mapped uniquely to a larger fraction of the genome. The pipeline determines it as follows, in order of precedence:
+
+1. If `--macs_gsize` is provided, this value is always used. It can be given as an integer, e.g. `--macs_gsize2701262066`, or in scientific notation, e.g. `--macs_gsize 2.7e9`.
+2. If `--genome` and `--read_length` are provided for the genomes in
+   [`igenomes.config`](https://github.com/nf-core/chipseq/blob/master/conf/igenomes.config), some commonly used genomes
+   contain pre-computed `macs_gsize` with different read length (`50`, `75`, `100`, `150` and `200` ). If precomputed
+   values exist for the requested `--genome` and `read_length` the value is used. Set `--read_length` to the value
+   closest to your data, if it does not exactly match.
+3. If `--read_length` is the only value provided for e.g. custom genomes (`--fasta`), then `macs_gsize` is calculated from the genome FASTA with `khmer unique-kmers.py`.
+
+If neither `--macs_gsize` nor `--read_length` is provided, the pipeline stops with an error. This also applies when
+using `--genome` only, because the pre-computed value is selected by read length:
+
+```bash
+# 1. Use the pre-computed value for GRCh38 and 150 bp reads
+nextflow run nf-core/chipseq --input samplesheet.csv --outdir results --genome GRCh38 --read_length 150 -profile docker
+
+# 2. Or provide the effective genome size explicitly
+nextflow run nf-core/chipseq --input samplesheet.csv --outdir results --genome GRCh38 --macs_gsize 2.7e9 -profile docker
+
+# 3. Or providing a custom fasta and th read length explicitly
+nextflow run nf-core/chipseq --input samplesheet.csv --outdir results --fasta path/to/GRCh38.fasta{.gz} --read_length 150 -profile docker
+```
+
 ## Blacklist bed files
 
 The blacklist bed files where obtained using the commands below:
