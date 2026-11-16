@@ -220,7 +220,7 @@ def macsGsizeError() {
             "  - '--read_length' to calculate it from the genome FASTA with 'khmer'.\n"
     }
     error_string +=
-        "  - '--macs_gsize' to set it explicitly, e.g. '--macs_gsize 2.7e9'.\n" +
+        "  - '--macs_gsize' to set it explicitly, e.g. '--macs_gsize 2805665311'.\n" +
         "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     error(error_string)
 }
@@ -327,7 +327,7 @@ def macsGsizeWarn(log) {
     }
     warn_string +=
         "  It will be calculated by 'khmer unique-kmers.py' using '--read_length ${params.read_length}'.\n" +
-        "  Explicitly provide '--macs_gsize' (e.g. '--macs_gsize 2.7e9') to change this behaviour.\n" +
+        "  Explicitly provide '--macs_gsize' (e.g. '--macs_gsize 2805665311') to change this behaviour.\n" +
         "==================================================================================="
     log.warn warn_string
 }
