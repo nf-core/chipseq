@@ -149,7 +149,7 @@ The minimum reference genome requirements are a FASTA and a GTF file, all other 
 MACS3 requires an [effective genome size](https://macs3-project.github.io/MACS/docs/callpeak.html#options-controling-peak-calling-behaviors) for peak calling. This value depends on the read length, since longer reads can be mapped uniquely to a larger fraction of the genome. The pipeline determines it as follows, in order of precedence:
 
 1. If `--macs_gsize` is provided, this value is always used. It can be given as an integer, e.g. `--macs_gsize 2805665311`.
-2. If `--genome` and `--read_length` are provided and pre-computed `macs_gsize` for 
+2. If `--genome` and `--read_length` are provided and pre-computed `macs_gsize` for
    [`igenomes.config`](https://github.com/nf-core/chipseq/blob/master/conf/igenomes.config) exist it will be used.
    Some commonly used genomes contain pre-computed `macs_gsize` with different read length (`50`, `75`, `100`, `150` and
    `200` ).
