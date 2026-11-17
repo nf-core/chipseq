@@ -146,27 +146,29 @@ The minimum reference genome requirements are a FASTA and a GTF file, all other 
 
 ## MACS3 effective genome size
 
-MACS3 requires an [effective genome size](https://macs3-project.github.io/MACS/docs/callpeak.html#options-controling-peak-calling-behaviors) for peak calling. This value depends on the read length, since longer reads can be mapped uniquely to a larger fraction of the genome. The pipeline determines it as follows, in order of precedence:
+MACS3 requires an [effective genome size](https://macs3-project.github.io/MACS/docs/callpeak.html#options-controling-peak-calling-behaviors) for peak calling. This value depends on the read length, since longer reads can be mapped uniquely to a larger fraction of the genome. The pipeline determines it as follows:
 
-1. If `--macs_gsize` is provided, this value is always used. It can be given as an integer, e.g. `--macs_gsize 2805665311`.
-2. If `--genome` and `--read_length` are provided and pre-computed `macs_gsize` for
+1. If `--genome` and `--read_length` are provided and pre-computed `macs_gsize` for
    [`igenomes.config`](https://github.com/nf-core/chipseq/blob/master/conf/igenomes.config) exist it will be used.
    Some commonly used genomes contain pre-computed `macs_gsize` with different read length (`50`, `75`, `100`, `150` and
    `200` ).
-3. If `--read_length` is the only value provided for e.g. custom genomes (`--fasta`), then `macs_gsize` is calculated from the genome FASTA with `khmer unique-kmers.py`.
+2. If `--fasta` and `--read_length` are provided e.g. for custom genomes, then `macs_gsize` is calculated
+   from the genome FASTA with `khmer unique-kmers.py`.
+3. `--macs_gsize` can also be explicitly provided and will then be used, this is a ball back **options 1 and 2** are
+   preferred. It can be given as an integer, e.g. `--macs_gsize 2805665311`.
 
 If neither `--macs_gsize` nor `--read_length` is provided, the pipeline stops with an error. This also applies when
-using `--genome` only, because the pre-computed value is selected by read length:
+using `--genome` only, because the pre-computed value is selected by read length. Valid combinations are:
 
 ```bash
 # 1. Use the pre-computed value for GRCh38 and 150 bp reads
 nextflow run nf-core/chipseq --input samplesheet.csv --outdir results --genome GRCh38 --read_length 150 -profile docker
 
-# 2. Or provide the effective genome size explicitly
-nextflow run nf-core/chipseq --input samplesheet.csv --outdir results --genome GRCh38 --macs_gsize 2805665311 -profile docker
-
-# 3. Or providing a custom fasta and th read length explicitly
+# 2. Or providing a custom fasta and the read length explicitly
 nextflow run nf-core/chipseq --input samplesheet.csv --outdir results --fasta path/to/GRCh38.fasta[.gz] --read_length 150 -profile docker
+
+# 3. Or provide the effective genome size explicitly
+nextflow run nf-core/chipseq --input samplesheet.csv --outdir results --genome GRCh38 --macs_gsize 2805665311 -profile docker
 ```
 
 ## Blacklist bed files
