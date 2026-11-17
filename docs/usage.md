@@ -154,7 +154,7 @@ MACS3 requires an [effective genome size](https://macs3-project.github.io/MACS/d
    `200` ).
 2. If `--fasta` and `--read_length` are provided e.g. for custom genomes, then `macs_gsize` is calculated
    from the genome FASTA with `khmer unique-kmers.py`.
-3. `--macs_gsize` can also be explicitly provided and will then be used, this is a ball back **options 1 and 2** are
+3. `--macs_gsize` can also be explicitly provided and will then be used, this is a fall back, **options 1 and 2** are
    preferred. It can be given as an integer, e.g. `--macs_gsize 2805665311`.
 
 If neither `--macs_gsize` nor `--read_length` is provided, the pipeline stops with an error. This also applies when
