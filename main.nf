@@ -161,10 +161,7 @@ def getGenomeAttribute(attribute) {
 //
 def getMacsGsize(params) {
     def val = null
-    if (params.macs_gsize) {
-        return params.macs_gsize
-        }
-    else if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
+    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
         if (params.genomes[ params.genome ].containsKey('macs_gsize')) {
             if (params.genomes[ params.genome ][ 'macs_gsize' ].containsKey(params.read_length.toString())) {
                 val = params.genomes[ params.genome ][ 'macs_gsize' ][ params.read_length.toString() ]
