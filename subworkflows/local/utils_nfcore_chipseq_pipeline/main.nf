@@ -183,12 +183,46 @@ def validateInputParameters() {
     }
 
     if (!params.macs_gsize) {
+        if (!params.read_length) {
+            macsGsizeError()
+        }
         macsGsizeWarn(log)
     }
+}
 
-    if (!params.read_length && !params.macs_gsize) {
-        error ("Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS3 genome size for peak calling.")
+//
+// Read lengths for which a pre-computed MACS3 genome size is available for the selected '--genome'
+//
+def igenomesMacsGsizeReadLengths() {
+    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
+        def gsize = params.genomes[params.genome].get('macs_gsize')
+        if (gsize instanceof Map) {
+            return gsize.keySet().collect { read_length -> read_length.toString() }
+        }
     }
+    return []
+}
+
+//
+// Exit pipeline if the MACS3 genome size can neither be looked up nor calculated
+//
+def macsGsizeError() {
+    def read_lengths = igenomesMacsGsizeReadLengths()
+    def error_string = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
+        "  The MACS3 effective genome size could not be determined.\n" +
+        "  Please provide one of the following:\n"
+    if (read_lengths) {
+        error_string +=
+            "  - '--read_length' (one of: ${read_lengths.join(', ')}) to use the value\n" +
+            "    pre-computed for '--genome ${params.genome}' in 'igenomes.config'.\n"
+    } else {
+        error_string +=
+            "  - '--read_length' to calculate it from the genome FASTA with 'khmer'.\n"
+    }
+    error_string +=
+        "  - '--macs_gsize' to set it explicitly, e.g. '--macs_gsize 2805665311'.\n" +
+        "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    error(error_string)
 }
 
 //
@@ -279,12 +313,21 @@ def gtfGffWarn(log) {
 }
 
 //
-// Print a warning if macs_gsize parameter has not been provided
+// Print a warning if the MACS3 genome size will be calculated with khmer
 //
 def macsGsizeWarn(log) {
-    log.warn "=============================================================================\n" +
-        "  --macs_gsize parameter has not been provided.\n" +
-        "  It will be auto-calculated by 'khmer unique-kmers.py' using the '--read_length' parameter.\n" +
-        "  Explicitly provide '--macs_gsize macs3_genome_size' to change this behaviour.\n" +
+    def read_lengths = igenomesMacsGsizeReadLengths()
+    def warn_string = "=============================================================================\n" +
+        "  '--macs_gsize' has not been provided"
+    if (read_lengths) {
+        warn_string += " and no pre-computed value exists for\n" +
+            "  '--genome ${params.genome}' with '--read_length ${params.read_length}' (available: ${read_lengths.join(', ')}).\n"
+    } else {
+        warn_string += ".\n"
+    }
+    warn_string +=
+        "  It will be calculated by 'khmer unique-kmers.py' using '--read_length ${params.read_length}'.\n" +
+        "  Explicitly provide '--macs_gsize' (e.g. '--macs_gsize 2805665311') to change this behaviour.\n" +
         "==================================================================================="
+    log.warn warn_string
 }
